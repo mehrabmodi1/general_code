@@ -2,10 +2,10 @@ clear all
 close all
 
 direc = 'D:\Data\Janelia\Patch\Data_MM\thacq_files\';
-%list_file = 'cell_list_ABs.xls';
+list_file = 'cell_list_ABs.xls';
 %list_file = 'cell_list_ApBp.xls';
 %list_file = 'cell_list_G.xls';
-list_file = 'cell_list_unknown.xls';
+%list_file = 'cell_list_unknown.xls';
 %list_file = 'cell_list_unknown_unstained.xls';
 
 odor_list = {'3-Octanol', ...
