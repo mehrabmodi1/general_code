@@ -165,6 +165,10 @@ for cell_n = 1:n_cells
         %Ca-trace generation #3: Convolving a standard Ca-kernel with V-trace
         %creating Ca-kernel
         n_steps = 5.*tau.*sf;       %the length of the kernel is a multiple the Ca-tau used.
+        if rem(n_steps, 2) == 0
+            n_steps = n_steps + 1;
+        else
+        end
         kernel = zeros(1, n_steps) + nan;
         Ca_k = Cbaseline;
         for step_n = 1:n_steps
@@ -180,8 +184,13 @@ for cell_n = 1:n_cells
         end
         
         Ca_conv = conv( (V_trace + 60), kernel);
+        Ca_conv1 = Ca_conv;
         
-        
+        %since convolution adds on half the kernel at each end, clipping
+        %these points away.
+        clip_width = (length(kernel) - 1)./2;
+        Ca_conv(1:clip_width) = [];
+        Ca_conv((end-clip_width + 1):end) = [];
         
         
         figure(1)
@@ -215,6 +224,7 @@ for cell_n = 1:n_cells
 
         ylabel(hAx(1),'simulated Ca-signal (AU)') % left y-axis
         ylabel(hAx(2),'membrane voltage (mV)') % right y-axis
+        
         
         keyboard
     end

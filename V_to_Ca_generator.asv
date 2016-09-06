@@ -151,16 +151,40 @@ for cell_n = 1:n_cells
             else
             end
             
-            %membrane voltage converted to injected Ca-signal
+            %Ca-trace generation #1: membrane voltage converted to injected Ca-signal
             CaNew = ( (1 - time_step./tau).*Ca) + ( (time_step./tau).*Cbaseline) + ((Vin + 60).*Vscale);%.*(Ca_max-Ca));
             saved_Ca(1, t_step) = CaNew;
             Ca = CaNew;
             
-            %Ca-signal injected for each spike
+            %Ca-trace generation #2: Ca-signal injected for each spike
             CaNew_sp = ( (1 - time_step./tau).*Ca_sp) + ( (time_step./tau).*Cbaseline) + (Ca_sp_inj.*n_sp);%.*(Ca_max-Ca));
             saved_Ca_sp(1, t_step) = CaNew_sp;
             Ca_sp = CaNew_sp;
         end
+        
+        %Ca-trace generation #3: Convolving a standard Ca-kernel with V-trace
+        %creating Ca-kernel
+        n_steps = 5.*tau.*sf;       %the length of the kernel is a multiple the Ca-tau used.
+        kernel = zeros(1, n_steps) + nan;
+        Ca_k = Cbaseline;
+        for step_n = 1:n_steps
+            if step_n == 10
+                n_sp = 1;
+            elseif step_n ~= 10
+                n_sp = 0;
+            end
+            
+            CaNew_k = ( (1 - time_step./tau).*Ca_k) + ( (time_step./tau).*Cbaseline) + (Ca_sp_inj.*n_sp);%.*(Ca_max-Ca));
+            kernel(1, step_n) = CaNew_k;
+            Ca_k = CaNew_k;
+        end
+        
+        Ca_conv = conv( (V_trace + 60), kernel);
+        
+        %since convolution adds on half the kernel at each end, clipping
+        %these points away.
+        Ca_conv()
+        
         
         figure(1)
         t_vec = curr_data.data.time;
@@ -177,13 +201,25 @@ for cell_n = 1:n_cells
         t_vec = curr_data.data.time;
         [hAx,hLine1,hLine2] = plotyy(t_vec, saved_Ca_sp, t_vec, V_trace);
 
-        title('Recorded membrane voltage and simulated Ca-signal')
+        title('Recorded membrane voltage and simulated spike-triggered Ca-signal')
         xlabel('time (s)')
 
         ylabel(hAx(1),'simulated Ca-signal (AU)') % left y-axis
         ylabel(hAx(2),'membrane voltage (mV)') % right y-axis
-        keyboard
         
+        
+        figure(3)
+        t_vec = curr_data.data.time;
+        [hAx,hLine1,hLine2] = plotyy(t_vec, Ca_conv, t_vec, V_trace);
+
+        title('Recorded membrane voltage and convolved trace')
+        xlabel('time (s)')
+
+        ylabel(hAx(1),'simulated Ca-signal (AU)') % left y-axis
+        ylabel(hAx(2),'membrane voltage (mV)') % right y-axis
+        
+        
+        keyboard
     end
 end
     n_total_spikes = nansum(nansum(sp_data_mat)); 
