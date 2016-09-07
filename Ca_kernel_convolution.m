@@ -5,18 +5,18 @@ close all
 %CaNew = (1 - fr_time./tau).*Ca + (fr_time./tau)Cbaseline + sp_ht.*n_sp;
 %%from Vogelstein, Paninski et al, J neurophys; DOI: 10.1152/jn.01073.2009
 
-tau = .5;           %in s
-fr_time = .01;       %in s
+tau = 1.8;           %in s
+fr_time = .0001;       %in s
 Cbaseline = .1;
 Ca = Cbaseline;
-n_frames = 1000;
+n_frames = 50000;
 sp_ht = 1;
 saved_Ca = zeros(1, n_frames);
 for t_step = 1:n_frames
-    if t_step == 50
+    if t_step == 2000
         n_sp = 1;
     elseif t_step == 75
-        n_sp = .5;
+        n_sp = 0;
     else
         n_sp = 0;
     end
@@ -26,5 +26,7 @@ for t_step = 1:n_frames
     Ca = CaNew;
     
 end
-
-plot(saved_Ca);
+t_vec = 1./fr_time:1./fr_time:(n_frames./fr_time);
+plot(t_vec, saved_Ca, 'LineWidth', 2);
+xlabel('time(s)')
+ylabel('Ca signal (AU)')

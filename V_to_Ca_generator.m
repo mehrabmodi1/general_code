@@ -3,8 +3,8 @@ close all
 
 direc = 'D:\Data\Janelia\Patch\Data_MM\thacq_files\';
 %list_file = 'cell_list_ABs.xls';
-list_file = 'cell_list_ApBp.xls';
-%list_file = 'cell_list_G.xls';
+%list_file = 'cell_list_ApBp.xls';
+list_file = 'cell_list_G.xls';
 %list_file = 'cell_list_unknown.xls';
 %list_file = 'cell_list_unknown_unstained.xls';
 
@@ -110,7 +110,7 @@ for cell_n = 1:n_cells
         %CaNew = (1 - fr_time./tau).*Ca + (fr_time./tau)Cbaseline + sp_ht.*n_sp;
         %%from Vogelstein, Paninski et al, J neurophys; DOI: 10.1152/jn.01073.2009
         V_trace = curr_data.data.voltage.*1000/curr_data.amplifier.Vgain;    %in mV
-        tau = .5;                   %Ca decay constant in s
+        tau = 1.8;                   %Ca decay constant in s
         time_step = 1./sf;          %time step in V trace in s
         Cbaseline = .1;             %baseline level of simulated Ca signal
         Ca = Cbaseline;             %initialising Ca signal at t = 0
@@ -195,35 +195,65 @@ for cell_n = 1:n_cells
         
         figure(1)
         t_vec = curr_data.data.time;
-        [hAx,hLine1,hLine2] = plotyy(t_vec, saved_Ca, t_vec, V_trace);
+%         [hAx,hLine1,hLine2] = plotyy(t_vec, saved_Ca, t_vec, V_trace);
+% 
+%         title('Recorded membrane voltage and simulated Ca-signal')
+%         xlabel('time (s)')
+% 
+%         ylabel(hAx(1),'simulated Ca-signal (AU)') % left y-axis
+%         ylabel(hAx(2),'membrane voltage (mV)') % right y-axis
 
-        title('Recorded membrane voltage and simulated Ca-signal')
+        subplot(2, 1, 1)
+        plot(t_vec, V_trace, 'b', 'LineWidth', 1)
+         title('Membrane voltage and simulated Vm-scaled Ca-signal injection')
         xlabel('time (s)')
-
-        ylabel(hAx(1),'simulated Ca-signal (AU)') % left y-axis
-        ylabel(hAx(2),'membrane voltage (mV)') % right y-axis
-      
+        ylabel('membrane voltage (mV)')
+        subplot(2, 1, 2)
+        plot(t_vec, saved_Ca, 'g', 'LineWidth', 1)
+        xlabel('time (s)')
+        ylabel('simulated Ca-signal (AU)')
+       
         
         figure(2)
-        t_vec = curr_data.data.time;
-        [hAx,hLine1,hLine2] = plotyy(t_vec, saved_Ca_sp, t_vec, V_trace);
-
-        title('Recorded membrane voltage and simulated spike-triggered Ca-signal')
+%         t_vec = curr_data.data.time;
+%         [hAx,hLine1,hLine2] = plotyy(t_vec, saved_Ca_sp, t_vec, V_trace);
+% 
+%         title('Recorded membrane voltage and simulated spike-triggered Ca-signal')
+%         xlabel('time (s)')
+% 
+%         ylabel(hAx(1),'simulated Ca-signal (AU)') % left y-axis
+%         ylabel(hAx(2),'membrane voltage (mV)') % right y-axis
+            
+        subplot(2, 1, 1)
+        plot(t_vec, V_trace, 'b', 'LineWidth', 1)
+        title('Recorded membrane voltage and simulated spike-triggered Ca-signal injection')
         xlabel('time (s)')
-
-        ylabel(hAx(1),'simulated Ca-signal (AU)') % left y-axis
-        ylabel(hAx(2),'membrane voltage (mV)') % right y-axis
+        ylabel('membrane voltage (mV)')
+        subplot(2, 1, 2)
+        plot(t_vec, saved_Ca_sp, 'g', 'LineWidth', 1)
+        xlabel('time (s)')
+        ylabel('simulated Ca-signal (AU)') 
+        
         
         
         figure(3)
-        t_vec = curr_data.data.time;
-        [hAx,hLine1,hLine2] = plotyy(t_vec, Ca_conv, t_vec, V_trace);
-
-        title('Recorded membrane voltage and convolved trace')
+%         t_vec = curr_data.data.time;
+%         [hAx,hLine1,hLine2] = plotyy(t_vec, Ca_conv, t_vec, V_trace);
+% 
+%         title('Recorded membrane voltage and convolved trace')
+%         xlabel('time (s)')
+% 
+%         ylabel(hAx(1),'simulated Ca-signal (AU)') % left y-axis
+%         ylabel(hAx(2),'membrane voltage (mV)') % right y-axis
+        subplot(2, 1, 1)
+        plot(t_vec, V_trace, 'b', 'LineWidth', 1)
+        title('Recorded membrane voltage and Ca-signal kernel convolved trace')
         xlabel('time (s)')
-
-        ylabel(hAx(1),'simulated Ca-signal (AU)') % left y-axis
-        ylabel(hAx(2),'membrane voltage (mV)') % right y-axis
+        ylabel('membrane voltage (mV)')
+        subplot(2, 1, 2)
+        plot(t_vec, Ca_conv, 'g', 'LineWidth', 1)
+        xlabel('time (s)')
+        ylabel('simulated Ca-signal (AU)') 
         
         
         keyboard
