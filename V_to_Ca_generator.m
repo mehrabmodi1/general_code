@@ -31,9 +31,13 @@ n_odors = size(odor_list, 2);
 plot_spike_trace = 0;
 plot_single_cell_stuff = 0;
 
-saved_rates = [];
-saved_PSTH_curves = [];
-saved_sig_cells = [];
+saved_pre_sigs = [];
+saved_on_sigs = [];
+saved_sus_sigs = [];
+saved_off_sigs = [];
+sig_trs = [];
+
+plotting_on = 0;
 
 for cell_n = 1:n_cells
     cell_path = cell_list{cell_n, 1};
@@ -192,76 +196,143 @@ for cell_n = 1:n_cells
         Ca_conv(1:clip_width) = [];
         Ca_conv((end-clip_width + 1):end) = [];
         
-        
-        figure(1)
-        t_vec = curr_data.data.time;
-%         [hAx,hLine1,hLine2] = plotyy(t_vec, saved_Ca, t_vec, V_trace);
-% 
-%         title('Recorded membrane voltage and simulated Ca-signal')
-%         xlabel('time (s)')
-% 
-%         ylabel(hAx(1),'simulated Ca-signal (AU)') % left y-axis
-%         ylabel(hAx(2),'membrane voltage (mV)') % right y-axis
+        if plotting_on == 1
+            figure(1)
+            t_vec = curr_data.data.time;
+            subplot(2, 1, 1)
+            plot(t_vec, V_trace, 'b', 'LineWidth', 1)
+             title('Membrane voltage and simulated Vm-scaled Ca-signal injection')
+            xlabel('time (s)')
+            ylabel('membrane voltage (mV)')
+            subplot(2, 1, 2)
+            plot(t_vec, saved_Ca, 'g', 'LineWidth', 1)
+            xlabel('time (s)')
+            ylabel('simulated Ca-signal (AU)')
 
-        subplot(2, 1, 1)
-        plot(t_vec, V_trace, 'b', 'LineWidth', 1)
-         title('Membrane voltage and simulated Vm-scaled Ca-signal injection')
-        xlabel('time (s)')
-        ylabel('membrane voltage (mV)')
-        subplot(2, 1, 2)
-        plot(t_vec, saved_Ca, 'g', 'LineWidth', 1)
-        xlabel('time (s)')
-        ylabel('simulated Ca-signal (AU)')
-       
+
+            figure(2)
+            subplot(2, 1, 1)
+            plot(t_vec, V_trace, 'b', 'LineWidth', 1)
+            title('Recorded membrane voltage and simulated spike-triggered Ca-signal injection')
+            xlabel('time (s)')
+            ylabel('membrane voltage (mV)')
+            subplot(2, 1, 2)
+            plot(t_vec, saved_Ca_sp, 'g', 'LineWidth', 1)
+            xlabel('time (s)')
+            ylabel('simulated Ca-signal (AU)') 
+
+
+
+            figure(3)
+            subplot(2, 1, 1)
+            plot(t_vec, V_trace, 'b', 'LineWidth', 1)
+            title('Recorded membrane voltage and Ca-signal kernel convolved trace')
+            xlabel('time (s)')
+            ylabel('membrane voltage (mV)')
+            subplot(2, 1, 2)
+            plot(t_vec, Ca_conv, 'g', 'LineWidth', 1)
+            xlabel('time (s)')
+            ylabel('simulated Ca-signal (AU)') 
+        else
+        end
         
-        figure(2)
-%         t_vec = curr_data.data.time;
-%         [hAx,hLine1,hLine2] = plotyy(t_vec, saved_Ca_sp, t_vec, V_trace);
-% 
-%         title('Recorded membrane voltage and simulated spike-triggered Ca-signal')
-%         xlabel('time (s)')
-% 
-%         ylabel(hAx(1),'simulated Ca-signal (AU)') % left y-axis
-%         ylabel(hAx(2),'membrane voltage (mV)') % right y-axis
+        %keyboard
+        %% keeping track of area under simulated Ca-curve in various time bins
+        saved_Ca_curves = [Ca_conv, saved_Ca_sp', saved_Ca'];
+        
+        pre_bin = [1./sf, (3.*sf - 1)];           %in sample points
+        on_bin = [3.*sf, (8.*sf - 1)];            %on period sample points (5s window?)
+        sus_bin = [8.*sf, (63.*sf - 1)];          %sus period sample points
+        off_bin = [63.*sf, (65.*sf - 1)];         %off period sample points
+
+        %calculating area under Ca-signal curves for plotting
+        pre_sigs = mean(saved_Ca_curves(pre_bin(1):pre_bin(2), :))./3;       %mean spikes per second during pre time window
+        on_sigs = mean(saved_Ca_curves(on_bin(1):on_bin(2), :))./5;             %mean spikes per second during on time window
+        sus_sigs = mean(saved_Ca_curves(sus_bin(1):sus_bin(2), :))./55;          %mean spikes per second during sus time window
+        off_sigs = mean(saved_Ca_curves(off_bin(1):off_bin(2), :))./2;          %mean spikes per second during off time window
+        
+        saved_pre_sigs = [saved_pre_sigs; pre_sigs];
+        saved_on_sigs = [saved_on_sigs; on_sigs];
+        saved_sus_sigs = [saved_sus_sigs; sus_sigs];
+        saved_off_sigs = [saved_off_sigs; off_sigs];
+        
+        
+        %calculating time-binned area vectors of Ca-signal curves for significance testing
+        %defining vectors of bins
+        pre_bins = [1./sf:(.5.*sf):(3.*sf - 1)];           %in sample points
+        on_bins = [3.*sf:(.5.*sf):(8.*sf - 1)];            %on period sample points (5s window?)
+        sus_bins = [8.*sf:(.5.*sf):(63.*sf - 1)];          %sus period sample points
+        off_bins = [63.*sf:(.5.*sf):(65.*sf - 1)];         %off period sample points
+        
+        %calculating pre-area vecs
+        pre_area_vecs = zeros((length(pre_bins)-1), 3);
+        for pre_bin_n = 1:(length(pre_bins)-1)
+            bin_ends = [pre_bins(pre_bin_n), pre_bins(pre_bin_n + 1)];
+            pre_area_vecs(pre_bin_n, :) = sum(saved_Ca_curves(bin_ends(1):bin_ends(2), :) );
             
-        subplot(2, 1, 1)
-        plot(t_vec, V_trace, 'b', 'LineWidth', 1)
-        title('Recorded membrane voltage and simulated spike-triggered Ca-signal injection')
-        xlabel('time (s)')
-        ylabel('membrane voltage (mV)')
-        subplot(2, 1, 2)
-        plot(t_vec, saved_Ca_sp, 'g', 'LineWidth', 1)
-        xlabel('time (s)')
-        ylabel('simulated Ca-signal (AU)') 
+        end
+            
+        %calculating on-area vecs
+        on_area_vecs = zeros((length(on_bins)-1), 3);
+        for on_bin_n = 1:(length(on_bins)-1)
+            bin_ends = [on_bins(on_bin_n), on_bins(on_bin_n + 1)];
+            on_area_vecs(on_bin_n, :) = sum(saved_Ca_curves(bin_ends(1):bin_ends(2), :) );
+        end
+        
+        %calculating sus-area vecs
+        sus_area_vecs = zeros((length(sus_bins)-1), 3);
+        for sus_bin_n = 1:(length(sus_bins)-1)
+            bin_ends = [sus_bins(sus_bin_n), sus_bins(sus_bin_n + 1)];
+            sus_area_vecs(sus_bin_n, :) = sum(saved_Ca_curves(bin_ends(1):bin_ends(2), :) );
+        end
         
         
+        %statistical testing for sig diff in current trial
+        [h1, p1] = ttest2(pre_area_vecs(:, 1), sus_area_vecs(:, 1));      %pre vs sus, Ca conv
+        [h2, p2] = ttest2(pre_area_vecs(:, 2), sus_area_vecs(:, 2));      %pre vs sus, Ca spike
+        [h3, p3] = ttest2(pre_area_vecs(:, 3), sus_area_vecs(:, 3));      %pre vs sus, Ca Vm
         
-        figure(3)
-%         t_vec = curr_data.data.time;
-%         [hAx,hLine1,hLine2] = plotyy(t_vec, Ca_conv, t_vec, V_trace);
-% 
-%         title('Recorded membrane voltage and convolved trace')
-%         xlabel('time (s)')
-% 
-%         ylabel(hAx(1),'simulated Ca-signal (AU)') % left y-axis
-%         ylabel(hAx(2),'membrane voltage (mV)') % right y-axis
-        subplot(2, 1, 1)
-        plot(t_vec, V_trace, 'b', 'LineWidth', 1)
-        title('Recorded membrane voltage and Ca-signal kernel convolved trace')
-        xlabel('time (s)')
-        ylabel('membrane voltage (mV)')
-        subplot(2, 1, 2)
-        plot(t_vec, Ca_conv, 'g', 'LineWidth', 1)
-        xlabel('time (s)')
-        ylabel('simulated Ca-signal (AU)') 
+        sig_trs = [sig_trs; h1, h2, h3];
         
-        
-        keyboard
+        disp(int2str(trial_n))
+        %keyboard
     end
 end
-    n_total_spikes = nansum(nansum(sp_data_mat)); 
     
-        
-   
-    
-    
+%% Plotting summary analysis plots
+figure(1)
+plot(saved_pre_sigs(:, 1), saved_sus_sigs(:, 1), 'O', 'MarkerFaceColor', [.4, .6, .9], 'MarkerSize', 8, 'Color', [.4, .6, .9])
+hold on
+max_rate = max([saved_pre_sigs(:, 1); saved_sus_sigs(:, 1)]);
+plot([0, max_rate], [0, max_rate], '-.', 'Color', [.75, .75, .75], 'LineWidth', 3)
+sig_pts = find(sig_trs(:, 1) == 1);
+plot(saved_pre_sigs(sig_pts, 1), saved_sus_sigs(sig_pts, 1), 'O', 'MarkerFaceColor', [.9, .2, .2], 'MarkerSize', 8, 'Color', [.4, .6, .9])
+xlabel('mean Ca signal baseline period (AU)')
+ylabel('mean Ca signal sustained period (AU)')
+title('Ca-kernel convolution')
+hold off
+
+figure(2)
+plot(saved_pre_sigs(:, 1), saved_sus_sigs(:, 1), 'O', 'MarkerFaceColor', [.4, .6, .9], 'MarkerSize', 8, 'Color', [.4, .6, .9])
+hold on
+max_rate = max([saved_pre_sigs(:, 2); saved_sus_sigs(:, 2)]);
+plot([0, max_rate], [0, max_rate], '-.', 'Color', [.75, .75, .75], 'LineWidth', 3)
+sig_pts = find(sig_trs(:, 2) == 1);
+plot(saved_pre_sigs(sig_pts, 2), saved_sus_sigs(sig_pts, 2), 'O', 'MarkerFaceColor', [.9, .2, .2], 'MarkerSize', 8, 'Color', [.4, .6, .9])
+xlabel('mean Ca signal baseline period (AU)')
+ylabel('mean Ca signal sustained period (AU)')
+title('Spike triggered Ca-signal injection')
+hold off
+
+figure(3)
+plot(saved_pre_sigs(:, 3), saved_sus_sigs(:, 3), 'O', 'MarkerFaceColor', [.4, .6, .9], 'MarkerSize', 8, 'Color', [.4, .6, .9])
+hold on
+max_rate = max([saved_pre_sigs(:, 3); saved_sus_sigs(:, 1)]);
+plot([0, max_rate], [0, max_rate], '-.', 'Color', [.75, .75, .75], 'LineWidth', 3)
+sig_pts = find(sig_trs(:, 3) == 1);
+plot(saved_pre_sigs(sig_pts, 3), saved_sus_sigs(sig_pts, 3), 'O', 'MarkerFaceColor', [.9, .2, .2], 'MarkerSize', 8, 'Color', [.4, .6, .9])
+xlabel('mean Ca signal baseline period (AU)')
+ylabel('mean Ca signal sustained period (AU)')
+title('Scaled Vm Ca-signal injection')
+hold off
+       
