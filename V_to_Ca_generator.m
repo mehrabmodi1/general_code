@@ -4,8 +4,8 @@ close all
 direc = 'D:\Data\Janelia\Patch\Data_MM\thacq_files\';
 %list_file = 'cell_list_ABs.xls';
 %list_file = 'cell_list_ApBp.xls';
-list_file = 'cell_list_G.xls';
-%list_file = 'cell_list_unknown.xls';
+%list_file = 'cell_list_G.xls';
+list_file = 'cell_list_unknown.xls';
 %list_file = 'cell_list_unknown_unstained.xls';
 
 odor_list = {'3-Octanol', ...
@@ -246,10 +246,10 @@ for cell_n = 1:n_cells
         off_bin = [63.*sf, (65.*sf - 1)];         %off period sample points
 
         %calculating area under Ca-signal curves for plotting
-        pre_sigs = mean(saved_Ca_curves(pre_bin(1):pre_bin(2), :))./3;       %mean spikes per second during pre time window
-        on_sigs = mean(saved_Ca_curves(on_bin(1):on_bin(2), :))./5;             %mean spikes per second during on time window
-        sus_sigs = mean(saved_Ca_curves(sus_bin(1):sus_bin(2), :))./55;          %mean spikes per second during sus time window
-        off_sigs = mean(saved_Ca_curves(off_bin(1):off_bin(2), :))./2;          %mean spikes per second during off time window
+        pre_sigs = mean(saved_Ca_curves(pre_bin(1):pre_bin(2), :));          %mean spikes per second during pre time window
+        on_sigs = mean(saved_Ca_curves(on_bin(1):on_bin(2), :));             %mean spikes per second during on time window
+        sus_sigs = mean(saved_Ca_curves(sus_bin(1):sus_bin(2), :));          %mean spikes per second during sus time window
+        off_sigs = mean(saved_Ca_curves(off_bin(1):off_bin(2), :));          %mean spikes per second during off time window
         
         saved_pre_sigs = [saved_pre_sigs; pre_sigs];
         saved_on_sigs = [saved_on_sigs; on_sigs];
@@ -313,7 +313,7 @@ title('Ca-kernel convolution')
 hold off
 
 figure(2)
-plot(saved_pre_sigs(:, 1), saved_sus_sigs(:, 1), 'O', 'MarkerFaceColor', [.4, .6, .9], 'MarkerSize', 8, 'Color', [.4, .6, .9])
+plot(saved_pre_sigs(:, 2), saved_sus_sigs(:, 2), 'O', 'MarkerFaceColor', [.4, .6, .9], 'MarkerSize', 8, 'Color', [.4, .6, .9])
 hold on
 max_rate = max([saved_pre_sigs(:, 2); saved_sus_sigs(:, 2)]);
 plot([0, max_rate], [0, max_rate], '-.', 'Color', [.75, .75, .75], 'LineWidth', 3)
@@ -327,7 +327,7 @@ hold off
 figure(3)
 plot(saved_pre_sigs(:, 3), saved_sus_sigs(:, 3), 'O', 'MarkerFaceColor', [.4, .6, .9], 'MarkerSize', 8, 'Color', [.4, .6, .9])
 hold on
-max_rate = max([saved_pre_sigs(:, 3); saved_sus_sigs(:, 1)]);
+max_rate = max([saved_pre_sigs(:, 3); saved_sus_sigs(:, 3)]);
 plot([0, max_rate], [0, max_rate], '-.', 'Color', [.75, .75, .75], 'LineWidth', 3)
 sig_pts = find(sig_trs(:, 3) == 1);
 plot(saved_pre_sigs(sig_pts, 3), saved_sus_sigs(sig_pts, 3), 'O', 'MarkerFaceColor', [.9, .2, .2], 'MarkerSize', 8, 'Color', [.4, .6, .9])
