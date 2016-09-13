@@ -2,10 +2,10 @@ clear all
 close all
 
 direc = 'D:\Data\Janelia\Patch\Data_MM\thacq_files\';
-list_file = 'cell_list_ABs.xls';
+%list_file = 'cell_list_ABs.xls';
 %list_file = 'cell_list_ApBp.xls';
 %list_file = 'cell_list_G.xls';
-%list_file = 'cell_list_unknown.xls';
+list_file = 'cell_list_unknown.xls';
 %list_file = 'cell_list_unknown_unstained.xls';
 
 odor_list = {'3-Octanol', ...
@@ -34,6 +34,7 @@ plot_single_cell_stuff = 0;
 saved_rates = [];
 saved_PSTH_curves = [];
 saved_sig_cells = [];
+saved_sig_cells2 = [];
 
 for cell_n = 1:n_cells
     cell_path = cell_list{cell_n, 1};
@@ -184,8 +185,9 @@ for cell_n = 1:n_cells
 %                 continue
 %             else
 %             end
-            
-    
+            %lag = size(curr_spike_mat, 1)./2000;
+            %curr_spike_mat_f = tsmovavg_m(curr_spike_mat,'s',lag,1);      %filtering spikes to spread them out so that each spike is not sub-pixel resolution for display
+
             if plot_single_cell_stuff == 1
                 %creating raster plot
                 fig1 = figure(odor_dur_n);
@@ -287,15 +289,17 @@ for cell_n = 1:n_cells
                 sus_bin = [8.*sf, (63.*sf - 1)];          %sus period sample points
                 off_bin = [63.*sf, (65.*sf - 1)];         %off period sample points
                 
-                pre_rate = mean(sum(curr_spike_mat(pre_bin(1):pre_bin(2), :)) )./3;       %mean spikes per second during pre time window
-                on_rate = mean(sum(curr_spike_mat(on_bin(1):on_bin(2), :)) )./5;             %mean spikes per second during on time window
-                sus_rate = mean(sum(curr_spike_mat(sus_bin(1):sus_bin(2), :)) )./55;          %mean spikes per second during sus time window
-                off_rate = mean(sum(curr_spike_mat(off_bin(1):off_bin(2), :)) )./2;          %mean spikes per second during off time window
-                
-                rate_vec = [pre_rate, on_rate, sus_rate, off_rate];
+                pre_rate = mean(mean(curr_spike_mat(pre_bin(1):pre_bin(2), :)) );          %mean spikes per second during pre time window
+                pre_sd = mean(var(curr_spike_mat(pre_bin(1):pre_bin(2), :)) ).^0.5;        %averaging variances and sqrt-ing to get trial averaged SD 
+                on_rate = mean(mean(curr_spike_mat(on_bin(1):on_bin(2), :)) );             %mean spikes per second during on time window
+                sus_rate = mean(mean(curr_spike_mat(sus_bin(1):sus_bin(2), :)) );          %mean spikes per second during sus time window
+                off_rate = mean(mean(curr_spike_mat(off_bin(1):off_bin(2), :)) );          %mean spikes per second during off time window
+                                
+                rate_vec = ([pre_rate, on_rate, sus_rate, off_rate] - pre_rate)./pre_sd;   %calculating z-scored spike rates
                 saved_rates = [saved_rates; rate_vec];
                 
-                
+                    
+                    
             else
             end
             
@@ -309,34 +313,38 @@ for cell_n = 1:n_cells
 end
 
 %plotting sus rates versus pre rates
-fig1 = figure(1);
-plot(saved_rates(:, 1), saved_rates(:, 3), 'O', 'MarkerFaceColor', [.4, .6, .9], 'MarkerSize', 8, 'Color', [.4, .6, .9])
-hold on
-max_rate = max([saved_rates(:, 1); saved_rates(:, 3)]);
-plot([0, max_rate], [0, max_rate], '-.', 'Color', [.75, .75, .75], 'LineWidth', 3)
-sig_pts = find(saved_sig_cells(:, 1) == 1);
-plot(saved_rates(sig_pts, 1), saved_rates(sig_pts, 3), 'O', 'MarkerFaceColor', [.9, .2, .2], 'MarkerSize', 8, 'Color', [.4, .6, .9])
-xlabel('mean spike rate baseline period (Hz)')
-ylabel('mean spike rate sustained period (Hz)')
-hold off
+% fig1 = figure(1);
+% plot(saved_rates(:, 1), saved_rates(:, 3), 'O', 'MarkerFaceColor', [.4, .6, .9], 'MarkerSize', 8, 'Color', [.4, .6, .9])
+% hold on
+% max_rate = max([saved_rates(:, 1); saved_rates(:, 3)]);
+% plot([0, max_rate], [0, max_rate], '-.', 'Color', [.75, .75, .75], 'LineWidth', 3)
+% sig_pts = find(saved_sig_cells(:, 1) == 1);
+% %plot(saved_rates(sig_pts, 1), saved_rates(sig_pts, 3), 'O', 'MarkerFaceColor', [.9, .2, .2], 'MarkerSize', 8, 'Color', [.4, .6, .9])
+% xlabel('mean spike rate baseline period (Hz)')
+% ylabel('mean spike rate sustained period (Hz)')
+% hold off
+%plotting dist of z-scored sus period rates
+
+fig1 = scattered_dot_plot(saved_rates(:, [2, 3]), 1, 2, 2, 8, [.45, .45, .65], 0, [0, 0, 0]);
+ylabel('z-scored spike rate')
 
 
 %plotting on rates versus pre rates
-fig2 = figure(2);
-plot(saved_rates(:, 1), saved_rates(:, 2), 'O', 'MarkerFaceColor', [.4, .6, .9], 'MarkerSize', 8, 'Color', [.4, .6, .9])
-hold on
-max_rate = max([saved_rates(:, 1); saved_rates(:, 2)]);
-plot([0, max_rate], [0, max_rate], '-.', 'Color', [.75, .75, .75], 'LineWidth', 3)
-sig_pts = find(saved_sig_cells(:, 2) == 1);
-plot(saved_rates(sig_pts, 1), saved_rates(sig_pts, 2), 'O', 'MarkerFaceColor', [.9, .2, .2], 'MarkerSize', 8, 'Color', [.4, .6, .9])
-xlabel('mean spike rate baseline period (Hz)')
-ylabel('mean spike rate on period (Hz)')
-hold off
+% fig2 = figure(2);
+% plot(saved_rates(:, 1), saved_rates(:, 2), 'O', 'MarkerFaceColor', [.4, .6, .9], 'MarkerSize', 8, 'Color', [.4, .6, .9])
+% hold on
+% max_rate = max([saved_rates(:, 1); saved_rates(:, 2)]);
+% plot([0, max_rate], [0, max_rate], '-.', 'Color', [.75, .75, .75], 'LineWidth', 3)
+% sig_pts = find(saved_sig_cells(:, 2) == 1);
+% %plot(saved_rates(sig_pts, 1), saved_rates(sig_pts, 2), 'O', 'MarkerFaceColor', [.9, .2, .2], 'MarkerSize', 8, 'Color', [.4, .6, .9])
+% xlabel('mean spike rate baseline period (Hz)')
+% ylabel('mean spike rate on period (Hz)')
+% hold off
 
 %plotting mean PSTH curve (relative of the Stopfer plot)
 fig3 = figure(3);
 PSTH_mean = nanmean(saved_PSTH_curves);
-PSTH_se = std(saved_PSTH_curves)./sqrt(size(PSTH_curves, 1));
+PSTH_se = std(saved_PSTH_curves)./sqrt(size(PSTH_curves, 2));
 shadedErrorBar([0.5:0.5:80], PSTH_mean, PSTH_se, {'Color', '[.4, .6, .9]'});
 add_stim_shading(3, [3, 63], .25, [0.6, 0.8, 0.6]);
 xlabel('time (s)')
