@@ -2,10 +2,10 @@ clear all
 close all
 
 direc = 'D:\Data\Janelia\Patch\Data_MM\thacq_files\';
-%list_file = 'cell_list_ABs.xls';
+list_file = 'cell_list_ABs.xls';
 %list_file = 'cell_list_ApBp.xls';
 %list_file = 'cell_list_G.xls';
-list_file = 'cell_list_unknown.xls';
+%list_file = 'cell_list_unknown.xls';
 %list_file = 'cell_list_unknown_unstained.xls';
 
 odor_list = {'3-Octanol', ...
@@ -325,21 +325,11 @@ end
 % hold off
 %plotting dist of z-scored sus period rates
 
-fig1 = scattered_dot_plot(saved_rates(:, [2, 3]), 1, 2, 2, 8, [.45, .45, .65], 0, [0, 0, 0]);
+fig1 = scattered_dot_plot(saved_rates(:, [2, 3]), 1, 2, 2, 8, [.45, .45, .65], 0, [0, 0, 0], {'on win', 'sus win'});
+hold on
+
 ylabel('z-scored spike rate')
 
-
-%plotting on rates versus pre rates
-% fig2 = figure(2);
-% plot(saved_rates(:, 1), saved_rates(:, 2), 'O', 'MarkerFaceColor', [.4, .6, .9], 'MarkerSize', 8, 'Color', [.4, .6, .9])
-% hold on
-% max_rate = max([saved_rates(:, 1); saved_rates(:, 2)]);
-% plot([0, max_rate], [0, max_rate], '-.', 'Color', [.75, .75, .75], 'LineWidth', 3)
-% sig_pts = find(saved_sig_cells(:, 2) == 1);
-% %plot(saved_rates(sig_pts, 1), saved_rates(sig_pts, 2), 'O', 'MarkerFaceColor', [.9, .2, .2], 'MarkerSize', 8, 'Color', [.4, .6, .9])
-% xlabel('mean spike rate baseline period (Hz)')
-% ylabel('mean spike rate on period (Hz)')
-% hold off
 
 %plotting mean PSTH curve (relative of the Stopfer plot)
 fig3 = figure(3);

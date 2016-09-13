@@ -1,4 +1,4 @@
-function fig_h = scattered_dot_plot(mat, fig_n, col_width, col_spacing, markersize, markercolor, with_lines, linecolor)
+function fig_h = scattered_dot_plot(mat, fig_n, col_width, col_spacing, markersize, markercolor, with_lines, linecolor, xlabels)
 %This function plots the values in each column of mat as dots separated
 %with a random scatter of width col_width and inter-column spacing as
 %specified. Line spec can be used to specify marker style, color and size.
@@ -16,10 +16,12 @@ function fig_h = scattered_dot_plot(mat, fig_n, col_width, col_spacing, markersi
 n_cols = size(mat, 2);
 
 fig_h = figure(fig_n);
-
+saved_col_centers = zeros(1, n_cols);
 if with_lines == 0
     for col_n = 1:n_cols
         curr_vec = mat(:, col_n);
+        col_center = ( (col_n-1).*(col_width + (col_spacing)) + 0.5) + col_width./2;
+        saved_col_centers(col_n) = col_center;
         r_vec = rand(length(curr_vec), 1).*col_width + ( (col_n-1).*(col_width + (col_spacing)) + 0.5);
 
 
@@ -33,6 +35,8 @@ elseif with_lines == 1
     %generating random offsets
     r_vec = rand(size(mat, 1), 1);
     for col_n = 1:n_cols
+        col_center = ( (col_n-1).*(col_width + (col_spacing)) + 0.5) + col_width./2;
+        saved_col_centers(col_n) = col_center;
         r_vecs(:, col_n) = r_vec.*col_width + ( (col_n-1).*(col_width + (col_spacing)) + 0.5);
     end
     
@@ -49,4 +53,9 @@ elseif with_lines == 1
     end
     hold off
 end
+
+ax = gca;
+ax.XTick = saved_col_centers;
+ax.XTickLabels = xlabels;
+
 end
