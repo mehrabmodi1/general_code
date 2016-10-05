@@ -89,7 +89,7 @@ for ROI_n = 1:n_cells
             playMovie(ROI_all_pix_mat, 0.05, 0)
             
             qstring = 'What do you want to do?';
-            btn_options = {'keep cell', 'discard cell', 'replay movie', 'skip dataset'};
+            btn_options = {'keep cell', 'discard cell', 'replay movie', 'skip dataset', 'save movie'};
             btn_n = bttnChoiseDialog(btn_options, 'Input Needed', 1, qstring);
             
             if btn_n == 1
@@ -104,11 +104,27 @@ for ROI_n = 1:n_cells
                 keep_cell = 1;
                 play_again = 0;
                 skip_set = 1;
+            elseif btn_n == 5
+                play_again = 1;
+                
+                %saving movie
+                save_direc = uigetdir('C:\Users\Mehrab\Google Drive\Backup\Stuff\CSHL\', 'Select folder to save movie in.');
+                c = clock;
+                c = fix(c);
+                save_direc = [save_direc, '\ROI_movie_', int2str(c(4)), int2str(c(5)), int2str(c(6)), '.tif'];
+                
+                n_frames = size(ROI_all_pix_mat, 3);
+                for frame_n = 1:n_frames
+                    imwrite(ROI_all_pix_mat(:, :, frame_n),save_direc,'WriteMode','append')
+                end
+                                
             else
             end
+            
         end
 
     else
+        keep_cell = 1;
     end
     if keep_cell == 0
         bad_cell_list = [bad_cell_list; ROI_n];

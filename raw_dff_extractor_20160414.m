@@ -1,7 +1,7 @@
 clear all
 close all
 
-list_direc = ['D:\Data\CSHL\dataset_list_sustained_MB131B_20160515.txt'];
+list_direc = ['D:\Data\CSHL\dataset_list_PN_GH146_20161002.txt'];
 fid = fopen(list_direc);
 
 direc_counter = 0;

@@ -3,9 +3,9 @@
 clear all
 close all
 
-direc = 'D:\Data\CSHL\20160914\Fly1\big_zstack\';
+direc = 'D:\Data\CSHL\20160915\fly2\zstack\';
 save_path = 'C:\Users\Mehrab\Google Drive\Backup\Stuff\CSHL\Glenn lab\Talks\Labmeets\20161011\zstacks\';
-
+saving = 1;
 
 %reading in dataset parameters
 try
@@ -52,43 +52,13 @@ for slice_n = 1:n_slices
     drawnow
     pause(0.1)
     
-    saving = 0;
-    
-    
     %saving
     if saving == 1
-%         save([save_path 'direc.mat'], 'direc');
-%         print('-dtiff', [save_path 'slice_' int2str(slice_n) '.tif'])
-        imwrite(ave_mat(:, :, slice_n), [save_path, 'zstack.tif'], 'WriteMode','append');
+        save([save_path 'direc.mat'], 'direc');
+        print('-dtiff', [save_path 'slice_' int2str(slice_n) '.tif'])
+        %imwrite(uint8(ave_mat(:, :, slice_n)), [save_path, 'zstack.tif'], 'WriteMode','append');
     else
     end
     
 end
 
-
-
-
-%reading in a frame and calculating corrcoef with each slice in the z-stack
-direc = 'C:\Data\CSHL\20141029\ag_odor_stim\';
-[n_frames, n_trials, frame_rate, zoom, d_path, f_name, tr_tg_num, ave_frame] = tiff_info(direc);
-
-c_vec = zeros(1, n_slices);
-for slice_n = 1:n_slices
-    curr_slice = ave_mat(:, :, slice_n);
-    c = mat_corrcoef(ave_frame, curr_slice);
-    
-    c_vec(slice_n) = c;
-end
-
-plot(c_vec, '.')
-xlabel('z - depth (microns)')
-ylabel('Correlation with averaged frame from Trial 1')
-set(gcf, 'Color', 'w')
-
-hold on
-
-c_veci = c_vec;
-c_veci((n_slices-4):n_slices) = [];
-c_veci = [c_vec(1), c_vec(1), c_vec(1), c_vec(1), c_veci];
-
-plot(c_veci, 'r.')

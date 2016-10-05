@@ -3,16 +3,12 @@
 clear all
 close all
 
-direc = 'D:\Data\CSHL\20160914\Fly1\big_zstack\';
-save_path = 'C:\Users\Mehrab\Google Drive\Backup\Stuff\CSHL\Glenn lab\Talks\Labmeets\20161011\zstacks\';
+direc = 'C:\Data\CSHL\20141029\zstack\';
+save_path = 'C:\Data\CSHL\Analysed_data\sandbox\z_stack\';
 
 
 %reading in dataset parameters
-try
-    [n_frames, n_trials, frame_rate, zoom, d_path, f_name, tr_tg_num, ave_frame] = tiff_info(direc);
-catch
-    keyboard
-end
+[n_frames, n_trials, frame_rate, zoom, d_path, f_name, tr_tg_num, ave_frame] = tiff_info(direc);
 
 n_slices = n_trials;
 
@@ -59,7 +55,8 @@ for slice_n = 1:n_slices
     if saving == 1
 %         save([save_path 'direc.mat'], 'direc');
 %         print('-dtiff', [save_path 'slice_' int2str(slice_n) '.tif'])
-        imwrite(ave_mat(:, :, slice_n), [save_path, 'zstack.tif'], 'WriteMode','append');
+        imwrite(save_path, );
+    
     else
     end
     
