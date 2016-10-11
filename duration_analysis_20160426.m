@@ -4,7 +4,9 @@ close all
 %list_direc = 'D:\Data\CSHL\dataset_list_stim_dur_20160316.txt'; %KCs all
 %list_direc = 'D:\Data\CSHL\dataset_list_sustained_MB418B_20160414.txt'; %KC A'B'
 %list_direc = 'D:\Data\CSHL\dataset_list_sustained_MB185B_20160426.txt'; %KC AB
-list_direc = 'D:\Data\CSHL\dataset_list_sustained_MB131B_20160515.txt'; %KC G
+%list_direc = 'D:\Data\CSHL\dataset_list_sustained_MB131B_20160515.txt'; %KC G
+list_direc = 'D:\Data\CSHL\dataset_list_PN_GH146_20161002.txt'; %PN axons
+
 
 color_vec = load('C:\Users\Mehrab\Google Drive\Backup\Stuff\CSHL\Glenn lab\Code\std_color_vec.txt');
 a = colormap('bone');

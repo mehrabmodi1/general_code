@@ -1,10 +1,11 @@
 clear all
 close all
 
-direc_lists_mat = [{'D:\Data\CSHL\dataset_list_sustained_MB418B_20160414.txt'};... %KC A'B'
-                    {'D:\Data\CSHL\dataset_list_sustained_MB185B_20160426.txt'};... %KC AB
+direc_lists_mat = [...%{'D:\Data\CSHL\dataset_list_sustained_MB418B_20160414.txt'};... %KC A'B'
+                    %{'D:\Data\CSHL\dataset_list_sustained_MB185B_20160426.txt'};... %KC AB
                     %{'D:\Data\CSHL\dataset_list_stim_dur_20160316.txt'} ... KCs all
-                    {'D:\Data\CSHL\dataset_list_sustained_MB131B_20160515.txt'}... %KC G
+                    %{'D:\Data\CSHL\dataset_list_sustained_MB131B_20160515.txt'}... %KC G
+                    {'D:\Data\CSHL\dataset_list_PN_GH146_20161002.txt'}... %PN axons
                     ]; 
                 
        
@@ -16,7 +17,7 @@ color_vec = load('C:\Users\Mehrab\Google Drive\Backup\Stuff\CSHL\Glenn lab\Code\
 a = colormap('bone');
 greymap = flipud(a);
 
-suppress_plots = 1;       %1 - doesn't plot stuff, 0 - plots stuff
+suppress_plots = 0;       %1 - doesn't plot stuff, 0 - plots stuff
 
 saved_cell_data = cell(1, 45);
 

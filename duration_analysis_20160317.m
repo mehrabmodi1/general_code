@@ -1,7 +1,7 @@
 clear all
 close all
 
-list_direc = ['D:\Data\CSHL\dataset_list_sustained_MB418B_20160414.txt']; %expt datasets
+list_direc = ['D:\Data\CSHL\dataset_list_PN_GH146_20161002.txt']; %expt datasets
 
 choose_cell_type = 0;       %switch to turn on manual determination of cell-types.
 type_to_plot = 2;           %select cell type to plot, only works if cell types have already been chosen.
@@ -127,13 +127,14 @@ while 1
 %            ave_dff_mat = ave_dff_mat./length(tr_list);
            figure(1)
            imagesc(squeeze(ave_dff_mat)', [0, 4])
-           xlabel('frame number')
+           xlabel('time (s)')
            ylabel('cell number')
            set(gcf, 'Color', 'w')
            a = colormap('bone');
            a = flipud(a);
            colormap(a)
            title(['fly number ' int2str(direc_counter) ', odor number ' int2str(odor_ni) ', odor duration' int2str(odor_dur_list(odor_dur_n))]);
+           set_xlabels_time(1, frame_time, .5);
            
            
            %First make cell lists and then enable the lines for plotting below
