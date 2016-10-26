@@ -1,7 +1,7 @@
 clear all
 close all
 
-list_direc = ['D:\Data\CSHL\dataset_list_sustained_MB418B_20160414.txt']; %expt datasets
+list_direc = ['D:\Data\CSHL\dataset_list_sustained_MB185B_20160426.txt']; %expt datasets
 
 choose_cell_type = 0;       %switch to turn on manual determination of cell-types.
 type_to_plot = 2;           %select cell type to plot, only works if cell types have already been chosen.
@@ -29,8 +29,7 @@ while 1
     direc_counter = direc_counter + 1;
     direc = fgetl(fid);
     
-   
-    
+      
     if ischar(direc) ~= 1
         break
     else
@@ -50,7 +49,7 @@ while 1
     raw_data_mat = load([direc 'expt_raw_traces.mat']);
     raw_data_mat = raw_data_mat.raw_data_mat;
     
-    
+   
     %calculating dF/F traces and creating the sparse, 4-D, nan-filled
     %dff_data_mat 
     [dff_data_mat, stim_mat, prot_switch_trials] = cal_dff_traces_20160317(raw_data_mat, dataset, list_direc);
@@ -69,7 +68,7 @@ while 1
     %responder cells in any individual block
     [resp_areas, sig_trace_mat, sig_cell_mat, sig_cell_block_mati] = ...
         cal_sig_responses_20161024(dataset, dff_data_mat, stim_mat, prot_switch_trials, list_direc, an_trial_window);
-        
+      keyboard  
     del = isnan(resp_areas(1, :));
     bad_tr_list = find(del == 1);                   %list of trials thrown away due to movement
     good_tr_list = 1:n_trials;

@@ -85,7 +85,7 @@ for rep_gp = 1:n_rep_gps                %a rep_gp is a group of repeats of the s
         for rep_n = 1:size(pk_resps, 2) 
             curr_pk = pk_resps(rep_n);
             if curr_pk > base_m + 2.33.*base_s
-                
+                h = 1;
                 sig_trace_mat(cell_n, rep_tr_list(rep_n)) = 1;
                 
             else
@@ -105,23 +105,21 @@ for rep_gp = 1:n_rep_gps                %a rep_gp is a group of repeats of the s
                 h = 0;
             end
         else
-            h = 0;
         end
         
         if h == 1
-            n_points = sum(abs(isnan(curr_traces_f(:, 1)) - 1));                     %not plotting padding nans
-            thresh_vec = zeros(n_points,1) + base_m + 2.5.*base_s;
+            n_points                                                                    %not plotting padding nans
+            thresh_vec = zeros(size(curr_traces_f, 1), 1) + base_m + 2.33.*base_s;
             
             figure(1)
-            plot(curr_traces_f(1:n_points, :), 'Color', [0.65, 0.65, 0.65])
+            plot(curr_traces_f, 'Color', [0.65, 0.65, 0.65])
             hold on
-            ave_full_trace = nanmean(curr_traces_f(1:n_points, :), 2);
+            ave_full_trace = nanmean(curr_traces_f, 2);
             plot(ave_full_trace, 'Color', 'k', 'LineWidth', 2)
             plot(thresh_vec, 'r')
             hold off
             
             set_xlabels_time(1, frame_time./1000, 1.5)
-            figure(1)
             keyboard
         else
         end
