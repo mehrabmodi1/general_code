@@ -5,8 +5,9 @@ direc = 'D:\Data\Janelia\Patch\Data_MM\thacq_files\';
 %list_file = 'cell_list_ABs.xls';
 %list_file = 'cell_list_ApBp.xls';
 %list_file = 'cell_list_G.xls';
-list_file = 'cell_list_unknown.xls';
+%list_file = 'cell_list_unknown.xls';
 %list_file = 'cell_list_unknown_unstained.xls';
+list_file = 'cell_list_allKCs.xls';
 
 odor_list = {'3-Octanol', ...
              '1-Hexanol', ...
@@ -108,7 +109,17 @@ for cell_n = 1:n_cells
         stim_mat(trial_n, 3) = curr_data.parameter.preO;        %odor onset time
         stim_mat(trial_n, 4) = curr_data.paratable{2, 3};       %trial duration
         
-        v_trace = curr_data.data.voltage;
+        v_trace = curr_data.data.voltage*1000/curr_data.amplifier.Vgain;
+        base_trace = v_trace([1:(stim_mat(trial_n, 3).*sf - 1)], 1);
+        base_m = mean(base_trace);
+        
+        %skipping trial if baseline is higher than -50 mV
+        if base_m > -50
+            continue
+        else
+        end
+        
+        
         sp_vec = zeros((curr_data.parameter.dur.*sf), 1);
         try
             sp_vec(round(sp_datapoints), 1) = 1;

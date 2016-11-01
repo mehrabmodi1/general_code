@@ -2,6 +2,7 @@ function [] = add_stim_shading(figure_n, stim_frames, transparency, stim_color)
 %This function adds a shaded, semi-transparent rectangular patch(es) over 
 %figure_n, at x-axis intervals specified as pairs in stim_frames (each row 
 %is a patch), with transparency and color as specified.
+%syntax: [] = add_stim_shading(figure_n, stim_frames, transparency, stim_color)
 
 figure(figure_n)
 hold on
