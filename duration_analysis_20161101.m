@@ -232,20 +232,23 @@ for direc_list_n = 1:n_direc_lists
 
             end
         end
+        
+        %building union set of sig cells for 1s and for 60s stims
         dur_n = find(odor_dur_list == 1);
-        ave_areas_1s = reshape(ave_areas(:, :, dur_n), 1, []);
-        ses_areas_1s = reshape(se_areas(:, :, dur_n), 1, []);
         sig_cell_list_1s = find(sum(sig_cell_mat(:, :, dur_n), 2) > 0);
         dur_n = find(odor_dur_list == 60);
-        ave_areas_60s = reshape(ave_areas(:, :, dur_n), 1, []);
-        ses_areas_60s = reshape(se_areas(:, :, dur_n), 1, []);
         sig_cell_list_60s = find(sum(sig_cell_mat(:, :, dur_n), 2) > 0); 
         sig_cell_list = union(sig_cell_list_1s, sig_cell_list_60s);
-        ave_areas = ave_areas(sig_cell_list, :);
         
-        saved_ave_areas = concatenate_mat(saved_ave_areas, ave_areas, 1);
-
-
+        if exist('saved_ave_areas') == 0
+            saved_ave_areas = ave_areas(sig_cell_list, :, :);
+            saved_ses_areas = se_areas(sig_cell_list, :, :);
+        elseif exist('saved_ave_areas') == 1
+            saved_ave_areas = concatenate_padded(saved_ave_areas, ave_areas(sig_cell_list, :, :), 1, nan);
+            saved_ses_areas = concatenate_padded(saved_ses_areas, se_areas(sig_cell_list, :, :), 1, nan);
+        else
+            keyboard
+        end
         
     end
     
@@ -269,10 +272,18 @@ for direc_list_n = 1:n_direc_lists
     mean_facs = nanmean(c_facs, 2);
     ses_facs = nanstd(c_facs, [], 2)./sqrt(size(c_facs, 2));
     
-   
+    %preparing vectors of sig resp areas for plotting
+    dur_n = find(odor_dur_list == 1);
+    ave_areas_1s = reshape(saved_ave_areas(:, :, dur_n), 1, []);
+    ses_areas_1s = reshape(saved_ses_areas(:, :, dur_n), 1, []);
+
+    dur_n = find(odor_dur_list == 60);
+    ave_areas_60s = reshape(saved_ave_areas(:, :, dur_n), 1, []);
+    ses_areas_60s = reshape(saved_ses_areas(:, :, dur_n), 1, []);
+
     
-    
-    
+    clear saved_ave_areas
+    clear saved_ses_areas
     clear cell_freq_lists
     %PLOTTING
     %plotting responder fractions for each odor, for 1s and 60s stimuli
@@ -307,9 +318,9 @@ for direc_list_n = 1:n_direc_lists
     %plotting resp areas for 1s vs 60s stimuli
     figure(3)
     h_fig = figure(3);
-    errorbar(ave_areas_1s(sig_cell_list), ave_areas_60s(sig_cell_list), ses_areas_60s(sig_cell_list), 'ok', 'MarkerFaceColor', 'k', 'MarkerSize', 4)
+    errorbar(ave_areas_1s, ave_areas_60s, ses_areas_60s, 'ok', 'MarkerFaceColor', 'k', 'MarkerSize', 4)
     hold on
-    herrorbar(ave_areas_1s(sig_cell_list), ave_areas_60s(sig_cell_list), ses_areas_1s(sig_cell_list), '.k')
+    herrorbar(ave_areas_1s, ave_areas_60s, ses_areas_1s, '.k')
     axis_old = axis;
     min_ax = min([axis_old(1), axis_old(3)]);
     max_ax = max([axis_old(2), axis_old(4)]);
