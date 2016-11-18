@@ -27,25 +27,19 @@ sus_vec2(stim_frame:stim_off_frame) = 2;
 resp_mat = [onset_vec1; onset_vec2; off_vec1; off_vec2; sus_vec1; sus_vec2];
 resp_mat_noise = resp_mat + randn(size(resp_mat, 1), size(resp_mat, 2));
 
-resp_mat_smoothed = zeros(size(resp_mat, 1), size(resp_mat, 2));
-lag = 10;
-for trace_n = 1:size(resp_mat, 1);
-    resp_mat_smoothed(trace_n, :) = tsmovavg_m(resp_mat_noise(trace_n, :)','s', lag, 1);
-end
+resp_mat_smoothed = zeros(resp_mat)
 
-resp_mat_smoothed(:, 1:(lag-1)) = [];
- 
-dist_mat_clean =  corrcoef(resp_mat');
+
+dist_mat_euc =  squareform(pdist(resp_mat, 'correlation'));
 figure(1)
-imagesc(dist_mat_clean)
-title('clean traces')
+imagesc(dist_mat_euc)
+title('correlation distances')
 
-dist_mat_noise = corrcoef(resp_mat_noise');
+testmat = corrcoef(resp_mat');
 figure(3)
-imagesc(dist_mat_noise);
-title('noise added')
+imagesc(testmat)
 
-dist_mat_smoothed = corrcoef(resp_mat_smoothed');
+dist_mat_mah =  squareform(pdist(resp_mat, 'cosine'));
 figure(2)
-imagesc(dist_mat_smoothed)
-title('smoothed')
+imagesc(dist_mat_mah)
+title('other dist')

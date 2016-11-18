@@ -282,9 +282,6 @@ for direc_list_n = 1:n_direc_lists
     ses_areas_60s = reshape(saved_ses_areas(:, :, dur_n), 1, []);
 
     
-    clear saved_ave_areas
-    clear saved_ses_areas
-    clear cell_freq_lists
     %PLOTTING
     %plotting responder fractions for each odor, for 1s and 60s stimuli
     figure(1)
@@ -299,6 +296,7 @@ for direc_list_n = 1:n_direc_lists
     ax.XTickLabelRotation=45;
     ylabel('Fraction of responsive cells')
     set(h_fig, 'units','normalized','position',[.1 .1 .25 .35])
+    axis([0, (length(odor_list) + 1), 0, 1])
     hold off
    
     %plotting change index (x-y)/(x+y)
@@ -324,17 +322,34 @@ for direc_list_n = 1:n_direc_lists
     axis_old = axis;
     min_ax = min([axis_old(1), axis_old(3)]);
     max_ax = max([axis_old(2), axis_old(4)]);
-    diag_vec = [min_ax, max_ax];
+    diag_vec = [min_ax, 10];
     plot(diag_vec, diag_vec, '--', 'Color', '[0.75, 0.75, 0.75]', 'LineWidth', 1)
     hold off
     axis([min_ax, max_ax, min_ax, max_ax]);
     xlabel('1s odor responses (dF/F)');
     ylabel('60s odor responses (dF/F)');
     set(h_fig, 'units','normalized','position',[.1 .1 .25 .35])
+    axis([0, 10, 0, 10])
+
+    [r, p_corr] = corrcoef(ave_areas_1s, ave_areas_60s, 'rows', 'complete');
+    
+    %SETTING UP STATISTICAL TESTING
+    %1. checking if sig frac for 60s is different from that for 1s stims 
+    
+    %pooling sig fracs across odors, flies for 1s and 60s stims
+    dur_n = find(odor_dur_list == 1);
+    sig_fracs_1s = reshape(cell_freq_lists(:, dur_n, :), 1, []);
+    dur_n = find(odor_dur_list == 60);
+    sig_fracs_60s = reshape(cell_freq_lists(:, dur_n, :), 1, []);
+    [h, p] = ttest2(sig_fracs_1s, sig_fracs_60s);
     
     
-    keyboard
     
+    clear saved_ave_areas
+    clear saved_ses_areas
+    clear cell_freq_lists
+
+keyboard
 end
     
         
