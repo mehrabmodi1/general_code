@@ -26,7 +26,7 @@ saved_cell_data = cell(1, 45);
 
 %figure property initialisation variables
 plot_height = 200;
-plot_width = 280;
+plot_width = 200;
 axis_font_size = 8;
 tick_length = [0.02, 0.05];
 line_widths = 2;
@@ -354,7 +354,7 @@ for direc_list_n = 1:n_direc_lists
     set_xlabels_time(1, frame_time, .4)
     ylabel('sig. cell-odor pairs')
     xlabel('time (s)')
-    set(fig_h, 'Position', [100, 100, 100 + plot_width, 100 + plot_height]);
+    set(fig_h, 'Position', [100, 100, 100 + plot_height, 100 + plot_width]);
     
     c_o = corrcoef(response_matrix_o', 'rows', 'pairwise');
     fig_h = figure(2);
@@ -362,14 +362,14 @@ for direc_list_n = 1:n_direc_lists
     colormap('jet')
     xlabel('sig. cell-odor pairs')
     ylabel('sig. cell-odor pairs')
-    set(fig_h, 'Position', [100, 100, 100 + plot_width, 100 + plot_height]);
+    set(fig_h, 'Position', [100, 100, 100 + plot_height, 100 + plot_width]);
     
-    fig_h = figure(3);
+    fig_h = figure(3)
     imagesc(ccorr)
     colormap('jet')
     xlabel('sig. cell-odor pairs')
     ylabel('sig. cell-odor pairs')
-    set(fig_h, 'Position', [100, 100, 100 + plot_width, 100 + plot_height]);
+    set(fig_h, 'Position', [100, 100, 100 + plot_height, 100 + plot_width]);
     %------------------------------------
     n_clusts = max(cell_gp_vec(:, 1));
     for clust_n = 0:n_clusts
@@ -379,7 +379,7 @@ for direc_list_n = 1:n_direc_lists
 
         ave_resp_traces(:, (clust_n + 1)) = nanmedian(curr_traces, 2); 
 
-        fig_h = figure(4);
+        fig_h = figure(4)
         plot(curr_traces, 'LineWidth', 1, 'Color', [.75, .75, .75])
         hold on
         plot(ave_resp_traces(:, (clust_n + 1)), 'LineWidth', 2, 'Color', [0, .447, .741])
@@ -389,7 +389,7 @@ for direc_list_n = 1:n_direc_lists
         xlabel('time')
         ylabel('Normalized dF/F')
         %disp(['Cluster size ' num2str(length(curr_clust_list)./size(response_matrix, 2))])
-        set(fig_h, 'Position', [100, 100, 100 + plot_width, 100 + plot_height]);
+        set(fig_h, 'Position', [100, 100, 100 + plot_height, 100 + plot_width]);
         
         
         if clust_n == 0
@@ -530,11 +530,11 @@ for direc_list_n = 1:n_direc_lists
     
     
     %plotting
-    fig_h5 = figure(5);
+    figure(5)
     plot(area_ratios, pk_times, '.k', 'MarkerSize', 30)
     hold on
     
-    fig_h6 = figure(6);
+    figure(6)
     plot(bin_centers, pk_dist_all, 'k', 'LineWidth', 2)
     hold on
     
@@ -552,10 +552,6 @@ for direc_list_n = 1:n_direc_lists
     hold off
     figure(6)
     hold off
-    
-    set(fig_h5, 'Position', [100, 100, 100 + plot_width, 100 + plot_height]);
-    set(fig_h6, 'Position', [100, 100, 100 + plot_width, 100 + plot_height]);
-    
         keyboard
     
     ave_resp_traces = [];
