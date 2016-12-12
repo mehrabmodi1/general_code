@@ -82,12 +82,12 @@ for cell_n = 1:n_cells
         v_trace = curr_data.data.voltage*1000/curr_data.amplifier.Vgain;
         if plot_spike_trace == 1
             warning('off', 'MATLAB:colon:nonIntegerIndex');
-                    for sp_n = 1:size(sp_datapoints, 1);
+            for sp_n = 1:size(sp_datapoints, 1);
                 sp_point = sp_datapoints(sp_n);
                 sp_wv = v_trace(max((sp_point - (.05.*sf) ), 1):min((sp_point + (.05.*sf) ), length(v_trace) ));
                 sp_wv = sp_wv - mean(sp_wv);
                 sp_wav_mat = pad_n_concatenate(sp_wav_mat, (sp_wv)', 1, nan);
-                    end
+            end
             warning('on', 'MATLAB:colon:nonIntegerIndex');
         else
         end
