@@ -1,4 +1,5 @@
 function [] = set_xlabels_time(fig_n, frame_time, n_ticks_multiplier)
+%syntax:[] = set_xlabels_time(fig_n, frame_time, n_ticks_multiplier)
 
 figure(fig_n)
 axis_m = axis;

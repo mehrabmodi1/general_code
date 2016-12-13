@@ -37,7 +37,7 @@ saved_sus_sigs = [];
 saved_off_sigs = [];
 sig_trs = [];
 
-plotting_on = 0;
+plotting_on = 1;
 
 for cell_n = 1:n_cells
     cell_path = cell_list{cell_n, 1};
@@ -114,16 +114,24 @@ for cell_n = 1:n_cells
         %CaNew = (1 - fr_time./tau).*Ca + (fr_time./tau)Cbaseline + sp_ht.*n_sp;
         %%from Vogelstein, Paninski et al, J neurophys; DOI: 10.1152/jn.01073.2009
         V_trace = curr_data.data.voltage.*1000/curr_data.amplifier.Vgain;    %in mV
-        tau = 1.8;                   %Ca decay constant in s
+        V_trace_orig = V_trace;
+        win_width = round(.2./(1/sf));
+        V_trace = tsmovavg_m(V_trace,'s', win_width, 1);
+        V_trace(1:(win_width - 1)) = V_trace_orig(1:(win_width - 1));
+        tau = 1.8;                   %Ca decay constant in s, obtained empirically from 1s imaging response data
         time_step = 1./sf;          %time step in V trace in s
         Cbaseline = .1;             %baseline level of simulated Ca signal
         Ca = Cbaseline;             %initialising Ca signal at t = 0
         Ca_sp = Cbaseline;             %initialising Ca signal at t = 0
         n_points = size(V_trace, 1);%n datapoints in current trial
-        Vscale = 1./60;             %THIS IS TRICKY; currently mapping -60 mV to 0 mV to 0 to 1 AU. ie 60 mV = 1 AU 
+        Vscale = 1./60;             %THIS IS TRICKY; currently mapping -60 mV to 0 mV to 0 to 1 AU. ie 1 mV = 1 AU 
         Ca_max = 1;                 %peak Ca-signal level, dictated by Ca reversal
         
         Ca_sp_inj = 1;                  %Ca-signal injected at each spike time.
+        stim_time = curr_data.parameter.preO;
+        stim_point = stim_time.*sf;
+        Vbaseline = nanmean(V_trace(1:stim_point));
+        
         
         
         saved_Ca = zeros(1, n_points) + nan;
@@ -150,13 +158,13 @@ for cell_n = 1:n_cells
             
             
             %ensuring Ca-signal is only added by memV, not subtracted by it since VGCCs are not pumps.
-            if Vin < -60
-                Vin = -60;      %for Vin = -60, scaled added Ca-signal is 0.
+            if Vin < Vbaseline
+                Vin = Vbaseline;      %for Vin = -60, scaled added Ca-signal is 0.
             else
             end
             
             %Ca-trace generation #1: membrane voltage converted to injected Ca-signal
-            CaNew = ( (1 - time_step./tau).*Ca) + ( (time_step./tau).*Cbaseline) + ((Vin + 60).*Vscale);%.*(Ca_max-Ca));
+            CaNew = ( (1 - time_step./tau).*Ca) + ( (time_step./tau).*Cbaseline) + ((Vin - Vbaseline).*Vscale);%.*(Ca_max-Ca));
             saved_Ca(1, t_step) = CaNew;
             Ca = CaNew;
             
@@ -233,10 +241,11 @@ for cell_n = 1:n_cells
             plot(t_vec, Ca_conv, 'g', 'LineWidth', 1)
             xlabel('time (s)')
             ylabel('simulated Ca-signal (AU)') 
+            keyboard
         else
         end
         
-        %keyboard
+        
         %% keeping track of area under simulated Ca-curve in various time bins
         saved_Ca_curves = [Ca_conv, saved_Ca_sp', saved_Ca'];
         
@@ -295,7 +304,7 @@ for cell_n = 1:n_cells
         sig_trs = [sig_trs; h1, h2, h3];
         
         disp(int2str(trial_n))
-        %keyboard
+        keyboard
     end
 end
     
