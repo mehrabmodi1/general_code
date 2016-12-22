@@ -5,8 +5,8 @@ direc_lists_mat =  [%{'D:\Data\CSHL\dataset_list_sustained_MB418B_20160414.txt'}
                     %{'D:\Data\CSHL\dataset_list_sustained_MB185B_20160426.txt'};... %KC AB
                     %{'D:\Data\CSHL\dataset_list_stim_dur_20160316.txt'}; ... KCs all
                     %{'D:\Data\CSHL\dataset_list_sustained_MB131B_20160515.txt'};... %KC G
-                    {'D:\Data\CSHL\dataset_list_stim_dur_20160316.txt'};... %OK107 KCs
-                    %{'D:\Data\CSHL\dataset_list_sustained_OK107xsytGCaMP6s_20161212.txt'};... %vert lobe, sytGCaMP
+                    %{'D:\Data\CSHL\dataset_list_stim_dur_20160316.txt'};... %OK107 KCs
+                    {'D:\Data\CSHL\dataset_list_sustained_OK107xsytGCaMP6s_20161212.txt'};... %vert lobe, sytGCaMP
                     ]; 
                 
 dump_direcs = [{'C:\Users\Mehrab\Google Drive\Backup\Stuff\CSHL\Glenn lab\Analysis\data_dump_20160624\ApBp\'};...
@@ -41,6 +41,7 @@ saved_resp_vecs_1s_all = [];
 
 [del, odor_names] = xlsread('D:\Data\CSHL\odor_names_20161108.xls', 1);
 n_tot_cells = 0;
+n_tot_pairs = 0;
 %loop to go through all directory lists
 for direc_list_n = 1:n_direc_lists
 
@@ -60,6 +61,7 @@ for direc_list_n = 1:n_direc_lists
         
     %loop to go through all experiment datasets listed in list file
     saved_traces_flies = [];
+    saved_all_traces_flies = [];
     while 1
         
         direc = fgetl(fid);
@@ -182,7 +184,7 @@ for direc_list_n = 1:n_direc_lists
             stim_end_fr = stim_frame + ceil(60./frame_time);
             an_end_fr = min([n_frames, ceil(stim_end_fr + 200./frame_time)]);
             saved_traces_fly = zeros( n_frames, length(sig_cells), length(odor_dur_list) ) + nan;
-            
+            saved_all_traces_fly = zeros( n_frames, n_cells, length(odor_dur_list) ) + nan;
             
             %building list of trs of current odor for each dur
             for dur_n = 1:length(odor_dur_list)
@@ -193,15 +195,16 @@ for direc_list_n = 1:n_direc_lists
                 curr_trs = intersect(od_trs, dur_trs);
                 
                 saved_traces_fly(:, :, dur_n) = nanmean(dff_data_mat(:, sig_cells, curr_trs, odor_ni), 3);
-                
+                saved_all_traces_fly(:, :, dur_n) = nanmean(dff_data_mat(:, :, curr_trs, odor_ni), 3);
             end
             
             saved_traces_flies = concatenate_padded(saved_traces_flies, saved_traces_fly, 2, nan);      %pooling ave traces accross odors, flies. Keeping cells, od_dur distinct.
-        
+            saved_all_traces_flies = concatenate_padded(saved_all_traces_flies, saved_all_traces_fly, 2, nan);
         end
-        n_tot_cells = n_tot_cells + n_cells;
+        n_tot_cells = [n_tot_cells + n_cells];
+        n_tot_pairs = [n_tot_pairs + (n_cells.*n_odors)];
     end
-    
+   
     %CLUSTERING
     %taking ave trace for cells pooled across odors and flies for 60s
     %stim and clustering
@@ -367,7 +370,7 @@ for direc_list_n = 1:n_direc_lists
     imagesc(response_matrix_o_norm_s, [0, 1]);
     stim_frs_saved = [stim_frame, stim_end_fr];
     colormap(greymap)
-    set_xlabels_time(1, frame_time, .4)
+    set_xlabels_time(1, frame_time, .5)
     ylabel('sig. cell-odor pairs')
     xlabel('time (s)')
     set(fig_h, 'Position', [100, 100, 100 + plot_width, 100 + plot_height]);
@@ -375,13 +378,13 @@ for direc_list_n = 1:n_direc_lists
     
     fig_h = figure(11);
     imagesc(response_matrix_o_norm_20_s, [0, 1]);
-    stim_frs_saved = [stim_frame, round(stim_frame + odor_dur_list(2)./frame_time)];
+    stim_frs_short = [stim_frame, round(stim_frame + odor_dur_list(2)./frame_time)];
     colormap(greymap)
     set_xlabels_time(11, frame_time, .4)
     ylabel('sig. cell-odor pairs')
     xlabel('time (s)')
     set(fig_h, 'Position', [100, 100, 100 + plot_width, 100 + plot_height]);
-    add_stim_bar(11, stim_frs_saved, curr_color)
+    add_stim_bar(11, stim_frs_short, curr_color)
     
     
     c_o = corrcoef(response_matrix_o', 'rows', 'pairwise');
@@ -424,10 +427,14 @@ for direc_list_n = 1:n_direc_lists
         if clust_n == 0
             title(['un-clustered cells, n ' int2str(length(curr_clust_list)), '; ', int2str(length(curr_clust_list)./length(cell_gp_vec).*100), '%' ])
         else
-            title(['n ' int2str(length(curr_clust_list)), '; ', int2str(length(curr_clust_list)./length(cell_gp_vec).*100), '%' ])
+            title(['n ' int2str(length(curr_clust_list)), '; ', int2str(length(curr_clust_list)./length(cell_gp_vec).*100), '%, ' int2str((length(curr_clust_list)./(n_tot_cells.*5)).*100) '% of all cell-odor pairs'])
         end
-        del = input('press enter');
-        keyboard
+        
+        if suppress_plots == 0
+            del = input('press enter');
+            %keyboard
+        else
+        end
     end
     
     ave_resp_traces(:, 1) = [];         %getting rid of un-clustered cells' trace
@@ -585,8 +592,19 @@ for direc_list_n = 1:n_direc_lists
     set(fig_h5, 'Position', [100, 100, 100 + plot_width, 100 + plot_height]);
     set(fig_h6, 'Position', [100, 100, 100 + plot_width, 100 + plot_height]);
     
-        keyboard
-    
+        
+    fig_h7 = figure(7);
+    %calculating grand average 60s response trace across all cells, across
+    %all odors
+    mean_trace = nanmean(squeeze(saved_all_traces_flies(:, :, long_dur_n)), 2);
+    ses = nanstd(squeeze(saved_all_traces_flies(:, :, long_dur_n)), [], 2)./sqrt(size(saved_all_traces_flies, 2));
+    time_vec = 0:frame_time:((length(mean_trace)-1).*frame_time);
+    shadedErrorBar(time_vec, mean_trace, ses, {'Color', [.9, .4, .5]});
+    xlabel('time (s)')
+    ylabel('dF/F')
+    add_stim_shading(7, [round(stim_frame.*frame_time), round(stim_end_fr.*frame_time)], 0.2, color_vec())
+    set(fig_h7, 'Position', [100, 100, 100 + plot_width, 100 + plot_height]);
+    keyboard
     ave_resp_traces = [];
 end
     

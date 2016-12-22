@@ -367,6 +367,6 @@ fig3 = figure(3);
 PSTH_mean = nanmean(saved_PSTH_curves);
 PSTH_se = std(saved_PSTH_curves)./sqrt(size(PSTH_curves, 2));
 shadedErrorBar([0.5:0.5:80], PSTH_mean, PSTH_se, {'Color', '[.4, .6, .9]'});
-add_stim_shading(3, [3, 63], .25, [0.6, 0.8, 0.6]);
+add_stim_shading(3, [3, 63], .25, [0.65, 0.65, 0.65]);
 xlabel('time (s)')
 ylabel('average spike rate (Hz)')       %averaged across neuron-odor pairs for 60s duration trials
