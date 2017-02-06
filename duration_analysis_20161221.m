@@ -5,8 +5,8 @@ direc_lists_mat =  [%{'D:\Data\CSHL\dataset_list_sustained_MB418B_20160414.txt'}
                     %{'D:\Data\CSHL\dataset_list_sustained_MB185B_20160426.txt'};... %KC AB
                     %{'D:\Data\CSHL\dataset_list_stim_dur_20160316.txt'}; ... KCs all
                     %{'D:\Data\CSHL\dataset_list_sustained_MB131B_20160515.txt'};... %KC G
-                    %{'D:\Data\CSHL\dataset_list_stim_dur_20160316.txt'};... %OK107 KCs
-                    {'D:\Data\CSHL\dataset_list_sustained_OK107xsytGCaMP6s_20161212.txt'};... %vert lobe, sytGCaMP
+                    {'D:\Data\CSHL\dataset_list_stim_dur_20160316.txt'};... %OK107 KCs
+                    %{'D:\Data\CSHL\dataset_list_sustained_OK107xsytGCaMP6s_20161212.txt'};... %vert lobe, sytGCaMP
                     ]; 
                 
 dump_direcs = [{'C:\Users\Mehrab\Google Drive\Backup\Stuff\CSHL\Glenn lab\Analysis\data_dump_20160624\ApBp\'};...
@@ -21,7 +21,7 @@ color_vec = load('C:\Users\Mehrab\Google Drive\Backup\Stuff\CSHL\Glenn lab\Code\
 a = colormap('bone');
 greymap = flipud(a);
 
-suppress_plots = 1;       %1 - doesn't plot stuff, 0 - plots stuff
+suppress_plots = 0;       %1 - doesn't plot stuff, 0 - plots stuff
 
 saved_cell_data = cell(1, 45);
 
@@ -62,6 +62,8 @@ for direc_list_n = 1:n_direc_lists
     %loop to go through all experiment datasets listed in list file
     saved_traces_flies = [];
     saved_all_traces_flies = [];
+    saved_cell_ns = [];
+    prev_n_cells = 0;
     while 1
         
         direc = fgetl(fid);
@@ -198,11 +200,63 @@ for direc_list_n = 1:n_direc_lists
                 saved_all_traces_fly(:, :, dur_n) = nanmean(dff_data_mat(:, :, curr_trs, odor_ni), 3);
             end
             
+            
+            %plotting single cell traces for all sig cells one by one
+                if suppress_plots == 0
+                    for sig_cell_n = 1:length(sig_cells)
+                        curr_cell_n = sig_cells(sig_cell_n);
+                        for dur_n = 1:length(odor_dur_list)
+                            dur_ni = odor_dur_list(dur_n);
+                            dur_trs = find(stim_mat(:, 2) == dur_ni);
+                            curr_trs = intersect(od_trs, dur_trs);
+                            stim_end_fr = stim_frame + ceil(dur_ni./frame_time);
+                            curr_traces_p = squeeze(dff_data_mat(:, curr_cell_n, curr_trs, odor_ni));
+                            ave_trace_p = nanmean(dff_data_mat(:, curr_cell_n, curr_trs, odor_ni), 3);
+                            norm_n = max(ave_trace_p);
+                            norm_n = 1;
+                            curr_traces_p = curr_traces_p./norm_n;
+                            ave_trace_p = ave_trace_p./norm_n;
+                            fig_h = figure(8 + dur_n);
+                            plot(curr_traces_p, 'Color', [.65, .65, .65])
+                            hold on
+                            plot(ave_trace_p, 'Color', 'k', 'LineWidth', 2)
+                            hold off
+                            ax = axis;
+                            if dur_n > 1
+                                ax = max([ax; ax_old]);
+                            else
+                            end
+                            ax_old = ax;
+                            axis([0, ax(2), ax(3), 3.5]);
+                            ylabel('dF/F')
+                            set_xlabels_time((8 + dur_n), frame_time, .5)
+                            fig_wrapup((8+dur_n));
+                                                        
+                            
+                        end
+                        
+                        for dur_n = 1:length(odor_dur_list)
+                            figure((8 + dur_n))
+                            axis([0, ax(2), ax(3), ax(4)]);
+                            dur_ni = odor_dur_list(dur_n);
+                            stim_end_fr = stim_frame + ceil(dur_ni./frame_time);
+                            add_stim_bar((8+dur_n), [stim_frame, stim_end_fr], color_vec(odor_n, :));
+
+                        end
+                        keyboard                        
+                        for dur_n = 1:length(odor_dur_list)
+                            close(figure(8 + dur_n))
+                        end
+                    end
+                end
+            
             saved_traces_flies = concatenate_padded(saved_traces_flies, saved_traces_fly, 2, nan);      %pooling ave traces accross odors, flies. Keeping cells, od_dur distinct.
             saved_all_traces_flies = concatenate_padded(saved_all_traces_flies, saved_all_traces_fly, 2, nan);
+            saved_cell_ns = [saved_cell_ns; (sig_cells + prev_n_cells)];
         end
         n_tot_cells = [n_tot_cells + n_cells];
         n_tot_pairs = [n_tot_pairs + (n_cells.*n_odors)];
+        prev_n_cells = prev_n_cells + n_cells;
     end
    
     %CLUSTERING
@@ -320,6 +374,33 @@ for direc_list_n = 1:n_direc_lists
 
     end
     
+    
+    %computing time of center of mass of ave response and classifying
+    %cluster as onset or sus with a CoM cut-off time of 60/3 = 20s
+    frame_vec = 1:1:(stim_end_fr - stim_frame);
+    saved_CoMs = [];
+    for clust_n = 1:max(cell_gp_vec)
+        curr_clust_list = find(cell_gp_vec(:, 1) == (clust_n));
+        curr_traces = squeeze(saved_traces_flies(:, curr_clust_list, long_dur_n));
+        curr_traces = curr_traces./repmat(max(curr_traces), size(curr_traces, 1), 1);
+        curr_ave = nanmedian(curr_traces, 2);
+        ave_resp_traces(:, (clust_n + 1)) = curr_ave;
+        
+        %computing CoM of current ave trace
+        curr_avei = curr_ave((stim_frame + 1):stim_end_fr);
+        del = find(curr_avei < .4);
+        curr_avei(del) = 0;
+        CoM = nansum(curr_avei.*frame_vec')./nansum(curr_avei);         %just like calculating the mean of a frequency distribution
+        if CoM > (20./frame_time)
+            sus_c = 1;
+        else
+            sus_c = 0;
+        end
+        
+        saved_CoMs = [saved_CoMs; CoM, clust_n, sus_c];
+    end
+    
+    
     %sorting response matrix by corrcoef with cluster mean
     for clust_no = 1:max(cell_gp_vec_orig(:, 1));
         c_list = find(c_list_f == clust_no);            %cell numbers in old list that belong to current cluster
@@ -329,6 +410,7 @@ for direc_list_n = 1:n_direc_lists
             for c_no = 1:length(c_list)
                 c_noi = c_list(c_no);
             end
+            
 
             continue
         else
@@ -336,7 +418,7 @@ for direc_list_n = 1:n_direc_lists
         c_lengths = [c_lengths; length(c_list)]; 
         cr_list = c(c_list, clust_no);                  %list of corrcoeffs of cells in c_list, with their own cluster's averaged trace 
         curr_trace_mat = saved_traces_flies(:, c_list, long_dur_n)';       %matrix of activity data for each cell that belongs to this cluster
-        curr_trace_mat_20 = saved_traces_flies(:, c_list, 2)';             %matrix of activity data for 20s odor trials 
+        curr_trace_mat_20 = saved_traces_flies(:, c_list, (long_dur_n-1) )';             %matrix of activity data for 20s odor trials 
         
         curr_trace_mat = [cr_list, curr_trace_mat];     %concatenating corrcoefs to activity traces to sort both together
         curr_trace_mat_20 = [cr_list, curr_trace_mat_20];
@@ -370,21 +452,25 @@ for direc_list_n = 1:n_direc_lists
     imagesc(response_matrix_o_norm_s, [0, 1]);
     stim_frs_saved = [stim_frame, stim_end_fr];
     colormap(greymap)
-    set_xlabels_time(1, frame_time, .4)
+    set_xlabels_time(1, frame_time, .5)
     ylabel('sig. cell-odor pairs')
     xlabel('time (s)')
     set(fig_h, 'Position', [100, 100, 100 + plot_width, 100 + plot_height]);
+    fig_wrapup(1);
     add_stim_bar(1, stim_frs_saved, curr_color)
     
+    
     fig_h = figure(11);
-    imagesc(response_matrix_o_norm_20_s, [0, 1]);
-    stim_frs_short = [stim_frame, round(stim_frame + odor_dur_list(2)./frame_time)];
+    n_real_frames = n_frames - (sum(isnan(response_matrix_o_norm_20_s(1, :))));
+    imagesc(response_matrix_o_norm_20_s(:, 9:n_real_frames), [0, 1]);
+    stim_frs_short = [(stim_frame - 9), round((stim_frame - 9) + odor_dur_list((long_dur_n-1))./frame_time)];
     colormap(greymap)
-    set_xlabels_time(11, frame_time, .4)
+    set_xlabels_time(11, frame_time, .51)
     ylabel('sig. cell-odor pairs')
     xlabel('time (s)')
-    set(fig_h, 'Position', [100, 100, 100 + plot_width, 100 + plot_height]);
-    add_stim_bar(11, stim_frs_short, curr_color)
+    fig_wrapup(11);
+    set(fig_h, 'Position', [100, 100, 100 + (plot_width.*(n_real_frames./n_frames)), 100 + plot_height]);
+    add_stim_bar(11, stim_frs_short, color_vec(2, :));
     
     
     c_o = corrcoef(response_matrix_o', 'rows', 'pairwise');
@@ -394,6 +480,7 @@ for direc_list_n = 1:n_direc_lists
     xlabel('sig. cell-odor pairs')
     ylabel('sig. cell-odor pairs')
     set(fig_h, 'Position', [100, 100, 100 + plot_width, 100 + plot_height]);
+    fig_wrapup(2);
     
     fig_h = figure(3);
     imagesc(ccorr)
@@ -401,6 +488,8 @@ for direc_list_n = 1:n_direc_lists
     xlabel('sig. cell-odor pairs')
     ylabel('sig. cell-odor pairs')
     set(fig_h, 'Position', [100, 100, 100 + plot_width, 100 + plot_height]);
+    fig_wrapup(3);
+    
     %------------------------------------
     n_clusts = max(cell_gp_vec(:, 1));
     for clust_n = 0:n_clusts
@@ -417,9 +506,10 @@ for direc_list_n = 1:n_direc_lists
         hold off
         add_stim_shading(4, stim_frs_saved, 0.20, curr_color)
         set_xlabels_time(4, frame_time, .5)
+        fig_wrapup(4);
         
         xlabel('time')
-        ylabel('Normalized dF/F')
+        ylabel('normalized dF/F')
         %disp(['Cluster size ' num2str(length(curr_clust_list)./size(response_matrix, 2))])
         set(fig_h, 'Position', [100, 100, 100 + plot_width, 100 + plot_height]);
         
@@ -440,6 +530,7 @@ for direc_list_n = 1:n_direc_lists
     ave_resp_traces(:, 1) = [];         %getting rid of un-clustered cells' trace
     
     %----------------------------------------------------------------
+    %Not using this criterion anymore
     %CLASSIFYING CLUSTERS AS ONSET, SUSTAINED, OFF OR RAMP RESPONSE CLUSTERS
     %calculating time to peak, area ratio for each smoothed ave resp trace
     traces = saved_traces_flies(:, :, long_dur_n);
@@ -585,8 +676,10 @@ for direc_list_n = 1:n_direc_lists
         plot(bin_centers, saved_dists(:, clust_n), 'Color', curr_color, 'LineWidth', 2)
     end
     figure(5)
+    fig_wrapup(5);
     hold off
     figure(6)
+    fig_wrapup(6);
     hold off
     
     set(fig_h5, 'Position', [100, 100, 100 + plot_width, 100 + plot_height]);
@@ -604,8 +697,45 @@ for direc_list_n = 1:n_direc_lists
     ylabel('dF/F')
     add_stim_shading(7, [round(stim_frame.*frame_time), round(stim_end_fr.*frame_time)], 0.2, color_vec())
     set(fig_h7, 'Position', [100, 100, 100 + plot_width, 100 + plot_height]);
+    fig_wrapup(7);
+    
+    %Counting numbers of onset cells, sus cells and cells that are both
+    n_cells_total = prev_n_cells;                           %total number of cells imaged i.e. list of all cell numbers (not just sig responders)
+    cell_type_vec = zeros(n_cells_total, 2) + nan;
+    for sus_type = 0:1
+        curr_clusts = find(saved_CoMs(:, 3) == sus_type);   %clust numbers identified as onset (0) or sus (1)
+
+        %making list of all trace numbers that belong to any of the clusters in
+        %curr_clusts
+        all_trace_ns_curr = [];
+        for c_clustn = 1:length(curr_clusts)
+            c_clustni = curr_clusts(c_clustn);
+            curr_cs = find(c_list_f == c_clustni);
+            all_trace_ns_curr = [all_trace_ns_curr; curr_cs];
+        end
+        all_cells_curr = saved_cell_ns(all_trace_ns_curr);
+        all_cells_curr = unique(all_cells_curr);
+
+        cell_type_vec(all_cells_curr, (sus_type + 1)) = 1;
+        
+    end
+    n_cells_onset = nansum(cell_type_vec(:, 1))./n_cells_total;
+    n_cells_sus = nansum(cell_type_vec(:, 2))./n_cells_total;
+    both_vec = nansum(cell_type_vec, 2);
+    n_cells_both = length(find(both_vec == 2))./n_cells_total;
+    n_cells_both_exp = n_cells_onset.*n_cells_sus;
+    fig_h8 = figure(8);
+    venn([n_cells_onset, n_cells_sus, 1], [n_cells_both, n_cells_onset, n_cells_sus, n_cells_both], 'FaceColor',{color_vec(1, :),color_vec(2, :), [1, 1, 1]},'FaceAlpha',{.5,.5,.5},'EdgeColor',{[.75, .75, .75], [.75, .75, .75], [.75, .75, .75]});
+    set(fig_h8, 'Position', [100, 100, 100 + plot_width, 100 + plot_height]);
+    fig_wrapup(8);
+    
+    %hold on
+    
+    
     keyboard
     ave_resp_traces = [];
 end
     
+
+
         
