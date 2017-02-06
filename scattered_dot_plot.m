@@ -1,4 +1,5 @@
 function fig_h = scattered_dot_plot(mat, fig_n, col_width, col_spacing, markersize, markercolor, with_lines, linecolor, xlabels)
+%syntax: fig_h = scattered_dot_plot(mat, fig_n, col_width, col_spacing, markersize, markercolor, with_lines, linecolor, xlabels)
 %This function plots the values in each column of mat as dots separated
 %with a random scatter of width col_width and inter-column spacing as
 %specified. Line spec can be used to specify marker style, color and size.
