@@ -89,10 +89,15 @@ for cell_n = 1:n_cells
             if sign(curr_type_orig) == curr_type
                 sim_data_mat(cell_n).traces(1:n_frames_orig, 1:n_reps_orig, odor_n, 1:n_durs_orig) = orig_data_mat(curr_cell_orig).traces(:, :, curr_odor_orig, :);
                 sampled = 1;
-                
+                keyboard
             else
             end
             
         end
     end
 end
+
+
+keyboard
+
+sim_data_mat = [];

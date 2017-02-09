@@ -1,12 +1,16 @@
-n_cells = 1000;
-n_odors = 5;
+n_cells = 10000;
+n_odors = 100;
 sparseness = .1;
 
-sig_resp_mat = (rand(10000, 5));
+sig_resp_mat = (rand(n_cells, n_odors));
 
-del = find(sig_resp_mat >= 0.9);
+del = find(sig_resp_mat >= (1 - sparseness));
 sig_resp_mat(del) = 1;
-del = find(sig_resp_mat < 0.9);
+del = find(sig_resp_mat < (1 - sparseness) );
 sig_resp_mat(del) = 0;
 
-histogram(sum(sig_resp_mat, 2))
+figure(1)
+a = histogram(sum(sig_resp_mat, 2))
+
+% figure(2)
+% b = histogram(sum(sig_resp_mat, 1))
