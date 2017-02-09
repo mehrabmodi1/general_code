@@ -1,4 +1,19 @@
 function [sim_data_mat] = resample_cell_pop(orig_data_mat, n_cells, n_odors, m_sparseness, sd_sparseness, cooperativity)
+%This program first creates a matrix of significant response cell-odor pairs and then 
+%re-samples raw data according to this significant response matrix. Responses to all 
+%odor durations are treated as a single unit. Input parameters for creating the sig resp 
+%matrix are n_cells, n_odors, mean_sparseness, sd_sparseness and cooperativity. A vector %
+%of length n_odors of randomly chosen sparseness values from a normal dist with specified mean 
+%and SD specifies the numbers of cells responding to each odor.
+%Cooperativity determines which cells are chosen to be responsive to the multiple odors. 
+%For positive cooperativities, a matrix is initialised with all odor responses being assigned
+%to the same set of cells, ie many cells respond to 0 odors for sparsenesses < 1. If 
+%cooperativity is 1, this is the matrix used to resample raw data. If less than 1, the appropriate 
+%fraction of responding cell-odor pairs are reassigned to random cell-odor pairs. If cooperativity is 0, 
+%all cell-odor pair responses are chosen randomly. For negative cooperativities, the matrix is 
+%initialised with all odor responses distributed systematically across all cells, ie, all cells 
+%respond to roughly the same number of odors.
+
 
 %BUILDING SIMULATED SIG RESP MAT
 sp_vec = normrnd(m_sparseness, sd_sparseness, n_odors, 1);      %vector of randomly generated sparsenesses for each odor with given norm dist props
@@ -73,7 +88,7 @@ n_odors_orig = size(orig_data_mat(1).traces, 3);
 n_durs_orig = size(orig_data_mat(1).traces, 4);
 
 for cell_n = 1:n_cells
-    sim_data_mat(cell_n).traces = zeros(n_frames_orig, n_reps_orig, n_odors, n_durs_orig) + nan;
+    
     for odor_n = 1:n_odors
         curr_type = sig_resp_mat(cell_n, odor_n);       %checking if curr cell-odor pair is a responder or not
         
@@ -87,7 +102,11 @@ for cell_n = 1:n_cells
             
             curr_type_orig = sum(sig_mat_orig(curr_odor_orig, :));
             if sign(curr_type_orig) == curr_type
-                sim_data_mat(cell_n).traces(1:n_frames_orig, 1:n_reps_orig, odor_n, 1:n_durs_orig) = orig_data_mat(curr_cell_orig).traces(:, :, curr_odor_orig, :);
+                n_frames_curr = size(orig_data_mat(curr_cell_orig).traces(:, :, curr_odor_orig, :), 1);     %number of frames for current raw data cell-odor pair
+                sim_data_mat(cell_n).traces = zeros(n_frames_curr, n_reps_orig, n_odors, n_durs_orig) + nan;
+                
+                sim_data_mat(cell_n).traces(1:n_frames_curr, 1:n_reps_orig, odor_n, 1:n_durs_orig) = orig_data_mat(curr_cell_orig).traces(:, :, curr_odor_orig, :);
+                
                 sampled = 1;
                 
             else
