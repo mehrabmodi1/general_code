@@ -1,4 +1,4 @@
-function [] = trajectory_plotter(data_mat, figure_n, save_direc, line_width, color, color_seq, pause_mode, marker_size)
+function [] = trajectory_plotter(data_mat, figure_n, save_direc, line_width, color, color_seq, pause_mode, marker_size1)
 %This function takes a 3D dataset with a maximum length of 3 along dim2 and plots
 %a 2 or 3D plot of the time-series data, assuming dim 1 is time. If
 %save_direc is not empty, it saves frames for the addition of each point to the
@@ -27,6 +27,13 @@ else
 end
 
 for trial_n = 1:n_trials
+    if length(marker_size1 > 1)
+        
+        marker_size = marker_size1(trial_n);
+        
+    elseif length(marker_size1) == 1
+        marker_size = marker_size1;
+    end
     col_n = rem(trial_n, size(color_vec, 1));
     if col_n == 0
         col_n = size(color_vec, 1);
