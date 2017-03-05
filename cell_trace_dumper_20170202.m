@@ -167,6 +167,7 @@ for direc_list_n = 1:n_direc_lists
             saved_data(cell_counter + cell_count_n).traces = zeros(n_frames, n_reps, n_odors, length(odor_dur_list)) + nan;
             saved_data(cell_counter + cell_count_n).info.sig_resps = zeros(n_odors, length(odor_dur_list)) + nan;
             saved_data(cell_counter + cell_count_n).info.stim_frs = zeros(2, length(odor_dur_list));
+            saved_data(cell_counter + cell_count_n).info.frame_time = frame_time;
         end
         
         

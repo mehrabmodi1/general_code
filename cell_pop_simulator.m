@@ -30,20 +30,23 @@ end
 %RE-SAMPLING
 %generating a re-sampled population response dataset
 direc_n = 1;
-n_cells = 300;
-n_odors = 100;
-m_sparseness = .1;       %range: 0 to 1          defined as a property of each odor
+n_cells = 100;
+n_odors = 30;
+m_sparseness = .2;        %range: 0 to 1          defined as a property of each odor
 sd_sparseness = .05;      %range: 0 to 1          defined as a property of each odor
 
 %This parameter controls how likely a particular cell is to respond to more than one odor
-cooperativity = -1;        %range: -1 to 1        %for  0 to 1; defines the fraction of sig odor resps that are picked up from perfect cooperativity and re-distributed randomly
+cooperativity = 0;       %range: -1 to 1        %for  0 to 1; defines the fraction of sig odor resps that are picked up from perfect cooperativity and re-distributed randomly
                                                 %for -1 to 0; defines the fraction of sig odor resps that are picked up from a systematically distributed set of responses and re-distributed randomly
+%decoder parameters
+duration = 1;             %odor stim duration number to use for analysis (1 - 1s, 2 - 20s, 3 - 60s)
+integration_window = 3;  %in s, the duration from stim_onset over which the dF/F traces are averaged to calculate response size 
                                                 
 %function to generate re-sampled population responses
 sim_data_mat = resample_cell_pop(orig_data_mat{direc_n, 1}, n_cells, n_odors, m_sparseness, sd_sparseness, cooperativity);
-keyboard
+
 %function to take a re-sampled population response matrix and do a PCA and calculate odor separablity metrics
-%classification_scores = odor_classifier(sim_data_mat);
+classification_scores = odor_classifier_v2(sim_data_mat, duration, integration_window)
 
 
 
