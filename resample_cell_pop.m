@@ -1,4 +1,4 @@
-function [sim_data_mat] = resample_cell_pop(orig_data_mat, n_cells, n_odors, m_sparseness, sd_sparseness, cooperativity)
+function [sim_data_mat, sp_vec] = resample_cell_pop(orig_data_mat, n_cells, n_odors, m_sparseness, sd_sparseness, cooperativity)
 %This program first creates a matrix of significant response cell-odor pairs and then 
 %re-samples raw data according to this significant response matrix. Responses to all 
 %odor durations are treated as a single unit. Input parameters for creating the sig resp 

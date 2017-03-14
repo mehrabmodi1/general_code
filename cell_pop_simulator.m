@@ -31,9 +31,9 @@ end
 %generating a re-sampled population response dataset
 direc_n = 1;
 n_cells = 100;
-n_odors = 30;
-m_sparseness = .2;        %range: 0 to 1          defined as a property of each odor
-sd_sparseness = .05;      %range: 0 to 1          defined as a property of each odor
+n_odors = 50;
+m_sparseness = .2;        %range: 0 to 1          sparseness of each odor drawn from this dist
+sd_sparseness = .05;      %range: 0 to 1          sparseness of each odor drawn from this dist
 
 %This parameter controls how likely a particular cell is to respond to more than one odor
 cooperativity = 0;       %range: -1 to 1        %for  0 to 1; defines the fraction of sig odor resps that are picked up from perfect cooperativity and re-distributed randomly
@@ -41,12 +41,26 @@ cooperativity = 0;       %range: -1 to 1        %for  0 to 1; defines the fracti
 %decoder parameters
 duration = 1;             %odor stim duration number to use for analysis (1 - 1s, 2 - 20s, 3 - 60s)
 integration_window = 3;  %in s, the duration from stim_onset over which the dF/F traces are averaged to calculate response size 
-                                                
-%function to generate re-sampled population responses
-sim_data_mat = resample_cell_pop(orig_data_mat{direc_n, 1}, n_cells, n_odors, m_sparseness, sd_sparseness, cooperativity);
 
-%function to take a re-sampled population response matrix and do a PCA and calculate odor separablity metrics
-classification_scores = odor_classifier_v2(sim_data_mat, duration, integration_window)
+n_sim_reps = 30;
+%running simulation repeatedly to 
+var_vec = [.1:.1:.8, .85, .9, .95];
+score_mat = zeros(length(var_vec), n_sim_reps) + nan;
+for var_n = 1:length(var_vec)
+    m_sparseness = var_vec(var_n);
+    
+    for sim_rep_n = 1:n_sim_reps
+        
+        %function to generate re-sampled population responses
+        [sim_data_mat, sp_vec] = resample_cell_pop(orig_data_mat{direc_n, 1}, n_cells, n_odors, m_sparseness, sd_sparseness, cooperativity);
 
-
+        %function to take a re-sampled population response matrix and do a PCA and calculate odor separablity metrics
+        classification_scores = odor_classifier_v2(sim_data_mat, duration, integration_window, sp_vec);
+        c_score = classification_scores{1, 2};
+        score_mat(var_n, sim_rep_n) = c_score;
+    
+        clear sim_data_mat
+    end
+    
+end
 
