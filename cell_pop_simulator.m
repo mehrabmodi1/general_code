@@ -11,11 +11,12 @@ close all
 %odor_resp_overlap
 
 %list of data dump direcs to load cell data from
-dump_direcs = {'C:\Users\Mehrab\Google Drive\Backup\Stuff\CSHL\Glenn lab\Analysis\data_dump\AB';... %AB cells
+dump_direcs = {
+               'C:\Users\Mehrab\Google Drive\Backup\Stuff\CSHL\Glenn lab\Analysis\data_dump\AB';... %AB cells
                'C:\Users\Mehrab\Google Drive\Backup\Stuff\CSHL\Glenn lab\Analysis\data_dump\ApBp';... %ApBp cells
                'C:\Users\Mehrab\Google Drive\Backup\Stuff\CSHL\Glenn lab\Analysis\data_dump\G';... %G cells
                'C:\Users\Mehrab\Google Drive\Backup\Stuff\CSHL\Glenn lab\Analysis\data_dump\OK107'... %OK107 cells
-                };
+              };
 
 %loading orig cell data
 for dump_direc_n = 1:length(dump_direcs)
@@ -39,16 +40,22 @@ sd_sparseness = .05;      %range: 0 to 1          sparseness of each odor drawn 
 cooperativity = 0;       %range: -1 to 1        %for  0 to 1; defines the fraction of sig odor resps that are picked up from perfect cooperativity and re-distributed randomly
                                                 %for -1 to 0; defines the fraction of sig odor resps that are picked up from a systematically distributed set of responses and re-distributed randomly
 %decoder parameters
-duration = 1;             %odor stim duration number to use for analysis (1 - 1s, 2 - 20s, 3 - 60s)
+duration = 3;             %odor stim duration number to use for analysis (1 - 1s, 2 - 20s, 3 - 60s)
 integration_window = 3;  %in s, the duration from stim_onset over which the dF/F traces are averaged to calculate response size 
 
 n_sim_reps = 30;
 %running simulation repeatedly to 
-var_vec = [.1:.1:.8, .85, .9, .95];
+%var_vec = [.1:.1:.8, .85, .9, .95];    %for m_sparseness
+var_vec = [50:50:500];                  %for n_odors
+%fixed_ratio = 1.2;
+sim_description = 'od_n_range_long_dur_short_win';
 score_mat = zeros(length(var_vec), n_sim_reps) + nan;
 for var_n = 1:length(var_vec)
-    m_sparseness = var_vec(var_n);
-    
+    %m_sparseness = var_vec(var_n);
+    n_odors = var_vec(var_n);
+    %n_odors = round(n_cells.*fixed_ratio);
+    saved_params{1, var_n} = [{n_cells}, {n_odors}, {m_sparseness}, {sd_sparseness}, {cooperativity}, {duration}, {integration_window}, {n_sim_reps}];
+    save(['D:\Data\CSHL\Analysed_data\re_sampled_simulations\', sim_description '_params.mat'], 'saved_params');
     for sim_rep_n = 1:n_sim_reps
         
         %function to generate re-sampled population responses
@@ -60,7 +67,10 @@ for var_n = 1:length(var_vec)
         score_mat(var_n, sim_rep_n) = c_score;
     
         clear sim_data_mat
+        imagesc(score_mat)
+        drawnow
+        save(['D:\Data\CSHL\Analysed_data\re_sampled_simulations\', sim_description '_scores.mat'], 'score_mat');
     end
     
 end
-
+beep
