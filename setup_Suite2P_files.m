@@ -1,4 +1,4 @@
-function [] = setup_Suite2P_files(raw_direc_base, raw_direc, m_db_file_direc)
+function [ft_factor] = setup_Suite2P_files(raw_direc_base, raw_direc, m_db_file_direc)
 %This function copies over the master_file.m and make_db.m files needed to
 %run Suite2P to the specified [raw_direc_base raw_direc] from the specified m_db_file_direc.
 %It also edits both files according to the dataset in the current

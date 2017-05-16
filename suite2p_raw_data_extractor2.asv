@@ -161,3 +161,10 @@ copyfile([raw_direc_base, raw_direc, '\', param_direc.name], [results_direc, raw
 cd(prev_direc)
 %% downsampling registered tiffs in time and over-writing old ones. deleting raw, registered frames.
 tiff_downsampler([reg_tif_direc, raw_direc], round(10./ft_factor));
+
+
+%- read in tiff files in order of trials, extract raw traces for each roi,
+%write extracted traces to disk
+%- downsample registered tiff files by averaging frames and overwrite
+%original files to save disk space
+
