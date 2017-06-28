@@ -60,59 +60,30 @@ for direc_list_n = 1:n_direc_lists
         
         %loading in and parsing params file to get stimulus paramater
         %details
-        [stim_mat, column_heads] = load_params_res(direc, size(raw_data_mat, 3));
+        [stim_mat, stim_mat_simple, column_heads] = load_params_res(direc);
+        odor_list = unique(stim_mat_simple(:, 2) );
+        n_odors = length(odor_list);
+        odor_dur_list = unique(stim_mat_simple(:, 3) );
+        n_od_durs = length(odor_dur_list);
         
+        %loading Suite2P results file
+        Suite2P_results = load_suite2P_results(direc);
+        frame_rate = Suite2P_results.ops.imageRate;
+        frame_time = 1./frame_rate.*1000;     %in ms
         
         %calculating dF/F traces from raw data
-        [dff_data_mat, stim_mat, prot_switch_trials] = cal_dff_traces_20160317(raw_data_mat, dataset, list_direc);
+        [dff_data_mat] = cal_dff_traces_res(raw_data_mat, stim_mat, frame_time, direc);
         
-        
-        
-        
+        %identifying sig responses on a single trial basis, and then sig
+        %responder cells for any given trial type
+        [resp_areas, sig_trace_mat, sig_cell_mat, sig_trace_mat_old, sig_cell_mat_old] = ...
+            cal_sig_responses_20161024(dataset, dff_data_mat, stim_mat, prot_switch_trials, list_direc, an_trial_window);
         
         
     end
 end
         
-%         
-%         
-%         
-%         
-%         
-%         
-%         
-%         
-% 
-%         %calculating dF/F traces and creating the sparse, 4-D, nan-filled
-%         %dff_data_mat 
-%         [dff_data_mat, stim_mat, prot_switch_trials] = cal_dff_traces_20160317(raw_data_mat, dataset, list_direc);
-%         
-% %         dump_direc = dump_direcs{direc_list_n};
-% %         save([dump_direc 'dFF_data_fly' int2str(direc_counter) '.mat'], 'dff_data_mat');
-% %         save([dump_direc 'stim_info_fly' int2str(direc_counter) '.mat'], 'stim_mat');
-%         
-%         clear raw_data_mat
-%         odor_list = unique(stim_mat(:, 1) );
-%         del = find(odor_list == 0);
-%         odor_list(del) = [];
-%         del = find(isnan(odor_list) == 1);
-%         odor_list(del) = [];
-%         n_odors = length(odor_list);
-%         n_frames = size(dff_data_mat, 1);
-%         n_cells = size(dff_data_mat, 2);
-%         n_trials = size(dff_data_mat, 3);
-%         prot_switch_trials = n_trials + 1;                  
-%         stim_time = dataset(1).stim.stimLatency + 0.54;     %odor stim delay measured with PID is 540 ms
-%         frame_time = dataset(1).info.framePeriod;
-%         stim_frame = floor(stim_time./frame_time);
-%         an_trial_window = nan;
-%         odor_dur_list = unique(stim_mat(:, 2) );
-%         del = find(odor_dur_list == 0);
-%         odor_dur_list(del) = [];
-%         del = find(isnan(odor_dur_list) == 1);
-%         odor_dur_list(del) = [];
-%         n_reps = dataset(1).stim.reps;
-%         stim_end_frames = [round(odor_dur_list./frame_time) + stim_frame];
+
 %         
 %         
 %         %identifying sig responses on a single trial basis, and then sig
