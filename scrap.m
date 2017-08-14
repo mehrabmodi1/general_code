@@ -1,42 +1,41 @@
 clear all
 close all
 
-black_dist = normrnd(5, 2, 5000, 1);
-grey_dist = normrnd(1, 2, 5000, 1);
+im = zeros(100, 100);
+im(30:70, 40:60) = 2;
+im2 = zeros(100, 100);
+im2(30:70, 40:60) = 2;
+im2(15:60, 10:35) = 2;
+
+r_shifts = round(rand(2, 50).*25);
+r_stack = zeros(100, 100, 100);
+for frame_n = 1:50
+    curr_im = circshift(im, r_shifts(1, frame_n), 1);
+    curr_im = circshift(curr_im, r_shifts(2, frame_n), 2);
+    r_stack(:, :, frame_n) = curr_im + rand(100, 100);
+    curr_im = circshift(im2, r_shifts(1, frame_n), 1);
+    curr_im = circshift(curr_im, r_shifts(2, frame_n), 2);
+    r_stack(:, :, (frame_n + 50)) = curr_im + rand(100, 100);
+end
+
+
+test_frame = r_stack(:, :, 55).*0.5;
+c_vec = [];
+c_vec2 = [];
+for frame_n = 1:100
+    c = mat_corrcoef(test_frame, r_stack(:, :, frame_n));
+    c_vec = [c_vec; c];
+    
+    test_frame = (test_frame - mean(mean(test_frame)));
+    %test_frame = test_frame./max(max(test_frame));
+    ref_frame = r_stack(:, :, frame_n) - mean(mean(r_stack(:, :, frame_n)));
+    %ref_frame = ref_frame./max(max(ref_frame));
+    c2_mat = xcorr2(test_frame, ref_frame);
+    c_vec2 = [c_vec2; max(max(c2_mat))];
+    
+end
 
 figure(1)
-histogram(black_dist)
+plot(c_vec)
 hold on
-histogram(grey_dist)
-
-thresh1 = 3.5;
-thresh2 = .2;
-
-%using higher threshold first (same as in paper)
-black_high1 = length(find((black_dist + .2) > thresh1));
-grey_high1 = length(find((grey_dist + .2) > thresh1));
-
-black_high2 = length(find(black_dist > thresh1));
-grey_high2 = length(find(grey_dist > thresh1));
-
-disp('difference between counts above higher thresh; with offset added')
-diff1 = black_high1 - grey_high1
-
-disp('difference between counts above higher thresh; without offset added')
-diff2 = black_high2 - grey_high2
-
-
-
-%---------------
-%lower threshold (lower than mean of grey dist)
-black_low1 = length(find((black_dist + .2) > thresh2));
-grey_low1 = length(find((grey_dist + .2) > thresh2));
-
-black_low2 = length(find(black_dist > thresh2));
-grey_low2 = length(find(grey_dist > thresh2));
-
-disp('difference between counts above lower thresh; with offset added')
-diff1 = black_low1 - grey_low1
-disp('difference between counts above lower thresh; without offset added')
-diff2 = black_low2 - grey_low2
-
+%plot(c_vec2, 'r')

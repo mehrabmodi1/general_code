@@ -1,11 +1,11 @@
-function [resp_areas, sig_trace_mat, sig_cell_mat, sig_trace_mat_old, sig_cell_mat_old]...
-    = cal_sig_responses_20161024(dataset, dff_data_mat, stim_mat, prot_switch_trials, list_direc, an_trial_window)
-%This function takes as inputs the sparse, 4-D dff_data_mat that contains dF/F traces stored
+function [resp_areas, sig_trace_mat, sig_cell_mat]...
+    = cal_sig_responses_res(dataset, dff_data_mat, stim_mat, direc, an_trial_window)
+%This function takes as inputs, the 3-D dff_data_mat that contains dF/F traces stored
 %by frame_n, cell_n, trial_n and odor_n; and stim_mat which contains
 %stimulus delivery information for each trial. The outputs are three 2D
 %matrices. Resp_areas of size n_cell, n_trials contains the area under the pk response 
 %of each cell on each trial sig_trace_mat of size n_cells, n_trials indicates which
-%individual traces were significant responses, and sig_cell_mat of size
+%individual traces were significant responses, and sig_cell_mat of size 
 %n_cells, n_odors which indicates which cells responded for more than half
 %the presentations of any single odor.
 
@@ -13,10 +13,6 @@ n_frames = size(dff_data_mat, 1);
 n_cells = size(dff_data_mat, 2);
 n_trials = size(dff_data_mat, 3);
 odor_list = unique(stim_mat(:, 1));
-del = find(odor_list == 0);
-odor_list(del) = [];
-del = find(isnan(odor_list) == 1);
-odor_list(del) = [];
 n_odors = length(odor_list);
 odor_dur_list = unique(stim_mat(:, 2));
 del = find(odor_dur_list == 0);
