@@ -15,8 +15,6 @@ greymap = flipud(a);
 
 suppress_plots = 0;       %1 - doesn't plot stuff, 0 - plots stuff
 
-saved_cell_data = cell(1, 45);
-
 %figure property initialisation variables
 plot_height = 200;
 plot_width = 280;
@@ -27,13 +25,8 @@ marker_sizes = 1;
 marker_sizes_f = 4;
 box_l_width = 0.5;
 
-
-saved_resp_vecs_all = [];
-saved_resp_vecs_1s_all = [];
-
 [del, odor_names] = xlsread('D:\Data\CSHL\odor_names_20161108.xls', 1);
-n_tot_cells = 0;
-n_tot_pairs = 0;
+
 %loop to go through all directory lists
 for direc_list_n = 1:n_direc_lists
 
@@ -57,29 +50,30 @@ for direc_list_n = 1:n_direc_lists
         raw_data_mat = load([direc 'extracted_raw_data_mat.mat']);
         raw_data_mat = raw_data_mat.raw_data_mat;           %raw F traces extracted from ROIs
         
+        %loading Suite2P results file
+        Suite2P_results = load_suite2P_results(direc);
+        frame_rate = Suite2P_results.ops.imageRate;
+        frame_time = 1./frame_rate.*1000;     %in ms        
         
-        %loading in and parsing params file to get stimulus paramater
+        %loading in and parsing params file to get stimulus parameter
         %details
-        [stim_mat, stim_mat_simple, column_heads] = load_params_res(direc);
+        [stim_mat, stim_mat_simple, column_heads] = load_params_res(direc, size(raw_data_mat, 3));
         odor_list = unique(stim_mat_simple(:, 2) );
         n_odors = length(odor_list);
         odor_dur_list = unique(stim_mat_simple(:, 3) );
         n_od_durs = length(odor_dur_list);
         
-        %loading Suite2P results file
-        Suite2P_results = load_suite2P_results(direc);
-        frame_rate = Suite2P_results.ops.imageRate;
-        frame_time = 1./frame_rate.*1000;     %in ms
-        
         %calculating dF/F traces from raw data
         [dff_data_mat] = cal_dff_traces_res(raw_data_mat, stim_mat, frame_time, direc);
-        
+                
         %identifying sig responses on a single trial basis, and then sig
         %responder cells for any given trial type
-        [resp_areas, sig_trace_mat, sig_cell_mat, sig_trace_mat_old, sig_cell_mat_old] = ...
-            cal_sig_responses_20161024(dataset, dff_data_mat, stim_mat, prot_switch_trials, list_direc, an_trial_window);
-        
-        
+%         [resp_areas, sig_trace_mat, sig_cell_mat, sig_trace_mat_old, sig_cell_mat_old] = ...
+%             cal_sig_responses_20161024(dataset, dff_data_mat, stim_mat, list_direc);
+        [resp_areas, sig_trace_mat, sig_cell_mat] = cal_sig_responses_res(dff_data_mat, stim_mat, stim_mat_simple, list_direc, frame_time);
+        %PICK UP THREAD HERE: make sure sig responses are correctly
+        %identified
+        keyboard
     end
 end
         

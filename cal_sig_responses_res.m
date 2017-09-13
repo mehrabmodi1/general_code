@@ -1,5 +1,4 @@
-function [resp_areas, sig_trace_mat, sig_cell_mat]...
-    = cal_sig_responses_res(dataset, dff_data_mat, stim_mat, direc, an_trial_window)
+function [resp_areas, sig_trace_mat, sig_cell_mat] = cal_sig_responses_res(dff_data_mat, stim_mat_struc, stim_mat_simple, direc, frame_time)
 %This function takes as inputs, the 3-D dff_data_mat that contains dF/F traces stored
 %by frame_n, cell_n, trial_n and odor_n; and stim_mat which contains
 %stimulus delivery information for each trial. The outputs are three 2D
@@ -12,20 +11,18 @@ function [resp_areas, sig_trace_mat, sig_cell_mat]...
 n_frames = size(dff_data_mat, 1);
 n_cells = size(dff_data_mat, 2);
 n_trials = size(dff_data_mat, 3);
-odor_list = unique(stim_mat(:, 1));
+odor_list = unique(stim_mat_simple(:, 1));
 n_odors = length(odor_list);
-odor_dur_list = unique(stim_mat(:, 2));
+odor_dur_list = unique(stim_mat_simple(:, 2));
 del = find(odor_dur_list == 0);
 odor_dur_list(del) = [];
 del = find(isnan(odor_dur_list) == 1);
 odor_dur_list(del) = [];
 n_odor_durs = length(odor_dur_list);
-odor_t_list = stim_mat(:, 1);
+odor_t_list = stim_mat_simple(:, 1);
 
-
-stim_time = dataset(1).stim.stimLatency.*1000;              %stimulus onset time in ms
-stim_time = stim_time + 625;                                %added delay from valve opening to odor at pipe outlet
-frame_time = dataset(1).info.framePeriod .* 1000;           %frame time in ms
+stim_time = stim_mat_struc(1).stim_latency.*1000;              %stimulus onset time in ms
+stim_time = stim_time + 200;                                %added delay from valve opening to odor at pipe outlet can programmatically find this out - add feature later.
 stim_frame = floor(stim_time./frame_time);                  %frame no at which odor reached fly
 %pre_stim_frame = floor((stim_time - 4000)./frame_time);     %frame no 4 s prior to odor - to identify a 4s baseline
 pre_stim_frame = 1;
@@ -62,7 +59,7 @@ for rep_gp = 1:n_rep_gps                %a rep_gp is a group of repeats of the s
     else
     end
     stim_end_fr = ceil(stim_frame + ((stim_duration.*1000)./frame_time) );
-    rep_tr_list = find(stim_mat(:, 1) == odor_ni & stim_mat(:, 2) == stim_duration);    %list of repeat tr numbers
+    rep_tr_list = find(stim_mat_simple(:, 1) == odor_ni & stim_mat_simple(:, 2) == stim_duration);    %list of repeat tr numbers
     
     
     for cell_n = 1:n_cells
@@ -72,7 +69,7 @@ for rep_gp = 1:n_rep_gps                %a rep_gp is a group of repeats of the s
         curr_traces_f = zeros(size(curr_traces, 1), size(curr_traces, 2)) + nan;
         for rep_n = 1:size(curr_traces, 2);
             curr_trace = curr_traces(:, rep_n);
-            curr_traces_f(:, rep_n) = tsmovavg_m(curr_trace', 's', 5);
+            curr_traces_f(:, rep_n) = tsmovavg_m(curr_trace', 's', round(1000./frame_time));        %filtering with a 1s wide box-car
         end
         
         base_traces = curr_traces_f(pre_stim_frame:(stim_frame - 2), :);                 %pre-odor-stim baseline frames

@@ -10,7 +10,7 @@ function [dff_data_mat] = cal_dff_traces_res(raw_data_mat, stim_mat, frame_time,
 % raw_data_mat = load([direc 'expt_raw_traces.mat']);
 % raw_data_mat = raw_data_mat.raw_data_mat;
 
-PID_latency = 450;                                          %latency from odor onset to arrival at the end of the odor tube measured with a PID (in ms)
+PID_latency = 200;                                          %latency from odor onset to arrival at the end of the odor tube measured with a PID (in ms)
 
 bad_tr_list = load([direc, '\bad_trial_list.mat']);
 good_tr_list = bad_tr_list.bad_tr_list;                     %this is actually the list of good trials
@@ -22,7 +22,11 @@ n_trials = size(raw_data_mat, 3);
 dff_data_mat = zeros(n_frames, n_cells, n_trials) + nan; %dff_data_mat can accommodate all possible odor numbers
 
 for trial_n = 1:n_trials
-    stim_time = stim_mat(trial_n).stim_latency;
+    try
+        stim_time = stim_mat(trial_n).stim_latency;
+    catch
+        keyboard
+    end
     stim_frame = floor(stim_time./frame_time) + PID_latency;
     odor_duration = stim_mat(trial_n).odor_duration;
     
@@ -47,7 +51,5 @@ for trial_n = 1:n_trials
     
     
 end
-
-keyboard
 
 end
