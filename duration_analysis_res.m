@@ -1,8 +1,9 @@
 clear all
 close all
 
-direc_lists_mat =  [{'D:\Data\CSHL\Resonant\dataset_list_mRFP_trip_trans_odor_durs.xls'};... %KC A'B'
-                    {'D:\Data\CSHL\Resonant\dataset_list_mRFP_trip_trans_odor_pulses.xls'};... %KC AB
+direc_lists_mat =  [{'D:\Data\Janelia\resonant\dataset_list_sparse_sytbGC6f_20170929.xls'}...
+                    %{'D:\Data\CSHL\Resonant\dataset_list_mRFP_trip_trans_odor_durs.xls'};... %KC A'B'
+                    %{'D:\Data\CSHL\Resonant\dataset_list_mRFP_trip_trans_odor_pulses.xls'};... %KC AB
                    ]; 
                 
             
@@ -45,46 +46,46 @@ for direc_list_n = 1:n_direc_lists
         
         direc = [direc, '\'];
         
-        %loading extracted raw fluorescence data matrices written by
-        %raw_dff_extractor
-        raw_data_mat = load([direc 'extracted_raw_data_mat.mat']);
-        raw_data_mat = raw_data_mat.raw_data_mat;           %raw F traces extracted from ROIs
-        
-        %loading Suite2P results file
-        Suite2P_results = load_suite2P_results(direc);
-        frame_rate = Suite2P_results.ops.imageRate;
-        frame_time = 1./frame_rate.*1000;     %in ms        
-        
         %loading in and parsing params file to get stimulus parameter
         %details
-        [stim_mat, stim_mat_simple, column_heads] = load_params_res(direc, size(raw_data_mat, 3));
+        tif_times = load([direc, 'tif_time_stamps.mat']);           %reading in time stamps for each tif file recorded by raw data extractor
+        tif_times = tif_times.saved_times;
+        [stim_mat, stim_mat_simple, column_heads] = load_params_res(direc, tif_times);
         odor_list = unique(stim_mat_simple(:, 2) );
         n_odors = length(odor_list);
         odor_dur_list = unique(stim_mat_simple(:, 3) );
         n_od_durs = length(odor_dur_list);
         
-        %calculating dF/F traces from raw data
-        [dff_data_mat] = cal_dff_traces_res(raw_data_mat, stim_mat, frame_time, direc);
+        %loading Suite2P results file
+        Suite2P_results = load_suite2P_results(direc);
+        frame_rate = Suite2P_results.ops.imageRate;
+        frame_time = 1./frame_rate.*1000;     %in ms
                 
+        %loading extracted raw fluorescence data matrices written by
+        %raw_dff_extractor
+        raw_data_mat = load([direc 'extracted_raw_data_mat.mat']);
+        raw_data_mat = raw_data_mat.raw_data_mat;           %raw F traces extracted from ROIs
+        raw_data_mat = raw_data_mat(:, :, stim_mat_simple(:, 1));
+        
+        %calculating dF/F traces from raw data
+        filt_time = 200;            %in ms, the time window for boxcar filter for generating filtered traces
+        [dff_data_mat, dff_data_mat_f] = cal_dff_traces_res(raw_data_mat, stim_mat, frame_time, filt_time, direc);
+        
         %identifying sig responses on a single trial basis, and then sig
         %responder cells for any given trial type
 %         [resp_areas, sig_trace_mat, sig_cell_mat, sig_trace_mat_old, sig_cell_mat_old] = ...
 %             cal_sig_responses_20161024(dataset, dff_data_mat, stim_mat, list_direc);
-        [resp_areas, sig_trace_mat, sig_cell_mat] = cal_sig_responses_res(dff_data_mat, stim_mat, stim_mat_simple, list_direc, frame_time);
+        [resp_areas, sig_trace_mat, sig_trace_mat_old, sig_cell_mat] = cal_sig_responses_res(dff_data_mat, stim_mat, stim_mat_simple, list_direc, frame_time);
         %PICK UP THREAD HERE: make sure sig responses are correctly
         %identified
-        keyboard
+         keyboard
     end
 end
         
 
 %         
 %         
-%         %identifying sig responses on a single trial basis, and then sig
-%         %responder cells in any individual block
-%         [resp_areas, sig_trace_mat, sig_cell_mat, sig_trace_mat_old, sig_cell_mat_old] = ...
-%             cal_sig_responses_20161024(dataset, dff_data_mat, stim_mat, prot_switch_trials, list_direc, an_trial_window);
-%             
+%           
 %         del = isnan(resp_areas(1, :));
 %         bad_tr_list = find(del == 1);                   %list of trials thrown away due to movement
 %         good_tr_list = 1:n_trials;

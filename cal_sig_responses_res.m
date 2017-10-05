@@ -1,4 +1,4 @@
-function [resp_areas, sig_trace_mat, sig_cell_mat] = cal_sig_responses_res(dff_data_mat, stim_mat_struc, stim_mat_simple, direc, frame_time)
+function [resp_areas, sig_trace_mat, sig_trace_mat_old, sig_cell_mat] = cal_sig_responses_res(dff_data_mat, stim_mat_struc, stim_mat_simple, direc, frame_time)
 %This function takes as inputs, the 3-D dff_data_mat that contains dF/F traces stored
 %by frame_n, cell_n, trial_n and odor_n; and stim_mat which contains
 %stimulus delivery information for each trial. The outputs are three 2D
@@ -11,15 +11,14 @@ function [resp_areas, sig_trace_mat, sig_cell_mat] = cal_sig_responses_res(dff_d
 n_frames = size(dff_data_mat, 1);
 n_cells = size(dff_data_mat, 2);
 n_trials = size(dff_data_mat, 3);
-odor_list = unique(stim_mat_simple(:, 1));
+odor_list = unique(stim_mat_simple(:, 2));
 n_odors = length(odor_list);
-odor_dur_list = unique(stim_mat_simple(:, 2));
+odor_dur_list = unique(stim_mat_simple(:, 3));
 del = find(odor_dur_list == 0);
 odor_dur_list(del) = [];
 del = find(isnan(odor_dur_list) == 1);
 odor_dur_list(del) = [];
 n_odor_durs = length(odor_dur_list);
-odor_t_list = stim_mat_simple(:, 1);
 
 stim_time = stim_mat_struc(1).stim_latency.*1000;              %stimulus onset time in ms
 stim_time = stim_time + 200;                                %added delay from valve opening to odor at pipe outlet can programmatically find this out - add feature later.
@@ -59,31 +58,31 @@ for rep_gp = 1:n_rep_gps                %a rep_gp is a group of repeats of the s
     else
     end
     stim_end_fr = ceil(stim_frame + ((stim_duration.*1000)./frame_time) );
-    rep_tr_list = find(stim_mat_simple(:, 1) == odor_ni & stim_mat_simple(:, 2) == stim_duration);    %list of repeat tr numbers
+    rep_tr_list = find(stim_mat_simple(:, 2) == odor_ni & stim_mat_simple(:, 3) == stim_duration);    %list of repeat tr numbers
     
     
     for cell_n = 1:n_cells
-        curr_traces = squeeze(nanmean(dff_data_mat(:, cell_n, rep_tr_list, :), 4));     %all traces but one along dim 4 are nan's, so it makes no difference
+        curr_traces = squeeze(dff_data_mat(:, cell_n, rep_tr_list));             
         
         %moving window filtering each trace
         curr_traces_f = zeros(size(curr_traces, 1), size(curr_traces, 2)) + nan;
         for rep_n = 1:size(curr_traces, 2);
             curr_trace = curr_traces(:, rep_n);
-            curr_traces_f(:, rep_n) = tsmovavg_m(curr_trace', 's', round(1000./frame_time));        %filtering with a 1s wide box-car
+            curr_traces_f(:, rep_n) = tsmovavg_m(curr_trace', 's', round(1000./frame_time));        %filtering with a 200 ms wide box-car
         end
         
         base_traces = curr_traces_f(pre_stim_frame:(stim_frame - 2), :);                 %pre-odor-stim baseline frames
-        base_m = nanmean(base_traces, 1);
-        base_s = nanstd(base_traces, 1);
+        base_m = mean(base_traces, 1, 'omitnan');
+        base_s = std(base_traces, 1, 'omitnan');
         threshes = abs(base_m) + 4.*base_s;
-        thresh_mean = nanmean(nanmean(base_traces, 2)) + 0.*nanstd(nanmean(base_traces, 2));       %significance criterion for resp in mean trace
+        thresh_mean = mean(mean(base_traces, 2, 'omitnan'), 'omitnan') + 0.*std(mean(base_traces, 2, 'omitnan'), 'omitnan');       %significance criterion for resp in mean trace
         
-        resp_traces = curr_traces_f(stim_frame:round(stim_end_fr + 2000./frame_time), :); %extending analysis window to 2s after odor off to capture off responses
-        ave_trace = nanmean(resp_traces, 2);
+        resp_traces = curr_traces_f(stim_frame:round(stim_end_fr + 3000./frame_time), :); %extending analysis window to 3s after odor off to capture off responses
+        ave_trace = mean(resp_traces, 2, 'omitnan');
         
         %identifying peak in rep-averaged trace to assign time of pk-response
         %this enforces a fixed pk time for each response in the smoothed trace
-        [ave_pk, ave_pk_fr] = nanmax(ave_trace);
+        [ave_pk, ave_pk_fr] = max(ave_trace, [], 'omitnan');
         %setting criterion that ave trace should also have a sig response
         if ave_pk < thresh_mean
             continue
@@ -93,7 +92,7 @@ for rep_gp = 1:n_rep_gps                %a rep_gp is a group of repeats of the s
         pk_resps = resp_traces(ave_pk_fr, :);                  %single repeat response amplitudes at pk time of avg trace
         %resp_areas(cell_n, rep_tr_list) = pk_resps;
         try
-            resp_traces_win = resp_traces((max([(ave_pk_fr-5), 1])):(min([(ave_pk_fr+5), size(resp_traces, 1)])), :);
+            resp_traces_win = resp_traces((max([(ave_pk_fr-round(1000./frame_time)), 1])):(min([(ave_pk_fr+round(1000./frame_time)), size(resp_traces, 1)])), :);
             resp_areas(cell_n, rep_tr_list) = max(resp_traces_win, [], 1);
         catch
             keyboard
@@ -109,7 +108,7 @@ for rep_gp = 1:n_rep_gps                %a rep_gp is a group of repeats of the s
                 
                 sig_trace_mat(cell_n, rep_tr_list(rep_n)) = 1;
                 
-                %visualising current trace to check if its a sig resp
+%                 %visualising current trace to check if its a sig resp
 %                 figure(1)
 %                 curr_trace = curr_traces_f(:, rep_n);
 %                 plot(curr_trace)
@@ -122,7 +121,7 @@ for rep_gp = 1:n_rep_gps                %a rep_gp is a group of repeats of the s
 %                 plot(ave_trace, 'k', 'LineWidth', 2)
 %                 hold off
 %                 keyboard
-                
+%                 
             else
             end
             
@@ -140,15 +139,14 @@ for rep_gp = 1:n_rep_gps                %a rep_gp is a group of repeats of the s
         %deciding if the current cell is a significant responder in the current rep-gp
         if sum(sig_trace_mat(cell_n, rep_tr_list))./length(rep_tr_list) >= 0.5      %at least half the repeats should be sigonificant resps
             
-            if sum(sig_trace_mat(cell_n, rep_tr_list)) > 2                          %at least 2 of the repeats shold be significant resps
+%            if sum(sig_trace_mat(cell_n, rep_tr_list)) > 2                          %at least 2 of the repeats shold be significant resps
                                                          
                 dur_n = find(odor_dur_list == stim_duration);
                 sig_cell_mat(cell_n, odor_ni, dur_n) = 1;
                 h = 1;
-                
-            else
-                h = 0;
-            end
+%             else
+%                 h = 0;
+%             end
         else
             h = 0;
         end

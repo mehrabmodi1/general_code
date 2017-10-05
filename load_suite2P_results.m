@@ -30,7 +30,10 @@ for file_n = 1:n_files
 end
 disp(['Loading Suite2P results file ' dir_contents(max_datenum(2)).name])
 data_mat = load([direc, dir_contents(max_datenum(2)).name]);
-data_mat = data_mat.dat;
+try
+    data_mat = data_mat.dat;
+catch
+end
 disp('Done Loading.')
 cd(prev_direc);
 end
