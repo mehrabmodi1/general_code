@@ -1,4 +1,4 @@
-function [h, max_val] = plot_traces_simple(trace_mat, time_vec, norm)
+function [h, max_val] = plot_traces_simple(trace_mat, time_vec, norm, plot_mean)
 %This function plots single trial dF/F traces in grey with the averaged
 %trace in a thicker black. It plots traces for a single cell, for a chosen
 %odor number or across all odors.
@@ -21,9 +21,12 @@ end
 grey = [0.6, 0.6, 0.6];
 h = plot(time_vec, cell_traces);
 set(h, 'Color', grey);
-hold on
-plot(time_vec, ave_trace, 'k', 'LineWidth', 3);
-
+if plot_mean == 1
+    hold on
+    plot(time_vec, ave_trace, 'k', 'LineWidth', 3);
+    hold off
+else
+end
 set(gcf, 'Color', 'w')
 
 end

@@ -4,16 +4,16 @@ function [] = add_stim_bar(fig_n, stim_frames, stim_colors);
 %the first one, and creates a patch colored stim_color in it to denote the stimulus duration.
 
 %testing lines
-%clear all
-%close all
+% clear all
+% close all
 % test_vec = rand(1, 100);
-% stim_frames = [10, 60];
-% stim_color = [.3, .5, .7];
+% stim_frames = [20, 60];
+% stim_colors = [.3, .5, .7];
 % fig_n = 1;
 % figure(1);
 % plot(test_vec);
 
-
+disp('Run this function only AFTER fig_wrapup or the time-scale is distorted.');
 figure(fig_n);
 a = gca;
 orig_ax = axis;
