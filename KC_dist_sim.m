@@ -10,12 +10,12 @@ n_runs = 100;
 n_odors = 500;
 nKCs = 1000;
 mean_wt_high = 0.9;
-mean_wt_low = 0.05;
-sd_wt_high = 0.1;       %multiplier of mean_wt
-sd_wt_low = 0.1;        %multiplier of mean_wt
+mean_wt_low = 0.001;
+sd_wt_high = 0;       %multiplier of mean_wt
+sd_wt_low = 0;        %multiplier of mean_wt
 plast_step = 0.85;
-sd_wt_plast = 0.1;      %multiplier of mean_wt
-sparseness_multiplier = 1;
+sd_wt_plast = 0;      %multiplier of mean_wt
+sparseness_multiplier = 10;
 make_plots = 1;         %set to 0 to prevent plotting
 
 %running the simulation
@@ -23,10 +23,12 @@ make_plots = 1;         %set to 0 to prevent plotting
 for iteration_n = 1:n_runs
     all_responders = [];
     %Setting up baseline state
+    n_responders_list = [];
     for odor_n = 1:n_odors
         %setting up responder KC vector for current odor
-        fraci = min([(round(rand(1, 1).*(n_fracs - 1)) + 1), 1]);
-        n_responders = [(frac_list(fraci).*nKCs)];
+        fraci = round(rand(1, 1).*(n_fracs - 1)) + 1;
+        n_responders = min([(frac_list(fraci).*nKCs).*sparseness_multiplier], nKCs);
+        n_responders_list = [n_responders_list; n_responders];
         
         KC_list = 1:1:nKCs;
         r_list = randperm(nKCs);
