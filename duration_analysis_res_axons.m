@@ -71,7 +71,7 @@ for direc_list_n = 1:n_direc_lists
             stim_frs = [stim_frs; [stim_fr, (round( ((stim_time + curr_dur).*1000)./frame_time)),...
                 round( ((stim_time + curr_dur + post_od_scan_dur).*1000)./frame_time)]];
         end
-                
+        keyboard        
         %loading extracted raw fluorescence data matrices written by
         %raw_dff_extractor
         raw_data_mat = load([direc 'extracted_raw_data_mat.mat']);
@@ -94,6 +94,14 @@ for direc_list_n = 1:n_direc_lists
         ROI_mat = load([direc, 'ROI_mat.mat']);
         ROI_mat = ROI_mat.ROI_mat;
         
+        %identifying big rois
+        size_vec = zeros(size(ROI_mat, 3), 1);
+        for ROI_n = 1:size(ROI_mat, 3)
+            size_vec(ROI_n, 1) = sum(sum(ROI_mat(:, :, ROI_n)));
+        end
+        size_thresh = 200;                              %manually identified
+        big_rois = find(size_vec > size_thresh);
+        
         if exist([direc, 'ROI_gps.mat']) ~= 2
             [roi_groups] = define_roi_groups(ROI_mat, ave_im);
             save([direc, 'ROI_gps.mat'], 'roi_groups')
@@ -111,11 +119,13 @@ for direc_list_n = 1:n_direc_lists
             
             for group_n = 1:n_groups
                 curr_syns = roi_groups{group_n, 1};
+                [del, big_rem] = intersect(curr_syns, big_rois);        %removing big rois if any
+                curr_syns(big_rem) = [];
                                 
                 for dur_n = 1:n_od_durs
                     dur_ni = odor_dur_list(dur_n);
                     dur_trs = find(stim_mat_simple(:, 3) == dur_ni);
-                    curr_trs = intersect(od_trs, dur_trs);
+                    curr_trs = intersect(od_trs, dur_trs); 
                     resp_mat = dff_data_mat_f(1:(stim_frs(dur_n, 3)), :, curr_trs);
                     
                     %calculating trial-averaged correlation matrix
@@ -129,14 +139,14 @@ for direc_list_n = 1:n_direc_lists
                     %calculating single trial correlation matrices
                     for trial_n = 1:size(resp_mat, 3)
                         curr_mat = squeeze(resp_mat(:, curr_syns, trial_n));
-                        figure(2)
-                        time_vec = 1:1:size(resp_mat, 1);
-                        plot_traces_simple(curr_mat, time_vec, 0);
-                        set_xlabels_time(2, frame_time./1000, 0.5)
-                        add_stim_bar(2, stim_frs(dur_n, 1:2), [0.7, 0.3, 0.3])
+                        curr_handle = figure(2);
+                        time_vec = 1:frame_time:(frame_time.*size(resp_mat, 1));
+                        time_vec = time_vec./1000;
+                        %[] = cascade_plot(data_mat, plot_vs, ydim, norm, offset_mult, linew, line_colour)
+                        cascade_plot(2, curr_mat, time_vec, 2, 1, 1, 1, [.65, .65, .65]);
                         
-                        fig_wrapup(2)
-                                              
+                        %making sure the main axes are the current axes before adding stim indicator bar
+                        add_stim_bar(2, stim_frs(dur_n, 1:2).*(frame_time./1000), [0.7, 0.3, 0.3])                      
                         
                         corr_mat = corrcoef(curr_mat);
                         figure(3)
@@ -144,11 +154,9 @@ for direc_list_n = 1:n_direc_lists
                         colormap(greymap)
                         disp(['single trial corrs for trial ' int2str(trial_n), ' group ' int2str(group_n)])
                         
-                        if group_n > 3
-                            keyboard
-                        else
-                        end
+                        keyboard
                         
+                        close figure 2
                     end
                     
                     
