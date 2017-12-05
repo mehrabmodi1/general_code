@@ -1,4 +1,4 @@
-function params=defaultADOparamsMehrab_stim_dur_20160303(params)
+function params=set_ADO_params_default(params)
 %  function params=defaultADOparams
 %
 % Create a parameter structure with the default values specified by
@@ -40,7 +40,7 @@ defaults={...
     'inter_pulse_interval', 0.2;...
     'elec_odours', [];...
     'led_odours', [];...
-    'rand_train', 0;
+    'rand_trains', 0;
     'n_rand_trains', 3;
     'min_pulse_dur', 0.1;           %in seconds, the shortest pulse the olfactometer can deliver
     
