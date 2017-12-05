@@ -127,7 +127,7 @@ for pp=1:length(params) %this loop is not for trials
     %creating new fields in params to keep track of completed trials
     %PICK UP THREAD HERE
     %fix the addition of this field to the params structure. Also fix the
-    %occasional freezing of the rand_train_generator function.
+    %occasional f
     
     params.trs_done = zeros(n_trials, 1);
    keyboard
