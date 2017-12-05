@@ -1,16 +1,15 @@
-%function [train] = rand_train_generator(train_dur, mean_pulse_dur, min_pulse_dur, max_pulse_dur)
+function [train] = rand_train_generator(train_dur, mean_dur, min_pulse_dur, max_pulse_dur)
 %This function generates a train of pulses as defined by wait before on and
 %wait before off times in s. Each pulse has 
 %
 
 %test vars
-train_dur = 120;
-min_pulse_dur = 0.1;
-max_pulse_dur = 10;
+% train_dur = 120;
+% min_pulse_dur = 0.1;
+% max_pulse_dur = 10;
+% mean_dur = 8;          %in s, the mean pulse duration
 
 %building a reference distribution of pulse durations to draw from 
-mean_dur = 8;          %in s, the mean pulse duration
-
 prob_dist = exprnd(mean_dur, 10000, 1);  %un-sorted, exp distributed random pulse-durs
 del = find(prob_dist < min_pulse_dur);
 prob_dist(del) = [];                    
@@ -63,20 +62,21 @@ while tot_dur < train_dur & tot_dur ~= train_dur
 end
 
     
- t_vec = zeros(train_dur.*1000, 1);
- t_point = 1;
- for pulse_n = 1:(pulse_counter - 1)
-     curr_pulse = train(pulse_n, :).*1000;
-     t_vec((t_point + curr_pulse(1)):(t_point + curr_pulse(1) + curr_pulse(2)), 1) = 1;
-     t_point = t_point + curr_pulse(1) + curr_pulse(2);
-     
- end
-plot(t_vec);
-tot_dur
-figure(2)
-hist(train)
+%  t_vec = zeros(train_dur.*1000, 1);
+%  t_point = 1;
+%  for pulse_n = 1:(pulse_counter - 1)
+%      curr_pulse = train(pulse_n, :).*1000;
+%      t_vec((t_point + curr_pulse(1)):(t_point + curr_pulse(1) + curr_pulse(2)), 1) = 1;
+%      t_point = t_point + curr_pulse(1) + curr_pulse(2);
+%      
+%  end
+% plot(t_vec);
+% tot_dur
+% figure(2)
+% hist(train)
 
  function [rand_n] = rand_draw(length_vec)
         rand_n = (round(rand(1, 1).*(length_vec - 1)) + 1);
  end
    
+end
