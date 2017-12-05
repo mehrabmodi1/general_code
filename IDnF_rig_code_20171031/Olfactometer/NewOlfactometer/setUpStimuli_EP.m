@@ -10,14 +10,18 @@ function params=setUpStimuli_EP(params)
 %
 %
 % Rob Campbell - October 2009, re-written by Mehrab Modi - 2016.
-%
-% changed the function so that it can deal with mixtures in th odours field
-% to present mixtures .odours should be a cell array (e.g. {1 ; 2; [1 2]} )
 
 
 %stimulus parameters (more can be added if they are numeric fields
 %in params)
-stimGridFields={'duration','stimLatency','odours','isi','firstDilution','secondDilution', 'n_od_pulses', 'inter_pulse_interval', 'post_od_scan_dur'};
+stimGridFields={'duration','stimLatency','odours','isi','firstDilution','secondDilution', 'n_od_pulses', 'inter_pulse_interval', 'post_od_scan_dur', 'rand_train', 'n_rand_trains'};
+
+
+%rand_train is a boolean that specifies whether to use a train of random
+%duration odor pulses that add up to duration. 
+
+%n_rand_trains specifies how many different random trains are to be generated - these are treated as
+%separate stimuli for each odor and repeated reps number of times.
 
 for pp=1:length(params) %this loop is not for trials
     

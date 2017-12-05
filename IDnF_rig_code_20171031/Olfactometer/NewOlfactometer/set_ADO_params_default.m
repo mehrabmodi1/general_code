@@ -40,7 +40,10 @@ defaults={...
     'inter_pulse_interval', 0.2;...
     'elec_odours', [];...
     'led_odours', [];...
-      
+    'rand_train', 0;
+    'n_rand_trains', 3;
+    'min_pulse_dur', 0.1;           %in seconds, the shortest pulse the olfactometer can deliver
+    
     };
     
 
@@ -58,7 +61,7 @@ params=tmpP;
             end
         end              
         %Read in data from the odour list
-        [del, tmp.odourNames]=xlsread('E:\Turner lab\Matlab_scripts\Olfactometer\NewOlfactometer\calibration\odorList.xls');
+        [del, tmp.odourNames]=xlsread('D:\Data\Bitbucket_repos\general_code1\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList.xls');
         
     end
 
