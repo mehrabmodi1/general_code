@@ -58,6 +58,10 @@ for pp=1:length(params) %this loop is not for trials
         end
         
     end
+    
+    %creating a copy of the rand_train column to keep track of rand train
+    %number
+    param_mat = [param_mat, param_mat(:, 10)];
         
     %house-keeping steps
     n_reps = params.reps;
@@ -115,6 +119,7 @@ for pp=1:length(params) %this loop is not for trials
     params_old = params;
     clear params
     %filling params from param_mat matrix into params structure
+    stimGridFields = [stimGridFields, 'rand_train_n'];          %adding this here to add an extra field to the param structure to keep track of the rand train number
     for trial_n = 1:size(param_mat, 1)
         for s_param_n = 1:length(stimGridFields)
             s_param = stimGridFields{s_param_n};
@@ -130,6 +135,6 @@ for pp=1:length(params) %this loop is not for trials
     end
     
 end
-keyboard
+
 end
 
