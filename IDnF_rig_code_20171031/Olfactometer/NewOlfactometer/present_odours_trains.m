@@ -1,8 +1,8 @@
 function present_odours_params_20170720(params, scale_isi)
 
-%save_dir = curr_aq_direc;
+save_dir = curr_aq_direc;
 %testing vars
-save_dir = 'D:\Data\testing\olfactometer_code\';
+%save_dir = 'D:\Data\testing\olfactometer_code\';
 
 c = onCleanup(@()my_cleanup());        %to shut all valves if user presses Ctrl + C
 
