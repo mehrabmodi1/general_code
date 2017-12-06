@@ -7,7 +7,7 @@ function varargout=connectAlicat(aliComm)
 %
 % Rob Campbell - 20th March 2008 - CSHL
 
-com_port = 'COM9';
+com_port = 'COM12';
 
 if nargin==0
     try
