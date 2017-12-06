@@ -3,11 +3,11 @@ function [train] = rand_train_generator(train_dur, mean_dur, min_pulse_dur, max_
 %wait before off times in s. Each pulse has 
 %
 
-%test vars
+% %test vars
 % train_dur = 120;
 % min_pulse_dur = 0.1;
 % max_pulse_dur = 10;
-% mean_dur = 8;          %in s, the mean pulse duration
+% mean_dur = 2;          %in s, the mean pulse duration
 
 %building a reference distribution of pulse durations to draw from 
 prob_dist = exprnd(mean_dur, 10000, 1);  %un-sorted, exp distributed random pulse-durs
@@ -24,7 +24,7 @@ tot_dur = 0;
 train = [];
 pulse_counter = 1;
 
-while tot_dur < train_dur & tot_dur ~= train_dur
+while tot_dur < train_dur & abs(train_dur - tot_dur) > 0.001
 
     if pulse_counter == 1
         %generating the first pulse
@@ -61,8 +61,9 @@ while tot_dur < train_dur & tot_dur ~= train_dur
     pulse_counter = pulse_counter + 1;
 end
 
-    
-%  t_vec = zeros(train_dur.*1000, 1);
+% test plotting    
+% 
+%t_vec = zeros(train_dur.*1000, 1);
 %  t_point = 1;
 %  for pulse_n = 1:(pulse_counter - 1)
 %      curr_pulse = train(pulse_n, :).*1000;
