@@ -38,7 +38,7 @@ else
     start_tr = 1;
 end
 
-n_trials = size(params_mat, 1);
+n_trials = size(params_mat, 2);
 
 ShutAllValves_EP;       %making sure all odor valves are closed and carrier stream is directed through shuttle valve to fly.
 
@@ -67,10 +67,10 @@ for trial_n = start_tr:n_trials
         (duration + inter_pulse_interval).*(n_od_pulses - 1) + post_od_scan_dur;
      
     if scale_isi == 0
-        isi = params_mat.isi(trial_n);
+        isi = params_mat(trial_n).isi;
     elseif scale_isi == 1
         isi = max([60, ((tot_tr_dur - stim_latency - post_od_scan_dur).*3)]);         %scales isi to stim duration, with a minimum isi of 60s
-        params_mat.isi(trial_n) = isi;
+        params_mat(trial_n).isi = isi;
     end
     
     
@@ -135,7 +135,7 @@ for trial_n = start_tr:n_trials
     trigger_scan(0)
     
     %logging current trial as done and saving params_mat
-    params_mat.trs_done(trial_n) = t_stamp;     %time stamp recorded at the beginning of the trial
+    params_mat(trial_n).trs_done = t_stamp;     %time stamp recorded at the beginning of the trial
     save([save_dir 'params.mat'], 'params_mat');                %saving the detailed parameters for each trial to file
     save([save_dir 'params_spec.mat'], 'params_spec');          %saving the params specifications to file
     
@@ -152,10 +152,8 @@ for trial_n = start_tr:n_trials
     else
     end
     
-   
 end
 release(s)
-
 
 %defining clean up function
 function [] = my_cleanup()
