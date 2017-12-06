@@ -93,7 +93,7 @@ for pp=1:length(params) %this loop is not for trials
         for duration_n = 1:n_durations
             curr_duration = params.duration(duration_n);
             for rand_train_n = 1:n_rand_trains
-               rand_train = rand_train_generator(curr_duration, 5, 0.1, 10);       %generating pulse trains with exp mean 5s, min dur 0.1s, max dur 10s 
+               rand_train = rand_train_generator(curr_duration, 8, 0.1, 20);       %generating pulse trains with exp mean 5s, min dur 0.1s, max dur 10s 
                curr_trs = row_lists{r_train_counter};           %list of rows in param_mat into which current train needs to be inserted
                param_mat(curr_trs, 10) = {rand_train};                             %inserting random train into the appropriate rows of param_mat
                r_train_counter = r_train_counter + 1;
@@ -125,14 +125,11 @@ for pp=1:length(params) %this loop is not for trials
     end
     
     %creating new fields in params to keep track of completed trials
-    %PICK UP THREAD HERE
-    %fix the addition of this field to the params structure. Also fix the
-    %occasional freezing of the rand_train_generator function.
-    
-    params.trs_done = zeros(n_trials, 1);
-   keyboard
+    for trial_n = 1:n_trials
+        params(trial_n).trs_done = 0;
+    end
     
 end
-
+keyboard
 end
 
