@@ -61,10 +61,7 @@ params=tmpP;
             end
         end              
         %Read in data from the odour list
-        fid = fopen('odor_list_path.txt');
-        odor_list_path = fgetl(fid);
-        fclose(fid);
-        
+        fid 
         [del, tmp.odourNames]=xlsread(odor_list_path);
         
     end
