@@ -1,4 +1,4 @@
-function params=setUpStimuli_trains(params)
+function [params, params_spec]=setUpStimuli_trains(params)
 % function params=setUpStimuli(params)
 % This function sets up a stimulus parameter matrix where each trial's
 % stimulus is defined as a train of pulses. Single pulse trials are trains of
@@ -89,7 +89,7 @@ for pp=1:length(params) %this loop is not for trials
             row_lists = [row_lists; {curr_row_list}];
         end
     end
-    param_mat_old = param_mat;
+    
     param_mat = num2cell(param_mat);                %converting to cell array in order to be able to handle stimulus trains
     r_train_counter = 1;
     
@@ -116,7 +116,7 @@ for pp=1:length(params) %this loop is not for trials
         end
     end
     
-    params_old = params;
+    params_spec = params;
     clear params
     %filling params from param_mat matrix into params structure
     stimGridFields = [stimGridFields, 'rand_train_n'];          %adding this here to add an extra field to the param structure to keep track of the rand train number
@@ -126,7 +126,7 @@ for pp=1:length(params) %this loop is not for trials
             params(trial_n).(s_param) = param_mat{trial_n, s_param_n};
             
         end
-       
+        params(trial_n).odourNames = params_spec.odourNames;
     end
     
     %creating new fields in params to keep track of completed trials
