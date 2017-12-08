@@ -47,7 +47,6 @@ if exist([save_dir 'params.mat']) == 2
 
 else    
     [params_mat, params_spec] = setUpStimuli_trains(params);
-    save([save_dir 'params_spec.mat'], 'params_spec');          %saving the params specifications to file
     start_tr = 1;
 end
 
