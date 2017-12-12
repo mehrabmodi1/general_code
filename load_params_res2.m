@@ -14,7 +14,7 @@ n_trials = size(params, 2);
 column_heads = [{'odor_n'}, {'duration'}, {'isi'}, {'n_odor_pulses'}, {'inter_pulse_interval'}, {'stim_latency'}, {'first_dilution'}, {'second_dilution'},...
                     {'post_od_scan_dur'}, {'rand_train_n'}, {'t_stamp'}];
 
-stim_mat_simple = zeros(n_trials, 10) + nan;
+stim_mat_simple = zeros(n_trials, 11) + nan;
 rand_trains = [];
 for trial_n = 1:n_trials
     param_vec = [params(trial_n).odours, params(trial_n).duration, params(trial_n).isi,...
