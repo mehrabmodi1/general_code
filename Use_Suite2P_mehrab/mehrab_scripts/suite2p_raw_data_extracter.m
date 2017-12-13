@@ -1,9 +1,9 @@
 clear all
 close all
 
-results_direc = 'D:\Data\CSHL\Suite2Ptest\results\';
-reg_tif_direc = 'D:\Data\CSHL\Suite2Ptest\reg_tifs\';
-raw_direc_base = 'D:\Data\CSHL\Suite2Ptest\raw_data\';
+results_direc = 'D:\Data\Suite2P_results\';
+reg_tif_direc = 'D:\Data\Suite2P_registered\';
+raw_direc_base = 'D:\Data\Janelia\resonant\';
 
 %% going through raw_direc_base and building a list of all raw data direcs that have a stimulus params file to analyse them
 [raw_direc_list] = setup_raw_direc_list(raw_direc_base);
@@ -36,7 +36,7 @@ for raw_direc_n = 1:size(raw_direc_list, 1)
     end
     disp(['analysed ' int2str(n_direcs_analysed) ' new datasets.']);
 end
-
+keyboard
 
 %% loop to repeatedly run manual z-drift detection GUI for all new datasets
 for raw_direc_n = 1:size(raw_direc_list, 1)    
