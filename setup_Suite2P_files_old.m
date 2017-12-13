@@ -1,4 +1,4 @@
-function [ft_factor] = setup_Suite2P_files(raw_direc_base, raw_direc, m_db_file_direc)
+function [ft_factor] = setup_Suite2P_files_old(raw_direc_base, raw_direc, m_db_file_direc)
 %This function copies over the master_file.m and make_db.m files needed to
 %run Suite2P to the specified [raw_direc_base raw_direc] from the specified m_db_file_direc.
 %It also edits both files according to the dataset in the current
@@ -44,9 +44,9 @@ function [ft_factor] = setup_Suite2P_files(raw_direc_base, raw_direc, m_db_file_
     
     %editing masterfile with parameters for current dataset
     master_file = regexp(fileread('master_file.m'), '\n', 'split');
-    fr_line = master_file{46};
+    fr_line = master_file{38};
     fr_line(1, 31:32) = num2str(1./frame_time, 2);
-    master_file{46} = fr_line;
+    master_file{38} = fr_line;
     
     fid = fopen('master_file.m', 'w');
     fprintf(fid, '%s\n', master_file{:});
