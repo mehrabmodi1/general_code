@@ -30,7 +30,7 @@ for odor_n = 1:n_odors
 
             if tr_n == 1
                 trace_mat = [trace_mat, trace(:, 1)];
-                time_vec = trace(:, 2);
+                time_vec = 
             elseif tr_n > 1
                 trace_mat = pad_n_concatenate(trace_mat, trace(:, 1), 2, nan);
             end
@@ -53,7 +53,7 @@ for odor_n = 1:n_odors
     
 
 end
-plot(time_vec, squeeze(trace_mat_all(:, :, 1, 1)))
+plot(squeeze(trace_mat_all(:, :, 1, 1)))
 
 %Analysing traces
 %init_pks = 
