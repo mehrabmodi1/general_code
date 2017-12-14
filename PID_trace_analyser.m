@@ -13,9 +13,10 @@ n_odors = length(unique(odor_list));
 n_rand_trains = max(stim_mat_simple(:, 10));
 del = find(stim_mat_simple(:, 1) == 1);
 n_reps = length(del);
-acq_point = round(stim_mat_simple(1, 6).*2000);        %PID datapoint number when stim begins. stim_latency multiplied by the acq rate ie. 2KHz
+stim_point = round(stim_mat_simple(1, 6).*2000);        %PID datapoint number when stim begins. stim_latency multiplied by the acq rate ie. 2KHz
+stim_end_point = round(stim_mat_simple(1, 2)).*2000 + stim_point;
 
-trace_mat_all = [];
+mean_trace_mat = [];
 for odor_n = 1:n_odors
     odor_ni = odor_list(odor_n);
     
@@ -37,18 +38,13 @@ for odor_n = 1:n_odors
         end
     
         %calculating dF/F
-        mean_baselines = mean(trace_mat(1:acq_point, :), 1, 'omitnan');
+        mean_baselines = mean(trace_mat(1:stim_point, :), 1, 'omitnan');
         mean_baselines = repmat(mean_baselines, size(trace_mat, 1), 1);
         trace_mat = (trace_mat - mean_baselines);
-%     
-%         if odor_n == 1
-%             trace_mat_all(:, :, 1) = trace_mat;
-%             mean_trace_mat = [mean_trace_mat, mean(trace_mat, 2, 'omitnan')];
-%         elseif odor_n > 1
-%         trace_mat_all = pad_n_concatenate(trace_mat_all, trace_mat, 3, nan);
-          trace_mat_all(:, :, rand_train_n, odor_n) = trace_mat;
-%         end
         
+        trace_mat_all(:, :, rand_train_n, odor_n) = trace_mat;
+        mean_trace_mat = [mean_trace_mat, mean(trace_mat, 2, 'omitnan')];
+    
     end
     
 
@@ -56,4 +52,8 @@ end
 plot(time_vec, squeeze(trace_mat_all(:, :, 1, 1)))
 
 %Analysing traces
-%init_pks = 
+init_pks = max(mean_trace_mat(stim_point:(stim_point + 10000), :)); 
+late_pks = max(mean_trace_mat((stim_end_point - 10000):stim_end_point, :)); 
+
+percentage_drops = (init_pks - late_pks)./init_pks;
+
