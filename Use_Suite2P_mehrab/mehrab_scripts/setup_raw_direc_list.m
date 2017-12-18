@@ -25,7 +25,7 @@ for file_n = 1:n_files
     end
     
     thresh_size = 500e6;                %at least 500 MB of frames needed before running Suite2P on dataset
-    if tot_size > thresh_size && n_tifs > 8
+    if tot_size > thresh_size
         %making sure that folder structure meets Suite2P requirements (data should be three subfolders away from raw_direc_base)
         slashi = findstr(curr_raw_direc, '\');
         

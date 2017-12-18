@@ -1,0 +1,10 @@
+diff a/Use_Suite2P_mehrab/mehrab_scripts/setup_raw_direc_list.m b/Use_Suite2P_mehrab/mehrab_scripts/setup_raw_direc_list.m	(rejected hunks)
+@@ -25,7 +25,7 @@
+     end
+     
+     thresh_size = 500e6;                %at least 500 MB of frames needed before running Suite2P on dataset
+-    if tot_size > thresh_size
++    if tot_size > thresh_size && n_tifs > 8
+         %making sure that folder structure meets Suite2P requirements (data should be three subfolders away from raw_direc_base)
+         slashi = findstr(curr_raw_direc, '\');
+         
