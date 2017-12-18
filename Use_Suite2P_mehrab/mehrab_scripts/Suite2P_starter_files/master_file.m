@@ -19,12 +19,12 @@
 
 % check out the README file for detailed instructions
 % **** and for more options available ****
-addpath('D:\Data\Bitbucket_repos\Suite2P_Marius_repo') % add the path to your make_db file
+addpath('E:\Code\general_code_repo\Use_Suite2P_mehrab\mehrab_scripts') % add the path to your make_db file
 
 % overwrite any of these default options in your make_db file for individual experiments
 make_db; % RUN YOUR OWN MAKE_DB SCRIPT TO RUN HERE
 
-ops0.toolbox_path = 'D:\Data\Bitbucket_repos\Suite2P_Marius_repo';
+ops0.toolbox_path = 'E:\Code\Suite2P_Marius';
 if exist(ops0.toolbox_path, 'dir')
 	addpath(genpath(ops0.toolbox_path)) % add local path to the toolbox
 else
@@ -38,12 +38,12 @@ ops0.fig                    = 1; % turn off figure generation with 0
 ops0.diameter               = 12; % most important parameter. Set here, or individually per experiment in make_db file
 
 % ---- root paths for files and temporary storage (ideally an SSD drive. my SSD is C:/)
-ops0.RootStorage            = 'D:\Data\Janelia\resonant'; % Suite2P assumes a folder structure, check out README file
-ops0.temp_tiff              = 'D:\Data\Suite2P_scratch\temp.tif'; % copies each remote tiff locally first, into this file
-ops0.RegFileRoot            = 'D:\Data\Suite2P_scratch';  % location for binary file
+ops0.RootStorage            = 'E:\Data\Raw_Data_Current\Resonant'; % Suite2P assumes a folder structure, check out README file
+ops0.temp_tiff              = 'E:\Data\Analysed_data\Suite2p\scratch\temp.tif'; % copies each remote tiff locally first, into this file
+ops0.RegFileRoot            = 'E:\Data\Analysed_data\Suite2p\scratch';  % location for binary file
 ops0.DeleteBin              = 1; % set to 1 for batch processing on a limited hard drive
-ops0.ResultsSavePath        = 'D:\Data\Suite2P_results'; % a folder structure is created inside
-ops0.RegFileTiffLocation    = ['D:\Data\Suite2P_registered']; %'D:/DATA/'; % leave empty to NOT save registered tiffs (slow)
+ops0.ResultsSavePath        = 'E:\Data\Analysed_data\Suite2p\Results'; % a folder structure is created inside
+ops0.RegFileTiffLocation    = ['E:\Data\Analysed_data\Suite2p\Reg_Tiff']; %'D:/DATA/'; % leave empty to NOT save registered tiffs (slow)
 % if you want to save red channel tiffs, also set ops0.REDbinary = 1
 
 % ---- registration options ------------------------------------- %

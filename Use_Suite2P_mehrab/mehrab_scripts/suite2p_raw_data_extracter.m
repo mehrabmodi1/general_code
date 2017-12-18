@@ -1,9 +1,9 @@
 clear all
 close all
 
-results_direc = 'D:\Data\Suite2P_results\';
-reg_tif_direc = 'D:\Data\Suite2P_registered\';
-raw_direc_base = 'D:\Data\Janelia\resonant\';
+results_direc = 'E:\Data\Analysed_data\Suite2p\Results\';
+reg_tif_direc = 'E:\Data\Analysed_data\Suite2p\Reg_Tiff\';
+raw_direc_base = 'E:\Data\Raw_Data_Current\Resonant\';
 
 %% going through raw_direc_base and building a list of all raw data direcs that have a stimulus params file to analyse them
 [raw_direc_list] = setup_raw_direc_list(raw_direc_base);
@@ -19,7 +19,7 @@ for raw_direc_n = 1:size(raw_direc_list, 1)
     remove_small_tifs([raw_direc_base, raw_direc]);
 
     %setting up master_file.m and make_db.m
-    ft_factor = setup_Suite2P_files(raw_direc_base, raw_direc, 'D:\Data\Bitbucket_repos\general_code1\Use_Suite2P_mehrab\mehrab_scripts\Suite2P_starter_files\master_file.m');
+    ft_factor = setup_Suite2P_files(raw_direc_base, raw_direc, 'E:\Code\general_code_repo\Use_Suite2P_mehrab\mehrab_scripts\Suite2P_starter_files\master_file.m');
 
     %Checking if this directory has already been analysed with Suite2P
     if isdir([results_direc raw_direc]) == 0
@@ -36,7 +36,7 @@ for raw_direc_n = 1:size(raw_direc_list, 1)
     end
     disp(['analysed ' int2str(n_direcs_analysed) ' new datasets.']);
 end
-keyboard
+
 
 %% loop to repeatedly run manual z-drift detection GUI for all new datasets
 for raw_direc_n = 1:size(raw_direc_list, 1)    
@@ -61,7 +61,7 @@ for raw_direc_n = 1:size(raw_direc_list, 1)
     cd([results_direc, raw_direc])
     
     if exist([results_direc, raw_direc, '\ROIs_pruned.txt']) ~= 2
-        ROI_prune
+        new_main       %this is the ROI pruning GUI that comes with Suite2P
         del = [];
         save([results_direc, raw_direc, '\ROIs_pruned.txt'], 'del');
     else

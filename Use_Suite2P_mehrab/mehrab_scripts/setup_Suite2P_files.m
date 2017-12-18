@@ -17,11 +17,6 @@ function [ft_factor] = setup_Suite2P_files(raw_direc_base, raw_direc, m_db_file_
     fprintf(fid, ['db(i).date          = ''' raw_direc((bslashi(1)+1):bslashi(2)) ''';' '\n']);
     fprintf(fid, ['db(i).expts         = [''' raw_direc((bslashi(2)+1):bslashi(3)) '''];' '\n']);
     fprintf(fid, 'db(i).nchannels     = 1;\n');
-    fprintf(fid, 'db(i).gchannel      = 1;\n');
-    fprintf(fid, 'db(i).nplanes       = 1;\n');
-    fprintf(fid, 'db(i).expred        = [4];\n');
-    fprintf(fid, 'db(i).nchannels_red = 1;\n');
-    fprintf(fid, 'db(i).comments      = '''';\n');
     fclose(fid);
     
     %This funtion copies over master_file.m from the path given to it as
