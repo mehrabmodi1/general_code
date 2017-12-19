@@ -151,11 +151,12 @@ for raw_direc_n = 1:size(raw_direc_list, 1)
     for trial_n = 1:n_trials
         curr_name = dir_contents(trial_n).name;
         try
-            t_numi = findstr(curr_name, '_00');
+            t_numi = findstr(curr_name, '_plane');
+            t_doti = findstr(curr_name, '.tif');
         catch
             error('Error parsing registered tiff filename to find trial number. Search string ''_00'' not found in current filename.')
         end
-        t_num = str2num(curr_name( (t_numi + 1):(t_numi + 6) ));        %ScanImage acquisition number for current trial filename
+        t_num = str2num(curr_name( (t_numi + 8):(t_doti - 1) ));        %ScanImage acquisition number for current trial filename
         t_num_list(trial_n, 1) = t_num;
 
         try
@@ -188,8 +189,9 @@ for raw_direc_n = 1:size(raw_direc_list, 1)
         warning = 1;
         for trial_n_sub = 1:n_trials
             curr_name = dir_contents(trial_n_sub).name;
-            t_numi = findstr(curr_name, '_00');
-            t_num = str2num(curr_name( (t_numi + 1):(t_numi + 6) ));
+            t_numi = findstr(curr_name, '_plane');
+            t_doti = findstr(curr_name, '.tif');
+            t_num = str2num(curr_name( (t_numi + 8):(t_doti - 1) ));
 
             if t_num == curr_t_num
                 warning = 0;
@@ -198,7 +200,7 @@ for raw_direc_n = 1:size(raw_direc_list, 1)
             end
 
         end
-
+        
         if warning == 1
             error('Could not find correct ScanImage file number to read in.');
         else
