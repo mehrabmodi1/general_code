@@ -1,4 +1,5 @@
 function [] = fig_wrapup(fig_n)
+%Syntax: [] = fig_wrapup(fig_n)
 %This function changes figure window size, gets rid of top and right side
 %grid lines, adjusts ticklabel font size, and changes size, orientation of
 %axis ticks.

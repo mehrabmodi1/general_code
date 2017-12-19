@@ -1,7 +1,9 @@
 function [] = add_stim_bar(fig_n, stim_frames, stim_colors);
-%Syntax: function [] = add_stim_bar(fig_n, stim_frames, stim_colors)
+%Syntax: [] = add_stim_bar(fig_n, stim_frames, stim_colors)
 %this function creates a fake, second pair of axes that is invisible, under
 %the first one, and creates a patch colored stim_color in it to denote the stimulus duration.
+%stim_colors is a matrix of color vecs with the number of rows equal to the
+%number of patches.
 
 %testing lines
 % clear all
@@ -36,6 +38,8 @@ for patch_n = 1:size(stim_frames, 1)        %loop to draw multiple patches if ne
     %drawing patch
     y_vec = [y1, y2, y2, y1];
     x_vec = [x1, x1, x2, x2];
+    
     p = patch(x_vec', y_vec', stim_colors(patch_n, :) );
+    
     p.EdgeColor = [1, 1, 1];
 end
