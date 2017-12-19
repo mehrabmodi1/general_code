@@ -1,7 +1,7 @@
 clear all
 close all
 
-direc = 'D:\Data\Janelia\resonant\20171213\olf_calib3';
+direc = 'D:\Data\Janelia\resonant\20171219\olf_test4';
 
 color_vec = load('C:\Users\Mehrab\Google Drive\Backup\Stuff\CSHL\Glenn lab\Code\std_color_vec.txt');
 
@@ -11,7 +11,7 @@ param_mat = param_mat.params_mat;
 [stim_mat_simple, column_heads, rand_trains] = load_params_res2(param_mat);
 n_trials = size(stim_mat_simple, 1);
 odor_list = sort(unique(stim_mat_simple(:, 1)));
-odor_list(3) = [];
+%odor_list(3) = [];
 
 n_odors = length(unique(odor_list));
 n_rand_trains = max(stim_mat_simple(:, 10));
@@ -99,33 +99,56 @@ for train_n = 1:n_trains
     long_mean_traces = mean_trace_mat( (pulse_on_pt - 4000):(pulse_on_pt + 16000), trace_n_vec);       
     long_sd_traces = sd_trace_mat( (pulse_on_pt - 4000):(pulse_on_pt + 16000), trace_n_vec);
     
+    short_stim_points = stim_train([short_pulse], :);
+    short_stim_points(:, 1) = 0;
     %plotting
     %plotting entire pulse trains
+    %calculating stim frames
+    stim_points = stim_train;
+   
+    for pulse_n = 1:size(stim_points, 1)
+        
+        if pulse_n > 1
+            stim_points(pulse_n, 1) = stim_points((pulse_n - 1), 2) + stim_points(pulse_n, 1);
+            stim_points(pulse_n, 2) = stim_points(pulse_n, 1) + stim_points(pulse_n, 2);
+        else
+        end
+    end
+    
     figure(1)
     t_vec = -1.*s_latency:0.0005:(0.0005.*size(mean_trace_mat, 1) - s_latency - 0.0005);
     for plot_n = 1:size(short_mean_traces, 2)
         shadedErrorBar(t_vec, mean_trace_mat(:, trace_n_vec(plot_n)), sd_trace_mat(:, trace_n_vec(plot_n)), {'Color', color_vec(plot_n, :)}, 0)
 %         errorbar(t_vec, mean_trace_mat(:, trace_n_vec(plot_n)), sd_trace_mat(:, trace_n_vec(plot_n)), 'Color', color_vec(plot_n, :))
-        
         hold on
     end
+    fig_wrapup(1)
+    color_mat = repmat([0.75, 0.75, 0.75], size(stim_points, 1), 1);
+    add_stim_bar(1, stim_points , color_mat)
     drawnow
     hold off
+    
+    
     
     %zoomed in on shortest, longest pulses
     figure(2)
     t_vec = -2:0.0005:(0.0005.*size(short_mean_traces, 1) - 2);
     t_vec = t_vec(2:end);
-    
     for plot_n = 1:size(short_mean_traces, 2)
-        shadedErrorBar(t_vec', short_mean_traces(:, plot_n), short_sd_traces(:, plot_n), {'Color', color_vec(plot_n, :)}, 0)
-        hold on
-        shadedErrorBar(t_vec', long_mean_traces(:, plot_n), long_sd_traces(:, plot_n), {'Color', color_vec(plot_n, :)}, 0)
-         
+        
 %         errorbar(t_vec', short_mean_traces(:, plot_n), short_sd_traces(:, plot_n), 'Color', color_vec(plot_n, :))
 %         hold on
 %         errorbar(t_vec', long_mean_traces(:, plot_n), long_sd_traces(:, plot_n), 'Color', color_vec(plot_n, :))
+        
+        shadedErrorBar(t_vec', short_mean_traces(:, plot_n), short_sd_traces(:, plot_n), {'Color', color_vec(plot_n, :)}, 1)
+        hold on
+        shadedErrorBar(t_vec', long_mean_traces(:, plot_n), long_sd_traces(:, plot_n), {'Color', color_vec(plot_n, :)}, 1)
+%          
+%       
     end
+    fig_wrapup(2)
+    color_mat = repmat([0.75, 0.75, 0.75], size(short_stim_points, 1), 1);
+    add_stim_bar(2, short_stim_points , color_mat)
     drawnow
     hold off
     keyboard
