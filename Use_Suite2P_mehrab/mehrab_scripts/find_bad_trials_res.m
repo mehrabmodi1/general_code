@@ -99,14 +99,6 @@ function [good_trials, bad_trials] = find_bad_trials_res(direc)
         clear del
         good_tr_stack = im_stack(:, :, good_trials);
         
-        repeat_movie = 1;
-        while repeat_movie == 1
-            figure(1)
-            playMovie(good_tr_stack, 0.05, 0)
-            repeat_movie = input('Play movie again? 1 - Yes, 0 - No');
-            
-        end
-        
         repeat = input('look at badtrials again? 1 - Yes, 0 - No');
         if repeat == 1
             repeat_counter = repeat_counter + 1;
