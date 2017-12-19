@@ -1,4 +1,4 @@
-function present_odours_params_20170720(params, scale_isi)
+function present_odours_trains(params, scale_isi)
 
 save_dir = curr_aq_direc;
 %testing vars
