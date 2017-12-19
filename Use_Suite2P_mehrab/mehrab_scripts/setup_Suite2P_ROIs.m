@@ -1,9 +1,15 @@
 function [ROI_mat] = setup_Suite2P_ROIs(data_mat)
 
-list_rois = data_mat.cl.iscell;
+n_rois_all = size(data_mat.stat, 2);
+list_rois = zeros(n_rois_all, 1);
+for roi_n = 1:n_rois_all
+    list_rois(roi_n, 1) = data_mat.stat(roi_n).iscell; 
+end
+
 list_cell_rois = find(list_rois == 1); 
 n_rois = length(list_cell_rois);
-size_im = size(data_mat.cl.k1);
+
+size_im = [data_mat.cl.Ly, data_mat.cl.Lx];
 ROI_mat = zeros(size_im(1), size_im(2), n_rois);        %each ROI separated along third dimension.
 for roi_n = 1:n_rois
     roi_n_orig = list_cell_rois(roi_n);
