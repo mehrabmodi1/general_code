@@ -79,11 +79,11 @@ for train_n = 1:n_trains
     end
     pulse_on_pt = pulse_on_t.*2000;
     
-    trace_n_vec = train_n:n_trains:(n_odors.*n_trains);                   %vector of mean trace numbers for current odor train across all odors
-    del = mean_trace_mat( (pulse_on_pt - 4000):(pulse_on_pt + 16000), trace_n_vec);
+    trace_n_vec = train_n:n_trains:(n_odors.*n_trains);                   %vector of mean trace numbers for current rand train across all odors
+    del = mean_trace_mat( (pulse_on_pt - 2000):(pulse_on_pt + 8000), trace_n_vec);
     short_mean_traces = zeros(length(del), size(del, 2)) + nan;
     short_mean_traces(1:7000, :) = del(1:7000, :); 
-    del = sd_trace_mat( (pulse_on_pt - 4000):(pulse_on_pt + 16000), trace_n_vec);
+    del = sd_trace_mat( (pulse_on_pt - 2000):(pulse_on_pt + 8000), trace_n_vec);
     short_sd_traces = zeros(length(del), size(del, 2)) + nan;
     short_sd_traces(1:7000, :) = del(1:7000, :);
     
@@ -96,8 +96,8 @@ for train_n = 1:n_trains
     end
     pulse_on_pt = pulse_on_t.*2000;
     
-    long_mean_traces = mean_trace_mat( (pulse_on_pt - 4000):(pulse_on_pt + 16000), trace_n_vec);       
-    long_sd_traces = sd_trace_mat( (pulse_on_pt - 4000):(pulse_on_pt + 16000), trace_n_vec);
+    long_mean_traces = mean_trace_mat( (pulse_on_pt - 2000):(pulse_on_pt + 8000), trace_n_vec);       
+    long_sd_traces = sd_trace_mat( (pulse_on_pt - 2000):(pulse_on_pt + 8000), trace_n_vec);
     
     short_stim_points = stim_train([short_pulse], :);
     short_stim_points(:, 1) = 0;
@@ -132,7 +132,7 @@ for train_n = 1:n_trains
     
     %zoomed in on shortest, longest pulses
     figure(2)
-    t_vec = -2:0.0005:(0.0005.*size(short_mean_traces, 1) - 2);
+    t_vec = -1:0.0005:(0.0005.*size(short_mean_traces, 1) - 1);
     t_vec = t_vec(2:end);
     for plot_n = 1:size(short_mean_traces, 2)
         
@@ -146,9 +146,12 @@ for train_n = 1:n_trains
 %          
 %       
     end
+    xlabel('time (s)')
+    ylabel('PID signal (V)')
     fig_wrapup(2)
     color_mat = repmat([0.75, 0.75, 0.75], size(short_stim_points, 1), 1);
     add_stim_bar(2, short_stim_points , color_mat)
+    
     drawnow
     hold off
     keyboard
