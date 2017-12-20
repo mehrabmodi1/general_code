@@ -250,6 +250,11 @@ for raw_direc_n = 1:size(raw_direc_list, 1)
     log_m = [log_m; {['finished extracting data for ' raw_direc]}];
     save([results_direc, '\log_file.mat'], 'log_m');
     cd(prev_direc)
+    
+    %saving timestamps for each tif file in the current dataset
+    time_stamps = read_tiff_timestamps([raw_direc_base, raw_direc]);
+    save([results_direc, raw_direc, '\tif_time_stamps.mat'], 'time_stamps');
+    
     %% downsampling registered tiffs in time and over-writing old ones. deleting raw, registered frames.
     tiff_downsampler([reg_tif_direc, raw_direc], round(10./ft_factor));
     
