@@ -38,8 +38,8 @@ for direc_list_n = 1:n_direc_lists
         %loading in and parsing params file to get stimulus parameter
         %details
         tif_times = load([direc, 'tif_time_stamps.mat']);           %reading in time stamps for each tif file recorded by raw_data_extracter
-        tif_times = tif_times.saved_times;
-        [stim_mat, stim_mat_simple, column_heads] = load_params_res(direc, tif_times);
+        tif_times = tif_times.time_stamps;
+        [stim_mat, stim_mat_simple, column_heads] = load_params_trains(direc, tif_times);
         odor_list = unique(stim_mat_simple(:, 2) );
         n_odors = length(odor_list);
         odor_dur_list = unique(stim_mat_simple(:, 3) );
