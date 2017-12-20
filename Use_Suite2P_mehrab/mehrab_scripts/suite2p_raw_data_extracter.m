@@ -63,6 +63,7 @@ for raw_direc_n = 1:size(raw_direc_list, 1)
     
     if exist([results_direc, raw_direc, '\ROIs_pruned.txt']) ~= 2
         new_main       %this is the ROI pruning GUI that comes with Suite2P
+        keyboard
         del = [];
         save([results_direc, raw_direc, '\ROIs_pruned.txt'], 'del');
     else
@@ -119,7 +120,12 @@ for raw_direc_n = 1:size(raw_direc_list, 1)
 
     end
     
-    disp(['Loading Suite2P results file ' dir_contents(max_datenum(2)).name])
+    try
+        disp(['Loading Suite2P results file ' dir_contents(max_datenum(2)).name])
+    catch
+        keyboard
+    end
+    
     data_mat = load([results_direc, raw_direc, dir_contents(max_datenum(2)).name]);
     try
         data_mat = data_mat.dat;
@@ -246,4 +252,16 @@ for raw_direc_n = 1:size(raw_direc_list, 1)
     cd(prev_direc)
     %% downsampling registered tiffs in time and over-writing old ones. deleting raw, registered frames.
     tiff_downsampler([reg_tif_direc, raw_direc], round(10./ft_factor));
+    
+    %% copying over PID traces to the results folder
+    cd([raw_direc_base, raw_direc])
+    PID_fnames = dir('PID*.*');
+    for PID_trace_n = 1:size(PID_fnames, 1)
+        curr_name = PID_fnames(PID_trace_n).name;
+        copyfile([raw_direc_base, raw_direc, curr_name], [results_direc, raw_direc, curr_name]);
+    
+    end
+    
+    
+    
 end
