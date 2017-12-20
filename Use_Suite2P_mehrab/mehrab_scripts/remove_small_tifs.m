@@ -8,7 +8,7 @@ dir_contents(1:2) = [];
 small_files = [];
 %detecting small files
 for f_num = 1:size(dir_contents, 1)
-    if dir_contents(f_num).bytes < 550000
+    if dir_contents(f_num).bytes < 750000
         small_files = [small_files; f_num];
     else
     end
