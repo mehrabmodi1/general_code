@@ -151,12 +151,8 @@ for raw_direc_n = 1:size(raw_direc_list, 1)
     
     if extraction_type == 0
         cd([reg_tif_direc, raw_direc, '\Plane1\']);
-        t_num_template = '_plane';
-        t_num_gap = 8;
     elseif extraction_type == 1
-        cd([raw_direc_base, raw_direc]);
-        t_num_template = '_00';
-        t_num_gap = 2;
+        cd([reg_tif_direc, raw_direc, '\Plane1\']);
     else
     end
         
@@ -170,12 +166,12 @@ for raw_direc_n = 1:size(raw_direc_list, 1)
     for trial_n = 1:n_trials
         curr_name = dir_contents(trial_n).name;
         try
-            t_numi = findstr(curr_name, t_num_template);
+            t_numi = findstr(curr_name, '_plane');
             t_doti = findstr(curr_name, '.tif');
         catch
             error(['Error parsing registered tiff filename to find trial number. Search string ', t_num_template, ' not found in current filename.'])
         end
-        t_num = str2num(curr_name( (t_numi + t_num_gap):(t_doti - 1) ));        %ScanImage acquisition number for current trial filename
+        t_num = str2num(curr_name( (t_numi + 8):(t_doti - 1) ));        %ScanImage acquisition number for current trial filename
         t_num_list(trial_n, 1) = t_num;
 
         try
@@ -194,6 +190,9 @@ for raw_direc_n = 1:size(raw_direc_list, 1)
 
     n_frames_max = max(n_frames_list);                    %making sure there's room in the storage matrix for all he frames from the longest trials
 
+    cd([reg_tif_direc, raw_direc, 'Plane1\'])
+    dir_contents = dir('*.tif');
+
     t_num_list = sort(t_num_list);                    %sorted list of ScanImage acq numbers - used to make sure trials are read in in the correct order
     n_ROIs = size(ROI_mat, 3);
     raw_data_mat = zeros(n_frames_max, n_ROIs, n_trials) + nan;
@@ -207,9 +206,9 @@ for raw_direc_n = 1:size(raw_direc_list, 1)
         warning = 1;
         for trial_n_sub = 1:n_trials
             curr_name = dir_contents(trial_n_sub).name;
-            t_numi = findstr(curr_name, t_num_template);
+            t_numi = findstr(curr_name, '_plane');
             t_doti = findstr(curr_name, '.tif');
-            t_num = str2num(curr_name( (t_numi + t_num_gap):(t_doti - 1) ));
+            t_num = str2num(curr_name( (t_numi + 8):(t_doti - 1) ));
 
             if t_num == curr_t_num
                 warning = 0;
@@ -224,12 +223,7 @@ for raw_direc_n = 1:size(raw_direc_list, 1)
         else
         end
 
-        if extraction_type == 0
-            stack = load_all_frames([reg_tif_direc, raw_direc, 'Plane1\' curr_name]);
-        elseif extraction_type == 1
-            stack = load_all_frames([raw_direc_base, raw_direc, curr_name]);
-        else
-        end
+        stack = load_all_frames([reg_tif_direc, raw_direc, 'Plane1\' curr_name]);
         n_frames = size(stack, 3);
         log_m = [log_m; {['loaded stack ' curr_name]}];
         save([results_direc, '\log_file.mat'], 'log_m');
