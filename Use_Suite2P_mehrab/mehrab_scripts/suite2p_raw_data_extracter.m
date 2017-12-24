@@ -273,7 +273,7 @@ for raw_direc_n = 1:size(raw_direc_list, 1)
     save([results_direc, raw_direc, '\tif_time_stamps.mat'], 'time_stamps');
     
     %% downsampling registered tiffs in time and over-writing old ones. deleting raw, registered frames.
-    tiff_downsampler([reg_tif_direc, raw_direc], round(10./ft_factor));
+    %tiff_downsampler([reg_tif_direc, raw_direc], round(10./ft_factor));
     
     %% copying over PID traces to the results folder
     cd([raw_direc_base, raw_direc])
