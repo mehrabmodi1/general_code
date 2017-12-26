@@ -1,7 +1,7 @@
 clear all
 close all
 
-direc_lists_mat =  [{'C:\Data\Data\Analysed_data\dataset_list_fluc_stim_somas_20171226.xls'}...
+direc_lists_mat =  [{'D:\Data\Janelia\resonant\dataset_list_fluc_stim_somati_20171220.xls'}...
                     
                    ]; 
                 
@@ -15,7 +15,7 @@ greymap = flipud(a);
 colormap(greymap)
 suppress_plots = 0;       %1 - doesn't plot stuff, 0 - plots stuff
 
-%[del, odor_names] = xlsread('D:\Data\CSHL\odor_names_20161108.xls', 1);
+[del, odor_names] = xlsread('D:\Data\CSHL\odor_names_20161108.xls', 1);
 
 %loop to go through all directory lists
 for direc_list_n = 1:n_direc_lists
