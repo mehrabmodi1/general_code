@@ -85,21 +85,21 @@ for direc_list_n = 1:n_direc_lists
         [resp_areas, sig_trace_mat, sig_trace_mat_old, sig_cell_mat] = cal_sig_responses_res(dff_data_mat, stim_mat, stim_mat_simple, direc, frame_time);
         
         %plotting trial-averaged response traces for each cell
+        %PICK UP THREAD HERE
+           %finish work on quality control function - look for goodness
+           %of sig-cell selection, come up with a metric for
+           %consistency of response matrices across the many trials in
+           %a long dataset.
+
+        cell_data_quality_control(dff_data_mat, stim_mat_simple, sig_cell_mat)
+
+        
         for odor_n = 1:n_odors
             odor_ni = odor_list(odor_n);
             for train_n = 1:n_trains
-                curr_od_trs = find(stim_mat_simple(:, 2) == odor_ni);
-                curr_trn_trs = find(stim_mat_simple(:, 11) == train_n);
-                curr_trs = intersect(curr_od_trs, curr_trn_trs);           %current trs
-                ave_mat = mean(dff_data_mat(:, :, curr_trs), 3, 'omitnan');
-                curr_sig_cells = sig_cell_mat(:, odor_ni);
-                curr_sig_cells1 = find(curr_sig_cells == 1);
-                curr_sig_cells0 = find(curr_sig_cells == 0);
-                figure(1)
-                imagesc(ave_mat(:, curr_sig_cells1)', [0, 1.2])
-                figure(2)
-                imagesc(ave_mat(:, curr_sig_cells0)', [0, 1.2])
-
+               
+                
+                
             end
         end
         keyboard
