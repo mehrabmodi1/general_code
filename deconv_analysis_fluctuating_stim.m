@@ -48,15 +48,28 @@ for direc_list_n = 1:n_direc_lists
         n_trains = max(stim_mat_simple(:, 11));
         
         
-        %loading Suite2P results file
-        
-        
-        
+        %reading ScanImage meta data from a raw .tif
+        old_direc = pwd;
+        cd(direc);
+        tif_names = dir('*.tif');
+        cd(old_direc);
+        clear old_direc
+        tif_name = tif_names(1).name;
+        stack_obj = ScanImageTiffReader([direc, tif_name]);
+        %metadata = stack_obj.descriptions;
+        metadata = stack_obj.metadata;
+        fr_ratei = strfind(metadata, 'scanFrameRate');
+        frame_rate = metadata((fr_ratei + 16):(fr_ratei + 20));
+        frame_rate = str2num(frame_rate);                       %base frame rate in Hz
+        avg_factori = strfind(metadata, 'logAverageFactor');
+        avg_factor = metadata((avg_factori + 19):(avg_factori + 20));
+        avg_factor = str2num(avg_factor);
+        frame_rate = frame_rate./avg_factor;
         frame_time = 1./frame_rate.*1000;     %in ms
         stim_time = stim_mat_simple(1, 7);
         stim_fr = round((stim_time.*1000)./frame_time);
         post_od_scan_dur = stim_mat_simple(1, 10);
-        keyboard
+        
         %loading extracted raw fluorescence data matrices written by
         %raw_dff_extractor
         raw_data_mat = load([direc 'extracted_raw_data_mat.mat']);
@@ -70,7 +83,6 @@ for direc_list_n = 1:n_direc_lists
         
         %identifying significantly responsive cells
         [resp_areas, sig_trace_mat, sig_trace_mat_old, sig_cell_mat] = cal_sig_responses_res(dff_data_mat, stim_mat, stim_mat_simple, direc, frame_time);
-        keyboard
         
         %plotting trial-averaged response traces for each cell
         for odor_n = 1:n_odors
@@ -78,8 +90,15 @@ for direc_list_n = 1:n_direc_lists
             for train_n = 1:n_trains
                 curr_od_trs = find(stim_mat_simple(:, 2) == odor_ni);
                 curr_trn_trs = find(stim_mat_simple(:, 11) == train_n);
-                curr_trs = intersect(curr_od_trs, curr_trn_trs);            %current trs
-                
+                curr_trs = intersect(curr_od_trs, curr_trn_trs);           %current trs
+                ave_mat = mean(dff_data_mat(:, :, curr_trs), 3, 'omitnan');
+                curr_sig_cells = sig_cell_mat(:, odor_ni);
+                curr_sig_cells1 = find(curr_sig_cells == 1);
+                curr_sig_cells0 = find(curr_sig_cells == 0);
+                figure(1)
+                imagesc(ave_mat(:, curr_sig_cells1)', [0, 1.2])
+                figure(2)
+                imagesc(ave_mat(:, curr_sig_cells0)', [0, 1.2])
 
             end
         end
