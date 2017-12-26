@@ -80,9 +80,7 @@ for rep_gp = 1:n_rep_gps                %a rep_gp is a group of repeats of the s
         try
             resp_traces = curr_traces_f(stim_frame:round(stim_end_fr + 3000./frame_time), :); %extending analysis window to 3s after odor off to capture off responses
         catch
-            keyboard
-        end
-        
+            keyboar
         ave_trace = mean(resp_traces, 2, 'omitnan');
         
         %identifying peak in rep-averaged trace to assign time of pk-response
