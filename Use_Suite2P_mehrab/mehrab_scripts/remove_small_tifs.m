@@ -3,12 +3,12 @@ function [] = remove_small_tifs(raw_direc)
 
 old_direc = pwd;
 cd(raw_direc);
-dir_contents = dir;
+dir_contents = dir('*.tif');
 dir_contents(1:2) = [];
 small_files = [];
 %detecting small files
 for f_num = 1:size(dir_contents, 1)
-    if dir_contents(f_num).bytes < 750000
+    if dir_contents(f_num).bytes < 7500000
         small_files = [small_files; f_num];
     else
     end
