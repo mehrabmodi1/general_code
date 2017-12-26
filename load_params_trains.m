@@ -43,8 +43,8 @@ if datenum_check == 1
     saved_matches = [];
     for trial_n_p = 1:n_trials_p
         curr_vec = match_mat(trial_n_p, :);       %vec of time differences with all tiff timestamps for current param timestamp
-        del = find(curr_vec < 0);
-        curr_vec(del) = nan;
+%         del = find(curr_vec < 0);
+%         curr_vec(del) = nan;
         [delay, matched_t] = min(abs(curr_vec), [], 'omitnan');
         
         %checking if currently matched tif_n has already been matched to
@@ -83,7 +83,7 @@ if datenum_check == 1
 %     xlabel('param trial n')
 %     ylabel('tif trial n');
 
-    
+   
 else
     n_matched_trials = n_trials_t;
     par_num = 1:1:n_trials_t;
