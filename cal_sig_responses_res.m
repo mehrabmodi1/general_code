@@ -66,15 +66,15 @@ for rep_gp = 1:n_rep_gps                %a rep_gp is a group of repeats of the s
         
         %moving window filtering each trace
         curr_traces_f = zeros(size(curr_traces, 1), size(curr_traces, 2)) + nan;
-        for rep_n = 1:size(curr_traces, 2);
+        for rep_n = 1:size(curr_traces, 2)
             curr_trace = curr_traces(:, rep_n);
             curr_traces_f(:, rep_n) = tsmovavg_m(curr_trace', 's', round(1000./frame_time));        %filtering with a 200 ms wide box-car
         end
         
         base_traces = curr_traces_f(pre_stim_frame:(stim_frame - 2), :);                 %pre-odor-stim baseline frames
-        base_m = mean(base_traces, 1, 'omitnan');
+        base_m = median(base_traces, 1, 'omitnan');
         base_s = std(base_traces, 1, 'omitnan');
-        threshes = abs(base_m) + 4.*base_s;
+        threshes = abs(base_m) + 3.*base_s;
         thresh_mean = mean(mean(base_traces, 2, 'omitnan'), 'omitnan') + 0.*std(mean(base_traces, 2, 'omitnan'), 'omitnan');       %significance criterion for resp in mean trace
         
         try
@@ -113,18 +113,18 @@ for rep_gp = 1:n_rep_gps                %a rep_gp is a group of repeats of the s
                 sig_trace_mat(cell_n, rep_tr_list(rep_n)) = 1;
                 
 %                 %visualising current trace to check if its a sig resp
-                figure(1)
-                curr_trace = curr_traces_f(:, rep_n);
-                plot(curr_trace)
-                hold on
-                thresh_vec = repmat(threshes(rep_n), size(curr_traces, 1), 1);
-                plot(thresh_vec, 'r')
-                plot(base_traces(:, rep_n), 'g')
-                plot((ave_pk_fr + length(base_traces)), curr_pk, 'Or')
-                ave_trace = nanmean(curr_traces_f, 2);
-                plot(ave_trace, 'k', 'LineWidth', 2)
-                hold off
-                keyboard
+%                 figure(1)
+%                 curr_trace = curr_traces_f(:, rep_n);
+%                 plot(curr_trace)
+%                 hold on
+%                 thresh_vec = repmat(threshes(rep_n), size(curr_traces, 1), 1);
+%                 plot(thresh_vec, 'r')
+%                 plot(base_traces(:, rep_n), 'g')
+%                 plot((ave_pk_fr + length(base_traces)), curr_pk, 'Or')
+%                 ave_trace = nanmean(curr_traces_f, 2);
+%                 plot(ave_trace, 'k', 'LineWidth', 2)
+%                 hold off
+%                 keyboard
 %                 
             else
             end
@@ -141,9 +141,9 @@ for rep_gp = 1:n_rep_gps                %a rep_gp is a group of repeats of the s
         end
         
         %deciding if the current cell is a significant responder in the current rep-gp
-        if sum(sig_trace_mat(cell_n, rep_tr_list))./length(rep_tr_list) >= 0.5      %at least half the repeats should be sigonificant resps
+        %if sum(sig_trace_mat(cell_n, rep_tr_list))./length(rep_tr_list) >= 0.5      %at least half the repeats should be sigonificant resps
             
-%            if sum(sig_trace_mat(cell_n, rep_tr_list)) > 2                          %at least 2 of the repeats shold be significant resps
+        if sum(sig_trace_mat(cell_n, rep_tr_list)) > 2                          %at least 2 of the repeats shold be significant resps
                                                          
                 dur_n = find(odor_dur_list == stim_duration);
                 sig_cell_mat(cell_n, odor_ni, dur_n) = 1;
