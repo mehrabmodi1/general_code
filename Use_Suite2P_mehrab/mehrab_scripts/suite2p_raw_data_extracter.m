@@ -283,7 +283,11 @@ for raw_direc_n = 1:size(raw_direc_list, 1)
         copyfile([raw_direc_base, raw_direc, curr_name], [results_direc, raw_direc, curr_name]);
     
     end
-    
+    %copying over first trial .tif file to results folder
+    tif_fnames = dir('*.tif');
+    curr_name = tif_fnames(1).name;
+    copyfile([raw_direc_base, raw_direc, curr_name], [results_direc, raw_direc, curr_name]);
+
     
     
 end
