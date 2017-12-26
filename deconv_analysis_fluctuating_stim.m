@@ -40,38 +40,49 @@ for direc_list_n = 1:n_direc_lists
         tif_times = load([direc, 'tif_time_stamps.mat']);           %reading in time stamps for each tif file recorded by raw_data_extracter
         tif_times = tif_times.time_stamps;
         [stim_mat, stim_mat_simple, column_heads] = load_params_trains(direc, tif_times);
+       
         odor_list = unique(stim_mat_simple(:, 2) );
         n_odors = length(odor_list);
         odor_dur_list = unique(stim_mat_simple(:, 3) );
         n_od_durs = length(odor_dur_list);
-                        
+        n_trains = max(stim_mat_simple(:, 11));
+        
+        
         %loading Suite2P results file
-        Suite2P_results = load_suite2P_results(direc);
-        frame_rate = Suite2P_results.ops.imageRate;
+        
+        
+        
         frame_time = 1./frame_rate.*1000;     %in ms
         stim_time = stim_mat_simple(1, 7);
         stim_fr = round((stim_time.*1000)./frame_time);
         post_od_scan_dur = stim_mat_simple(1, 10);
-        %building a matrix where each row has [stim_fr, stim_end_fr,
-        %post_od_scan_end_fr] with one such row for each odor duration.
-        stim_frs = [];
-        for dur_n = 1:n_od_durs
-            curr_dur = odor_dur_list(dur_n);
-            stim_frs = [stim_frs; [stim_fr, (round( ((stim_time + curr_dur).*1000)./frame_time)),...
-                round( ((stim_time + curr_dur + post_od_scan_dur).*1000)./frame_time)]];
-        end
-        keyboard        
+        keyboard
         %loading extracted raw fluorescence data matrices written by
         %raw_dff_extractor
         raw_data_mat = load([direc 'extracted_raw_data_mat.mat']);
         raw_data_mat = raw_data_mat.raw_data_mat;           %raw F traces extracted from ROIs
+        raw_data_mat_orig = raw_data_mat;
         raw_data_mat = raw_data_mat(:, :, stim_mat_simple(:, 1));       %making sure only time-stamp matched trials are used for further analysis
         
         %calculating dF/F traces from raw data
         filt_time = 200;            %in ms, the time window for boxcar filter for generating filtered traces
         [dff_data_mat, dff_data_mat_f] = cal_dff_traces_res(raw_data_mat, stim_mat, frame_time, filt_time, direc);
         
+        %identifying significantly responsive cells
+        [resp_areas, sig_trace_mat, sig_trace_mat_old, sig_cell_mat] = cal_sig_responses_res(dff_data_mat, stim_mat, stim_mat_simple, direc, frame_time);
+        keyboard
         
+        %plotting trial-averaged response traces for each cell
+        for odor_n = 1:n_odors
+            odor_ni = odor_list(odor_n);
+            for train_n = 1:n_trains
+                curr_od_trs = find(stim_mat_simple(:, 2) == odor_ni);
+                curr_trn_trs = find(stim_mat_simple(:, 11) == train_n);
+                curr_trs = intersect(curr_od_trs, curr_trn_trs);            %current trs
+                
+
+            end
+        end
         keyboard
         
         

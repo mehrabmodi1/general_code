@@ -1,7 +1,7 @@
 clear all
 close all
 
-direc_lists_mat =  [{'D:\Data\Janelia\resonant\dataset_list_fluc_stim_somati_20171220.xls'}...
+direc_lists_mat =  [{'C:\Data\Data\Analysed_data\dataset_list_fluc_stim_somas_20171226.xls'}...
                     
                    ]; 
                 
@@ -15,7 +15,7 @@ greymap = flipud(a);
 colormap(greymap)
 suppress_plots = 0;       %1 - doesn't plot stuff, 0 - plots stuff
 
-[del, odor_names] = xlsread('D:\Data\CSHL\odor_names_20161108.xls', 1);
+%[del, odor_names] = xlsread('D:\Data\CSHL\odor_names_20161108.xls', 1);
 
 %loop to go through all directory lists
 for direc_list_n = 1:n_direc_lists
@@ -40,11 +40,14 @@ for direc_list_n = 1:n_direc_lists
         tif_times = load([direc, 'tif_time_stamps.mat']);           %reading in time stamps for each tif file recorded by raw_data_extracter
         tif_times = tif_times.time_stamps;
         [stim_mat, stim_mat_simple, column_heads] = load_params_trains(direc, tif_times);
+       
         odor_list = unique(stim_mat_simple(:, 2) );
         n_odors = length(odor_list);
         odor_dur_list = unique(stim_mat_simple(:, 3) );
         n_od_durs = length(odor_dur_list);
-                        
+        n_trains = max(stim_mat_simple(:, 11));
+        
+        
         %loading Suite2P results file
         Suite2P_results = load_suite2P_results(direc);
         frame_rate = Suite2P_results.ops.imageRate;
@@ -52,26 +55,34 @@ for direc_list_n = 1:n_direc_lists
         stim_time = stim_mat_simple(1, 7);
         stim_fr = round((stim_time.*1000)./frame_time);
         post_od_scan_dur = stim_mat_simple(1, 10);
-        %building a matrix where each row has [stim_fr, stim_end_fr,
-        %post_od_scan_end_fr] with one such row for each odor duration.
-        stim_frs = [];
-        for dur_n = 1:n_od_durs
-            curr_dur = odor_dur_list(dur_n);
-            stim_frs = [stim_frs; [stim_fr, (round( ((stim_time + curr_dur).*1000)./frame_time)),...
-                round( ((stim_time + curr_dur + post_od_scan_dur).*1000)./frame_time)]];
-        end
-        keyboard        
+        
         %loading extracted raw fluorescence data matrices written by
         %raw_dff_extractor
         raw_data_mat = load([direc 'extracted_raw_data_mat.mat']);
         raw_data_mat = raw_data_mat.raw_data_mat;           %raw F traces extracted from ROIs
+        raw_data_mat_orig = raw_data_mat;
         raw_data_mat = raw_data_mat(:, :, stim_mat_simple(:, 1));       %making sure only time-stamp matched trials are used for further analysis
         
         %calculating dF/F traces from raw data
         filt_time = 200;            %in ms, the time window for boxcar filter for generating filtered traces
         [dff_data_mat, dff_data_mat_f] = cal_dff_traces_res(raw_data_mat, stim_mat, frame_time, filt_time, direc);
         
-        
+        %plotting trial-averaged response traces for each cell
+        for odor_n = 1:n_odors
+            odor_ni = odor_list(odor_n);
+            for train_n = 1:n_trains
+                curr_od_trs = find(stim_mat_simple(:, 2) == odor_ni);
+                curr_trn_trs = find(stim_mat_simple(:, 11) == train_n);
+                curr_trs = intersect(curr_od_trs, curr_trn_trs);            %current trs
+                
+                ave_resp_mat = mean(dff_data_mat(:, :, curr_trs), 3, 'omitnan');
+                
+                imagesc(ave_resp_mat')
+                
+                keyboard
+
+            end
+        end
         keyboard
         
         
