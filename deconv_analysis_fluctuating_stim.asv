@@ -95,15 +95,10 @@ for direc_list_n = 1:n_direc_lists
         %% Running fitting algorithm
         for odor_n = 1:n_odors
             odor_ni = odor_list(odor_n);
-            curr_sig_cells = find(sig_cell_mat(:, odor_ni) == 1);
             for train_n = 1:n_trains
-                curr_trs = find(stim_mat(:, 2) == odor_ni && stim_mat(:, 11) == train_n);
-                ave_dff_resp_mat = mean(dff_data_mat_f(:, curr_sig_cells, curr_trs), 3, 'omitnan');
-                PID_trace = get_PID_traces(direc, curr_trs);        %getting mean PID trace
+               curr_trs = find(stim_mat(:, 2) == odor_ni && stim_mat(:, 11) == train_n);
+               ave_re
                 
-                for cell_n = 1:lenght(curr_sig_cells)
-                    
-                end
             end
         end
         keyboard
