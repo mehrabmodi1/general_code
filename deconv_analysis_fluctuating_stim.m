@@ -8,9 +8,10 @@ direc_lists_mat =  [{'C:\Data\Data\Analysed_data\dataset_list_fluc_stim_somas_20
             
 n_direc_lists = size(direc_lists_mat, 1);
                 
-                
+global color_vec;                
 color_vec = load('C:\Users\Mehrab\Google Drive\Backup\Stuff\CSHL\Glenn lab\Code\std_color_vec.txt');
 a = colormap('bone');
+global greymap
 greymap = flipud(a);
 colormap(greymap)
 suppress_plots = 0;       %1 - doesn't plot stuff, 0 - plots stuff
@@ -65,6 +66,7 @@ for direc_list_n = 1:n_direc_lists
         avg_factor = metadata((avg_factori + 19):(avg_factori + 20));
         avg_factor = str2num(avg_factor);
         frame_rate = frame_rate./avg_factor;
+        global frame_time;
         frame_time = 1./frame_rate.*1000;     %in ms
         stim_time = stim_mat_simple(1, 7);
         stim_fr = round((stim_time.*1000)./frame_time);
@@ -91,7 +93,7 @@ for direc_list_n = 1:n_direc_lists
            %consistency of response matrices across the many trials in
            %a long dataset.
         %Running data quality control checks
-        cell_data_quality_control(dff_data_mat, stim_mat_simple, sig_cell_mat, 1)
+        cell_data_quality_control(dff_data_mat, stim_mat, stim_mat_simple, sig_cell_mat, 1)
 
         
         for odor_n = 1:n_odors
