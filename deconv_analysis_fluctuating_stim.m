@@ -15,7 +15,7 @@ greymap = flipud(a);
 colormap(greymap)
 suppress_plots = 0;       %1 - doesn't plot stuff, 0 - plots stuff
 
-%[del, odor_names] = xlsread('D:\Data\CSHL\odor_names_20161108.xls', 1);
+[del, odor_names] = xlsread('C:\Data\Data\Analysed_data\odor_names_20161108.xls', 1);
 
 %loop to go through all directory lists
 for direc_list_n = 1:n_direc_lists
@@ -90,8 +90,8 @@ for direc_list_n = 1:n_direc_lists
            %of sig-cell selection, come up with a metric for
            %consistency of response matrices across the many trials in
            %a long dataset.
-
-        cell_data_quality_control(dff_data_mat, stim_mat_simple, sig_cell_mat)
+        %Running data quality control checks
+        cell_data_quality_control(dff_data_mat, stim_mat_simple, sig_cell_mat, 1)
 
         
         for odor_n = 1:n_odors
