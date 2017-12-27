@@ -1,4 +1,4 @@
-function [] = add_stim_bar(fig_n, stim_frames, stim_colors);
+function [] = add_stim_bar(fig_n, stim_frames, stim_colors)
 %Syntax: [] = add_stim_bar(fig_n, stim_frames, stim_colors)
 %this function creates a fake, second pair of axes that is invisible, under
 %the first one, and creates a patch colored stim_color in it to denote the stimulus duration.
@@ -25,6 +25,14 @@ new_pos = [orig_pos(1), (orig_pos(2) + orig_pos(4)), orig_pos(3), (orig_pos(4).*
 ax2 = axes('Position', new_pos);    %created new axes object in same figure
 axis(new_ax);
 set(ax2, 'Color', 'none', 'Visible', 'off');
+n_patches = size(stim_frames, 1);
+
+%replicating stim_color and using it for all patches if only one color is
+%specified for a pulse train
+if n_patches > 1 && size(stim_colors, 1) == 1
+    stim_colors = repmat(stim_colors, n_patches, 1);
+else
+end
 
 for patch_n = 1:size(stim_frames, 1)        %loop to draw multiple patches if needed
     %patch height
