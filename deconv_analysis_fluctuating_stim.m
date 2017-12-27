@@ -32,6 +32,7 @@ for direc_list_n = 1:n_direc_lists
         
     %loop to go through all experiment datasets listed in list file
     for direc_counter = 1:n_dirs
+        %% House-keeping
         direc = curr_direc_list{direc_counter, 1};
         
         direc = [direc, '\'];
@@ -86,16 +87,12 @@ for direc_list_n = 1:n_direc_lists
         %identifying significantly responsive cells
         [resp_areas, sig_trace_mat, sig_trace_mat_old, sig_cell_mat] = cal_sig_responses_res(dff_data_mat, stim_mat, stim_mat_simple, direc, frame_time);
         
-        %plotting trial-averaged response traces for each cell
-        %PICK UP THREAD HERE
-           %finish work on quality control function - look for goodness
-           %of sig-cell selection, come up with a metric for
-           %consistency of response matrices across the many trials in
-           %a long dataset.
         %Running data quality control checks
-        cell_data_quality_control(dff_data_mat, stim_mat, stim_mat_simple, sig_cell_mat, 1)
-
+        sig_cell_mat_old = sig_cell_mat;
+        [sig_cell_mat, all_bad_trs] = cell_data_quality_control(dff_data_mat_f, stim_mat, stim_mat_simple, sig_cell_mat, 0);
         
+        
+        %% Running fitting algorithm
         for odor_n = 1:n_odors
             odor_ni = odor_list(odor_n);
             for train_n = 1:n_trains
