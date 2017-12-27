@@ -25,15 +25,23 @@ for odor_n = 1:length(odor_list)
             curr_sig_cells0 = find(curr_sig_cells == 0);
             figure(1)
             imagesc(ave_mat(:, curr_sig_cells1)', [0, 2])
-            ylabel('significant responder number')
-            
+            colormap(greymap)
+            ylabel('significant cell number')
+            %xlabel('time (s)')
+            set_xlabels_time(1, frame_time./1000, 1.1);
             fig_wrapup(1)
             add_stim_bar(1, od_pulse_frames, color_vec(odor_ni, :));
-            keyboard
+            
             figure(2)
             imagesc(ave_mat(:, curr_sig_cells0)', [0, 2])
-            title('not significant responders, all trials averaged')
             colormap(greymap)
+            ylabel('significant cell number')
+            xlabel('time (s)')
+            set_xlabels_time(2, frame_time./1000, 1.1);
+            fig_wrapup(2)
+            add_stim_bar(2, od_pulse_frames, color_vec(odor_ni, :));
+            keyboard
+            
         else
         end
         curr_sig_cells = find(curr_sig_cells == 1);    
