@@ -120,14 +120,11 @@ for direc_list_n = 1:n_direc_lists
                 [del, short_pulsei] = min(curr_train(:, 2));
                 pulse_frames = compute_pulse_frames_train(curr_train, frame_time, stim_mat(curr_trs(1)).stim_latency);
                 pulse_frames = pulse_frames(short_pulsei, :);
-                kernel_width_f = kernel_width./(frame_time./1000);      %kernel width in frames
-                kernel_pad_l = kernel_width_f - (pulse_frames(2) - pulse_frames(1) );
-                kernel_traces = ave_dff_resp_mat(pulse_frames(1):(pulse_frames(2) + kernel_pad_l), :);
+                kernel_width_f = kernel_width./(frame_time.*1000);      %kernel width in frames
+                kernel_pad_l = kernel_width_f - (pulse_frames());
+                kernel_traces = ave_dff_resp_mat((pulse_frames(1) - kernel_pad_l):(pulse_frames(2) + kernel_pad_l), :);
                 
                 for cell_n = 1:lenght(curr_sig_cells)
-                    starter_kernel = kernel_traces(:, cell_n);
-                    ave_resp_trace = ave_dff_resp_mat(:, cell_n);
-                    
                     
                 end
             end
