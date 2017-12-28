@@ -16,7 +16,7 @@ greymap = flipud(a);
 colormap(greymap)
 suppress_plots = 0;       %1 - doesn't plot stuff, 0 - plots stuff
 
-kernel_width = 5;         %in s, the duration of dF/F trace to use and extract as the Ca-response kernel.
+kernel_width = 20;         %in s, the duration of dF/F trace to use and extract as the Ca-response kernel.
 
 [del, odor_names] = xlsread('C:\Data\Data\Analysed_data\odor_names_20161108.xls', 1);
 
@@ -101,6 +101,10 @@ for direc_list_n = 1:n_direc_lists
             for train_n = 1:n_trains
                 curr_trs = find(stim_mat_simple(:, 2) == odor_ni & stim_mat_simple(:, 11) == train_n);
                 ave_dff_resp_mat = mean(dff_data_mat_f(:, curr_sig_cells, curr_trs), 3, 'omitnan');
+                %normalising each dff response trace
+                max_vec = max(ave_dff_resp_mat, [], 1);
+                max_mat = repmat(max_vec, size(ave_dff_resp_mat, 1), 1);
+                ave_dff_resp_mat = ave_dff_resp_mat./max_mat;
                 
                 PID_traces = get_PID_traces(direc, curr_trs, frame_time);        %getting mean PID trace
                 PID_trace_mean = mean(PID_traces, 1)';
@@ -124,10 +128,27 @@ for direc_list_n = 1:n_direc_lists
                 kernel_pad_l = kernel_width_f - (pulse_frames(2) - pulse_frames(1) );
                 kernel_traces = ave_dff_resp_mat(pulse_frames(1):(pulse_frames(2) + kernel_pad_l), :);
                 
-                for cell_n = 1:lenght(curr_sig_cells)
+                for cell_n = 1:length(curr_sig_cells)
                     starter_kernel = kernel_traces(:, cell_n);
                     ave_resp_trace = ave_dff_resp_mat(:, cell_n);
+                    fitted_kernel = GetKernel_mehrab(starter_kernel, ave_resp_trace, PID_trace_mean);
                     
+                    %calculating predicted ave_resp_trace
+                    dff_trace_predic = conv(fitted_kernel, PID_trace_mean);
+                    dff_trace_predic_zero = conv(starter_kernel, PID_trace_mean);
+                    figure(1)
+                    subplot(2, 1, 1)
+                    plot(ave_resp_trace, 'b')
+                    hold on
+                    plot(dff_trace_predic, 'r')
+                    %plot(dff_trace_predic_zero, 'g')       %predicted train response base on starter kernel
+                    
+                    subplot(2, 1, 2)
+                    plot(starter_kernel, 'b')
+                    hold on
+                    plot(fitted_kernel, 'r')
+                    del = input('press enter');
+                    close all
                     
                 end
             end
