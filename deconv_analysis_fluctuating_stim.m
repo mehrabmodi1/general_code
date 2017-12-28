@@ -99,15 +99,28 @@ for direc_list_n = 1:n_direc_lists
             odor_ni = odor_list(odor_n);
             curr_sig_cells = find(sig_cell_mat(:, odor_ni) == 1);
             for train_n = 1:n_trains
+                other_train_n = 1:n_trains;
+                del = find(other_train_n == train_n);
+                other_train_n(del) = [];
+                other_train_n = other_train_n(randperm(length(other_train_n)));
+                other_train_n = other_train_n(1);        %a randomly selected train number other than the one currently being used for the fit
                 curr_trs = find(stim_mat_simple(:, 2) == odor_ni & stim_mat_simple(:, 11) == train_n);
+                curr_trs2 = find(stim_mat_simple(:, 2) == odor_ni & stim_mat_simple(:, 11) == other_train_n);
                 ave_dff_resp_mat = mean(dff_data_mat_f(:, curr_sig_cells, curr_trs), 3, 'omitnan');
+                ave_dff_resp_mat2 = mean(dff_data_mat_f(:, curr_sig_cells, curr_trs2), 3, 'omitnan');
                 %normalising each dff response trace
                 max_vec = max(ave_dff_resp_mat, [], 1);
                 max_mat = repmat(max_vec, size(ave_dff_resp_mat, 1), 1);
                 ave_dff_resp_mat = ave_dff_resp_mat./max_mat;
+                max_vec2 = max(ave_dff_resp_mat2, [], 1);
+                max_mat2 = repmat(max_vec2, size(ave_dff_resp_mat2, 1), 1);
+                ave_dff_resp_mat2 = ave_dff_resp_mat2./max_mat2;
                 
-                PID_traces = get_PID_traces(direc, curr_trs, frame_time);        %getting mean PID trace
+                PID_traces = get_PID_traces(direc, curr_trs, frame_time);        %getting PID traces
+                PID_traces2 = get_PID_traces(direc, curr_trs2, frame_time);      %getting PID traces for a different, randomly selected train 
                 PID_trace_mean = mean(PID_traces, 1)';
+                PID_trace_mean2 = mean(PID_traces2, 1)';
+                
                 
                 %matching sizes of Ca-resps and mean PID trace
                 length_diff = size(PID_trace_mean, 1) - size(ave_dff_resp_mat, 1);
@@ -136,6 +149,7 @@ for direc_list_n = 1:n_direc_lists
                     %calculating predicted ave_resp_trace
                     dff_trace_predic = conv(fitted_kernel, PID_trace_mean);
                     dff_trace_predic_zero = conv(starter_kernel, PID_trace_mean);
+                    %plotting fit results w.r.t fitted pulse train
                     figure(1)
                     subplot(2, 1, 1)
                     plot(ave_resp_trace, 'b')
@@ -147,6 +161,16 @@ for direc_list_n = 1:n_direc_lists
                     plot(starter_kernel, 'b')
                     hold on
                     plot(fitted_kernel, 'r')
+                    
+                    %plotting fit results w.r.t different pulse train
+                    figure(2)
+                    ave_resp_trace2 = ave_dff_resp_mat2(:, cell_n);
+                    dff_trace_predic2 = conv(fitted_kernel, PID_trace_mean2);
+                    plot(ave_resp_trace2, 'b')
+                    hold on
+                    plot(dff_trace_predic2, 'r')
+                    %plot(dff_trace_predic_zero, 'g')       %predicted train response base on starter kernel
+                                        
                     del = input('press enter');
                     close all
                     
