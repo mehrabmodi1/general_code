@@ -13,7 +13,7 @@ a = colormap('bone');
 global greymap
 greymap = flipud(a);
 colormap(greymap)
-suppress_plots = 0;       %1 - doesn't plot stuff, 0 - plots stuff
+suppress_plots = 0;       %0 - doesn't plot quality control stuff, 1 - plots stuff
 
 kernel_width = 5;         %in s, the duration of dF/F trace to use and extract as the Ca-response kernel.
 
@@ -92,7 +92,7 @@ for direc_list_n = 1:n_direc_lists
         
         %Running data quality control checks
         sig_cell_mat_old = sig_cell_mat;
-        [sig_cell_mat, all_bad_trs] = cell_data_quality_control(dff_data_mat_f, stim_mat, stim_mat_simple, sig_cell_mat, 0);
+        [sig_cell_mat, all_bad_trs] = cell_data_quality_control(dff_data_mat_f, stim_mat, stim_mat_simple, sig_cell_mat, suppress_plots);
         disp([num2str((length(all_bad_trs)./size(dff_data_mat, 3)).*100) ' percent of trials were auto-identified as bad and removed.']);
         dff_data_mat(:, :, all_bad_trs) = nan;
         
@@ -200,27 +200,29 @@ for direc_list_n = 1:n_direc_lists
                 end
                 
                 
-                
-                %Comparing goodness of fit for fitted trace with that for independent trace
-                figure(1)
-                plot(MSE_mat(:, 3), MSE_mat(:, 1), '.')
-                xlabel('mean squared error of single tr traces with mean trace')
-                ylabel('mean squared error with fitted response trace')
-                fig_wrapup(1)
-                
-                figure(2)
-                plot(MSE_mat(:, 1), MSE_mat(:, 2), '.')
-                xlabel('mean squared error with fitted response trace')
-                ylabel('mean squared error with independent response trace')
-                fig_wrapup(2)
 
-                keyboard
+                %keyboard
             end
         end
-        keyboard
+        %keyboard
         
         
         
     end
+    %Comparing goodness of fit for fitted trace with that for independent trace
+    figure(3)
+    plot(MSE_mat(:, 3), MSE_mat(:, 1), '.')
+    xlabel('mean squared error of single tr traces with mean trace')
+    ylabel('mean squared error with fitted response trace')
+    make_axes_equal(3, 1)
+    fig_wrapup(3)
+
+    figure(4)
+    plot(MSE_mat(:, 1), MSE_mat(:, 2), '.')
+    xlabel('mean squared error with fitted response trace')
+    ylabel('mean squared error with independent response trace')
+    make_axes_equal(4, 1)
+    fig_wrapup(4)
+    keyboard
 end
        

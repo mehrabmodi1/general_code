@@ -30,8 +30,9 @@ for odor_n = 1:length(odor_list)
         if manual_inspec == 1
             curr_sig_cells1 = find(curr_sig_cells == 1);
             curr_sig_cells0 = find(curr_sig_cells == 0);
+            max_val = max(max(ave_mat));
             figure(1)
-            imagesc(ave_mat(:, curr_sig_cells1)', [0, 2])
+            imagesc(ave_mat(:, curr_sig_cells1)', [0, max_val])
             colormap(greymap)
             ylabel('significant cell number')
             set_xlabels_time(1, frame_time./1000, 1.1);
@@ -39,47 +40,47 @@ for odor_n = 1:length(odor_list)
             add_stim_bar(1, od_pulse_frames, color_vec(odor_ni, :));
             
             figure(2)
-            imagesc(ave_mat(:, curr_sig_cells0)', [0, 2])
+            imagesc(ave_mat(:, curr_sig_cells0)', [0, max_val])
             colormap(greymap)
             ylabel('non-significant cell number')
             set_xlabels_time(2, frame_time./1000, 1.1);
             fig_wrapup(2)
             add_stim_bar(2, od_pulse_frames, color_vec(odor_ni, :));
            
-            
         else
         end
         curr_sig_cells = find(curr_sig_cells == 1);    
         
-        %checking if responses in first-last quarter of trials are similar to each other and to overall mean.
-        q_n = floor(length(curr_trs)./4);
+        %checking if responses in first-last half of trials are similar to each other and to overall mean.
+        q_n = floor(length(curr_trs)./2);
         
         if q_n > 0
             ave_mat_early = mean(dff_data_mat(:, curr_sig_cells, curr_trs(1:q_n)), 3, 'omitnan');
-            ave_mat_late = mean(dff_data_mat(:, curr_sig_cells, curr_trs(((3*q_n) + 1): end)), 3, 'omitnan');
+            ave_mat_late = mean(dff_data_mat(:, curr_sig_cells, curr_trs(((q_n) + 1): end)), 3, 'omitnan');
 
             curr_sig_cells = sig_cell_mat(:, odor_ni);
             curr_sig_cells = find(curr_sig_cells == 1);
 
             if manual_inspec == 1
                 fig_h = figure(3);
-                imagesc(ave_mat_early', [0, 1.2])
+                imagesc(ave_mat_early', [0, max_val])
                 colormap(greymap)
                 ylabel('significant cell number')
                 set_xlabels_time(3, frame_time./1000, 1.1);
                 fig_wrapup(3)
                 add_stim_bar(3, od_pulse_frames, color_vec(odor_ni, :));
-                set(fig_h, 'Name','ave resp traces for first quarter of trials')
+                set(fig_h, 'Name','ave resp traces for first half of trials')
                 
                 fig_h = figure(4);
-                imagesc(ave_mat_late', [0, 1.2])
+                imagesc(ave_mat_late', [0, max_val])
                 colormap(greymap)
                 ylabel('significant cell number')
                 set_xlabels_time(4, frame_time./1000, 1.1);
                 fig_wrapup(4)
                 add_stim_bar(4, od_pulse_frames, color_vec(odor_ni, :));
-                set(fig_h, 'Name','ave resp traces for last quarter of trials')
+                set(fig_h, 'Name','ave resp traces for last half of trials')
                 
+               
             else
             end
             
@@ -144,11 +145,52 @@ for odor_n = 1:length(odor_list)
                 
             else
             end
+           
         end
+              
         %removing bad cells from sig_cell_mat
         sig_cell_mat(bad_cells, odor_ni) = 0;
+       
+        
+        
+         if manual_inspec == 1
+             %checking again if responses in first-last half of trials are similar to each other and to overall mean.
+             q_n = floor(length(curr_trs)./2);
+
+            if q_n > 0
+                curr_sig_cells = sig_cell_mat(:, odor_ni);
+                curr_sig_cells = find(curr_sig_cells == 1);
+                
+                ave_mat_early = mean(dff_data_mat(:, curr_sig_cells, curr_trs(1:q_n)), 3, 'omitnan');
+                ave_mat_late = mean(dff_data_mat(:, curr_sig_cells, curr_trs(((q_n) + 1): end)), 3, 'omitnan');
+
+                fig_h = figure(7);
+                imagesc(ave_mat_early', [0, max_val])
+                colormap(greymap)
+                ylabel('significant cell number')
+                set_xlabels_time(7, frame_time./1000, 1.1);
+                fig_wrapup(7)
+                add_stim_bar(7, od_pulse_frames, color_vec(odor_ni, :));
+                set(fig_h, 'Name','ave resp traces for first half of trials')
+
+                fig_h = figure(8);
+                imagesc(ave_mat_late', [0, max_val])
+                colormap(greymap)
+                ylabel('significant cell number')
+                set_xlabels_time(8, frame_time./1000, 1.1);
+                fig_wrapup(8)
+                add_stim_bar(8, od_pulse_frames, color_vec(odor_ni, :));
+                set(fig_h, 'Name','ave resp traces for last half of trials')
+
+
+            else
+            end
+             
+             
+            keyboard
+        else
+        end
         
         close all
-
     end
 end
