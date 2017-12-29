@@ -32,7 +32,7 @@ for direc_list_n = 1:n_direc_lists
     namei = findstr(list_direc, 'dataset_list');
     dir_list_name = (list_direc(namei:(end-4)));
     
-    MSE_mat = [];
+    SSE_mat = [];
     %loop to go through all experiment datasets listed in list file
     for direc_counter = 1:n_dirs
         %% House-keeping
@@ -93,11 +93,9 @@ for direc_list_n = 1:n_direc_lists
         %Running data quality control checks
         sig_cell_mat_old = sig_cell_mat;
         [sig_cell_mat, all_bad_trs] = cell_data_quality_control(dff_data_mat_f, stim_mat, stim_mat_simple, sig_cell_mat, 0);
-        disp([num2str((length(all_bad_trs)./size(dff_data_mat, 3)).*100) ' percent of trials were auto-identified as bad and removed.']);
         dff_data_mat(:, :, all_bad_trs) = nan;
         
         %% Running fitting algorithm
-        kernel_mat = [];
         for odor_n = 1:n_odors
             odor_ni = odor_list(odor_n);
             curr_sig_cells = find(sig_cell_mat(:, odor_ni) == 1);
@@ -148,7 +146,7 @@ for direc_list_n = 1:n_direc_lists
                     starter_kernel = kernel_traces(:, cell_n);
                     ave_resp_trace = ave_dff_resp_mat(:, cell_n);
                     fitted_kernel = GetKernel_mehrab(starter_kernel, ave_resp_trace, PID_trace_mean);
-                                        
+                    
                     %calculating predicted ave_resp_trace
                     dff_trace_predic = conv(fitted_kernel, PID_trace_mean);
                     dff_trace_predic = dff_trace_predic(1:size(ave_resp_trace, 1));
@@ -185,16 +183,13 @@ for direc_list_n = 1:n_direc_lists
                         del = input('press enter for next cell.');
                     else
                     end
-                    MSE1 = mean((ave_resp_trace - dff_trace_predic).^2);
-                    MSE2 = mean((ave_resp_trace2 - dff_trace_predic2).^2);
+                    SSE1 = mean((ave_resp_trace - dff_trace_predic).^2);
+                    SSE2 = mean((ave_resp_trace2 - dff_trace_predic2).^2);
+                    SSE_mat = [SSE_mat; SSE1, SSE2];
                     kernel_mat = [kernel_mat,  fitted_kernel];
                     
-                    %quantifying cell's own trial to trial variability to ground-truth goodness of fit
-                    resp_mat = squeeze(dff_data_mat(:, curr_sig_cells(cell_n), :));
-                    ave_trace = mean(resp_mat, 2, 'omitnan');
-                    resp_errors = compute_mean_sq_errors(resp_mat, ave_trace);      %vector of MSEs for each trial, with mean response vector
+                    resp_errors = compute_mean_sq_errors();
                     
-                    MSE_mat = [MSE_mat; MSE1, MSE2, mean(resp_errors, 'omitnan')];
                     close all
                     
                 end
@@ -202,16 +197,10 @@ for direc_list_n = 1:n_direc_lists
                 
                 
                 %Comparing goodness of fit for fitted trace with that for independent trace
-                figure(1)
-                plot(MSE_mat(:, 3), MSE_mat(:, 1), '.')
-                xlabel('mean squared error of single tr traces with mean trace')
-                ylabel('mean squared error with fitted response trace')
-                fig_wrapup(1)
-                
                 figure(2)
-                plot(MSE_mat(:, 1), MSE_mat(:, 2), '.')
-                xlabel('mean squared error with fitted response trace')
-                ylabel('mean squared error with independent response trace')
+                plot(SSE_mat(:, 1), SSE_mat(:, 2), '.')
+                xlabel('mean squared error on fitted response trace')
+                ylabel('mean squared error on independent response trace')
                 fig_wrapup(2)
 
                 keyboard
