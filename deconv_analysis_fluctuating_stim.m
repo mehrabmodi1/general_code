@@ -16,8 +16,11 @@ colormap(greymap)
 suppress_plots = 0;       %0 - doesn't plot quality control stuff, 1 - plots stuff
 
 kernel_width = 5;         %in s, the duration of dF/F trace to use and extract as the Ca-response kernel.
+n_trs_to_analyse = 15;
 
 [del, odor_names] = xlsread('C:\Data\Data\Analysed_data\odor_names_20161108.xls', 1);
+
+
 
 
 %loop to go through all directory lists
@@ -108,7 +111,9 @@ for direc_list_n = 1:n_direc_lists
                 other_train_n = other_train_n(randperm(length(other_train_n)));
                 other_train_n = other_train_n(1);        %a randomly selected train number other than the one currently being used for the fit
                 curr_trs = find(stim_mat_simple(:, 2) == odor_ni & stim_mat_simple(:, 11) == train_n);
+                curr_trs = curr_trs(1:n_trs_to_analyse);
                 curr_trs2 = find(stim_mat_simple(:, 2) == odor_ni & stim_mat_simple(:, 11) == other_train_n);
+                curr_trs2 = curr_trs2(1:n_trs_to_analyse);                
                 ave_dff_resp_mat = mean(dff_data_mat_f(:, curr_sig_cells, curr_trs), 3, 'omitnan');
                 ave_dff_resp_mat2 = mean(dff_data_mat_f(:, curr_sig_cells, curr_trs2), 3, 'omitnan');
                 %normalising each dff response trace
@@ -182,9 +187,18 @@ for direc_list_n = 1:n_direc_lists
                         plot(dff_trace_predic2, 'r')
                         title('other train convolved with kernel')
                         %plot(dff_trace_predic_zero, 'g')       %predicted train response base on starter kernel
-                        del = input('press enter for next cell.');
+                    
+                        MSE1 = mean((ave_resp_trace - dff_trace_predic).^2);
+                       
+                        if MSE1 < 0.1
+                            MSE1
+                            keyboard
+                            %del = input('press enter for next cell.');
+                        else
+                        end
                     else
                     end
+                    
                     MSE1 = mean((ave_resp_trace - dff_trace_predic).^2);
                     MSE2 = mean((ave_resp_trace2 - dff_trace_predic2).^2);
                     kernel_mat = [kernel_mat,  fitted_kernel];
@@ -194,14 +208,20 @@ for direc_list_n = 1:n_direc_lists
                     ave_trace = mean(resp_mat, 2, 'omitnan');
                     resp_errors = compute_mean_sq_errors(resp_mat, ave_trace);      %vector of MSEs for each trial, with mean response vector
                     
-                    MSE_mat = [MSE_mat; MSE1, MSE2, mean(resp_errors, 'omitnan')];
+                    %computing signal to noise in mean response trace used to fit kernel
+                    base_std = std(ave_resp_trace(1:(stim_mat(curr_trs(1)).stim_latency./(frame_time./1000)) - 1), 1);
+                    pk_sig = max(ave_resp_trace);
+                    sig_noise = pk_sig/base_std;
+                    
+                    MSE_mat = [MSE_mat; MSE1, MSE2, mean(resp_errors, 'omitnan'), sig_noise];
                     close all
                     
                 end
                 
                 
-
+                
                 %keyboard
+                
             end
         end
         %keyboard
@@ -223,6 +243,13 @@ for direc_list_n = 1:n_direc_lists
     ylabel('mean squared error with independent response trace')
     make_axes_equal(4, 1)
     fig_wrapup(4)
+    
+    figure(5)
+    plot(MSE_mat(:, 4), MSE_mat(:, 1), '.')
+    xlabel('dF/F trace signal to noise')
+    ylabel('mean squared error with fitted response trace')
+    fig_wrapup(5)
+    [cor2, p] = corrcoef([MSE_mat(:, 4), MSE_mat(:, 1)])
     keyboard
 end
        
