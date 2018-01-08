@@ -63,10 +63,10 @@ function [ft_factor] = setup_Suite2P_files(raw_direc_base, raw_direc, m_db_file_
     end
     
     fr_line = master_file{38};
-    fr_line(1, 31:32) = '  ';
     fr_line(1, 31:(31 + length(cell_dia) - 1) ) = cell_dia;
-    master_file{38} = fr_line;
-    
+        
+        
+    keyboard
     
     fid = fopen('master_file.m', 'w');
     fprintf(fid, '%s\n', master_file{:});
