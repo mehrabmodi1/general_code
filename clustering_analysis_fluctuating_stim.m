@@ -102,7 +102,7 @@ for direc_list_n = 1:n_direc_lists
         dff_data_mat(:, :, all_bad_trs) = nan;
         
         %% Running clustering algorithm
-        un_clust = [];
+        sorted_resps = [];
         for odor_n = 1:n_odors
             odor_ni = odor_list(odor_n);
             curr_sig_cells = find(sig_cell_mat(:, odor_ni) == 1);
@@ -128,17 +128,30 @@ for direc_list_n = 1:n_direc_lists
                 
                 %Running clustering code
                 Z = linkage(ave_dff_resp_mat', 'centroid');
-                c_range = inconsistent(Z);
-                c_range = c_range(:, 4);
+                clust_ids = cluster(Z, 'maxclust', 5);          %grouping cells into a maximum of 5 clusters
                 
-                for iter_n = 1:length(c_range)
-                    curr_c = c_range(iter_n);
-                    T = cluster(Z, 'cutoff', curr_c);
-                    keyboard
+                n_clusts = max(clust_ids);
+                
+                for clust_n = 1:n_clusts
+                    curr_cells = find(clust_ids == clust_n);
+                    curr_resps = ave_dff_resp_mat(:, curr_cells);       %response vectors for currently clustered cells
+                    ave_resp = mean(curr_resps, 2, 'omitnan');
+                    
+                    corrs = corrcoef([ave_resp, curr_resps]);
+                    corrs = corrs(1, 2:end);
+                    curr_resps = [corrs; curr_resps];
+                    curr_resps = sortrows(curr_resps', -1)';
+                    sorted_resps = [sorted_resps, curr_resps(2:end, :)];
+                    
+                   
+                    
                 end
                 
+                imagesc(sorted_resps)
                 
-                    
+                %PICK UP THREAD HERE
+                %figure out what to do with the clustered response types.
+                %compare across trains
                 keyboard
                     
                 
