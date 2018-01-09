@@ -116,8 +116,8 @@ for direc_list_n = 1:n_direc_lists
                 curr_trs = curr_trs(1:n_trs_to_analyse);
                 curr_trs2 = find(stim_mat_simple(:, 2) == odor_ni & stim_mat_simple(:, 11) == other_train_n);
                 curr_trs2 = curr_trs2(1:n_trs_to_analyse);                
-                ave_dff_resp_mat = mean(dff_data_mat_f(:, curr_sig_cells, curr_trs), 3, 'omitnan');
-                ave_dff_resp_mat2 = mean(dff_data_mat_f(:, curr_sig_cells, curr_trs2), 3, 'omitnan');
+                ave_dff_resp_mat = mean(dff_data_mat_f(1:(end-5), curr_sig_cells, curr_trs), 3, 'omitnan');
+                ave_dff_resp_mat2 = mean(dff_data_mat_f(1:(end-5), curr_sig_cells, curr_trs2), 3, 'omitnan');
                 %normalising each dff response trace
                 max_vec = max(ave_dff_resp_mat, [], 1);
                 max_mat = repmat(max_vec, size(ave_dff_resp_mat, 1), 1);
@@ -126,132 +126,22 @@ for direc_list_n = 1:n_direc_lists
                 max_mat2 = repmat(max_vec2, size(ave_dff_resp_mat2, 1), 1);
                 ave_dff_resp_mat2 = ave_dff_resp_mat2./max_mat2;
                 
+                %Running clustering code
+                Z = linkage(ave_dff_resp_mat', 'centroid');
+                c_range = inconsistent(Z);
+                c_range = c_range(:, 4);
                 
-                %Running clustering algorithm
-                ccorr = corrcoef(ave_dff_resp_mat, 'rows', 'pairwise');
-                if exist([save_path, dir_list_name, '.mat'], 'file') == 2
-                    clust_results = load([save_path, dir_list_name, '.mat']);
-                    clust_results = clust_results.clust_results;
-                    a = clust_results{1};
-                    b = clust_results{2};
-                    c = clust_results{3};
-                else
-                    X = ave_dff_resp_mat';       %activity data matrix - cells x frames, with trials concatenated
-
-                    thr = 0.8;              %threshold of kmeans++ runs a pair of cells must co-occur in to be considered for clustering
-                    no_iters = 500;         %no of times meta_k_means_tank calls k_means_plusplus; set to 100 for preliminary corrcut scan
-                    clustat = [];
-                    un_clust = [];
-
-                    %loop to try out various values of corrcut
-                    ct_range = 0.65:0.05:0.9;
-                    for corrcut = 0.65:0.05:0.9
-                        %corrcut                             %corrcut is the threshold inter-cluster correlation coefficient above which they are merged
-                        [a b c] = meta_k_means_tank1(X, 'correlation', corrcut, thr, no_iters);
-
-
-                        clustcorr = [];
-                        clustnum = [];
-                        for i = 1 : size(a, 1)
-                            temp = a{i,1};
-                            clustnum = [clustnum length(temp)];
-                            tempcorr = 0;
-                            count = 1;
-                            for x = 1 : length(temp)-1
-                                for y = x + 1 : length(temp)
-                                    tempcorr = tempcorr + ccorr(temp(x), temp(y));
-                                    count = count + 1;
-                                end
-                            end
-                            clustcorr = [clustcorr, tempcorr/count];
-                        end
-                        clustat = [clustat; [mean(clustnum) (sum(clustcorr.*clustnum)/sum(clustnum))]];
-                    end
-
-                    %identifying best value of corrcut
-                    x = clustat(:, 1);
-                    x = (x - min(x))/(max(x)-min(x));
-                    y = clustat(:, 2);
-                    y = (y - min(y))/(max(y)-min(y));
-                    [null, corrcuti] = max(x.*y);
-
-                    corrcut = ct_range(corrcuti);
-
-                    clear null
-
-                    %running meta-k-means to identify final clusters with
-                    %well-chosen value of corrcut (threshold corrcoef to fuse meta-clusters)
-                    no_iters = 1000;            
-                    [a, b, c] = meta_k_means_tank1(X, 'correlation', corrcut, thr, no_iters);
-
-                    %saving results of clustering to file 
-                    clust_results = {a, b, c};
-                    mkdir([save_path, dir_list_name])
-                    save([save_path, dir_list_name, '.mat'], 'clust_results');
-
-                    beep
+                for iter_n = 1:length(c_range)
+                    curr_c = c_range(iter_n, 'cutoff', c);
+                    clus
+                    
                 end
                 
-                %building list of cells and their group numbers
-                n_cells = size(ave_dff_resp_mat, 2);
-                no_clusts = size(a, 1);
-                cell_gp_vec = zeros(n_cells, 1);
-                for c_num = 1:no_clusts
-                    c_list = a{c_num, 1};
-                    cell_gp_vec(c_list, 1) = c_num;
-                end
-
-                clear no_clusts
-                clear c_num
-                clear c_list
-
-                cell_gp_vec = [cell_gp_vec, (1:1:n_cells)'];
-                cell_gp_vec_orig = cell_gp_vec;
-
-                %sorting cells within groups as per their corrcoeffs with
-                %group-averaged trace
-                c_lengths = [];
-                c_list_f = cell_gp_vec_orig(:, 1);                  %full list of all cells' cluster numbers
                 
-                response_matrix_o = [];
-                response_matrix_o2 = [];
-                %accounting for un-clustered cells
-                c_list = find(c_list_f == 0);
-                un_clust = [un_clust; length(c_list), n_cells];
-                for c_no = 1:length(c_list)
-                    c_noi = c_list(c_no);
-
-                end
-
-
-                %sorting response matrix by corrcoef with cluster mean
-                for clust_no = 1:max(cell_gp_vec_orig(:, 1))
-                    c_list = find(c_list_f == clust_no);            %cell numbers in old list that belong to current cluster
-
-                    %condition to skip clusters with < 5 cells in them
-%                     if length(c_list) < 5
-%                         for c_no = 1:length(c_list)
-%                             c_noi = c_list(c_no);
-%                         end
-% 
-% 
-%                         continue
-%                     else
-%                     end                
-                    c_lengths = [c_lengths; length(c_list)]; 
-                    cr_list = c(c_list, clust_no);                  %list of corrcoeffs of cells in c_list, with their own cluster's averaged trace 
-                    curr_trace_mat = ave_dff_data_mat(:, c_list)';       %matrix of activity data for each cell that belongs to this cluster
-                    curr_trace_mat2 = ave_dff_data_mat2(:, c_list)';             %matrix of activity data for other odor train 
-
-                    curr_trace_mat = [cr_list, curr_trace_mat];     %concatenating corrcoefs to activity traces to sort both together
-                    curr_trace_mat2 = [cr_list, curr_trace_mat2];
-
-                    curr_trace_mat = sortrows(curr_trace_mat, -1);      %sorting rows by first column ie corrcoefs
-                    curr_trace_mat2 = sortrows(curr_trace_mat2, -1);
-
-                    response_matrix_o = [response_matrix_o; curr_trace_mat(:, 2:end)];
-                    response_matrix_o2 = [response_matrix_o2; curr_trace_mat2(:, 2:end)];
-                end
+                    
+                keyboard
+                    
+                
 
                 max_mat = repmat(nanmax(response_matrix_o, [], 2), 1, size(response_matrix_o, 2));
                 response_matrix_o_norm = response_matrix_o./max_mat;
@@ -267,7 +157,7 @@ for direc_list_n = 1:n_direc_lists
                 %calculating new corrcoeff mat with re-arranged cells
                 curr_color = color_vec(2, :);
                 fig_h = figure(1);
-                imagesc(response_matrix_o_norm_s, [0, 1]);
+                imagesc(response_matrix_o_norm, [0, 1]);
                 stim_frs_saved = [stim_frame, stim_end_fr];
                 colormap(greymap)
                 set_xlabels_time(1, frame_time, .5)
@@ -277,10 +167,7 @@ for direc_list_n = 1:n_direc_lists
                 fig_wrapup(1);
                 add_stim_bar(1, stim_frs_saved, curr_color)
 
-
-
-
-
+                keyboard
                 
             end
         end
