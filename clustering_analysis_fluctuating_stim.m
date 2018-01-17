@@ -1,11 +1,11 @@
 clear all
 close all
 
-direc_lists_mat =  [{'C:\Data\Data\Analysed_data\dataset_list_fluc_stim_somas_20171226.xls'}...
+direc_lists_mat =  [{'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_fluc_stim_somas_20171226.xls'}...
                     
                    ]; 
 
-save_path = 'C:\Data\Analysis_results\train_clustering\';
+save_path = 'C:\Data\Data\Analysed_data\Analysis_results\train_clustering\';
 n_direc_lists = size(direc_lists_mat, 1);
                 
 global color_vec;                
