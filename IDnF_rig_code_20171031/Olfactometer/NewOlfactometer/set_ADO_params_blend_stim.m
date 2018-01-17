@@ -61,7 +61,7 @@ params=tmpP;
             end
         end              
         %Read in data from the odour list
-        fid = fopen('odor_list_path.txt');
+        fid = fopen('odor_list_path_blends.txt');
         odor_list_path = fgetl(fid);
         fclose(fid);
         
