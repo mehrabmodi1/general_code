@@ -66,6 +66,7 @@ initialiseFlows_MM(AC, 0.1, 4500);      %initialising flows for the first time j
 od_inj_dur = 24;                         %this is the duration in s for which MFC B flow is injected into an odor vial to fully fill the system with odor. Stim_latency has to be longer than this.
 
 for trial_n = start_tr:n_trials
+    
     odor_n = params_mat(trial_n).odours;
     duration = params_mat(trial_n).duration;
     firstDilution = params_mat(trial_n).firstDilution;
@@ -85,6 +86,11 @@ for trial_n = start_tr:n_trials
         isi = max([60, ((tot_tr_dur - stim_latency - post_od_scan_dur).*3)]);         %scales isi to stim duration, with a minimum isi of 60s
         params_mat(trial_n).isi = isi;
     end
+    
+    %displaying total time until end of acqn
+    n_trials_left = n_trials - trial_n + 1;
+    tot_time = round((n_trials_left.*isi)./60);  %in min
+    disp([int2str(tot_time), ' minutes left for completion of acquisition.']);
     
     
     disp(['Trial ' int2str(trial_n) ' of ' int2str(n_trials) '.'])
@@ -140,13 +146,7 @@ for trial_n = start_tr:n_trials
     pause(post_od_scan_dur)                 %waiting to end image acquisition
     trigger_scan(0)                         %ending image acquisition
     
-    %tricking scanimage into releasing current trial file...
-    %by triggering a fake, short trial
-    pause(3)
-    trigger_scan(1)
-    pause(1)
-    trigger_scan(0)
-    
+       
     %logging current trial as done and saving params_mat
     params_mat(trial_n).trs_done = t_stamp;     %time stamp recorded at the beginning of the trial
     save([save_dir 'params.mat'], 'params_mat');                %saving the detailed parameters for each trial to file
@@ -159,6 +159,14 @@ for trial_n = start_tr:n_trials
     save([save_dir 'PID_trace_tr-' int2str(trial_n) '.mat'], 'PID_data');
     
     disp('Updated param-file. Waiting for isi.');
+    
+    
+    %tricking scanimage into releasing current trial file...
+    %by triggering a fake, short trial
+    pause(1)
+    trigger_scan(1)
+    pause(1)
+    trigger_scan(0)    
     
     %pause for inter stimulus interval (between this and next trial)
     if trial_n < n_trials
