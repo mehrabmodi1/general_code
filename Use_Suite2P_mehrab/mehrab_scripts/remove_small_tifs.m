@@ -1,4 +1,5 @@
 function [] = remove_small_tifs(raw_direc)
+%syntax: [] = remove_small_tifs(raw_direc)
 %function to get rid of empty .tif files created by ScanImage sometimes
 
 old_direc = pwd;
