@@ -28,7 +28,7 @@ for direc_list_n = 1:n_direc_lists
         cd([direc]);
         tif_list = dir('*.tif');
         
-        ref_im = ScanImageTiffReader([direc, tif_list(1).name]).data();
+        curr_stack = ScanImageTiffReader([direc, tif_list(1).name]).data();
         ref_im = mean(ref_im, 3)';
         
         %loading in manually drawn, FIJI ROIs
@@ -52,6 +52,24 @@ for direc_list_n = 1:n_direc_lists
             in_points = [in_points; find(on_pts == 1)];
             ROI_mat(test_pointsy(in_points), test_pointsx(in_points), ROI_n) = 1;
         end
+        
+        
+        %looping through trials
+        n_trials = size(tif_list, 1);
+        for trial_n = 1:n_trials
+            if trial_n > 1
+                curr_stack = ScanImageTiffReader([direc, tif_list(trial_n).name]).data();
+                curr_stack = slow_xy_motion_correct(curr_stack, ref_im);
+                
+                
+            else %for trial 1, curr_stack has already been loaded into memory.
+            end
+            
+            
+            
+        end
+        
+        
        
         
     end
