@@ -29,10 +29,10 @@ pre_stim_frame = 1;
 
 resp_areas = zeros(n_cells, n_trials) + nan;
 sig_trace_mat = zeros(n_cells, n_trials);
-sig_cell_mat = zeros(n_cells, 8, n_odor_durs);
+sig_cell_mat = zeros(n_cells, 12, n_odor_durs);
 
 sig_trace_mat_old = zeros(n_cells, n_trials);
-sig_cell_mat_old = zeros(n_cells, 8, n_odor_durs);
+sig_cell_mat_old = zeros(n_cells, 12, n_odor_durs);
 
 
 n_rep_gps = length(odor_list).*length(odor_dur_list);   %number of odor-dur pairs with sets of repeats
