@@ -24,12 +24,14 @@ for direc_list_n = 1:n_direc_lists
         %% House-keeping
         direc = curr_direc_list{direc_counter, 1};
         direc = [direc, '\'];
+        remove_small_tifs(direc);
         prev_direc = pwd;
         cd([direc]);
         tif_list = dir('*.tif');
         
         curr_stack = ScanImageTiffReader([direc, tif_list(1).name]).data();
-        ref_im = mean(ref_im, 3)';
+        curr_stack = permute(curr_stack,[2 1 3]);
+        ref_im = mean(curr_stack, 3, 'omitnan');
         
         %loading in manually drawn, FIJI ROIs
         if exist([direc, 'ROIs']) ~= 7
@@ -48,9 +50,6 @@ for direc_list_n = 1:n_direc_lists
             curr_name = ROI_list(ROI_n).name;
             curr_ROI = ReadImageJROI([direc, 'ROIs\', curr_name]);
             ROI_mat(:, :, ROI_n) = poly2mask(curr_ROI.mnCoordinates(:, 1), curr_ROI.mnCoordinates(:, 2), size(ref_im, 1), size(ref_im, 2));
-            in_points = find(in_pts == 1);
-            in_points = [in_points; find(on_pts == 1)];
-            ROI_mat(test_pointsy(in_points), test_pointsx(in_points), ROI_n) = 1;
         end
         
         
@@ -59,6 +58,7 @@ for direc_list_n = 1:n_direc_lists
         for trial_n = 1:n_trials
             if trial_n > 1
                 curr_stack = ScanImageTiffReader([direc, tif_list(trial_n).name]).data();
+                curr_stack = permute(curr_stack,[2 1 3]);
                 curr_stack = slow_xy_motion_correct(curr_stack, ref_im);
                 
                 
