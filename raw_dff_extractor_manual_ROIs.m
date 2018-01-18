@@ -47,13 +47,12 @@ for direc_list_n = 1:n_direc_lists
         for ROI_n = 1:n_ROIs
             curr_name = ROI_list(ROI_n).name;
             curr_ROI = ReadImageJROI([direc, 'ROIs\', curr_name]);
-            [test_pointsx, test_pointsy] = find(ROI_mat(:, :, ROI_n) == 0);
-            [in_pts, on_pts]= inpolygon(test_pointsx, test_pointsy, curr_ROI.mnCoordinates(:, 1), curr_ROI.mnCoordinates(:, 2));
+            ROI_mat(:, :, ROI_n) = poly2mask(curr_ROI.mnCoordinates(:, 1), curr_ROI.mnCoordinates(:, 2), size(ref_im, 1), size(ref_im, 2));
             in_points = find(in_pts == 1);
             in_points = [in_points; find(on_pts == 1)];
             ROI_mat(test_pointsy(in_points), test_pointsx(in_points), ROI_n) = 1;
         end
-        keyboard
+       
         
     end
 end
