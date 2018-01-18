@@ -1,4 +1,6 @@
 classdef ScanImageTiffReader < handle
+    %syntax: stack = ScanImageTiffReader('tif_path').data();... stack = permute(stack,[2 1 3]);
+    %syntax: stack_obj = ScanImageTiffReader('tif_path');... desc = stack_obj.descriptions;... string_desc = reader.metadata; 
     % ScanimageTiffReader provides fast access to the data in ScanImage Tiff.
     %
     % ScanImage stores different kinds of metadata.  Configuration data and
