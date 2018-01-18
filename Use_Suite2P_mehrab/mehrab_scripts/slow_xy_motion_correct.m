@@ -6,12 +6,18 @@ function reg_stack = slow_xy_motion_correct(curr_stack, ref_im)
 %individual frames in curr_stack to give reg_stack.
 %Mehrab Modi 20180118
 
-% %test variables
+%test variables easy
+% ref_im = zeros(100, 100);
+% ref_im(40:50, 40:50) = 1;
+% curr_stack = zeros(100, 100);
+% curr_stack(30:40, 30:40) = 1;
+% curr_stack = repmat(curr_stack, 1, 1, 30);
+
+% %test variables real
 % stack1_path = 'C:\Data\Data\Raw_data\20180111\fly1_axons_train_stim\fly1_od_trains_00013.tif';
 % stack2_path = 'C:\Data\Data\Raw_data\20180111\fly1_axons_train_stim\fly1_od_trains_00089.tif';
 % stack1 = ScanImageTiffReader(stack1_path).data();
 % curr_stack = ScanImageTiffReader(stack2_path).data();
-% curr_stack_orig = curr_stack;
 % ref_im = mean(stack1, 3, 'omitnan');
 
 curr_im = mean(curr_stack, 3, 'omitnan');
@@ -45,11 +51,15 @@ end
 
 % %testing plots
 % ave_corrected = mean(reg_stack, 3, 'omitnan');
+% ave_uncorrected = mean(curr_stack, 3, 'omitnan');
 % figure(1)
-% subplot(3, 1, 1)
+% subplot(2, 2, 1)
 % imagesc(ref_im)
-% subplot(3, 1, 2)
+% subplot(2, 2, 2)
+% imagesc(ave_uncorrected)
+% subplot(2, 2, 3)
 % imagesc(ave_corrected)
-% subplot(3, 1, 3)
+% subplot(2, 2, 4)
 % imagesc(ref_im - ave_corrected)
+
 
