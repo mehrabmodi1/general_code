@@ -1,8 +1,9 @@
 clear all
 close all
 
-direc_lists_mat =  [{'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_fluc_stim_somas_20171226.xls'}...
-                    
+direc_lists_mat =  [...
+                      %{'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_fluc_stim_somas_20171226.xls'}...
+                        {'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_fluc_stim_axons_20180117'}, ...
                    ]; 
 
 save_path = 'C:\Data\Data\Analysed_data\Analysis_results\train_clustering\';
@@ -19,7 +20,7 @@ suppress_plots = 0;       %0 - doesn't plot quality control stuff, 1 - plots stu
 kernel_width = 5;         %in s, the duration of dF/F trace to use and extract as the Ca-response kernel.
 n_trs_to_analyse = 15;
 
-[del, odor_names] = xlsread('C:\Data\Data\Analysed_data\odor_names_20161108.xls', 1);
+[del, odor_names] = xlsread('C:\Data\Code\general_code\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList.xls', 1);
 
 
 
