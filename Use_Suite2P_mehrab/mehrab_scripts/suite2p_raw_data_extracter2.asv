@@ -115,7 +115,7 @@ for raw_direc_n = 1:size(raw_direc_list, 1)
     [ROI_mat] = setup_Suite2P_ROIs(data_mat);
     clear data_mat
 
-    %% Extracting raw fluorescence traces after doing a slow xy-correction, and copying over files needed for further analysis
+    %% Extracting raw fluorescence traces from registered tiff images
     prev_direc = pwd;
     [raw_data_mat] = extract_raw_traces(direc, ROI_mat, [results_direc, raw_direc, '\']);
     disp(['done extracting traces from ' reg_tif_direc, raw_direc]);
@@ -130,14 +130,14 @@ for raw_direc_n = 1:size(raw_direc_list, 1)
     save([results_direc, '\log_file.mat'], 'log_m');
     cd(prev_direc)
     
-    %copying over PID traces to the results folder
+    % copying over PID traces to the results folder
     cd([raw_direc_base, raw_direc])
     PID_fnames = dir('PID*.*');
     for PID_trace_n = 1:size(PID_fnames, 1)
         curr_name = PID_fnames(PID_trace_n).name;
         copyfile([raw_direc_base, raw_direc, curr_name], [results_direc, raw_direc, curr_name]);
-    end
     
+    end
     %copying over first trial .tif file to results folder
     cd([raw_direc_base, raw_direc])
     tif_fnames = dir('*.tif');
