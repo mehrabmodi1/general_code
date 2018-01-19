@@ -89,14 +89,13 @@ for raw_direc_n = 1:size(raw_direc_list, 1)
        if dir_cont.bytes > 1e6
            disp(['traces have alredy been extracted for ' [results_direc, raw_direc] '. Skipping...']);
            continue
-       elseif exist([results_direc, raw_direc, 'extraction_completed.txt']) == 2
-           disp(['traces have alredy been extracted for ' [results_direc, raw_direc] '. Skipping...']);
-           continue
+       elseif exist()
        end
       
     else
     end
     
+    keyboard
     dir_contents = dir;
     dir_contents(1:2) = [];
     n_files = size(dir_contents, 1);
@@ -272,7 +271,8 @@ for raw_direc_n = 1:size(raw_direc_list, 1)
     %saving timestamps for each tif file in the current dataset
     time_stamps = read_tiff_timestamps([raw_direc_base, raw_direc]);
     save([results_direc, raw_direc, '\tif_time_stamps.mat'], 'time_stamps');
-    
+    del = [];
+    save([results_dire])
     
     %% downsampling registered tiffs in time and over-writing old ones. deleting raw, registered frames.
     %tiff_downsampler([reg_tif_direc, raw_direc], round(10./ft_factor));
@@ -291,7 +291,6 @@ for raw_direc_n = 1:size(raw_direc_list, 1)
     curr_name = tif_fnames(1).name;
     copyfile([raw_direc_base, raw_direc, curr_name], [results_direc, raw_direc, curr_name]);
 
-    del = [];
-    save([results_direc, raw_direc, '\extraction_completed.txt'], 'del');       %saving a dummy file to indicate that all the raw data was extracted successfully.
+    
     
 end
