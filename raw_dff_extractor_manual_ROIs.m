@@ -54,7 +54,9 @@ for direc_list_n = 1:n_direc_lists
         
         
         %extracting raw traces
-        save_path = ['C:\Data\Data\Analysed_data\Manual_ROI_results', '\' ];
+        dataset_namei = findstr(direc, '\20');
+        dataset_name = direc((dataset_namei + 1):end);
+        save_path = ['C:\Data\Data\Analysed_data\Manual_ROI_results\', dataset_name, '\' ];
         [raw_data_mat] = extract_raw_traces(direc, ROI_mat, save_path);
         
         
