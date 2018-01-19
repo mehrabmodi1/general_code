@@ -19,20 +19,32 @@ if exist([save_path, 'extracted_raw_data_mat.mat']) == 2
     raw_data_mat = raw_data_mat.raw_data_mat;
     done_trs = find(squeeze(isnan(raw_data_mat(1, 1, :))) == 0);
     start_trial = done_trs(end) + 1;
+    disp(['Recovered some extracted traces. Starting to extract trial ', int2str(start_trial), '.'])
     
     ref_im = load([save_path, 'ref_im.mat']);
     ref_im = ref_im.ref_im;
+    
+    time_stamps = load([save_path, 'tif_time_stamps.mat']);
+    time_stamps = time_stamps.time_stamps;
 else
     start_trial = 1;
 end
 
 for trial_n = start_trial:n_trials
     try
-        stack = ScanImageTiffReader([direc, dir_contents(trial_n).name]).data();
+        %reading in stack object
+        im_obj = ScanImageTiffReader([direc, dir_contents(trial_n).name]);
+        %obtaining image stack
+        stack = im_obj.data();
         stack = permute(stack,[2 1 3]);
+        %obtaining, logging timestamp
+        curr_time_stamp = parse_tiff_timestamp(im_obj);
+        time_stamps(trial_n).tstamp = curr_time_stamp;
+        time_stamps(trial_n).name = dir_contents(trial_n).name;
     catch
-        keyboard
+        continue
     end
+    
     %applying a slow x-y motion correction assuming negligible motion
     %within a trial
     if start_trial == 1 && trial_n == 1
@@ -81,8 +93,8 @@ for trial_n = start_trial:n_trials
     end
     save([save_path, 'extracted_raw_data_mat.mat'], 'raw_data_mat');
     save([save_path, 'ref_im.mat'], 'ref_im');
+    save([save_path, 'tif_time_stamps.mat'], 'time_stamps');
     disp(['traces extracted, from trial ', int2str(trial_n), ', and saved.'])
-end
 
-keyboard
+end
 cd(prev_direc)
