@@ -15,17 +15,21 @@ n_frames = zeros(n_trials, 1);
 
 %checking if any trials have already been extracted and recovering
 if exist([save_path, 'extracted_raw_data_mat.mat']) == 2
-    raw_data_mat = load([save_path, 'extracted_raw_data_mat.mat']);
-    raw_data_mat = raw_data_mat.raw_data_mat;
-    done_trs = find(squeeze(isnan(raw_data_mat(1, 1, :))) == 0);
-    start_trial = done_trs(end) + 1;
-    disp(['Recovered some extracted traces. Starting to extract trial ', int2str(start_trial), '.'])
-    
-    ref_im = load([save_path, 'ref_im.mat']);
-    ref_im = ref_im.ref_im;
-    
-    time_stamps = load([save_path, 'tif_time_stamps.mat']);
-    time_stamps = time_stamps.time_stamps;
+    try
+        raw_data_mat = load([save_path, 'extracted_raw_data_mat.mat']);
+        raw_data_mat = raw_data_mat.raw_data_mat;
+        done_trs = find(squeeze(isnan(raw_data_mat(1, 1, :))) == 0);
+        start_trial = done_trs(end) + 1;
+        disp(['Recovered some extracted traces. Starting to extract trial ', int2str(start_trial), '.'])
+
+        ref_im = load([save_path, 'ref_im.mat']);
+        ref_im = ref_im.ref_im;
+
+        time_stamps = load([save_path, 'tif_time_stamps.mat']);
+        time_stamps = time_stamps.time_stamps;
+    catch
+        start_trial = 1;
+    end
 else
     start_trial = 1;
 end
@@ -57,7 +61,7 @@ for trial_n = start_trial:n_trials
     raw_vec = zeros(1, n_cells);
     n_frames = size(stack, 3);
     
-    for frame_n = 1:(100 + round(rand(1, 1).*10))
+    for frame_n = 1:n_frames
         curr_frame = stack(:, :, frame_n);
         curr_frame = im2double(curr_frame);
 

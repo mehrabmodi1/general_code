@@ -98,7 +98,7 @@ for raw_direc_n = 1:size(raw_direc_list, 1)
     %reading in most recent Suite2P results file to get Suite2P ROIs
     newest_results_file = find_newest_file([results_direc, raw_direc], '_proc');
     disp(['Loading Suite2P results file ' newest_results_file])
-    data_mat = load([results_direc, raw_direc, dir_contents(max_datenum(2)).name]);
+    data_mat = load([results_direc, raw_direc, newest_results_file]);
     
     try
         data_mat = data_mat.dat;
@@ -117,7 +117,7 @@ for raw_direc_n = 1:size(raw_direc_list, 1)
 
     %% Extracting raw fluorescence traces after doing a slow xy-correction, and copying over files needed for further analysis
     prev_direc = pwd;
-    [raw_data_mat] = extract_raw_traces(direc, ROI_mat, [results_direc, raw_direc, '\']);
+    [raw_data_mat] = extract_raw_traces([raw_direc_base, raw_direc], ROI_mat, [results_direc, raw_direc, '\']);
     disp(['done extracting traces from ' reg_tif_direc, raw_direc]);
     
     %copying over stimulus param files
