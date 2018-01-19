@@ -53,23 +53,9 @@ for direc_list_n = 1:n_direc_lists
         end
         
         
-        %looping through trials
-        n_trials = size(tif_list, 1);
-        for trial_n = 1:n_trials
-            %aligning current stack to trial 1 stack as ref image. assuming
-            %no significant within stack x-y motion, only correcting for
-            %slow x-y motion.
-            if trial_n > 1
-                curr_stack = ScanImageTiffReader([direc, tif_list(trial_n).name]).data();
-                curr_stack = permute(curr_stack,[2 1 3]);
-                curr_stack = slow_xy_motion_correct(curr_stack, ref_im);
-            else %for trial 1, curr_stack has already been loaded into memory.
-            end
-            
-            
-            
-            
-        end
+        %extracting raw traces
+        save_path = ['C:\Data\Data\Analysed_data\Manual_ROI_results', '\' ];
+        [raw_data_mat] = extract_raw_traces(direc, ROI_mat, save_path);
         
         
        
