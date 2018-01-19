@@ -60,15 +60,15 @@ for direc_list_n = 1:n_direc_lists
         [raw_data_mat] = extract_raw_traces(direc, ROI_mat, save_path);
         
         
-        %copying over files needed for further analysis to results
-        %directory
+        
         prev_direc = pwd;
         cd([direc])
         %copying over stimulus param file from raw data directory
         param_names = dir('params*.*');
-        for p_file_n = 1:size(param_names, 1)
+        for p_file_n = 1:size(param_names, 2)
             copyfile([direc, param_names(p_file_n).name], [save_path, param_names(p_file_n).name]);            
         end
+        keyboard
         
         % copying over PID traces to the results folder
         PID_fnames = dir('PID*.*');
@@ -83,6 +83,8 @@ for direc_list_n = 1:n_direc_lists
         copyfile([direc, curr_name], [save_path, curr_name]);
         
         
-        cd(prev_direc)        
+        cd(prev_direc)
+       
+        
     end
 end
