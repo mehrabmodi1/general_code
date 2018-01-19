@@ -8,10 +8,12 @@ function reg_stack = slow_xy_motion_correct(curr_stack, ref_im)
 
 %test variables easy
 % ref_im = zeros(100, 100);
-% ref_im(40:50, 40:50) = 1;
+% ref_im(40:50, 40:50) = 5;
+% ref_im = ref_im + 1;
 % curr_stack = zeros(100, 100);
-% curr_stack(30:40, 30:40) = 1;
+% curr_stack(30:40, 30:40) = 5;
 % curr_stack = repmat(curr_stack, 1, 1, 30);
+% curr_stack = curr_stack + 1;
 
 % %test variables real
 % stack1_path = 'C:\Data\Data\Raw_data\20180111\fly1_axons_train_stim\fly1_od_trains_00013.tif';
@@ -49,7 +51,7 @@ else
 end
 
 
-% %testing plots
+%testing plots
 % ave_corrected = mean(reg_stack, 3, 'omitnan');
 % ave_uncorrected = mean(curr_stack, 3, 'omitnan');
 % figure(1)
