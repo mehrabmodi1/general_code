@@ -13,29 +13,22 @@ n_cells = size(ROI_mat, 3);
 raw_data_mat = zeros(100, n_cells, n_trials) + nan;
 n_frames = zeros(n_trials, 1);
 
-%checking if any trials have already been extracted and recovering
+%checking if any trials have already been extracted
 if exist([save_path, 'extracted_raw_data_mat.mat']) == 2
     raw_data_mat = load([save_path, 'extracted_raw_data_mat.mat']);
     raw_data_mat = raw_data_mat.raw_data_mat;
-    done_trs = find(squeeze(isnan(raw_data_mat(1, 1, :))) == 0);
-    start_trial = done_trs(end) + 1;
     
-    ref_im = load([save_path, 'ref_im.mat']);
-    ref_im = ref_im.ref_im;
+    keyboard
 else
     start_trial = 1;
 end
 
 for trial_n = start_trial:n_trials
-    try
-        stack = ScanImageTiffReader([direc, dir_contents(trial_n).name]).data();
-        stack = permute(stack,[2 1 3]);
-    catch
-        keyboard
-    end
+    stack = ScanImageTiffReader([direc, dir_contents(trial_n).name]).data();
+    stack = permute(stack,[2 1 3]);
     %applying a slow x-y motion correction assuming negligible motion
     %within a trial
-    if start_trial == 1 && trial_n == 1
+    if trial_n == 1
         ref_im = mean(stack, 3, 'omitnan');
     else
         stack = slow_xy_motion_correct(stack, ref_im);
@@ -74,14 +67,13 @@ for trial_n = start_trial:n_trials
     
     clear stack
     
+    %PICK UP THREAD HERE
+    %implement saving extracted traces and recovery in the case of
+    %interruptions.
     %saving extracted traces
-    if exist(save_path) == 0
-        mkdir(save_path)
-    else
-    end
-    save([save_path, 'extracted_raw_data_mat.mat'], 'raw_data_mat');
-    save([save_path, 'ref_im.mat'], 'ref_im');
     disp(['traces extracted, from trial ', int2str(trial_n), ', and saved.'])
+    save([save_path, 'extracted_raw_data_mat.mat'], 'raw_data_mat');
+    
 end
 
 keyboard
