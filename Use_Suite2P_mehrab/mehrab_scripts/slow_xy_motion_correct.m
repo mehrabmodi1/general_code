@@ -31,6 +31,12 @@ c = xcorr2_fft(curr_im, ref_im);
 col_lag = size(curr_stack, 1) - maxr;
 row_lag = size(curr_stack, 2) - maxcol;
 
+%generating a warning if lags more than 20% of size of frame
+if mean([col_lag, row_lag]) > (size(ref_im, 1)./5)
+    disp('WARNING: X-Y movement of more than 20% frame size detected.')
+else
+end
+
 %shifting stack
 reg_stack = circshift(curr_stack, row_lag, 1);
 reg_stack = circshift(reg_stack, col_lag, 2);
