@@ -23,10 +23,8 @@ if exist([save_path, 'extracted_raw_data_mat.mat']) == 2
             disp('all traces already extracted... skipping.')
             return
         else
-            start_trial = max(done_trs) + 1;
         end
-        
-        
+        start_trial = max(done_trs) + 1;
         disp(['Recovered some extracted traces. Starting to extract trial ', int2str(start_trial), '.'])
 
         ref_im = load([save_path, 'ref_im.mat']);
@@ -35,7 +33,7 @@ if exist([save_path, 'extracted_raw_data_mat.mat']) == 2
         time_stamps = load([save_path, 'tif_time_stamps.mat']);
         time_stamps = time_stamps.time_stamps;
         
-        
+        keyboard
     catch
         start_trial = 1;
     end
@@ -55,7 +53,7 @@ for trial_n = start_trial:n_trials
         time_stamps(trial_n).tstamp = curr_time_stamp;
         time_stamps(trial_n).name = dir_contents(trial_n).name;
     catch
-        continue            %skipping trace extraction from unreadable trials - this doesn't matter because time-stamps will be matched up later with the stim param file anyway.
+        continue
     end
     
     %applying a slow x-y motion correction assuming negligible motion
@@ -95,7 +93,6 @@ for trial_n = start_trial:n_trials
         raw_data_mat(1:size(curr_raw_data_mat, 1), :, trial_n) = curr_raw_data_mat;
        
     else
-        raw_data_mat(:, :, trial_n) = curr_raw_data_mat;
     end
     
     clear stack
@@ -109,6 +106,6 @@ for trial_n = start_trial:n_trials
     save([save_path, 'ref_im.mat'], 'ref_im');
     save([save_path, 'tif_time_stamps.mat'], 'time_stamps');
     disp(['traces extracted, from trial ', int2str(trial_n), ', and saved.'])
-    
+
 end
 cd(prev_direc)
