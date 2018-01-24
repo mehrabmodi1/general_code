@@ -31,6 +31,7 @@ for direc_list_n = 1:n_direc_lists
         cd([direc]);
         tif_list = dir('*.tif');
         
+        disp(['Extracting traces from ' direc]);
         curr_stack = ScanImageTiffReader([direc, tif_list(1).name]).data();
         curr_stack = permute(curr_stack,[2 1 3]);
         ref_im = mean(curr_stack, 3, 'omitnan');
@@ -84,7 +85,22 @@ for direc_list_n = 1:n_direc_lists
         curr_name = tif_fnames(1).name;
         copyfile([direc, curr_name], [save_path, curr_name]);
         
-        
+        disp(['Done extracting traces from ' direc]);
         cd(prev_direc)        
+    end
+    
+    %looping through all the directories again to manually identify bad trials
+    for direc_counter = 1:n_dirs
+        %% House-keeping
+        direc = curr_direc_list{direc_counter, 1};
+        direc = [direc, '\'];
+        
+        if exist([direc, 'bad_trial_list.mat']) ~= 2
+            [bad_tr_list] = find_bad_trials_res(direc);  %these are actually the good trials
+            save([save_path, 'bad_trial_list.mat'], 'bad_tr_list');
+        else
+            disp('z-drift trials have already been manually identified... skipping.')
+        end
+
     end
 end
