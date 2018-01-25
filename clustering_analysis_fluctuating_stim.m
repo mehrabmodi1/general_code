@@ -2,8 +2,8 @@ clear all
 close all
 
 direc_lists_mat =  [...
-                      %{'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_fluc_stim_somas_20171226.xls'}...
-                        {'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_fluc_stim_axons_20180117'}, ...
+                      {'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_fluc_stim_somas_20171226.xls'}...
+                        %{'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_fluc_stim_axons_20180117'}, ...
                    ]; 
 
 save_path = 'C:\Data\Data\Analysed_data\Analysis_results\train_clustering\';
@@ -103,7 +103,6 @@ for direc_list_n = 1:n_direc_lists
         dff_data_mat(:, :, all_bad_trs) = nan;
         
         %% Running clustering algorithm
-        sorted_resps = [];
         for odor_n = 1:n_odors
             odor_ni = odor_list(odor_n);
             curr_sig_cells = find(sig_cell_mat(:, odor_ni) == 1);
@@ -130,9 +129,25 @@ for direc_list_n = 1:n_direc_lists
                 %Running clustering code
                 Z = linkage(ave_dff_resp_mat', 'centroid');
                 clust_ids = cluster(Z, 'maxclust', 5);          %grouping cells into a maximum of 5 clusters
-                
+                clust_ids_old = clust_ids;
+                %giving small clusts the highest clust-id numbers
                 n_clusts = max(clust_ids);
+                n_cells_list = zeros(n_clusts, 2);
+                for clust_n = 1:n_clusts
+                    n_cells_list(clust_n, 2) = clust_n;
+                    n_cells_list(clust_n, 1) = length(find(clust_ids == clust_n));
+                end
+                n_cells_list = sortrows(n_cells_list, -1);
                 
+                for clust_n = 1:n_clusts
+                    old_clust_n = n_cells_list(clust_n, 2);
+                    curr_cells = find(clust_ids_old == old_clust_n);
+                    clust_ids(curr_cells) = clust_n;
+                end
+                
+                
+                %re-ordering responses acc to cluster identity
+                sorted_resps = [];
                 for clust_n = 1:n_clusts
                     curr_cells = find(clust_ids == clust_n);
                     curr_resps = ave_dff_resp_mat(:, curr_cells);       %response vectors for currently clustered cells
@@ -143,46 +158,32 @@ for direc_list_n = 1:n_direc_lists
                     curr_resps = [corrs; curr_resps];
                     curr_resps = sortrows(curr_resps', -1)';
                     sorted_resps = [sorted_resps, curr_resps(2:end, :)];
-                    
-                   
-                    
+                      
                 end
+                curr_train = stim_mat(curr_trs(1)).rand_trains;
+                stim_latency = stim_mat(curr_trs(1)).stim_latency;
+                od_pulse_frames = compute_pulse_frames_train(curr_train, frame_time, stim_latency);
                 
-                imagesc(sorted_resps)
-                
-                %PICK UP THREAD HERE
-                %figure out what to do with the clustered response types.
-                %compare across trains
-                keyboard
-                    
-                
-
-                max_mat = repmat(nanmax(response_matrix_o, [], 2), 1, size(response_matrix_o, 2));
-                response_matrix_o_norm = response_matrix_o./max_mat;
-
-                max_mat = repmat(nanmax(response_matrix_o2, [], 2), 1, size(response_matrix_o2, 2));
-                response_matrix_o_norm2 = response_matrix_o2./max_mat;
-
-                if isempty(response_matrix_o_norm) == 1
-                    continue
-                else
-                end
+                figure(1)
+                imagesc(sorted_resps', [0, 1])
+                colormap(greymap)
+                colorbar
+                ylabel('cell number')
+                set_xlabels_time(1, (frame_time./1000), 3)
+                fig_wrapup(1)
+                add_stim_bar(1, od_pulse_frames, color_vec(odor_n, :))
                 
                 %calculating new corrcoeff mat with re-arranged cells
-                curr_color = color_vec(2, :);
-                fig_h = figure(1);
-                imagesc(response_matrix_o_norm, [0, 1]);
-                stim_frs_saved = [stim_frame, stim_end_fr];
-                colormap(greymap)
-                set_xlabels_time(1, frame_time, .5)
-                ylabel('sig. cell-odor pairs')
-                xlabel('time (s)')
-                set(fig_h, 'Position', [100, 100, 100 + plot_width, 100 + plot_height]);
-                fig_wrapup(1);
-                add_stim_bar(1, stim_frs_saved, curr_color)
-
-                keyboard
+                figure(2)
+                corr_mat = corrcoef(sorted_resps);
+                imagesc(corr_mat)
+                xlabel('cell number')
+                ylabel('cell number')
+                colorbar
+                fig_wrapup(2)
                 
+                keyboard
+                close all
             end
         end
         %keyboard
