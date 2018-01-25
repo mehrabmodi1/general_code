@@ -95,7 +95,11 @@ for direc_list_n = 1:n_direc_lists
         direc = curr_direc_list{direc_counter, 1};
         direc = [direc, '\'];
         
-        if exist([direc, 'bad_trial_list.mat']) ~= 2
+        dataset_namei = findstr(direc, '\20');
+        dataset_name = direc((dataset_namei + 1):end);
+        save_path = [save_path_base, dataset_name, '\' ];
+        
+        if exist([save_path, 'bad_trial_list.mat']) ~= 2
             [bad_tr_list] = find_bad_trials_res(direc);  %these are actually the good trials
             save([save_path, 'bad_trial_list.mat'], 'bad_tr_list');
         else
