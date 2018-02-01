@@ -114,11 +114,18 @@ for direc_list_n = 1:n_direc_lists
                 stim_latency = stim_mat(curr_trs(1)).stim_latency;
                 pulse_frs = compute_pulse_frames_train(curr_train, frame_time, stim_latency);
                 set_xlabels_time(1, (frame_time./1000), 1)
-                
+                fig_wrapup(1)
                 add_stim_bar(1, pulse_frs, color_vec(odor_n, :));
+                
+                figure(2)
+                plot_vs = 0:(frame_time./1000):(size(dff_data_mat, 1).*(frame_time./1000));
+                plot_vs = plot_vs(1:(end - 1));
+                cascade_plot(2, squeeze(dff_data_mat(:, 2, curr_trs)), plot_vs, 2, 1, 1, 1, [0.5, 0.5, 0.5])
+                add_stim_bar(2, pulse_frs, color_vec(odor_n, :));
+                xlabel('time (s)')
                 keyboard
                 close figure 1
-                
+                close figure 2
                 
             end
         
