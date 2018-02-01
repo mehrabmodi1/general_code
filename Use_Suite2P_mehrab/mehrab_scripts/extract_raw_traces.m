@@ -1,4 +1,4 @@
-function [raw_data_mat] = extract_raw_traces(direc, ROI_mat, save_path)
+function [raw_data_mat] = extract_raw_traces(direc, ROI_mat, save_path, do_registration)
 %syntax: [raw_data_mat] = extract_raw_traces(direc, ROI_mat, save_path)
 %This function extracts raw traces from all the large tif files in direc using 
 %the specified ROI_mat. It saves the extracted raw_data_mat after each trial 
@@ -63,7 +63,10 @@ for trial_n = start_trial:n_trials
     if start_trial == 1 && trial_n == 1
         ref_im = mean(stack, 3, 'omitnan');
     else
-        stack = slow_xy_motion_correct(stack, ref_im);
+        if do_registration == 1
+            stack = slow_xy_motion_correct(stack, ref_im);
+        else
+        end
     end
 
     %reading in raw fluorescence data for each ROI into a single matrix (dim1 - frame_n, dim2 - ROI_n)
