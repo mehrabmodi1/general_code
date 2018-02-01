@@ -60,7 +60,7 @@ for direc_list_n = 1:n_direc_lists
         dataset_namei = findstr(direc, '\20');
         dataset_name = direc((dataset_namei + 1):end);
         save_path = [save_path_base, dataset_name, '\' ];
-        [raw_data_mat] = extract_raw_traces(direc, ROI_mat, save_path);
+        [raw_data_mat] = extract_raw_traces(direc, ROI_mat, save_path, 0);
         
         
         %copying over files needed for further analysis to results
