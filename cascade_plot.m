@@ -78,6 +78,7 @@ set(ax2, 'Color', 'none', 'Visible', 'off');
 %patch height
 y1 = 0;
 y2 = ytickmin;
+disp(['bar height = ' num2str(ytickmin)])
 
 %patch width
 x1 = 0.1;
@@ -91,4 +92,6 @@ p.EdgeColor = [1, 1, 1];
 
 children = allchild(curr_handle);
 axes(children(size(children, 1)));
+
+
                         
