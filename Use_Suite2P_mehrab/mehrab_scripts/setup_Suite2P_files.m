@@ -37,7 +37,7 @@ function [ft_factor] = setup_Suite2P_files(raw_direc_base, raw_direc, m_db_file_
     ft_factor = str2num(ft_factor);
     frame_time = base_frame_time.*ft_factor;
     frame_rate = 1./frame_time;
-    frame_rate = num2str(frame_rate);
+    frame_rate = num2str(frame_rate, 3);
     
     %editing masterfile with parameters for current dataset
     master_file = regexp(fileread('master_file.m'), '\n', 'split');
