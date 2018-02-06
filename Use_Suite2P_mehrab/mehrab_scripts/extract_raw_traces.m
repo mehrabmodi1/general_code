@@ -62,9 +62,23 @@ for trial_n = start_trial:n_trials
     %within a trial
     if start_trial == 1 && trial_n == 1
         ref_im = mean(stack, 3, 'omitnan');
+        %Selecting out a dilated region around all the ROIs from ref_im as the
+        %relevant parts and forcing the rest of ref_im to nan
+        curr_im = mean(curr_stack, 3, 'omitnan');
+        all_rois = sum(ROI_mat, 3);
+        del = find(all_rois > 1);
+        all_rois(del) = 1;
+        disc = strel('disk', 50);
+        all_rois = imdilate(all_rois, disc);
+        relevant_pixels = find(all_rois == 1);
+        ref_im_trimmed = zeros(size(ref_im, 1), size(ref_im, 2));
+        ref_im_trimmed(relevant_pixels) = ref_im(relevant_pixels);
+        ref_im_old = ref_im;
+        ref_im = ref_im_trimmed;
     else
+        
         if do_registration == 1
-            stack = slow_xy_motion_correct(stack, ref_im);
+            stack = slow_xy_motion_correct(stack, ref_im, ROI_mat);
         else
         end
     end
