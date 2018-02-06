@@ -2,12 +2,12 @@ clear all
 close all
 
 direc_lists_mat = [...
-                {'E:\Data\Raw_Data_Current\Resonant\dataset_list_axon_train_stim_20180118.xls'}...
+                {'C:\Data\Data\Raw_data\dataset_lists\dataset_list_axon_train_stim_20180118.xls'}...
                     ];
                 
 n_direc_lists = size(direc_lists_mat, 1);
 
-save_path_base = 'E:\Data\Analysed_data\Manual_ROIs\';
+save_path_base = 'C:\Data\Data\Analysed_data\Manual_ROI_results\';
 
 %loop to go through all directory lists
 for direc_list_n = 1:n_direc_lists
@@ -60,7 +60,8 @@ for direc_list_n = 1:n_direc_lists
         dataset_namei = findstr(direc, '\20');
         dataset_name = direc((dataset_namei + 1):end);
         save_path = [save_path_base, dataset_name, '\' ];
-        [raw_data_mat] = extract_raw_traces(direc, ROI_mat, save_path, 0);
+        
+        [raw_data_mat] = extract_raw_traces(direc, ROI_mat, save_path, 1);
         
         
         %copying over files needed for further analysis to results
