@@ -22,6 +22,22 @@ function reg_stack = slow_xy_motion_correct(curr_stack, ref_im, ROI_mat)
 % curr_stack = ScanImageTiffReader(stack2_path).data();
 % ref_im = mean(stack1, 3, 'omitnan');
 
+%Selecting out a dilated region around all the ROIs from ref_im as the
+%relevant parts and forcing the rest of ref_im to nan
+curr_im = mean(curr_stack, 3, 'omitnan');
+all_rois = sum(ROI_mat, 3);
+del = find(all_rois > 1);
+all_rois(del) = 1;
+disc = strel('disk', 50);
+all_rois = imdilate(all_rois, disc);
+relevant_pixels = find(all_rois == 1);
+ref_im_trimmed = zeros(size(ref_im, 1), size(ref_im, 2)) + nan;
+ref_im_trimmed(relevant_pixels) = ref_im(relevant_pixels);
+ref_im_old = ref_im;
+ref_im = ref_im_trimmed;
+
+keyboard
+
 c = xcorr2_fft(curr_im, ref_im); 
 
 [maxr, maxcol] = find(c == max(max(c)));
@@ -68,6 +84,5 @@ end
 % imagesc(ave_corrected)
 % subplot(2, 2, 4)
 % imagesc(ref_im - ave_corrected)
-% del = input('press enter');
 
 
