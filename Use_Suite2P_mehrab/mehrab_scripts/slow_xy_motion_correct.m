@@ -22,6 +22,7 @@ function reg_stack = slow_xy_motion_correct(curr_stack, ref_im, ROI_mat)
 % curr_stack = ScanImageTiffReader(stack2_path).data();
 % ref_im = mean(stack1, 3, 'omitnan');
 
+curr_im = mean(curr_stack, 3, 'omitnan');
 c = xcorr2_fft(curr_im, ref_im); 
 
 [maxr, maxcol] = find(c == max(max(c)));

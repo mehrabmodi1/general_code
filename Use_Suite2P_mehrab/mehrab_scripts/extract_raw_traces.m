@@ -64,7 +64,6 @@ for trial_n = start_trial:n_trials
         ref_im = mean(stack, 3, 'omitnan');
         %Selecting out a dilated region around all the ROIs from ref_im as the
         %relevant parts and forcing the rest of ref_im to nan
-        curr_im = mean(curr_stack, 3, 'omitnan');
         all_rois = sum(ROI_mat, 3);
         del = find(all_rois > 1);
         all_rois(del) = 1;
