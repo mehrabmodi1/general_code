@@ -61,7 +61,14 @@ params=tmpP;
             end
         end              
         %Read in data from the odour list
-        fid = fopen('odor_list_path.txt');
+        od_names = input('Which odor names do you want? 1 - pure odors; 2 - blends.');
+        if od_names == 1
+            fid = fopen('odor_list_path.txt');
+        elseif od_names == 2
+            fid = fopen('odor_list_path_blends.txt');
+        else
+        end
+        
         odor_list_path = fgetl(fid);
         fclose(fid);
         
