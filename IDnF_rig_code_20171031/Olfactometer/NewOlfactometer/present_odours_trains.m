@@ -30,6 +30,7 @@ if exist([save_dir 'params.mat']) == 2
         params_mat_old = params_mat_old.params_mat;
         [params_mat_new, params_spec] = setUpStimuli_trains(params);
         params_mat = append_params(params_mat_old, params_mat_new);
+        n_trials = size(params_mat, 2);
         %identifying last tr completed
         for d_tr_n = 1:n_trials
             done_tr = params_mat(d_tr_n).trs_done;
