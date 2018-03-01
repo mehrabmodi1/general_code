@@ -30,5 +30,9 @@ for file_n = 1:n_files
     end
 
 end
-newest_filename = dir_contents(max_datenum(2)).name;
+try
+    newest_filename = dir_contents(max_datenum(2)).name;
+catch
+    keyboard
+end
 cd(prev_direc)
