@@ -90,11 +90,11 @@ else
     tif_num = 1:1:n_trials_t;
 end
 
-column_heads = '[matched_tif_n, odor_n, duration, isi, n_odor_pulses, inter_pulse_interval, stim_latency, first_dilution, second_dilution, post_od_scan_dur, rand_train_n]';
+column_heads = '[matched_tif_n, odor_n, duration, isi, n_odor_pulses, inter_pulse_interval, stim_latency, first_dilution, second_dilution, post_od_scan_dur, rand_train_n, rand_train]';
 
 
 %loop to read param values from params file into stim_mat
-stim_mat_simple = zeros(n_matched_trials, 11) + nan;
+stim_mat_simple = zeros(n_matched_trials, 12) + nan;
 for trial_n = 1:n_matched_trials
     curr_tr_p = par_num(trial_n);
     curr_tr_t = tif_num(trial_n);
@@ -110,10 +110,18 @@ for trial_n = 1:n_matched_trials
     stim_mat(trial_n).post_od_scan_dur = params(curr_tr_p).post_od_scan_dur;
     stim_mat(trial_n).rand_trains = params(curr_tr_p).rand_train;
     stim_mat(trial_n).rand_train_n = params(curr_tr_p).rand_train_n;
-    
+
+    %checking if current trial was a rand train trial or a single pulse
+    %trial
+    if size(params(curr_tr_p).rand_train, 2) > 2
+        train_on = 1;
+    else
+        train_on = 0;
+    end
+        
     stim_mat_simple(trial_n, :) = [curr_tr_t, params(curr_tr_p).odours, params(curr_tr_p).duration, params(curr_tr_p).isi,...
         params(curr_tr_p).n_od_pulses, params(curr_tr_p).inter_pulse_interval, params(curr_tr_p).stimLatency,...
-        params(curr_tr_p).firstDilution, params(curr_tr_p).secondDilution, params(curr_tr_p).post_od_scan_dur, params(curr_tr_p).rand_train_n];
+        params(curr_tr_p).firstDilution, params(curr_tr_p).secondDilution, params(curr_tr_p).post_od_scan_dur, params(curr_tr_p).rand_train_n, train_on];
 end
 
 save([direc, '\stim_mat.mat'], 'stim_mat')
