@@ -49,7 +49,7 @@ for raw_direc_n = 1:size(raw_direc_list, 1)
     %% Reading in registered tiffs and displaying for manual removal of trials with z-drift
     if exist([results_direc, raw_direc, 'bad_trial_list.mat']) ~= 2
         %[bad_tr_list] = find_bad_trials_res([reg_tif_direc, raw_direc 'Plane1\']);  %these are actually the good trials
-        [good_tr_list] = find_bad_trials_res([raw_direc_base, raw_direc]);  %these are actually the good trials
+        [good_tr_list, bad_tr_list] = find_bad_trials_res([raw_direc_base, raw_direc]);  %these are actually the good trials
         save([results_direc, raw_direc, 'good_trial_list.mat'], 'good_tr_list');
     else
         disp('z-drift trials have already been manually identified... skipping.')

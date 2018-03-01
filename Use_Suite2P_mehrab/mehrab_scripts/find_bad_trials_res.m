@@ -38,7 +38,7 @@ function [good_trials, bad_trials] = find_bad_trials_res(direc)
     corr_cutoff = .88;               %cutoff to get rid of non-matching trials just to draw ROIs with
     
     if max(c) < corr_cutoff
-        corr_cutoff = max(c);
+        corr_cutoff = max(c);           
     else
     end
     
@@ -54,7 +54,7 @@ function [good_trials, bad_trials] = find_bad_trials_res(direc)
         if repeat_counter == 1
             good_trials = good_trials_orig;
             bad_trials = bad_trials_orig;
-        elseif repeat_counter > 1
+        elseif repeat_counter > 1           %looking at all the trials this time
             good_trials = 1;
             bad_trials = 2:1:n_trials;
             
@@ -93,7 +93,9 @@ function [good_trials, bad_trials] = find_bad_trials_res(direc)
                 
             end
 
+            
         end
+        
         del = find(bad_trials == 0);
         bad_trials(del) = [];
         clear del
@@ -105,6 +107,7 @@ function [good_trials, bad_trials] = find_bad_trials_res(direc)
         else
         end
     end
-
+    
     good_trials = sort(good_trials);
+    
 end
