@@ -90,7 +90,7 @@ else
     tif_num = 1:1:n_trials_t;
 end
 
-column_heads = '[matched_tif_n, odor_n, duration, isi, n_odor_pulses, inter_pulse_interval, stim_latency, first_dilution, second_dilution, post_od_scan_dur, rand_train_n, rand_train]';
+column_heads = '[matched_tif_n, odor_n, duration, isi, n_odor_pulses, inter_pulse_interval, stim_latency, first_dilution, second_dilution, post_od_scan_dur, rand_train_n, multi_pulse_train]';
 
 
 %loop to read param values from params file into stim_mat
@@ -113,7 +113,7 @@ for trial_n = 1:n_matched_trials
 
     %checking if current trial was a rand train trial or a single pulse
     %trial
-    if size(params(curr_tr_p).rand_train, 2) > 2
+    if size(params(curr_tr_p).rand_train, 1) > 1
         train_on = 1;
     else
         train_on = 0;

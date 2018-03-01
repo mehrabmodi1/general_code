@@ -12,8 +12,14 @@ function [dff_data_mat, dff_data_mat_f] = cal_dff_traces_res(raw_data_mat, stim_
 
 PID_latency = 200;                                          %latency from odor onset to arrival at the end of the odor tube measured with a PID (in ms)
 
-bad_tr_list = load([direc, '\bad_trial_list.mat']);
-good_tr_list = bad_tr_list.bad_tr_list;                     %this is actually the list of good trials
+if exist([direc, '\bad_trial_list.mat']) == 2
+    bad_tr_list = load([direc, '\bad_trial_list.mat']);
+    good_tr_list = bad_tr_list.bad_tr_list;
+elseif exist([direc, '\good_trial_list.mat']) == 2
+    good_tr_list = load([direc, '\good_trial_list.mat']);
+    good_tr_list = good_tr_list.good_tr_list;
+else
+end
 
 n_frames = size(raw_data_mat, 1);                           %this is the maximum number of frames for any trial in this dataset
 n_cells = size(raw_data_mat, 2);
