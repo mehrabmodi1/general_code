@@ -37,13 +37,6 @@ for direc_list_n = 1:n_direc_lists
     MSE_mat = [];
     %loop to go through all experiment datasets listed in list file
     for direc_counter = 1:n_dirs
-        
-        %REMOVE THESE LINES!
-        if direc_counter < 2
-            continue
-        else
-        end
-        
         %% House-keeping
         direc = curr_direc_list{direc_counter, 1};
         
@@ -103,14 +96,36 @@ for direc_list_n = 1:n_direc_lists
         sig_cell_mat_old = sig_cell_mat;
         [sig_cell_mat, all_bad_trs] = cell_data_quality_control(dff_data_mat_f, stim_mat, stim_mat_simple, sig_cell_mat, suppress_plots);
         dff_data_mat(:, :, all_bad_trs) = nan;
-        disp([num2str((length(all_bad_trs)./size(dff_data_mat, 3)).*100) ' percent of trials were auto-identified as bad and removed.']);
+        %disp([num2str((length(all_bad_trs)./size(dff_data_mat, 3)).*100) ' percent of trials were auto-identified as bad and removed.']);
         
         %% Plotting PCA clouds for each odor at each duration
-        for 
+        sig_cells = find(sum(sum(sig_cell_mat, 3), 2) > 0);         %list of all cells significant for any odor for any duration
         
+        %computing PC weights using only the 60s duration trials
         
+        %concatenating trial time-series for 60s trials to compute PC
+        %weights
+        curr_trs = find(stim_mat_simple(:, 3) == 60 & stim_mat_simple(:, 12) == 0);    %finding long dur trials that are not train trials
         
+        big_X = [];
+        for curr_tr_n = 1:size(curr_trs, 1)
+            curr_tr = curr_trs(curr_tr_n);
+            curr_traces = squeeze(dff_data_mat(:, sig_cells, curr_tr));
+            big_X = [big_X; curr_traces];
+        end
+        [weights, score] = pca(big_X);
         
+        %computing and plotting first two PC values for each odor, at each odor dur
+        for dur_n = 1:n_od_durs
+            for odor_n = 1:n_odors
+                curr_trs = find(stim_mat_simple(:, 2) == odor_n & stim_mat_simple(:, 3) == dur_n & stim_mat_simple(:, 12) == 0);
+                resp_mat_ave = mean(dff_data_mat(:, sig_cells, curr_trs), 3, 'omitnan');
+                PID_traces = get_PID_traces(direc, curr_trs, frame_time);
+                keyboard
+            end
+        end
+        
+        keyboard
     end
     
     
