@@ -89,14 +89,10 @@ for raw_direc_n = 1:size(raw_direc_list, 1)
     cd([results_direc, raw_direc])
     
     %checking if data has already been extracted
-    if exist([results_direc, raw_direc, 'extracted_raw_data_mat.mat']) == 2
-       dir_cont = dir([results_direc, raw_direc, 'extracted_raw_data_mat.mat']);
-       if dir_cont.bytes > 1e6
-           disp(['traces have alredy been extracted for ' [results_direc, raw_direc] '. Skipping...']);
-           continue
-       else
-       end
-      
+    if exist([results_direc, raw_direc, 'trace_extraction_complete.mat']) == 2
+       
+       disp(['traces have alredy been extracted for ' [results_direc, raw_direc] '. Skipping...']);
+       
     else
     end
     
