@@ -34,7 +34,7 @@ date_list = sortrows(date_list);
 %sorting list of directory contents
 for file_n = 1:n_files
     orig_list_n = date_list(file_n, 2);
-    dir_contents_sorted(file_n) = dir_contents(orig_list_n);
+    dir_contents_sorted(file_n, 1) = dir_contents(orig_list_n, 1);
 end
 
 cd(old_direc)
