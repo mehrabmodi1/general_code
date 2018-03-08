@@ -7,7 +7,7 @@ function [raw_data_mat] = extract_raw_traces(direc, ROI_mat, save_path, do_regis
 prev_direc = pwd;
 cd(direc)
 dir_contents = dir_date_sorted(direc, '*.tif');
-n_trials = size(dir_contents, 1);
+n_trials = size(dir_contents, 2);
 remove_small_tifs([direc]);
 n_cells = size(ROI_mat, 3);
 raw_data_mat = zeros(100, n_cells, n_trials) + nan;
@@ -49,12 +49,15 @@ for trial_n = start_trial:n_trials
         im_obj = ScanImageTiffReader([direc, dir_contents(trial_n).name]);
         %obtaining image stack
         stack = im_obj.data();
+        stack_orig = stack;
         stack = permute(stack,[2 1 3]);
+        
         %obtaining, logging timestamp
         curr_time_stamp = parse_tiff_timestamp(im_obj);
         time_stamps(trial_n).tstamp = curr_time_stamp;
         time_stamps(trial_n).name = dir_contents(trial_n).name;
     catch
+        keyboard
         continue            %skipping trace extraction from unreadable trials - this doesn't matter because time-stamps will be matched up later with the stim param file anyway.
     end
     
@@ -115,6 +118,7 @@ for trial_n = start_trial:n_trials
     end
     
     clear stack
+    clear curr_raw_data_mat
     
     %saving extracted traces
     if exist(save_path) == 0
@@ -127,4 +131,7 @@ for trial_n = start_trial:n_trials
     disp(['traces extracted, from trial ', int2str(trial_n), ', and saved.'])
     
 end
+del = [];
+save([save_path, 'trace_extraction_complete.mat'], 'del');
+
 cd(prev_direc)
