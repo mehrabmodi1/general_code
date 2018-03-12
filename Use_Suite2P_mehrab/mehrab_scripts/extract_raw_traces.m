@@ -21,6 +21,8 @@ if exist([save_path, 'extracted_raw_data_mat.mat']) == 2
         done_trs = find(squeeze(isnan(raw_data_mat(1, 1, :))) == 0);
         if max(done_trs) == n_trials
             disp('all traces already extracted... skipping.')
+            del = [];
+            save([save_path, 'trace_extraction_complete.mat'], 'del');
             return
         else
             start_trial = max(done_trs) + 1;
@@ -131,6 +133,7 @@ for trial_n = start_trial:n_trials
     disp(['traces extracted, from trial ', int2str(trial_n), ', and saved.'])
     
 end
+keyboard
 del = [];
 save([save_path, 'trace_extraction_complete.mat'], 'del');
 
