@@ -9,6 +9,8 @@ n_files = size(mat_file_list, 1);
 raw_direc_list = [];
 %building raw_direc_list
 for file_n = 1:n_files
+    
+    
     curr_direc_str = mat_file_list{file_n, 1};
     dir_starti = findstr(curr_direc_str, '\20');
     dir_endi = findstr(curr_direc_str, '\params_');
@@ -28,26 +30,27 @@ for file_n = 1:n_files
     if tot_size > thresh_size && n_tifs >= 8
         %making sure that folder structure meets Suite2P requirements (data should be three subfolders away from raw_direc_base)
         slashi = findstr(curr_raw_direc, '\');
-        
-        while size(slashi, 2) < 3
-            if size(slashi, 2) < 3
-                dir_contents_data = dir([raw_direc_base, curr_raw_direc]);
-                dir_contents_data(1:2) = [];
-                mkdir([raw_direc_base, curr_raw_direc, '\1']);
-                
-                n_raw_files = size(dir_contents_data, 1);
-                for raw_file_n = 1:n_raw_files
-                    curr_raw_name = dir_contents_data(raw_file_n).name;
-                    copyfile([raw_direc_base, curr_raw_direc, curr_raw_name], [raw_direc_base, curr_raw_direc, '\1\', curr_raw_name]);
-                    delete([raw_direc_base, curr_raw_direc, curr_raw_name]);
+        if size(slashi, 2)  < 3
+            while size(slashi, 2) < 3
+                if size(slashi, 2) < 3
+                    dir_contents_data = dir([raw_direc_base, curr_raw_direc]);
+                    dir_contents_data(1:2) = [];
+                    mkdir([raw_direc_base, curr_raw_direc, '\1']);
+
+                    n_raw_files = size(dir_contents_data, 1);
+                    for raw_file_n = 1:n_raw_files
+                        curr_raw_name = dir_contents_data(raw_file_n).name;
+                        copyfile([raw_direc_base, curr_raw_direc, curr_raw_name], [raw_direc_base, curr_raw_direc, '\1\', curr_raw_name]);
+                        delete([raw_direc_base, curr_raw_direc, curr_raw_name]);
+                    end
+                    curr_raw_direc = [curr_raw_direc, '1\'];
+                    slashi = findstr(curr_raw_direc, '\');
+
+                else
                 end
-                curr_raw_direc = [curr_raw_direc, '1\'];
-                slashi = findstr(curr_raw_direc, '\');
-                
-            else
             end
+        else
         end
-        
         %checking for manual skip_direc tag
         if exist([raw_direc_base, curr_raw_direc, 'skip_direc.txt']) ~=2
             raw_direc_list = [raw_direc_list; {curr_raw_direc}]; 
@@ -63,9 +66,10 @@ for file_n = 1:n_files
     end
     
     disp(['building raw data directory list, length is now ' int2str(length(raw_direc_list))])
+    
 end
 
-
+raw_direc_list = unique(raw_direc_list);
 cd(prev_direc);
 
 end
