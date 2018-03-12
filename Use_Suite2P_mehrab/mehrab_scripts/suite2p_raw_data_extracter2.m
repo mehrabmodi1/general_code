@@ -92,8 +92,10 @@ for raw_direc_n = 1:size(raw_direc_list, 1)
     if exist([results_direc, raw_direc, 'trace_extraction_complete.mat']) == 2
        
        disp(['traces have alredy been extracted for ' [results_direc, raw_direc] '. Skipping...']);
+       continue
        
     else
+        
     end
     
     %reading in most recent Suite2P results file to get Suite2P ROIs
