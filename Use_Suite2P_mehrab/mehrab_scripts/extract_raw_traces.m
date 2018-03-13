@@ -133,7 +133,7 @@ for trial_n = start_trial:n_trials
     disp(['traces extracted, from trial ', int2str(trial_n), ', and saved.'])
     
 end
-keyboard
+
 del = [];
 save([save_path, 'trace_extraction_complete.mat'], 'del');
 
