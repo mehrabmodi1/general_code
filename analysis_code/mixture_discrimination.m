@@ -110,21 +110,52 @@ for direc_list_n = 1:n_direc_lists
         big_X = [];
         for curr_tr_n = 1:size(curr_trs, 1)
             curr_tr = curr_trs(curr_tr_n);
-            curr_traces = squeeze(dff_data_mat(:, sig_cells, curr_tr));
+            curr_traces = squeeze(dff_data_mat_f(:, sig_cells, curr_tr));
             big_X = [big_X; curr_traces];
         end
         [weights, score] = pca(big_X);
         
         %computing and plotting first two PC values for each odor, at each odor dur
         for dur_n = 1:n_od_durs
+            curr_dur = odor_dur_list(dur_n);
+            stim_frs = compute_pulse_frames_train([0, curr_dur], frame_time, stim_mat_simple(1, 7));
+            n_acq_frs = ceil((stim_mat_simple(1, 7) + curr_dur + stim_mat_simple(1, 10) )./(frame_time./1000));
             for odor_n = 1:n_odors
-                curr_trs = find(stim_mat_simple(:, 2) == odor_n & stim_mat_simple(:, 3) == dur_n & stim_mat_simple(:, 12) == 0);
-                resp_mat_ave = mean(dff_data_mat(:, sig_cells, curr_trs), 3, 'omitnan');
-                PID_traces = get_PID_traces(direc, curr_trs, frame_time);
-                keyboard
+                odor_ni = odor_list(odor_n);
+                curr_trs = find(stim_mat_simple(:, 2) == odor_ni & stim_mat_simple(:, 3) == curr_dur & stim_mat_simple(:, 12) == 0);
+                resp_mat = dff_data_mat_f(1:n_acq_frs, sig_cells, curr_trs);
+                resp_mat_ave = mean(resp_mat, 3, 'omitnan');
+                %PID_traces = get_PID_traces(direc, curr_trs, frame_time);
+                
+                %calculating PC projections
+                nPCs = 2;
+                PC_resp_mat_ave = zeros(n_acq_frs, nPCs) + nan;
+                PC_resp_mat = zeros(n_acq_frs, nPCs, length(curr_trs)) + nan;
+                for PC_n = 1:nPCs
+                    curr_weights = weights(:, PC_n)';
+                    weight_mat_ave = repmat(curr_weights, size(resp_mat_ave, 1), 1);
+                    weight_mat = repmat(weight_mat_ave, 1, 1, length(curr_trs));
+                    PC_resp_mat_ave(:, PC_n) = sum(resp_mat_ave.*weight_mat_ave , 2);
+                    PC_resp_mat(:, PC_n, :) = sum(resp_mat.*weight_mat , 2);
+                end
+                pk_vals_ave = max(PC_resp_mat_ave(stim_frs(1):stim_frs(2), :));
+                pk_vals = 
+                curr_color = color_vec(odor_n, :);
+                %plotting pk resps in PC-space
+%                 if dur_n == 1
+                    figure(1)
+                    plot(pk_vals_ave(1), pk_vals_ave(2), 'O', 'MarkerFaceColor', curr_color, 'MarkerEdgeColor', 'w', 'MarkerSize', dur_n.*4)
+%                 elseif dur_n == 2
+%                     plot(pk_vals(1), pk_vals(2), 'O', 'MarkerFaceColor', curr_color, 'MarkerEdgeColor', 'w')
+%                 elseif dur_n == 3
+%                     plot(pk_vals(1), pk_vals(2), '*', 'MarkerFaceColor', curr_color, 'MarkerEdgeColor', 'w')
+%                 else
+%                 end
+                hold on
+               
             end
+             
         end
-        
         keyboard
     end
     
