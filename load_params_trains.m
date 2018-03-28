@@ -55,14 +55,16 @@ if datenum_check == 1
                 dup_delay = saved_matches(dup_i, 1);
                 if dup_delay > delay                %duplicate already in saved_matches is falsely matched
                     saved_matches(dup_i, :) = [];
-                    saved_matches = [saved_matches; [delay, matched_t]];
+                    saved_matches = [saved_matches; [delay, matched_t, trial_n_p]];
                     continue
                 elseif dup_delay < delay            %duplicate already in saved_matches is the correct match
                 continue
                 else
                 end
             else
+                
                 saved_matches = [saved_matches; [delay, matched_t, trial_n_p]];
+                
             end
         else
             saved_matches = [saved_matches; [delay, matched_t, trial_n_p]];
@@ -123,7 +125,6 @@ for trial_n = 1:n_matched_trials
         params(curr_tr_p).n_od_pulses, params(curr_tr_p).inter_pulse_interval, params(curr_tr_p).stimLatency,...
         params(curr_tr_p).firstDilution, params(curr_tr_p).secondDilution, params(curr_tr_p).post_od_scan_dur, params(curr_tr_p).rand_train_n, train_on];
 end
-
 save([direc, '\stim_mat.mat'], 'stim_mat')
 
 

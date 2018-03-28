@@ -1,4 +1,4 @@
-function [sig_cell_mat, all_bad_trs] = cell_data_quality_control(dff_data_mat, stim_mat, stim_mat_simple, sig_cell_mat, manual_inspec)
+function [sig_cell_mat, all_bad_trs] = cell_data_quality_control(dff_data_mat, stim_mat, stim_mat_simple, sig_cell_mat, suppress_plots)
 %Syntax: [sig_cell_mat, all_bad_trs] = cell_data_quality_control(dff_data_mat, stim_mat, stim_mat_simple, sig_cell_mat, manual_inspec)
 %This function plots a number of useful visualisations of reliability of
 %cell responses. It forces to 0, cells in sig_cell_mat that were found
@@ -27,7 +27,7 @@ for odor_n = 1:length(odor_list)
         
         
         %making plots for manual inspection only - to check if sig cells have been found or left out
-        if manual_inspec == 1
+        if suppress_plots == 0
             curr_sig_cells1 = find(curr_sig_cells == 1);
             curr_sig_cells0 = find(curr_sig_cells == 0);
             max_val = max(max(ave_mat));
@@ -61,7 +61,7 @@ for odor_n = 1:length(odor_list)
             curr_sig_cells = sig_cell_mat(:, odor_ni);
             curr_sig_cells = find(curr_sig_cells == 1);
 
-            if manual_inspec == 1
+            if suppress_plots == 0
                 fig_h = figure(3);
                 imagesc(ave_mat_early', [0, max_val])
                 colormap(greymap)
@@ -106,7 +106,7 @@ for odor_n = 1:length(odor_list)
 
         end
 
-        if manual_inspec == 1
+        if suppress_plots == 0
             figure(5)
             imagesc(corr_mat, [0, 1])
             xlabel('curr trial n')
@@ -153,7 +153,7 @@ for odor_n = 1:length(odor_list)
        
         
         
-         if manual_inspec == 1
+         if suppress_plots == 0
              %checking again if responses in first-last half of trials are similar to each other and to overall mean.
              q_n = floor(length(curr_trs)./2);
 
