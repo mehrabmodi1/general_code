@@ -10,13 +10,13 @@ save_path = 'C:\Data\Data\Analysed_data\Analysis_results\train_clustering\';
 n_direc_lists = size(direc_lists_mat, 1);
                 
 % global color_vec;                
-% color_vec = load('C:\Users\Mehrab\Google Drive\Backup\Stuff\CSHL\Glenn lab\Code\std_color_vec.txt');
+color_vec = load('C:\Users\Mehrab\Google Drive\Backup\Stuff\CSHL\Glenn lab\Code\std_color_vec.txt');
 
 a = colormap('bone');
 global greymap
 greymap = flipud(a);
 colormap(greymap)
-suppress_plots = 0;       %0 - doesn't plot quality control stuff, 1 - plots stuff
+suppress_plots = 1;       %0 - doesn't plot quality control stuff, 1 - plots stuff
 [del, odor_names] = xlsread('C:\Data\Code\general_code\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList.xls', 1);
 
 make_PC_plot = 0;
@@ -49,17 +49,21 @@ for direc_list_n = 1:n_direc_lists
         [stim_mat, stim_mat_simple, column_heads] = load_params_trains(direc, tif_times);
        
         odor_list = unique(stim_mat_simple(:, 2) );
-        %odor_list = [odor_list(1); odor_list(3:6); odor_list(2)];       %re-arranging to put the pure odors at opposite ends of the list
         MCHi = find(odor_list == 4);
         odor_list(MCHi) = [];
-        odor_list = [odor_list; 4];
+        complete_odor_list = [odor_list; 4];
+        hard_odor_list = [10; 11];
+        easy_odor_list = [1; 4];
+        mix_list = [9; 10; 11; 12];
+        odor_list = hard_odor_list;
+        
         
         n_odors = length(odor_list);
         odor_dur_list = unique(stim_mat_simple(:, 3) );
         n_od_durs = length(odor_dur_list);
         n_trains = max(stim_mat_simple(:, 11));
         
-        color_vec = [(linspace(0, 1, n_odors))', (zeros(n_odors, 1) + 0), (linspace(1, 0, n_odors))'];
+        color_vec_mix = [(linspace(0, 1, n_odors))', (zeros(n_odors, 1) + 0), (linspace(1, 0, n_odors))'];
         
         
         %reading ScanImage meta data from a raw .tif
@@ -153,7 +157,7 @@ for direc_list_n = 1:n_direc_lists
                     n_real_trs = length(find(isnan(pk_vals(1, :)) == 0));
                     pk_vals_se = std(pk_vals, [], 2, 'omitnan')./sqrt(n_real_trs)./2;
 
-                    curr_color = color_vec(odor_n, :);
+                    curr_color = color_vec_mix(odor_n, :);
                     %plotting pk resps in PC-space
                     figure(1)
                     plot(pk_vals_ave(1), pk_vals_ave(2), 'O', 'MarkerFaceColor', curr_color, 'MarkerEdgeColor', 'w', 'MarkerSize', dur_n.*4)
@@ -172,60 +176,161 @@ for direc_list_n = 1:n_direc_lists
             hold off
         else
         end
-keyboard
         
-        %% Template-matching decoder
-        %loop to go through trial and compare it with it's duration-matched templates
-        for trial_n = 1:size(dff_data_mat, 3)            
-            curr_dur = stim_mat_simple(trial_n, 3);
-            curr_od_ni = stim_mat_simple(trial_n, 2);
-            stim_frs = compute_pulse_frames_train([0, curr_dur], frame_time, stim_mat_simple(1, 7));
-            curr_trace_full = dff_data_mat_f((stim_frs(1) - round(5000./frame_time)):(stim_frs(2) + round(5000./frame_time)), sig_cells, trial_n);
+        
+        if make_PC_plot == 0
+            %% Template-matching decoder
+            %loop to go through trial and compare it with it's duration-matched templates
+            min_dists_wrong_ods = [];
+            min_dists_wrong_ods_all = [];
+            all_dist_vecs_time_1s_wrong = [];
+            all_dist_vecs_time_60s_wrong = [];
+            all_dist_vecs_time_1s_corr = [];
+            all_dist_vecs_time_60s_corr = [];
+            all_dist_vecs_time_1s_wrong_diffs = [];
+            all_dist_vecs_time_60s_wrong_diffs = [];
+            dist_vecs_time_1s_wrong_s = [];
+            dist_vecs_time_60s_wrong_s = [];
             
-            for odor_n_tem = 1:n_odors
-                odor_ni_tem = odor_list(odor_n_tem);
-                curr_trs_tem = find(stim_mat_simple(:, 2) == odor_ni_tem & stim_mat_simple(:, 3) == curr_dur & stim_mat_simple(:, 12) == 0);
-                %making sure currently decoded trial is not included in template calculation
-                if odor_ni_tem
-                    curr_tr_ni = find(curr_trs_tem == trial_n);
-                    curr_trs_tem(curr_tr_ni) = [];
+            result_log = [];
+            for trial_n = 1:size(dff_data_mat, 3)            
+                curr_dur = stim_mat_simple(trial_n, 3);
+                
+                if curr_dur ~= 1 && curr_dur ~= 60
+                    continue
                 else
                 end
-                template_full = mean(dff_data_mat_f((stim_frs(1) - round(5000./frame_time)):(stim_frs(2) + round(5000./frame_time)), sig_cells, curr_trs_tem), 3, 'omitnan');
+                    
+                curr_od_ni = stim_mat_simple(trial_n, 2);
                 
-                %computing difference between template and current trial for various durations of traces
-                step_length = round(1000./frame_time);          %computing n_frames in a t-step of 1s
-                n_t_steps = floor( size(template_full, 1)./step_length);     %number of steps in 
-                for step_n = 1:n_t_steps
-                    curr_trace = curr_trace_full(1:floor(step_length.*step_n), :);
-                    curr_template = template_full(1:floor(step_length.*step_n), :);
-                    
-                    %computing distance between two matrices using distance formula
-                    distance = sqrt(sum(sum(sum( (curr_trace - curr_template).^2 ))));
-                    curr_tr_dist = sqrt(sum(sum(sum( (curr_trace).^2 ))));
-                    curr_temp_dist = sqrt(sum(sum(sum( (curr_template).^2 ))));
-                    
-                    %PICK UP THREAD HERE
-                    %figure out how meaningful this distance is (includes
-                    %all non-responders). measure decoder performance.
-                    %consider thresholding out non-responsive parts of
-                    %traces (?)
-                    
+                %skipping trial if curr_od_ni is not part of specified
+                %od_list
+                if isempty(intersect(curr_od_ni, odor_list)) == 1
+                    continue
+                else
                 end
-            
+                    
+                stim_frs = compute_pulse_frames_train([0, curr_dur], frame_time, stim_mat_simple(1, 7));
+                curr_trace_full = dff_data_mat_f((stim_frs(1) - round(5000./frame_time)):(stim_frs(2) + round(10000./frame_time)), sig_cells, trial_n);
+
+                for odor_n_tem = 1:n_odors
+                    odor_ni_tem = odor_list(odor_n_tem);
+                    curr_trs_tem = find(stim_mat_simple(:, 2) == odor_ni_tem & stim_mat_simple(:, 3) == curr_dur & stim_mat_simple(:, 12) == 0);
+                    %making sure currently decoded trial is not included in template calculation
+                    if odor_ni_tem
+                        curr_tr_ni = find(curr_trs_tem == trial_n);
+                        curr_trs_tem(curr_tr_ni) = [];
+                    else
+                    end
+                    template_full = mean(dff_data_mat_f((stim_frs(1) - round(5000./frame_time)):(stim_frs(2) + round(10000./frame_time)), sig_cells, curr_trs_tem), 3, 'omitnan');
+
+                    %computing difference between template and current trial for various durations of traces
+                    step_length = round(1000./frame_time);          %computing n_frames in a t-step of 1s
+                    n_t_steps = floor( size(template_full, 1)./step_length);     %number of steps in 
+
+                    dist_vec_time = zeros(n_t_steps, 1) + nan;
+                    for step_n = 1:n_t_steps
+                        curr_trace = curr_trace_full(1:floor(step_length.*step_n), :);
+                        curr_template = template_full(1:floor(step_length.*step_n), :);
+
+                        %computing distance between two matrices using distance formula
+                        distance = sqrt(sum(sum((mean(curr_trace, 1) - mean(curr_template, 1)).^2)));
+    %                     curr_tr_dist = sqrt(sum(sum(sum( (curr_trace).^2 ))));
+    %                     curr_temp_dist = sqrt(sum(sum(sum( (curr_template).^2 ))));
+
+                        dist_vec_time(step_n, 1) = distance;
+
+                    end
+                    %logging results
+                    if odor_ni_tem == curr_od_ni           %case where template and curr_tr are for the same odor
+                        min_dist_correct_od_all(trial_n) = min(dist_vec_time);                    
+
+                        if curr_dur == 1
+                            all_dist_vecs_time_1s_corr = [all_dist_vecs_time_1s_corr, dist_vec_time];
+
+                        elseif curr_dur == 60
+                            all_dist_vecs_time_60s_corr = [all_dist_vecs_time_60s_corr, dist_vec_time];
+                        end
+                        
+                        dist_vec_time_corr = dist_vec_time;
+
+
+                    elseif odor_ni_tem ~= curr_od_ni       %cases where template and curr_tr are for different odors
+                        min_dists_wrong_ods = [min_dists_wrong_ods; min(dist_vec_time)];
+                        
+                        if curr_dur == 1
+                            dist_vecs_time_1s_wrong_s = [all_dist_vecs_time_1s_wrong, dist_vec_time];
+                            
+
+                        elseif curr_dur == 60
+                            dist_vecs_time_60s_wrong_s = [all_dist_vecs_time_60s_wrong, dist_vec_time];
+                            
+                        end
+
+                    else
+                    end
+
+                    result_log(trial_n).temp_odor(odor_n_tem).dist_vec = dist_vec_time;
+                    result_log(trial_n).temp_odor(odor_n_tem).min_dist = min(dist_vec_time);
+
+
+                end
+                if curr_dur == 1
+                    dist_vecs_time_diff = dist_vecs_time_1s_wrong_s - repmat(dist_vec_time_corr, 1, size(dist_vecs_time_1s_wrong_s, 2));          %difference between this wrong and the correct dist_vec_time vectors
+                    all_dist_vecs_time_1s_wrong_diffs = [all_dist_vecs_time_1s_wrong_diffs, dist_vecs_time_diff];
+                elseif curr_dur == 60
+                    dist_vecs_time_diff = dist_vecs_time_60s_wrong_s - repmat(dist_vec_time_corr, 1, size(dist_vecs_time_60s_wrong_s, 2));          %difference between this wrong and the correct dist_vec_time vectors
+                    all_dist_vecs_time_60s_wrong_diffs = [all_dist_vecs_time_60s_wrong_diffs, dist_vecs_time_diff];
+                else
+                end
+                
+                min_dists_wrong_ods_all = [min_dists_wrong_ods_all; min_dists_wrong_ods];
+                dist_vecs_time_1s_wrong_s = [];
+                dist_vecs_time_60s_wrong_s = [];
+
+                min_dists_wrong_ods = [];
+
+
             end
-            
+        else
         end
         
+        %plotting results
+        figure(1)
+        mean_dist_vec_60s_corr = mean(all_dist_vecs_time_60s_corr, 2, 'omitnan');
+        plot(mean_dist_vec_60s_corr, 'Color', [0.2, 0.3, 0.8])
+        hold on
         
+        mean_dist_vec_1s_corr = mean(all_dist_vecs_time_1s_corr, 2, 'omitnan');
+        plot(mean_dist_vec_1s_corr, 'Color', [0.8, 0.3, 0.2])
         
-       
+        mean_dist_vec_60s_wrong = mean(all_dist_vecs_time_60s_wrong, 2, 'omitnan');
+        plot(mean_dist_vec_60s_wrong, '--', 'Color', [0.2, 0.3, 0.8])
+        mean_dist_vec_1s_wrong = mean(all_dist_vecs_time_1s_wrong, 2, 'omitnan');
+        plot(mean_dist_vec_1s_wrong, '--', 'Color', [0.8, 0.3, 0.2])
         
+        xlabel('Time (s)')
+        ylabel('Averaged distance from template')
+        legend('60s, correct template', '1s, correct template', '60s, wrong template', '1s, wrong template')
+        hold off
         
+        figure(2)
+        mean_diff_dist_vecs_1s = mean(all_dist_vecs_time_1s_wrong_diffs, 2, 'omitnan');
+        mean_diff_dist_vecs_60s = mean(all_dist_vecs_time_60s_wrong_diffs, 2, 'omitnan');
         
-        
-        keyboard
+        plot(mean_diff_dist_vecs_1s, 'Color', [0.8, 0.3, 0.2])
+        hold on
+        plot(mean_diff_dist_vecs_60s, 'Color', [0.2, 0.3, 0.8])
+        hold off
+        xlabel('Time (s)')
+        ylabel('Averaged distance from wrong templates')
+        legend('1s trials', '60s trials')
+
+        keyboard   
     end
     
     
 end
+
+    
+        
