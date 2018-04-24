@@ -1,4 +1,5 @@
 function [dir_contents_sorted] = dir_date_sorted(direc, dir_string)
+%syntax: [dir_contents_sorted] = dir_date_sorted(direc, dir_string)
 %This function reads in the contents of the folder direc, using the syntax
 %dir('dir_string') after making direc the current folder (see documentation 
 %for dir() for how this could be useful). If you don't want to specify a 
