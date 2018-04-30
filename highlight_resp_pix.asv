@@ -1,4 +1,4 @@
-function [dff_frame, sig_resp_frame] = highlight_resp_pix(fig_n, stack, stim_frs, cutoff_pc, frame_time)
+function [] = highlight_resp_pix(fig_n, stack, stim_frs, cutoff_pc, frame_time)
 %syntax: [] = highlight_resp_pix(fig_n, stack, stim_frs, cuttoff_pc, frame_time)
 %This function identifies pixels whose dF/F response is in the top
 %cutoff_pc percent of all pixels in the mean response frame. It then plots
@@ -40,11 +40,6 @@ diff_fr = imgaussfilt(diff_fr, 2);
 bin_pix = diff_fr > 0;
 bin_pix = bwareaopen(bin_pix, 100);
 
-%getting rid of background pixels
-bin_pix(baseline_fr < 5) = 0;
-
-sig_resp_frame = diff_fr.*bin_pix;
-
 % %test plots
 % figure(1)
 % imagesc(baseline_fr_n)
@@ -65,6 +60,7 @@ colormap(cust_map)
 base_im = imagesc(resp_fr_n);
 hold on
 s = imagesc(diff_fr_n);
-alphamap = ((diff_fr_n - 1).*bin_pix).*1;
+alphamap = ((diff_fr_n - 1).*bin_pix).*0.8;
 alpha(s, alphamap)
 hold off
+keyboard
