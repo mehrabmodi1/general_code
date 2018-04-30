@@ -10,31 +10,28 @@ resp_fr_final = zeros(size(stack, 1), size(stack, 2));
 for pulse_n = 1:size(stim_frs, 1)
     stim_fr = stim_frs(pulse_n, 1);
     stim_end_fr = stim_frs(pulse_n, 2);
-  
+    baseline_frs = stack(:, :, (stim_fr - round(4./frame_time) ):(stim_fr - 1) );
+    baseline_frs = double(baseline_frs);
     if pulse_n == 1
-        baseline_fr = mean(stack(:, :, (stim_fr - round(4./frame_time) ):(stim_fr - 1) ), 3);
+        baseline_fr = mean(baseline_frs, 3);
+        baseline_sds = std(baseline_frs, 0, 3);
     else
     end
     
     resp_fr_curr = mean(stack(:, :, (stim_fr + 1):(stim_end_fr + round(2./frame_time)) ), 3);
-    
     resp_fr_final = resp_fr_final + resp_fr_curr;
 end
 resp_fr = resp_fr_final./size(stim_frs, 1);       %averaged response frame across all stimulus pulses
+resp_fr = double(resp_fr);
     
-diff_fr = (resp_fr - baseline_fr)./baseline_fr;
+diff_fr = (resp_fr - baseline_fr);
+diff_fr = diff_fr - 2.3.*baseline_sds;               %identifying pixels with a dF > 2.3 SDs of baseline period fluctuations ie significantly responsive
+diff_fr = diff_fr./baseline_fr;                      %dividing by F to get a dF/F image
 diff_fr(diff_fr < 0) = 0;                            %getting rid of negs
 nansi = isnan(diff_fr);
 diff_fr(nansi) = 0;                                  %getting rid of nans
 diff_fr(diff_fr > 10) = 10;                          %forcing crazy values to sane ones
-int_list = reshape(diff_fr, 1, []);
-int_list = sort(int_list, 'desc');
 
-pctile_ct = round(length(int_list).*cutoff_pc);      %finding the cutoff intensity for the brightest 2% of diff values
-pctile_cutoff = int_list(pctile_ct);
-
-unresp_pixi = find(diff_fr < pctile_cutoff);
-diff_fr(unresp_pixi) = 0;
 bin_pix = diff_fr > 0;
 bin_pix = bwareaopen(bin_pix, 100);
 diff_fr = diff_fr.*bin_pix;
