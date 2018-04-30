@@ -5,9 +5,16 @@ function [stim_mat, stim_mat_simple, column_heads] = load_params_trains(direc, t
 %trial numbers based on these time stamps. It then extracts trial relevant
 %stimulus data from the params file and saves it as a readable struct.
 
-datenum_check = 1;
-%datenum_check = 0;    
-n_trials_t = size(tif_datenums, 2);
+if isempty(tif_datenums) == 0
+    datenum_check = 1;
+    n_trials_t = size(tif_datenums, 2);
+else
+    datenum_check = 0;
+    dir_contents_t = dir_date_sorted(direc, '*.tif');
+    n_trials_t = size(dir_contents_t, 2);    
+end
+
+
 
 %identifying newest params file and loading it
 prev_direc = pwd;
