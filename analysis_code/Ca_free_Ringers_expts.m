@@ -98,14 +98,14 @@ transition_trial_ns = [6, 36, 41];
 trace_mat = [];
 for expt_n = 1:2:3
     curr_trace = saved_resp_vecs{expt_n, 1};
-    curr_trace = curr_trace(1:40);
+    curr_trace = curr_trace(1:45);
     trace_mat = [trace_mat, curr_trace];
 end
 mean_trace = mean(trace_mat, 2, 'omitnan');
 sd_trace = std(trace_mat, 0, 2, 'omitnan');
 
 figure(3)
-shadedErrorBar([(1:40).*2], mean_trace, sd_trace, {'Color', [0.3, 0.7, 0.3]});
+shadedErrorBar([(1:45).*2], mean_trace, sd_trace, {'Color', [0.3, 0.7, 0.3]});
 hold on
 shadedErrorBar([(6:40).*2], mean_trace(6:40), sd_trace(6:40), {'Color', [0.7, 0.3, 0.3]});
 
@@ -124,12 +124,16 @@ mean_trace = mean(trace_mat, 2, 'omitnan');
 sd_trace = std(trace_mat, 0, 2, 'omitnan');
 
 figure(3)
-shadedErrorBar([(1:40).*2], mean_trace(1:40), sd_trace(1:40), {'Color', [0.6, 0.6, 0.6]}, 0);
+%shadedErrorBar([(1:40).*2], mean_trace(1:40), sd_trace(1:40), {'Color', [0.6, 0.6, 0.6]}, 0);
 fig_wrapup(3)
-x = [0.29 0.29];
+x = [0.265 0.265];
 y = [0.95 0.78];
-a = annotation('textarrow',x,y,'String','Ca-free Ringer''s');
+a = annotation('textarrow',x,y,'String','Ca-free Ringer''s wash-in');
 
-x = [0.818 0.818];
-y = [0.55 0.38];
+x = [0.76 0.76];
+y = [0.46 0.29];
+b = annotation('textarrow',x,y, 'String', 'Ca-Ringer''s wash-in');
+
+x = [0.7 0.7];
+y = [0.5 0.33];
 b = annotation('textarrow',x,y, 'String', 'removed glial sheath');
