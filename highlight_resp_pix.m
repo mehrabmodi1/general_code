@@ -1,5 +1,5 @@
-function [diff_fr, sig_resp_frame] = highlight_resp_pix(fig_n, stack, stim_frs, frame_time, suppress_plot)
-%syntax: [] = highlight_resp_pix(fig_n, stack, stim_frs, cuttoff_pc, frame_time)
+function [diff_fr, sig_resp_frame, sig_resp_frame_n, smple_fr] = highlight_resp_pix(fig_n, stack, stim_frs, n_channels, frame_time, suppress_plot)
+%syntax: [diff_fr, sig_resp_frame, sig_resp_frame_n, smple_fr] = highlight_resp_pix(fig_n, stack, stim_frs, frame_time, suppress_plot)
 %This function identifies pixels whose dF/F response is in the top
 %cutoff_pc percent of all pixels in the mean response frame. It then plots
 %the mean response frame with the responsive pixels highlighted.
@@ -7,6 +7,13 @@ function [diff_fr, sig_resp_frame] = highlight_resp_pix(fig_n, stack, stim_frs, 
 
 %identifying responsive pixels
 resp_fr_final = zeros(size(stack, 1), size(stack, 2));
+
+if n_channels == 2
+    stack = stack(:, :, 1:2:size(stack, 3));
+else
+end
+
+%for pulse_n = 1:size(stim_frs, 1)
 for pulse_n = 1:size(stim_frs, 1)
     stim_fr = stim_frs(pulse_n, 1);
     stim_end_fr = stim_frs(pulse_n, 2);
@@ -42,6 +49,8 @@ bin_pix = bwareaopen(bin_pix, 100);
 
 %getting rid of background pixels
 bin_pix(baseline_fr < 7) = 0;
+bk_fr = zeros(size(stack, 1), size(stack, 2));
+smple_fr(baseline_fr > 7) = 1;
 
 sig_resp_frame = diff_fr.*bin_pix;
 
@@ -68,5 +77,9 @@ if suppress_plot == 0
     alphamap = ((diff_fr_n - 1).*bin_pix).*1;
     alpha(s, alphamap)
     hold off
+    set(gca, 'xtick', [])
+    set(gca, 'ytick', [])
 else
 end
+
+sig_resp_frame_n = (diff_fr_n - 1).*bin_pix;
