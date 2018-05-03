@@ -36,7 +36,7 @@ resp_fr(bk_pixi) = 0;
 resp_fr = double(resp_fr);
     
 diff_fr = (resp_fr - baseline_fr);
-diff_fr = diff_fr - 2.3.*baseline_sds;               %identifying pixels with a dF > 2.3 SDs of baseline period fluctuations ie significantly responsive
+diff_fr = diff_fr - 2.33.*baseline_sds;               %identifying pixels with a dF > 2.3 SDs of baseline period fluctuations ie significantly responsive
 diff_fr = diff_fr./baseline_fr;                      %dividing by F to get a dF/F image
 diff_fr(diff_fr < 0) = 0;                            %getting rid of negs
 nansi = isnan(diff_fr);
