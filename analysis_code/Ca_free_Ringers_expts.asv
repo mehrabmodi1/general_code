@@ -112,6 +112,8 @@ shadedErrorBar([(6:40).*2], mean_trace(6:40), sd_trace(6:40), {'Color', [0.7, 0.
 ylabel('frac. responsive pixels');
 xlabel('time (min)')
 
+plot(70, 0.10, 'rO', 'MarkerSize', 8, 'MarkerFaceColor', 'r')
+
 %control traces
 trace_mat = [];
 for expt_n = 1:2
@@ -124,12 +126,8 @@ mean_trace = mean(trace_mat, 2, 'omitnan');
 sd_trace = std(trace_mat, 0, 2, 'omitnan');
 
 figure(3)
-shadedErrorBar([(1:40).*2], mean_trace(1:40), sd_trace(1:40), {'Color', [0.6, 0.6, 0.6]}, 0);
+%shadedErrorBar([(1:40).*2], mean_trace(1:40), sd_trace(1:40), {'Color', [0.6, 0.6, 0.6]}, 0);
 fig_wrapup(3)
-x = [0.29 0.29];
-y = [0.95 0.78];
-a = annotation('textarrow',x,y,'String','Ca-free Ringer''s');
-
-x = [0.818 0.818];
-y = [0.55 0.38];
-b = annotation('textarrow',x,y, 'String', 'removed glial sheath');
+x = [0.29 0.245];
+y = [.9 0.81];
+a = annotation('textarrow',x,y,'String','Ca_2+_-free Ringer''s wash');
