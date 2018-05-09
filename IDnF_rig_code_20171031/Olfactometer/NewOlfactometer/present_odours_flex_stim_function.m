@@ -42,12 +42,12 @@ if exist([save_dir 'params.mat']) == 2
         start_tr = d_tr_n;
         save([save_dir 'params_spec2.mat'], 'params_spec');          %saving the params specifications to file
     elseif strcmp(button, 'Over-write') == 1
-        [params_mat, params_spec] = setUpStimuli_trains(params);
+        [params_mat, params_spec] = setUpStimuli_trains_flex(params);
         start_tr = 1;
     end
 
 else    
-    [params_mat, params_spec] = setUpStimuli_trains(params);
+    [params_mat, params_spec] = setUpStimuli_trains_flex(params);
     save([save_dir 'params_spec.mat'], 'params_spec');          %saving the params specifications to file
     start_tr = 1;
 end
@@ -129,20 +129,14 @@ for trial_n = start_tr:n_trials
     pause(od_inj_dur)                       %waiting for system to get filled with odor
     
     %flipping shuttle valve to deliver odor pulse(s)
-    for pulse_n = 1:n_od_pulses
-        for r_pulse_n = 1:size(pulse_train, 1)
-            pause(pulse_train(r_pulse_n, 1));
-            FlipValve_EP('Final',0)                 
-            pause(pulse_train(r_pulse_n, 2));
-            FlipValve_EP('Final',1)
-        end
-        if pulse_n < n_od_pulses
-            pause(inter_pulse_interval)
-        else
-        end
-        
-        
+    for r_pulse_n = 1:size(pulse_train, 1)
+        pause(pulse_train(r_pulse_n, 1));
+        FlipValve_EP('Final',0)                 
+        pause(pulse_train(r_pulse_n, 2));
+        FlipValve_EP('Final',1)
     end
+    
+       
     ShutAllValves_EP;
     pause(post_od_scan_dur)                 %waiting to end image acquisition
     trigger_scan(0)                         %ending image acquisition
