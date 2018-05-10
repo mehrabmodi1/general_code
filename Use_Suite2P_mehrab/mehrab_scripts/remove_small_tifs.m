@@ -9,7 +9,7 @@ dir_contents = dir('*.tif');
 small_files = [];
 %detecting small files
 for f_num = 1:size(dir_contents, 1)
-    if dir_contents(f_num).bytes < 7500000
+    if dir_contents(f_num).bytes < 15500000
         small_files = [small_files; f_num];
     else
     end
