@@ -110,8 +110,12 @@ for pp=1:length(params) %this loop is not for trials
         
         for duration_n = 1:n_durations
             curr_duration = params.duration(duration_n);
-            curr_trs = row_lists{duration_n};    %list of rows in param_mat into which current train needs to be inserted
-            
+            try
+                
+                curr_trs = row_lists{duration_n};    %list of rows in param_mat into which current train needs to be inserted
+            catch
+                keyboard
+            end
             for tr_n = 1:length(curr_trs)
                 tr_ni = curr_trs(tr_n);
                 simple_pulse_train = [];
@@ -162,5 +166,6 @@ for pp=1:length(params) %this loop is not for trials
     end
     
 end
+keyboard
 end
 
