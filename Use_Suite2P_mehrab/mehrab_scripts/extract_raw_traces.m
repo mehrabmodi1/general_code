@@ -120,7 +120,12 @@ for trial_n = start_trial:n_trials
     elseif sign(diff_n_frames) == -1
         raw_data_mat_orig = raw_data_mat;
         raw_data_mat = zeros(size(curr_raw_data_mat, 1), n_cells, n_trials) + nan;
-        raw_data_mat(1:size(raw_data_mat_orig, 1), :, :) = raw_data_mat_orig;
+        try
+            
+            raw_data_mat(1:size(raw_data_mat_orig, 1), :, :) = raw_data_mat_orig;
+        catch
+            keyboard
+        end
         raw_data_mat(1:size(curr_raw_data_mat, 1), :, trial_n) = curr_raw_data_mat;
        
     else

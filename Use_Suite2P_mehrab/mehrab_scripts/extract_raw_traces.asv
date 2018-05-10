@@ -8,7 +8,7 @@ prev_direc = pwd;
 cd(direc)
 dir_contents = dir_date_sorted(direc, '*.tif');
 n_trials = size(dir_contents, 1);
-remove_small_tifs([direc]);
+remove_small_tifs(direc);
 n_cells = size(ROI_mat, 3);
 raw_data_mat = zeros(100, n_cells, n_trials) + nan;
 n_frames = zeros(n_trials, 1);
@@ -22,7 +22,9 @@ if exist([save_path, 'extracted_raw_data_mat.mat']) == 2
         if length(size(raw_data_mat)) == 3
             done_trs = find(squeeze(isnan(raw_data_mat(1, 1, :))) == 0);
         else
-            done_trs = 
+            done_trs = 0;
+        end
+        
         if max(done_trs) == n_trials
             disp('all traces already extracted... skipping.')
             del = [];
@@ -118,7 +120,11 @@ for trial_n = start_trial:n_trials
     elseif sign(diff_n_frames) == -1
         raw_data_mat_orig = raw_data_mat;
         raw_data_mat = zeros(size(curr_raw_data_mat, 1), n_cells, n_trials) + nan;
-        raw_data_mat(1:size(raw_data_mat_orig, 1), :, :) = raw_data_mat_orig;
+        try
+            
+            raw_data_mat(1:size(raw_data_mat_orig, 1), :, :) = raw_data_mat_orig;
+        catch
+            ke
         raw_data_mat(1:size(curr_raw_data_mat, 1), :, trial_n) = curr_raw_data_mat;
        
     else
