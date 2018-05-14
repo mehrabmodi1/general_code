@@ -1,4 +1,4 @@
-function [stim_mat, stim_mat_simple, column_heads] = load_params_trains(direc, tif_datenums)
+function [stim_mat, stim_mat_simple, column_heads, color_vec] = load_params_trains(direc, tif_datenums)
 %syntax: [stim_mat, stim_mat_simple, column_heads] = load_params_res(direc, n_trials_t)
 %This function compares the time stamps of the tiff files in a dataset with
 %those saved for each trial in the params file and aligns the two sets of
@@ -134,6 +134,9 @@ for trial_n = 1:n_matched_trials
 end
 save([direc, '\stim_mat.mat'], 'stim_mat')
 
-
+%setting up the standard color vector to use for plotting depending on how
+%many odors there are in this dataset
+n_odors = length(unique(stim_mat_simple(:, 2)));
+color_vec = setup_std_color_vec(n_odors);
 
 end
