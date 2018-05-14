@@ -68,7 +68,7 @@ for rep_gp = 1:n_rep_gps                %a rep_gp is a group of repeats of the s
         curr_traces_f = zeros(size(curr_traces, 1), size(curr_traces, 2)) + nan;
         for rep_n = 1:size(curr_traces, 2)
             curr_trace = curr_traces(:, rep_n);
-            curr_traces_f(:, rep_n) = movmean(curr_trace', round(1000./frame_time));        %filtering with a 200 ms wide box-car
+            curr_traces_f(:, rep_n) = movmean(curr_trace, round(1000./frame_time));        %filtering with a 200 ms wide box-car
         end
         
         base_traces = curr_traces_f(pre_stim_frame:(stim_frame - 2), :);                 %pre-odor-stim baseline frames
