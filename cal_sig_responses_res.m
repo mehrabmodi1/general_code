@@ -68,7 +68,7 @@ for rep_gp = 1:n_rep_gps                %a rep_gp is a group of repeats of the s
         curr_traces_f = zeros(size(curr_traces, 1), size(curr_traces, 2)) + nan;
         for rep_n = 1:size(curr_traces, 2)
             curr_trace = curr_traces(:, rep_n);
-            curr_traces_f(:, rep_n) = movmean(curr_trace, round(1./frame_time));        %filtering with a 1 s wide box-car
+            curr_traces_f(:, rep_n) = movmean(curr_trace, round(0.5./frame_time));        %filtering with a 0.5 s wide box-car
         end
         
        
