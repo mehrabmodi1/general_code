@@ -1,4 +1,4 @@
-function [sig_cell_mat, all_bad_trs] = cell_data_quality_control(dff_data_mat, stim_mat, stim_mat_simple, sig_cell_mat, suppress_plots, frame_time)
+function [sig_cell_mat, all_bad_trs] = cell_data_quality_control(dff_data_mat, stim_mat, stim_mat_simple, sig_cell_mat, suppress_plots)
 %Syntax: [sig_cell_mat, all_bad_trs] = cell_data_quality_control(dff_data_mat, stim_mat, stim_mat_simple, sig_cell_mat, manual_inspec)
 %This function plots a number of useful visualisations of reliability of
 %cell responses. It forces to 0, cells in sig_cell_mat that were found
@@ -11,6 +11,7 @@ n_trains = max(stim_mat_simple(:, 11));
 
 global color_vec
 global greymap
+global frame_time
 
 all_bad_trs = [];
 for odor_n = 1:length(odor_list)
@@ -65,7 +66,7 @@ for odor_n = 1:length(odor_list)
                 imagesc(ave_mat_early', [0, max_val])
                 colormap(greymap)
                 ylabel('significant cell number')
-                set_xlabels_time(3, frame_time./1, 1.1);
+                set_xlabels_time(3, frame_time./1000, 1.1);
                 fig_wrapup(3)
                 add_stim_bar(3, od_pulse_frames, color_vec(odor_ni, :));
                 set(fig_h, 'Name','ave resp traces for first half of trials')
@@ -74,7 +75,7 @@ for odor_n = 1:length(odor_list)
                 imagesc(ave_mat_late', [0, max_val])
                 colormap(greymap)
                 ylabel('significant cell number')
-                set_xlabels_time(4, frame_time./1, 1.1);
+                set_xlabels_time(4, frame_time./1000, 1.1);
                 fig_wrapup(4)
                 add_stim_bar(4, od_pulse_frames, color_vec(odor_ni, :));
                 set(fig_h, 'Name','ave resp traces for last half of trials')
@@ -167,7 +168,7 @@ for odor_n = 1:length(odor_list)
                 imagesc(ave_mat_early', [0, max_val])
                 colormap(greymap)
                 ylabel('significant cell number')
-                set_xlabels_time(7, frame_time./1, 1.1);
+                set_xlabels_time(7, frame_time./1000, 1.1);
                 fig_wrapup(7)
                 add_stim_bar(7, od_pulse_frames, color_vec(odor_ni, :));
                 set(fig_h, 'Name','ave resp traces for first half of trials')
@@ -176,7 +177,7 @@ for odor_n = 1:length(odor_list)
                 imagesc(ave_mat_late', [0, max_val])
                 colormap(greymap)
                 ylabel('significant cell number')
-                set_xlabels_time(8, frame_time./1, 1.1);
+                set_xlabels_time(8, frame_time./1000, 1.1);
                 fig_wrapup(8)
                 add_stim_bar(8, od_pulse_frames, color_vec(odor_ni, :));
                 set(fig_h, 'Name','ave resp traces for last half of trials')
