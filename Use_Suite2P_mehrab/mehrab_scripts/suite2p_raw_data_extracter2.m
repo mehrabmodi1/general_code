@@ -68,6 +68,7 @@ for raw_direc_n = 1:size(raw_direc_list, 1)
     
     if exist([results_direc, raw_direc, '\ROIs_pruned.txt']) ~= 2
         new_main       %this is the ROI pruning GUI that comes with Suite2P
+        keyboard
         del = [];
         save([results_direc, raw_direc, '\ROIs_pruned.txt'], 'del');
     else
