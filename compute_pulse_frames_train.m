@@ -6,6 +6,7 @@ function [od_pulse_frames] = compute_pulse_frames_train(curr_train, frame_time, 
 
 valve_odor_delay = load('C:\Data\Data\Analysed_data\valve_odor_delay.mat');
 valve_odor_delay = valve_odor_delay.valve_odor_delay;    %in ms
+valve_odor_delay = valve_odor_delay./1000; %in s
 
 % %testing variables
 % stim_latency = 25;
@@ -31,4 +32,4 @@ for pulse_n = 1:size(stim_points, 1)
     end
 end
 
-od_pulse_frames = round(( (stim_points.*1000) + (stim_latency.*1000) + valve_odor_delay)./(frame_time));
+od_pulse_frames = round(( (stim_points.*1) + (stim_latency.*1) + valve_odor_delay)./(frame_time));

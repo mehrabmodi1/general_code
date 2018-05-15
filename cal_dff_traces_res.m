@@ -10,7 +10,7 @@ function [dff_data_mat, dff_data_mat_f] = cal_dff_traces_res(raw_data_mat, stim_
 % raw_data_mat = load([direc 'expt_raw_traces.mat']);
 % raw_data_mat = raw_data_mat.raw_data_mat;
 
-PID_latency = 200;                                          %latency from odor onset to arrival at the end of the odor tube measured with a PID (in ms)
+PID_latency = .2;                                          %latency from odor onset to arrival at the end of the odor tube measured with a PID (in ms)
 
 if exist([direc, '\bad_trial_list.mat']) == 2
     bad_tr_list = load([direc, '\bad_trial_list.mat']);
@@ -42,7 +42,7 @@ for trial_n = 1:n_trials
     baseline_mat = repmat(baseline_vec, n_frames, 1);
     dff_mat = (raw_mat - baseline_mat)./baseline_mat;
     b_vec = zeros(1, round(filt_time./frame_time)) + 1;
-    a_vec = round(1000./frame_time);
+    a_vec = round(1./frame_time);
     dff_mat_f = filter(b_vec, a_vec, dff_mat, [], 1);
         
     %checking if this trial was identified as bad and skipping if so.

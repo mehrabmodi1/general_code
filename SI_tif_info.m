@@ -35,7 +35,6 @@ avg_factor = str2num(metadata( (avg_factori + 18):(avg_factor_newlinei - 1) ));
 fr_rate = fr_rate./avg_factor;
 frame_time = 1./fr_rate;      %in s
 
-
 n_chansi = strfind(metadata, 'channelSave');
 n_chans_newlinei = newlinesi - n_chansi;
 n_chans_newlinei(n_chans_newlinei < 0) = nan;

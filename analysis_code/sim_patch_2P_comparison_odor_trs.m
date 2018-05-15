@@ -1,7 +1,7 @@
 clear all
 close all
 
-color_vec = load('C:\Users\Mehrab\Google Drive\Backup\Stuff\CSHL\Glenn lab\Code\std_color_vec.txt');
+color_vec = load('C:\Data\Code\general_code\std_color_vec.txt');
 cell_direc_list_path = 'C:\Data\Data\Raw_data\dataset_lists\dataset_list_sim_patch_2P_odor_resps.xls';
 
 [del, cell_direc_list] = xlsread(cell_direc_list_path, 1);
@@ -13,7 +13,7 @@ for cell_n = 1:n_cells
     prev_direc = pwd;
     cd(curr_cell_direc);
     remove_small_tifs(curr_cell_direc);
-    [stim_mat, stim_mat_simple, column_heads] = load_params_trains(curr_cell_direc, []);
+    [stim_mat, stim_mat_simple, column_heads, color_vec] = load_params_trains(curr_cell_direc, []);
     
     dir_contents_h5 = dir_date_sorted(curr_cell_direc, '*.h5');
     dir_contents_tif = dir_date_sorted(curr_cell_direc, '*.tif');
@@ -28,11 +28,11 @@ for cell_n = 1:n_cells
             keyboard
         end
 
-        n_trials = raw_traces.header.NSweepsPerRun;
-        tr_duation = raw_traces.header.SweepDuration;
+        n_trials = length(fieldnames(raw_traces)) - 1;
+        tr_duration = raw_traces.header.SweepDuration;
         sample_rate = raw_traces.header.AcquisitionSampleRate;
 
-        raw_trace_mat = zeros((tr_duation.*sample_rate), n_trials) + nan;
+        raw_trace_mat = zeros((tr_duration.*sample_rate), n_trials) + nan;
         skipped_tr_list = [];
         for tr_n = 1:n_trials
             str_trn = num2str(tr_n);
@@ -47,7 +47,7 @@ for cell_n = 1:n_cells
             end
         end
         raw_trace_mat(:, skipped_tr_list) = [];
-        n_trials = size(stim_mat_simple, 1);
+        n_trials = size(raw_trace_mat, 2);
 
         %sampling traces around odor delivery period
         al_trace_mat = zeros(25.*sample_rate, n_trials);
@@ -71,6 +71,7 @@ for cell_n = 1:n_cells
                 g_frames = 1:2:(n_frames - 1);
                 stack = stack(:, :, g_frames);
                 n_frames = size(stack, 3);
+           
             else
             end
 
@@ -127,7 +128,7 @@ for cell_n = 1:n_cells
     elseif exist([curr_cell_direc, 'al_trace_mat.mat' ]) == 2
         al_trace_mat_full = load([curr_cell_direc, 'al_trace_mat.mat' ]);
         al_trace_mat_full = al_trace_mat_full.al_trace_mat_full;
-        al_F_mat_full = load([curr_cell_direc, 'al_F_mat.mat' ]);
+        al_F_mat_full = load([curr_cell_direc, 'al_F_mat.mat' ]);  
         al_F_mat_full = al_F_mat_full.al_F_mat_full;
         
         %reading in frame time from the first trial
@@ -137,6 +138,8 @@ for cell_n = 1:n_cells
         raw_traces = ws.loadDataFile(dir_contents_h5(1).name);
         sample_rate = raw_traces.header.AcquisitionSampleRate;
         stim_sample = floor(stim_mat_simple(1, 7).*sample_rate);
+       
+        n_trials_all = size(al_F_mat_full, 2);
     end
     
     %% Plotting
@@ -144,6 +147,7 @@ for cell_n = 1:n_cells
     for odor_n = 1:length(odor_list)
         odor_ni = odor_list(odor_n);
         curr_trs = find(stim_mat_simple(:, 2) == odor_ni);
+        curr_trs(curr_trs > n_trials_all) = [];
         al_trace_mat = al_trace_mat_full(:, curr_trs);
         al_F_mat = al_F_mat_full(:, curr_trs);
         n_trials = length(curr_trs);
@@ -166,7 +170,12 @@ for cell_n = 1:n_cells
         xlabel('time (s)')
         ylabel('membrane voltage (mV)')
         set_xlabels_time(1, (1./sample_rate), 5)
-        add_stim_bar(1, stim_samples, color_vec(odor_ni, :))
+        if odor_ni <= size(color_vec, 1)
+            color_n = odor_ni;
+        else
+            color_n = rem(odor_ni, size(color_vec, 1) );
+        end
+        add_stim_bar(1, stim_samples, color_vec(color_n, :))
         
         hold off
         
@@ -178,11 +187,12 @@ for cell_n = 1:n_cells
         xlabel('time (s)')
         ylabel('dF/F')
         set_xlabels_time(2, frame_time,5)
-        add_stim_bar(2, stim_frs, color_vec(odor_ni, :))
+        add_stim_bar(2, stim_frs, color_vec(color_n, :))
         
         hold off
 
-       keyboard
+       %keyboard
+       del = input('');
        try
         close figure 1
         close figure 2

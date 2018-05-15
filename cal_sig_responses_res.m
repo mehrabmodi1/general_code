@@ -20,8 +20,8 @@ del = find(isnan(odor_dur_list) == 1);
 odor_dur_list(del) = [];
 n_odor_durs = length(odor_dur_list);
 
-stim_time = stim_mat_struc(1).stim_latency.*1000;              %stimulus onset time in ms
-stim_time = stim_time + 200;                                %added delay from valve opening to odor at pipe outlet can programmatically find this out - add feature later.
+stim_time = stim_mat_struc(1).stim_latency;              %stimulus onset time in ms
+stim_time = stim_time + 0.2;                                %added delay from valve opening to odor at pipe outlet can programmatically find this out - add feature later.
 stim_frame = floor(stim_time./frame_time);                  %frame no at which odor reached fly
 %pre_stim_frame = floor((stim_time - 4000)./frame_time);     %frame no 4 s prior to odor - to identify a 4s baseline
 pre_stim_frame = 1;
@@ -57,7 +57,7 @@ for rep_gp = 1:n_rep_gps                %a rep_gp is a group of repeats of the s
         continue
     else
     end
-    stim_end_fr = ceil(stim_frame + ((stim_duration.*1000)./frame_time) );
+    stim_end_fr = ceil(stim_frame + ((stim_duration.*1)./frame_time) );
     rep_tr_list = find(stim_mat_simple(:, 2) == odor_ni & stim_mat_simple(:, 3) == stim_duration);    %list of repeat tr numbers
     
     
@@ -68,9 +68,10 @@ for rep_gp = 1:n_rep_gps                %a rep_gp is a group of repeats of the s
         curr_traces_f = zeros(size(curr_traces, 1), size(curr_traces, 2)) + nan;
         for rep_n = 1:size(curr_traces, 2)
             curr_trace = curr_traces(:, rep_n);
-            curr_traces_f(:, rep_n) = tsmovavg_m(curr_trace', 's', round(1000./frame_time));        %filtering with a 200 ms wide box-car
+            curr_traces_f(:, rep_n) = movmean(curr_trace, round(0.5./frame_time));        %filtering with a 0.5 s wide box-car
         end
         
+       
         base_traces = curr_traces_f(pre_stim_frame:(stim_frame - 2), :);                 %pre-odor-stim baseline frames
         base_m = median(base_traces, 1, 'omitnan');
         base_s = std(base_traces, 1, 'omitnan');
@@ -78,7 +79,7 @@ for rep_gp = 1:n_rep_gps                %a rep_gp is a group of repeats of the s
         thresh_mean = mean(mean(base_traces, 2, 'omitnan'), 'omitnan') + 0.*std(mean(base_traces, 2, 'omitnan'), 'omitnan');       %significance criterion for resp in mean trace
         
         try
-            resp_traces = curr_traces_f(stim_frame:round(stim_end_fr + 3000./frame_time), :); %extending analysis window to 3s after odor off to capture off responses
+            resp_traces = curr_traces_f(stim_frame:round(stim_end_fr + 3./frame_time), :); %extending analysis window to 3s after odor off to capture off responses
         catch
             keyboard
         end
@@ -97,7 +98,7 @@ for rep_gp = 1:n_rep_gps                %a rep_gp is a group of repeats of the s
         pk_resps = resp_traces(ave_pk_fr, :);                  %single repeat response amplitudes at pk time of avg trace
         %resp_areas(cell_n, rep_tr_list) = pk_resps;
         try
-            resp_traces_win = resp_traces((max([(ave_pk_fr-round(1000./frame_time)), 1])):(min([(ave_pk_fr+round(1000./frame_time)), size(resp_traces, 1)])), :);
+            resp_traces_win = resp_traces((max([(ave_pk_fr-round(1./frame_time)), 1])):(min([(ave_pk_fr+round(1./frame_time)), size(resp_traces, 1)])), :);
             resp_areas(cell_n, rep_tr_list) = max(resp_traces_win, [], 1);
         catch
             keyboard
