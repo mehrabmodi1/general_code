@@ -1,4 +1,4 @@
-function [] = add_stim_bar(fig_n, stim_frames, stim_colors)
+ function [] = add_stim_bar(fig_n, stim_frames, stim_colors)
 %Syntax: [] = add_stim_bar(fig_n, stim_frames, stim_colors)
 %this function creates a fake, second pair of axes that is invisible, under
 %the first one, and creates a patch colored stim_color in it to denote the stimulus duration.
