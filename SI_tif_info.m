@@ -1,4 +1,4 @@
-function [frame_time, zoom, n_chans] = SI_tif_info(stack_obj)
+function [frame_time, zoom, n_chans, PMT_offsets] = SI_tif_info(stack_obj)
 %syntax: [frame_time, zoom, n_chans] = SI_tif_info(stack_obj)
 
 %%testing variables
@@ -43,3 +43,25 @@ n_chans_newlinei = newlinesi(n_chans_newlinei);
 n_chans_string = metadata( (n_chansi + 14):(n_chans_newlinei - 1) );
 eval(['n_chans = ' n_chans_string, ';']);
 n_chans = length(n_chans);
+
+%PMT channel offsets
+PMT_offsetsi = strfind(metadata, 'channelOffsets');
+PMT_offsets_newlinei = newlinesi - PMT_offsetsi;
+PMT_offsets_newlinei(PMT_offsets_newlinei < 0) = nan;
+[del, PMT_offsets_newlinei] = nanmin(PMT_offsets_newlinei);
+PMT_offsets_newlinei = newlinesi(PMT_offsets_newlinei);
+PMT_offsets = str2num(metadata( (PMT_offsetsi + 18):(PMT_offsets_newlinei - 2) ));
+
+%checking if offsets were pre-subtracted
+PMT_offsets_subi = strfind(metadata, 'SubtractOffsets');
+PMT_offsets_sub_newlinei = newlinesi - PMT_offsets_subi;
+PMT_offsets_sub_newlinei(PMT_offsets_sub_newlinei < 0) = nan;
+[del, PMT_offsets_sub_newlinei] = nanmin(PMT_offsets_sub_newlinei);
+PMT_offsets_sub_newlinei = newlinesi(PMT_offsets_sub_newlinei);
+offset_str = metadata((PMT_offsets_subi + 19):(PMT_offsets_sub_newlinei - 2));
+truei = findstr(offset_str, 'true');
+%if offsets were pre-subtracted, forcing PMT_offsets to 0.
+if isempty(truei) == 0
+    PMT_offsets = [0, 0];
+else
+end
