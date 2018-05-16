@@ -15,14 +15,12 @@ min_val = min(min(min(raw_data_mat)));
 max_val = max(max(max(raw_data_mat)));
 
 if max_val <=1
-    raw_data_mat = raw_data_mat - 0.5;      %offset added by im2double when re-scaling data to allow negs to be encoded from 0 to 0.5
-else
-end
+    
 
-valve_odor_delay = load('C:\Data\Data\Analysed_data\valve_odor_delay.mat');
-valve_odor_delay = valve_odor_delay.valve_odor_delay;    %in ms
-valve_odor_delay = valve_odor_delay./1000; %in s
-PID_latency = valve_odor_delay;                          %latency from odor onset to arrival at the end of the odor tube measured with a PID (in ms)
+keyboard
+
+
+PID_latency = .2;                                          %latency from odor onset to arrival at the end of the odor tube measured with a PID (in ms)
 
 if exist([direc, '\bad_trial_list.mat']) == 2
     bad_tr_list = load([direc, '\bad_trial_list.mat']);
