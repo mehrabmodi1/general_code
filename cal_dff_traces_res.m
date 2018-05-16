@@ -1,4 +1,4 @@
-function [dff_data_mat, dff_data_mat_f] = cal_dff_traces_res(raw_data_mat, stim_mat, frame_time, filt_time, direc, PMT_offsets)
+function [dff_data_mat, dff_data_mat_f] = cal_dff_traces_res(raw_data_mat, stim_mat, frame_time, filt_time, direc)
 %This function takes the extracted raw traces in a 3-D matrix (frames,
 %cells, trials) and the corress 2P data object and gives an output of dF/F
 %traces in a matrix identical in size to raw_data_mat, with an extra dimension for odors.  
@@ -55,8 +55,11 @@ for trial_n = 1:n_trials
     dff_mat = (raw_mat - baseline_mat)./baseline_mat;
     b_vec = zeros(1, round(filt_time./frame_time)) + 1;
     a_vec = round(1./frame_time);
-    dff_mat_f = filter(b_vec, a_vec, dff_mat, [], 1);
-        
+    try
+        dff_mat_f = filter(b_vec, a_vec, dff_mat, [], 1);
+    catch
+        keyboard
+    end
     %checking if this trial was identified as bad and skipping if so.
     if isempty(intersect(good_tr_list, trial_n)) == 1
         continue            %leaves this trial as NaNs in dff_data_mat
