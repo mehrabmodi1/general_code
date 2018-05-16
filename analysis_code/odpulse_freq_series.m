@@ -29,18 +29,18 @@ for dir_n = 1:n_dirs
     cd(curr_dir);
     tif_name = dir('*.tif');
     stack_obj = ScanImageTiffReader([curr_dir, tif_name(1).name]);
-    [frame_time, zoom, n_chans] = SI_tif_info(stack_obj);
+    [frame_time, zoom, n_chans, PMT_offsets] = SI_tif_info(stack_obj);
     
     %loading extracted raw fluorescence data matrices written by raw_dff_extractor
     raw_data_mat = load([curr_dir 'extracted_raw_data_mat.mat']);
     raw_data_mat = raw_data_mat.raw_data_mat;           %raw F traces extracted from ROIs
     raw_data_mat_orig = raw_data_mat;
     raw_data_mat = raw_data_mat(:, :, stim_mat_simple(:, 1));       %making sure only time-stamp matched trials are used for further analysis
-
+    
     %calculating dF/F traces from raw data
     filt_time = 0.5;            %in s, the time window for boxcar filter for generating filtered traces
-    [dff_data_mat, dff_data_mat_f] = cal_dff_traces_res(raw_data_mat, stim_mat, frame_time, filt_time, curr_dir);
-
+    [dff_data_mat, dff_data_mat_f] = cal_dff_traces_res(raw_data_mat, stim_mat, frame_time, filt_time, curr_dir, PMT_offsets);
+    
     %identifying significantly responsive cells
     [resp_areas, sig_trace_mat, sig_trace_mat_old, sig_cell_mat] = cal_sig_responses_res(dff_data_mat, stim_mat, stim_mat_simple, curr_dir, frame_time);
 
@@ -57,11 +57,36 @@ for dir_n = 1:n_dirs
     for odor_n = 1:n_odors
         odor_ni = odor_list(odor_n);        %actual odor number rather than list count
         
-        for dur_n = 1:n_od_durs
+        for dur_n = 3:n_od_durs
             curr_dur = odor_dur_list(dur_n);
             curr_trs = find(stim_mat_simple(:, 2) == odor_ni & stim_mat_simple(:, 3) == curr_dur);
-            curr_sig_cells = find(sig_cell_mat(:, odor_ni, dur_n) == 1);
-            curr_insig_cells = find(sig_cell_mat(:, odor_ni, dur_n) == 0);
+            
+            %calculating auto-correlation to look for pulse responsiveness
+            for cell_n = 1:size(dff_data_mat, 2)
+                n_acq_frs = ceil((stim_mat_simple(curr_trs(1), 7) + (curr_dur.*2.*stim_mat_simple(curr_trs(1), 5)) + stim_mat_simple(curr_trs(1), 10) )./frame_time) - round(5./frame_time);
+                
+                curr_ave_trace = mean(dff_data_mat_f(1:n_acq_frs, cell_n, curr_trs), 3, 'omitnan');
+                
+                %condition to skip cells with a smaller than 50% dF/F response
+                if sig_cell_mat(cell_n, odor_ni, dur_n) == 0
+                    continue
+                else
+                end
+                
+                curr_dur_fr_num = round(curr_dur./frame_time);
+                [autocor, lags] = xcorr(curr_ave_trace', curr_dur_fr_num.*10);
+                
+                figure(1)
+                plot(lags, autocor)
+                
+                figure(2)
+                plot(curr_ave_trace)
+                stim_frs = compute_stim_frs(stim_mat, curr_trs(1), frame_time);
+                add_stim_bar(2, stim_frs, color_vec(odor_n, :));
+                
+                keyboard
+                close figure 2
+            end
             ave_mat = mean(dff_data_mat_f(:, curr_sig_cells, curr_trs), 3, 'omitnan');
             ave_mat_insig = mean(dff_data_mat_f(:, curr_insig_cells, curr_trs), 3, 'omitnan');
             stim_frs = compute_stim_frs(stim_mat, curr_trs(1), frame_time);
