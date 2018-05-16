@@ -84,9 +84,9 @@ for direc_list_n = 1:n_direc_lists
         avg_factor = str2num(avg_factor);
         frame_rate = frame_rate./avg_factor;
         global frame_time;
-        frame_time = 1./frame_rate.*1000;     %in ms
+        frame_time = 1./frame_rate;     %in s
         stim_time = stim_mat_simple(1, 7);
-        stim_fr = round((stim_time.*1000)./frame_time);
+        stim_fr = round((stim_time)./frame_time);
         post_od_scan_dur = stim_mat_simple(1, 10);
         
         %loading extracted raw fluorescence data matrices written by
@@ -97,7 +97,7 @@ for direc_list_n = 1:n_direc_lists
         raw_data_mat = raw_data_mat(:, :, stim_mat_simple(:, 1));       %making sure only time-stamp matched trials are used for further analysis
         
         %calculating dF/F traces from raw data
-        filt_time = 200;            %in ms, the time window for boxcar filter for generating filtered traces
+        filt_time = 0.2;            %in ms, the time window for boxcar filter for generating filtered traces
         [dff_data_mat, dff_data_mat_f] = cal_dff_traces_res(raw_data_mat, stim_mat, frame_time, filt_time, direc);
         
         %identifying significantly responsive cells
@@ -105,7 +105,7 @@ for direc_list_n = 1:n_direc_lists
         
         %Running data quality control checks
         sig_cell_mat_old = sig_cell_mat;
-        [sig_cell_mat, all_bad_trs] = cell_data_quality_control(dff_data_mat_f, stim_mat, stim_mat_simple, sig_cell_mat, suppress_plots);
+        [sig_cell_mat, all_bad_trs] = cell_data_quality_control(dff_data_mat_f, stim_mat, stim_mat_simple, sig_cell_mat, suppress_plots, frame_time);
         dff_data_mat(:, :, all_bad_trs) = nan;
         %disp([num2str((length(all_bad_trs)./size(dff_data_mat, 3)).*100) ' percent of trials were auto-identified as bad and removed.']);
         sig_cells = find(sum(sum(sig_cell_mat, 3), 2) > 0);         %list of all cells significant for any odor for any duration
@@ -132,7 +132,7 @@ for direc_list_n = 1:n_direc_lists
             for dur_n = 1:3
                 curr_dur = odor_dur_list(dur_n);
                 stim_frs = compute_pulse_frames_train([0, curr_dur], frame_time, stim_mat_simple(1, 7));
-                n_acq_frs = ceil((stim_mat_simple(1, 7) + curr_dur + stim_mat_simple(1, 10) )./(frame_time./1000));
+                n_acq_frs = ceil((stim_mat_simple(1, 7) + curr_dur + stim_mat_simple(1, 10) )./(frame_time));
                 for odor_n = 1:n_odors
                     odor_ni = odor_list(odor_n);
                     curr_trs = find(stim_mat_simple(:, 2) == odor_ni & stim_mat_simple(:, 3) == curr_dur & stim_mat_simple(:, 12) == 0);
@@ -211,7 +211,7 @@ for direc_list_n = 1:n_direc_lists
                 end
                     
                 stim_frs = compute_pulse_frames_train([0, curr_dur], frame_time, stim_mat_simple(1, 7));
-                curr_trace_full = dff_data_mat_f((stim_frs(1) - round(5000./frame_time)):(stim_frs(2) + round(10000./frame_time)), sig_cells, trial_n);
+                curr_trace_full = dff_data_mat_f((stim_frs(1) - round(5./frame_time)):(stim_frs(2) + round(10./frame_time)), sig_cells, trial_n);
 
                 for odor_n_tem = 1:n_odors
                     odor_ni_tem = odor_list(odor_n_tem);
@@ -222,10 +222,10 @@ for direc_list_n = 1:n_direc_lists
                         curr_trs_tem(curr_tr_ni) = [];
                     else
                     end
-                    template_full = mean(dff_data_mat_f((stim_frs(1) - round(5000./frame_time)):(stim_frs(2) + round(10000./frame_time)), sig_cells, curr_trs_tem), 3, 'omitnan');
+                    template_full = mean(dff_data_mat_f((stim_frs(1) - round(5./frame_time)):(stim_frs(2) + round(10./frame_time)), sig_cells, curr_trs_tem), 3, 'omitnan');
 
                     %computing difference between template and current trial for various durations of traces
-                    step_length = round(1000./frame_time);          %computing n_frames in a t-step of 1s
+                    step_length = round(1./frame_time);          %computing n_frames in a t-step of 1s
                     n_t_steps = floor( size(template_full, 1)./step_length);     %number of steps in 
 
                     dist_vec_time = zeros(n_t_steps, 1) + nan;
