@@ -7,7 +7,7 @@ function [raw_data_mat] = extract_raw_traces(direc, ROI_mat, save_path, do_regis
 prev_direc = pwd;
 cd(direc)
 dir_contents = dir_date_sorted(direc, '*.tif');
-n_trials = size(dir_contents, 1);
+n_trials = length(dir_contents);
 remove_small_tifs(direc);
 n_cells = size(ROI_mat, 3);
 raw_data_mat = zeros(100, n_cells, n_trials) + nan;
