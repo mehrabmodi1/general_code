@@ -98,14 +98,21 @@ for trial_n = start_trial:n_trials
     %reading in raw fluorescence data for each ROI into a single matrix (dim1 - frame_n, dim2 - ROI_n)
     n_frames = size(stack, 3);
     
-    parpool(7)
+    p = gcp('nocreate');
+    if isempty(p) == 1
+        parpool(7)
+    else
+    end
+    
     parfor frame_n = 1:n_frames
         curr_frame = stack(:, :, frame_n);
-        curr_frame = im2double(curr_frame);
+        curr_frame = double(curr_frame);
+        
         raw_vec = zeros(1, n_cells);
         for ROI_n = 1:n_cells
             curr_ROI = ROI_mat(:, :, ROI_n);
             raw_vec(1, ROI_n) = mean(curr_frame(curr_ROI == 1));
+            
         end
         curr_raw_data_mat(frame_n, :) = raw_vec;   %raw data mat for current trial
         

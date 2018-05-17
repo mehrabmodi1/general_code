@@ -120,7 +120,7 @@ for raw_direc_n = 1:size(raw_direc_list, 1)
 
     %% Extracting raw fluorescence traces after doing a slow xy-correction, and copying over files needed for further analysis
     prev_direc = pwd;
-    [raw_data_mat] = extract_raw_traces([raw_direc_base, raw_direc], ROI_mat, [results_direc, raw_direc, '\'], 0);
+    [raw_data_mat] = extract_raw_traces_par([raw_direc_base, raw_direc], ROI_mat, [results_direc, raw_direc, '\'], 0);
     disp(['done extracting traces from ' reg_tif_direc, raw_direc]);
     
     %copying over stimulus param files
