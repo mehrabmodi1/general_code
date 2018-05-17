@@ -59,7 +59,7 @@ for trial_n = start_trial:n_trials
         im_obj = ScanImageTiffReader([direc, dir_contents(trial_n).name]);
         %obtaining image stack
         stack = im_obj.data();
-        stack_orig = stack;
+        %stack_orig = stack;
         stack = permute(stack,[2 1 3]);
         
         %obtaining, logging timestamp
@@ -96,17 +96,16 @@ for trial_n = start_trial:n_trials
     end
 
     %reading in raw fluorescence data for each ROI into a single matrix (dim1 - frame_n, dim2 - ROI_n)
-    raw_vec = zeros(1, n_cells);
     n_frames = size(stack, 3);
     
-    for frame_n = 1:n_frames
+    parpool(7)
+    parfor frame_n = 1:n_frames
         curr_frame = stack(:, :, frame_n);
-        curr_frame = double(curr_frame);
+        curr_frame = im2double(curr_frame);
+        raw_vec = zeros(1, n_cells);
         for ROI_n = 1:n_cells
             curr_ROI = ROI_mat(:, :, ROI_n);
-            %curr_ROI_pix = find(curr_ROI == 1);
             raw_vec(1, ROI_n) = mean(curr_frame(curr_ROI == 1));
-
         end
         curr_raw_data_mat(frame_n, :) = raw_vec;   %raw data mat for current trial
         
