@@ -97,7 +97,7 @@ for direc_list_n = 1:n_direc_lists
         raw_data_mat = raw_data_mat(:, :, stim_mat_simple(:, 1));       %making sure only time-stamp matched trials are used for further analysis
         
         %calculating dF/F traces from raw data
-        filt_time = 0.2;            %in ms, the time window for boxcar filter for generating filtered traces
+        filt_time = 0.1;            %in ms, the time window for boxcar filter for generating filtered traces
         [dff_data_mat, dff_data_mat_f] = cal_dff_traces_res(raw_data_mat, stim_mat, frame_time, filt_time, direc);
         
         %identifying significantly responsive cells

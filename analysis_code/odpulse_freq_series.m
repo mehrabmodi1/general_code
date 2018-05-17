@@ -11,6 +11,7 @@ a = colormap('bone');
 global greymap
 greymap = flipud(a);
 
+suppress_plots = 1;
 
 %loop to go through all experiment datasets listed in list file
 for dir_n = 1:n_dirs
@@ -25,7 +26,7 @@ for dir_n = 1:n_dirs
     odor_dur_list = unique(stim_mat_simple(:, 3) );
     n_od_durs = length(odor_dur_list);
     n_trains = max(stim_mat_simple(:, 11));
-    
+        
     cd(curr_dir);
     tif_name = dir('*.tif');
     stack_obj = ScanImageTiffReader([curr_dir, tif_name(1).name]);
@@ -36,10 +37,11 @@ for dir_n = 1:n_dirs
     raw_data_mat = raw_data_mat.raw_data_mat;           %raw F traces extracted from ROIs
     raw_data_mat_orig = raw_data_mat;
     raw_data_mat = raw_data_mat(:, :, stim_mat_simple(:, 1));       %making sure only time-stamp matched trials are used for further analysis
+    n_cells = size(raw_data_mat, 2);
     
     %calculating dF/F traces from raw data
     filt_time = 0.5;            %in s, the time window for boxcar filter for generating filtered traces
-    [dff_data_mat, dff_data_mat_f] = cal_dff_traces_res(raw_data_mat, stim_mat, frame_time, filt_time, curr_dir, PMT_offsets);
+    [dff_data_mat, dff_data_mat_f] = cal_dff_traces_res(raw_data_mat, stim_mat, frame_time, filt_time, curr_dir);
     
     %identifying significantly responsive cells
     [resp_areas, sig_trace_mat, sig_trace_mat_old, sig_cell_mat] = cal_sig_responses_res(dff_data_mat, stim_mat, stim_mat_simple, curr_dir, frame_time);
@@ -53,64 +55,11 @@ for dir_n = 1:n_dirs
     
     %% Analysing response data
 
-    %plotting ave resp mats of sig cells for different durs
-    for odor_n = 1:n_odors
-        odor_ni = odor_list(odor_n);        %actual odor number rather than list count
-        
-        for dur_n = 3:n_od_durs
-            curr_dur = odor_dur_list(dur_n);
-            curr_trs = find(stim_mat_simple(:, 2) == odor_ni & stim_mat_simple(:, 3) == curr_dur);
-            
-            %calculating auto-correlation to look for pulse responsiveness
-            for cell_n = 1:size(dff_data_mat, 2)
-                n_acq_frs = ceil((stim_mat_simple(curr_trs(1), 7) + (curr_dur.*2.*stim_mat_simple(curr_trs(1), 5)) + stim_mat_simple(curr_trs(1), 10) )./frame_time) - round(5./frame_time);
-                
-                curr_ave_trace = mean(dff_data_mat_f(1:n_acq_frs, cell_n, curr_trs), 3, 'omitnan');
-                
-                %condition to skip cells with a smaller than 50% dF/F response
-                if sig_cell_mat(cell_n, odor_ni, dur_n) == 0
-                    continue
-                else
-                end
-                
-                curr_dur_fr_num = round(curr_dur./frame_time);
-                [autocor, lags] = xcorr(curr_ave_trace', curr_dur_fr_num.*10);
-                
-                figure(1)
-                plot(lags, autocor)
-                
-                figure(2)
-                plot(curr_ave_trace)
-                stim_frs = compute_stim_frs(stim_mat, curr_trs(1), frame_time);
-                add_stim_bar(2, stim_frs, color_vec(odor_n, :));
-                
-                keyboard
-                close figure 2
-            end
-            ave_mat = mean(dff_data_mat_f(:, curr_sig_cells, curr_trs), 3, 'omitnan');
-            ave_mat_insig = mean(dff_data_mat_f(:, curr_insig_cells, curr_trs), 3, 'omitnan');
-            stim_frs = compute_stim_frs(stim_mat, curr_trs(1), frame_time);
-            
-            
-            %plotting
-            figure(1)
-            imagesc(ave_mat')
-            colormap(greymap)
-            add_stim_bar(1, stim_frs, color_vec(odor_n, :));
-            title('sig responders')
-            
-            figure(2)
-            imagesc(ave_mat_insig')
-            colormap(greymap)
-            add_stim_bar(2, stim_frs, color_vec(odor_n, :));
-            title('insig responders')
-            keyboard
-            close figure 1
-            close figure 2
-            
-            
-        end
-    end
+    %computing a peakiness score for each cell at each odor pulse frequency
+   [peakiness_mat] = find_pulse_detectors(dff_data_mat_f, stim_mat, stim_mat_simple, sig_cell_mat, frame_time, suppress_plots); 
+   keyboard
+    
+    %computing pulse-averaged responses for sig-peaky cells
     
     
     
