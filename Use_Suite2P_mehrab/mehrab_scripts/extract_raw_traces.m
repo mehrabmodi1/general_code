@@ -101,8 +101,7 @@ for trial_n = start_trial:n_trials
     
     for frame_n = 1:n_frames
         curr_frame = stack(:, :, frame_n);
-        curr_frame = im2double(curr_frame);
-
+        curr_frame = double(curr_frame);
         for ROI_n = 1:n_cells
             curr_ROI = ROI_mat(:, :, ROI_n);
             %curr_ROI_pix = find(curr_ROI == 1);
