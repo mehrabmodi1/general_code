@@ -1,9 +1,3 @@
-clear all
-close all
+mat_ser = load('E:\Data\Analysed_data\Suite2p\Results\20180515\OK107_x_jGCaMP7f_freq_series\1\extracted_raw_data_mat_old');
 
-path = 'E:\Data\Raw_Data_Current\Resonant\20180515\OK107_x_jGCaMP7f_freq_series\1\odor_trs_00001.tif';
-
-stack_obj = ScanImageTiffReader('E:\Data\Raw_Data_Current\Resonant\20180515\OK107_x_jGCaMP7f_freq_series\1\odor_trs_00001.tif');
-stack = stack_obj.data();
-stack = permute(stack,[2 1 3]);
-
+mat_par = load('E:\Data\Analysed_data\Suite2p\Results\20180515\OK107_x_jGCaMP7f_freq_series\1\extracted_raw_data_mat');

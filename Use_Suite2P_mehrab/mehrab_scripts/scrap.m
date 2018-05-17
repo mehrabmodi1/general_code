@@ -1,10 +1,17 @@
-clear all
-close all
+mat_ser = load('E:\Data\Analysed_data\Suite2p\Results\20180515\OK107_x_jGCaMP7f_freq_series\1\extracted_raw_data_mat_old');
+mat_ser = mat_ser.raw_data_mat;
+mat_par = load('E:\Data\Analysed_data\Suite2p\Results\20180515\OK107_x_jGCaMP7f_freq_series\1\extracted_raw_data_mat');
+mat_par = mat_par.raw_data_mat;
+ 
+diff_mat = mat_ser(1:size(mat_par, 1), :, 1) - mat_par(:, :, 1);
 
-path = 'E:\Data\Raw_Data_Current\Resonant\20180515\OK107_x_jGCaMP7f_freq_series\1\odor_trs_00001.tif';
+tot_diff = sum(sum(diff_mat))
 
-stack_obj = ScanImageTiffReader('E:\Data\Raw_Data_Current\Resonant\20180515\OK107_x_jGCaMP7f_freq_series\1\odor_trs_00001.tif');
-stack = stack_obj.data();
-stack = permute(stack,[2 1 3]);
+trace_ser = mat_ser(1:size(mat_par, 1), 1, 1);
+trace_par = mat_par(:, 1, 1);
 
-path2 = 'E:\Data\Analysed_data\Suite2p\Results\20180515\OK107_x_jGCaMP7f_freq_series\1\F_20180515_OK107_x_jGCaMP7f_freq_series_plane1_proc';
+figure(1)
+plot(trace_ser)
+hold on
+plot(trace_par + std(trace_ser))
+
