@@ -54,25 +54,60 @@ for dir_n = 1:n_dirs
     sig_cells = find(sum(sum(sig_cell_mat, 3), 2) > 0);         %list of all cells significant for any odor for any duration
     
     %% Analysing response data
-
     %computing a peakiness score for each cell at each odor pulse frequency
-   [peakiness_mat] = find_pulse_detectors(dff_data_mat_f, stim_mat, stim_mat_simple, sig_cell_mat, frame_time, suppress_plots); 
-   keyboard
+    [peakiness_mat] = find_pulse_detectors(dff_data_mat_f, stim_mat, stim_mat_simple, sig_cell_mat, frame_time, color_vec, suppress_plots); 
     
+
+   
     %computing pulse-averaged responses for sig-peaky cells
+    for dur_n = 1:length(odor_dur_list)
+        curr_dur = odor_dur_list(dur_n);
+        for odor_n = 1:length(odor_list)
+            odor_ni = odor_list(odor_n);
+            curr_pky_cells = find(peakiness_mat(:, odor_n, dur_n) > 0.2);
+            curr_trs = find(stim_mat_simple(:, 2) == odor_ni & stim_mat_simple(:, 3) == curr_dur);
+            stim_frs = compute_stim_frs(stim_mat, curr_trs(1), frame_time);
+            for cell_n = 1:length(curr_pky_cells)
+                cell_ni = curr_pky_cells(cell_n);
+                curr_ave_trace = mean(dff_data_mat_f(stim_frs(1, 1):(stim_frs(size(stim_frs, 1), size(stim_frs, 2)) + round(20./frame_time)), cell_ni, curr_trs), 3, 'omitnan');  %analysing trace only around stimulus period
+                
+                %averaging repeats across pulses
+                stim_frsi = stim_frs - stim_frs(1, 1) + 1;
+                %PICK UP THREAD HERE
+                %fix differences in lengths of pulse segments of resp trace
+                pulse_frs = stim_frs()
+                pulse_gap_frs = stim_frs(2, 1) - stim_frs(1, 2);
+                for pulse_n = 1:size(stim_frs, 1)
+                    if pulse_n == 1
+                        pulse_trace = curr_ave_trace(stim_frsi(pulse_n, 1):(stim_frsi(pulse_n, 2) + pulse_gap_frs), 1);
+                    else
+                        pulse_trace = pulse_trace + curr_ave_trace(stim_frsi(pulse_n, 1):(stim_frsi(pulse_n, 2) + pulse_gap_frs), 1);
+                    end
+                end
+                pulse_trace_mat(:, cell_n) = pulse_trace./size(stim_frs, 1);
+                
+                
+                
+            end
+            if  isempty(curr_pky_cells) == 0
+                figure(5)
+                imagesc(pulse_trace_mat', [0, 1])
+                colormap(greymap)
+                set_xlabels_time(5, frame_time, 5)
+                add_stim_bar(5, stim_frsi(1, :), color_vec(odor_n, :));
+                keyboard
+                close figure 5
+                clear pulse_trace_mat
+                clear pulse_trace
+            else
+            end
+
+        end
+        
+    end
     
     
     
-    %looking for exclusive responders ie. cell-od pairs responsive to only one duration
-    
-%     for odor_n = 1:n_odors
-%         odor_ni = odor_list(odor_n);        %actual odor number rather than list count
-%         
-%         for dur_n = 1:n_od_durs
-%             
-% 
-%         end
-%     end
     
     keyboard
     

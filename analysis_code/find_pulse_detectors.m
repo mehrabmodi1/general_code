@@ -1,4 +1,4 @@
-function [peakiness_mat] = find_pulse_detectors(dff_data_mat_f, stim_mat, stim_mat_simple, sig_cell_mat, frame_time, suppress_plots)
+function [peakiness_mat] = find_pulse_detectors(dff_data_mat_f, stim_mat, stim_mat_simple, sig_cell_mat, frame_time, color_vec, suppress_plots)
 
 n_cells = size(dff_data_mat_f, 2);
 odor_list = unique(stim_mat_simple(:, 2));
@@ -63,13 +63,13 @@ for odor_n = 1:n_odors
                 %allowing for a 30% error in reporting inter-pulse-interval
                 if ipi./expected_ipi > 0.7 && ipi./expected_ipi < 1.3
                     peakiness_score = p_cutoff;
-                %elseif ipi./(expected_ipi.*2) > 0.7 && ipi./(expected_ipi.*2) < 1.3
-                    %peakiness_score = p_cutoff;
+                elseif ipi./(expected_ipi.*2) > 0.7 && ipi./(expected_ipi.*2) < 1.3
+                    peakiness_score = p_cutoff;
                 else
                 end
 
             end
-            peakiness_mat(cell_n, odor_ni, dur_n) = peakiness_score;
+            peakiness_mat(cell_n, odor_n, dur_n) = peakiness_score;
 
 
             if suppress_plots == 0
