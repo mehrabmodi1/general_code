@@ -1,24 +1,25 @@
 function [h, max_val] = plot_traces(dff_data_mat, odor_t_list, stim_frame, cell_n, odor_n, fig_n, subplot_vec, norm)
+%syntax: [h, max_val] = plot_traces(dff_data_mat, odor_t_list, stim_frame, cell_n, odor_n, fig_n, subplot_vec, norm)
 %This function plots single trial dF/F traces in grey with the averaged
 %trace in a thicker black. It plots traces for a single cell, for a chosen
 %odor number or across all odors.
 %Mehrab Modi, 10/3/2014
 
-if nargin == 4
-    odor_n = 0;
-    fig_n = 1;
-    subplot_vec = [];
-    norm = 0;
-elseif nargin == 5
-    fig_n = 1;
-    subplot_vec = [];
-    norm = 0;
-elseif nargin == 6
-    subplot_vec = [];
-    norm = 0;
-elseif nargin == 7
-    norm = 0;
-end
+% if nargin == 4
+%     odor_n = 0;
+%     fig_n = 1;
+%     subplot_vec = [];
+%     norm = 0;
+% elseif nargin == 5
+%     fig_n = 1;
+%     subplot_vec = [];
+%     norm = 0;
+% elseif nargin == 6
+%     subplot_vec = [];
+%     norm = 0;
+% elseif nargin == 7
+%     norm = 0;
+% end
 
 
 close(findobj('type','figure','name','dF/F Traces'))

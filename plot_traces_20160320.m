@@ -1,4 +1,5 @@
 function [h, max_val] = plot_traces_20160320(dff_data_mat, t_list, stim_frame, stim_end_frame, stim_color, cell_n, odor_ni, fig_n, subplot_vec, normf, title_st)
+%syntax: [h, max_val] = plot_traces_20160320(dff_data_mat, t_list, stim_frame, stim_end_frame, stim_color, cell_n, odor_ni, fig_n, subplot_vec, normf, title_st)
 %This function plots single trial dF/F traces in grey with the averaged
 %trace in a thicker black. It plots traces for a single cell, for a chosen
 %odor number or across all odors.
@@ -23,7 +24,8 @@ end
 
 %close(findobj('type','figure','name','dF/F Traces'))
 
-cell_traces = squeeze(dff_data_mat(:, cell_n, t_list, odor_ni));
+
+cell_traces = squeeze(dff_data_mat(:, cell_n, t_list));
 ave_trace = nanmean(cell_traces, 2);
 % cell_traces = cell_traces( 1:(size(dff_data_mat, 1)), : );
 %ave_trace = ave_trace((stim_frame - 10):(size(dff_data_mat, 1)));
