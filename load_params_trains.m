@@ -29,7 +29,11 @@ end
 [del, last_filen] = max(date_nums);
 par_filename = dir_contents(last_filen).name;
 params = load([direc, par_filename]);
-params = params.params_mat;
+try
+    params = params.params_mat;
+catch
+    keyboard
+end
 
 if datenum_check == 1
     n_trials_p = size(params, 2);        %n_trials according to the param file
