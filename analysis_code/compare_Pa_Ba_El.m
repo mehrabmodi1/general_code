@@ -1,7 +1,7 @@
 clear all
 close all
 
-dataset_list_paths = [%{'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Yoshi_PaBaEl_d5HT1b_Gamma.xls'};...
+dataset_list_paths = [{'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Yoshi_PaBaEl_d5HT1b_Gamma.xls'};...
                       {'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Yoshi_PaBaEl_d5HT1b_AlphaBeta.xls'} ...
                       ];
 
@@ -19,6 +19,7 @@ for list_n = 1:size(dataset_list_paths, 1)
    
     %loop to go through all experiment datasets listed in list file
     for dir_n = 1:n_dirs
+        saved_an_results.scriptname = mfilename('fullpath');
         curr_dir = [dir_list{dir_n, 1}, '\'];
         tif_times = load([curr_dir, 'tif_time_stamps.mat']);           %reading in time stamps for each tif file recorded by raw_data_extracter
         tif_times = tif_times.time_stamps;
@@ -34,12 +35,22 @@ for list_n = 1:size(dataset_list_paths, 1)
         odor_dur_list = unique(stim_mat_simple(:, 3) );
         n_od_durs = length(odor_dur_list);
         n_trains = max(stim_mat_simple(:, 11));
-
+        saved_an_results.odor_list = odor_list;
+        saved_an_results.odor_dur_list = odor_dur_list;
+        
         cd(curr_dir);
         tif_name = dir('*.tif');
         stack_obj = ScanImageTiffReader([curr_dir, tif_name(1).name]);
         [frame_time, zoom, n_chans, PMT_offsets] = SI_tif_info(stack_obj);
 
+        %reading in number of manually counted cells in FOV
+        if exist([curr_dir, 'counted_cells.mat']) == 2
+            n_cells_manual = load([curr_dir, 'counted_cells.mat']);
+            n_cells_manual = n_cells_manual.ROI_mat;
+            n_cells_manual = size(n_cells_manual, 3);
+        else
+        end
+        
         %loading extracted raw fluorescence data matrices written by raw_dff_extractor
         raw_data_mat = load([curr_dir 'extracted_raw_data_mat.mat']);
         raw_data_mat = raw_data_mat.raw_data_mat;           %raw F traces extracted from ROIs
@@ -64,6 +75,26 @@ for list_n = 1:size(dataset_list_paths, 1)
         %analysing only the first 30 trials
         dff_data_mat(:, :, 31:end) = [];
         
+        
+        %% Comparing basic stuff
+        n_responders = sum(sig_cell_mat(:, odor_list, :), 1, 'omitnan');
+        sparsenesses = n_responders./n_cells_manual;
+        sparsenesses_saved(:, :, dir_n) = sparsenesses;
+        saved_an_results.sparsenesses = sparsenesses_saved;
+        
+        od_pair_list = [1, 2; 1, 3; 2, 3];
+        for dur_n = 1:length(odor_dur_list)
+            
+            for odor_pair_n = 1:size(od_pair_list, 1)
+                od_pair = od_pair_list(odor_pair_n, :);
+                sig_list1 = find(sig_cell_mat(:, odor_list(od_pair(1)), dur_n) == 1);
+                sig_list2 = find(sig_cell_mat(:, odor_list(od_pair(2)), dur_n) == 1);
+                expected_int = (length(sig_list1)./n_cells).*(length(sig_list2)./n_cells).*n_cells;
+                saved_intersections(odor_pair_n, dur_n, dir_n) = length(intersect(sig_list1, sig_list2))./expected_int;
+                
+            end
+        end
+        saved_an_results.sig_intersections = saved_intersections;
         
         %% Analysing pop-representation differences
         for dur_n = 1:length(odor_dur_list)
@@ -116,24 +147,29 @@ for list_n = 1:size(dataset_list_paths, 1)
 
             end
 
-            figure(1)
-            t_vec = 0:step_size:size(trace_mats, 1);
-            t_vec(1) = [];
-            plot(t_vec, dists_saved)
-            stim_frs = compute_stim_frs(stim_mat, curr_trs(1), frame_time);
-            ylabel(['odor-odor pop vec distances, ncells ' num2str(length(all_sig_cells))])
-            set_xlabels_time(1, frame_time, 5)
-            add_stim_bar(1, stim_frs, [0, 0, 0])
-            
-            
+%             figure(1)
+%             t_vec = 0:step_size:size(trace_mats, 1);
+%             t_vec(1) = [];
+%             plot(t_vec, dists_saved)
+%             stim_frs = compute_stim_frs(stim_mat, curr_trs(1), frame_time);
+%             ylabel(['odor-odor pop vec distances, ncells ' num2str(length(all_sig_cells))])
+%             set_xlabels_time(1, frame_time, 5)
+%             add_stim_bar(1, stim_frs, [0, 0, 0])
+%             
+%             
             
 %             figure(2)
 %             subplot_tight(1, 2, 1)
 %             plot(t_vec, dists_saved)
             
-            keyboard
-            close figure 1
+            
+            %close figure 1
         end
         
     end
+    dataset_list_name = findstr(curr_dir_list_path, '_');
+    dataset_list_name = curr_dir_list_path(dataset_list_name(end):(end - 4));
+    dataset_list_name(1) = [];
+    
+    save(['C:\Data\Data\Analysed_data\Analysis_results\Yoshi_PaBaEl\', dataset_list_name, '_an_results.mat'], 'saved_an_results');
 end
