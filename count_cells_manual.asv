@@ -2,7 +2,7 @@ clear all
 close all
 
 dataset_list_paths = [{'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Yoshi_PaBaEl_d5HT1b_Gamma.xls'};...
-                      {'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Yoshi_PaBaEl_d5HT1b_AlphaBeta.xls'} ...
+                      %{'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Yoshi_PaBaEl_d5HT1b_AlphaBeta.xls'} ...
                       ];
 
 for list_n = 1:size(dataset_list_paths, 1)
@@ -98,19 +98,14 @@ for list_n = 1:size(dataset_list_paths, 1)
                 ROI_mat(:, :, cell_counter) = curr_ROI;
             end
             
-            %saving counted ROI matrix every 5 cells
-            if rem(cell_counter, 5) == 0
-                save([curr_dir, 'counted_cells.mat'], 'ROI_mat');
-            else
-            end
+            
+            
+            save([curr_dir, 'counted_cells.mat'], 'ROI_mat');
+            
         end
-        save([curr_dir, 'counted_cells.mat'], 'ROI_mat');
-        remote_path = '\\dm11\turnerlab\Mehrab\Analysed_data';
-        curr_dir_namei = findstr(curr_dir, '\20');
-        curr_dir_name = curr_dir(curr_dir_namei:end);
-        save([remote_path, curr_dir_name, 'counted_cells.mat'], 'ROI_mat')
+        
                
     end
     
 end
-close figure 1
+close all
