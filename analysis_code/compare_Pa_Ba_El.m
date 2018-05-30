@@ -16,7 +16,10 @@ for list_n = 1:size(dataset_list_paths, 1)
     curr_dir_list_path = dataset_list_paths{list_n, 1};
     [del, dir_list] = xlsread(curr_dir_list_path, 1);        %list of Suite2P results directories
     n_dirs = size(dir_list, 1);
-   
+    dataset_list_name = findstr(curr_dir_list_path, '_');
+    dataset_list_name = curr_dir_list_path(dataset_list_name(end):(end - 4));
+    dataset_list_name(1) = [];
+    
     %loop to go through all experiment datasets listed in list file
     for dir_n = 1:n_dirs
         saved_an_results.scriptname = mfilename('fullpath');
@@ -61,7 +64,9 @@ for list_n = 1:size(dataset_list_paths, 1)
         %calculating dF/F traces from raw data
         filt_time = 0.5;            %in s, the time window for boxcar filter for generating filtered traces
         [dff_data_mat, dff_data_mat_f] = cal_dff_traces_res(raw_data_mat, stim_mat, frame_time, filt_time, curr_dir);
-
+        del = find(dff_data_mat_f < -1);
+        dff_data_mat_f(del) = -1;       %forcing crazy values to sane ones
+        
         %identifying significantly responsive cells
         [resp_areas, sig_trace_mat, sig_trace_mat_old, sig_cell_mat] = cal_sig_responses_res(dff_data_mat, stim_mat, stim_mat_simple, curr_dir, frame_time);
 
@@ -99,10 +104,52 @@ for list_n = 1:size(dataset_list_paths, 1)
              
         
         %% Analysing pop-representation differences
+        %Step0. Computing the maximum, repeat averaged response size for each cell in the long duration stimulus to be used as a
+        %normalization factor for each cell's trial averaged, dF/F response in all analyses below.
+        for odor_n = 1:length(odor_list)
+            odor_ni = odor_list(odor_n);
+            curr_trs = find(stim_mat_simple(:, 2) == odor_ni & stim_mat_simple(:, 3) == 60);
+            [stim_frs] = compute_stim_frs(stim_mat, curr_trs(1), frame_time); 
+            ave_mat(:, :, odor_n) = mean(dff_data_mat(stim_frs(1):(stim_frs(2) + round(10./frame_time)), :, curr_trs), 3, 'omitnan');
+            
+        end
+        max_mat(1, :, :) = max(ave_mat, [], 1);
+        max_resp_vec = max(max_mat, [], 3);
+        clear ave_mat
+        clear max_mat
+        
+        %Step1. Computing max distance from origin of each n-D odor response vector and then finding the mean across odors to use as a
+        %normalization factor for all distances measured in this space.
+        dist_type = 'cityblock';            %type of distance to be computed by pdist
+        norm_dist_vec = zeros(length(odor_dur_list), 1);
+        for dur_n = 2
+            curr_dur = odor_dur_list(dur_n);
+            summed_sig_cell_vec = sum(sig_cell_mat(:, :, dur_n), 2, 'omitnan');
+            all_sig_cells = find(summed_sig_cell_vec > 0);     %all the sig cells across odours, for for the current duration
+            if length(all_sig_cells) < 2
+                continue
+            else
+            end
+            
+            med_dist_vec = zeros(length(odor_list), 1);
+            for odor_n = 1:length(odor_list)
+                odor_ni = odor_list(odor_n);
+                curr_trs = find(stim_mat_simple(:, 2) == odor_ni & stim_mat_simple(:, 3) == curr_dur);
+                [stim_frs] = compute_stim_frs(stim_mat, curr_trs(1), frame_time);
+                mean_resp_mat = mean(dff_data_mat_f(stim_frs(1):(stim_frs(2) + round(5./frame_time)), all_sig_cells, curr_trs), 3, 'omitnan');
+                mean_resp_mat = [zeros(size(mean_resp_mat, 1), 1), mean_resp_mat];
+                dist_mat = squareform(pdist(mean_resp_mat', dist_type));
+                med_dist_vec(odor_n, 1) = median(dist_mat(2:end, 1));               %median distance of pop-vec from origin across all stim time-points
+            end
+            norm_dist_vec = max(med_dist_vec);                                      %choosing largest median distance from origin as the normalization distance for this fly
+        end
+        
+        %Step2:Computing various distances and normalising to the pop-vec distance from origin computed in step 1.
         for dur_n = 1:length(odor_dur_list)
             curr_dur = odor_dur_list(dur_n);
             summed_sig_cell_vec = sum(sig_cell_mat(:, :, dur_n), 2, 'omitnan');
             all_sig_cells = find(summed_sig_cell_vec > 0);     %all the sig cells across odours, for for the current duration
+            %all_sig_cells = 1:1:n_cells;
             if length(all_sig_cells) < 2
                 continue
             else
@@ -118,16 +165,20 @@ for list_n = 1:size(dataset_list_paths, 1)
                 
             end
             %averaging step_size frames
-           step_size = round(2./frame_time);       %step-size = 5 s
+           step_size = round(5./frame_time);       %step-size = 5 s
             trace_mats_ds = [];
             for t_step_n = 1:floor(size(trace_mats, 1)./step_size)
                 trace_mats_ds(t_step_n, :, :, :) = mean(trace_mats( ((t_step_n - 1).*step_size + 1):(t_step_n.*step_size), :, :, :) , 1, 'omitnan'); 
             end
             
-            ave_mats = (mean(trace_mats_ds, 3, 'omitnan'));         %normalising mean resps to across-trials sd at each time point
+            ave_mats = (mean(trace_mats_ds, 3, 'omitnan'));                %repeat-averaged response matrix
+            norm_mat = repmat(max_resp_vec(1, all_sig_cells), size(ave_mats, 1), 1, 1, size(ave_mats, 4));
+            ave_mats = ave_mats./norm_mat;                                 %nomalising ave response traces to maximum measured response of each cell
+            
             [del, max_i_mat] = max(ave_mats, [], 1);                       %down-sampled frame numbers of peaks in ave response trace for each cell
             
-            %computing across repeat sd of peak responses for each cell
+            %computing across repeats, sd of peak responses for each
+            %cell
             sd_vec = [];
             for cell_n = 1:length(all_sig_cells)
                 for odor_n = 1:n_odors
@@ -135,15 +186,14 @@ for list_n = 1:size(dataset_list_paths, 1)
                     sd_vec(1, cell_n, odor_n) = std(trace_mats_ds(curr_pki, cell_n, :, odor_n), 1, 3, 'omitnan');
                 end
             end
-            
             sd_mats = repmat(sd_vec, size(ave_mats, 1), 1, 1);
-            ave_mats = ave_mats./sd_mats;
             
             %computing pop-vec distances
             dists_saved = zeros(size(ave_mats, 1), 3);
             for t_step_n = 1:size(ave_mats, 1)
                 curr_rep_mat = squeeze(ave_mats(t_step_n, :, :));
-                dist_mat = squareform(pdist(curr_rep_mat', 'euclidean'));
+                dist_mat = squareform(pdist(curr_rep_mat', dist_type));
+                dist_mat = dist_mat./norm_dist_vec;                   %normalising all distances measured by factor computed in Step1.
                 dist_vec = [dist_mat(1, 2), dist_mat(1, 3), dist_mat(2, 3)];
                 dists_saved(t_step_n, :) = dist_vec;
 
@@ -152,20 +202,32 @@ for list_n = 1:size(dataset_list_paths, 1)
             figure(1)
             t_vec = 0:step_size:size(trace_mats, 1);
             t_vec(1) = [];
-            plot(t_vec, dists_saved)
+            plot(t_vec, dists_saved, 'lineWidth', 2)
+            ax_vals = axis;
+            ax_vals(4) = 0.15;
+            axis(ax_vals);
+            if dur_n == 1
+                legend('PA-BA', 'PA-EL', 'BA-EL', 'Location', 'northwest')
+            elseif dur_n == 2
+                legend('PA-BA', 'PA-EL', 'BA-EL', 'Location', 'northeast')
+            else
+            end
+
             stim_frs = compute_stim_frs(stim_mat, curr_trs(1), frame_time);
-            ylabel(['odor-odor pop vec distances, ncells ' num2str(length(all_sig_cells))])
-            set_xlabels_time(1, frame_time, 5)
-            add_stim_bar(1, stim_frs, [0, 0, 0])
+            ylabel(['odor-odor distances, ' num2str(length(all_sig_cells))])
+            set_xlabels_time(1, frame_time, 10)
+            fig_wrapup(1)
+            add_stim_bar(1, stim_frs, [0.5, 0.5, 0.5])
+            disp(dataset_list_name)
             
-            
+            keyboard
             close figure 1
+            
+            
         end
         
     end
-    dataset_list_name = findstr(curr_dir_list_path, '_');
-    dataset_list_name = curr_dir_list_path(dataset_list_name(end):(end - 4));
-    dataset_list_name(1) = [];
+    
     saved_an_results.sparsenesses = sparsenesses_saved;
     saved_an_results.sig_intersections = saved_intersections;
     saved_an_results.sig_intersections_n = saved_intersections_n;
