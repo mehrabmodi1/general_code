@@ -1,5 +1,5 @@
-function fig_h = scattered_dot_plot(mat, fig_n, col_width, col_spacing, markersize, markercolor, with_lines, linecolor, xlabels)
-%syntax: fig_h = scattered_dot_plot(mat, fig_n, col_width, col_spacing, markersize, markercolor, with_lines, linecolor, xlabels)
+function fig_h = scattered_dot_plot(mat, fig_n, col_width, col_spacing, markersize, markercolor, with_lines, linecolor, xlabels, plot_mean, mean_color)
+%syntax: fig_h = scattered_dot_plot(mat, fig_n, col_width, col_spacing, markersize, markercolor, with_lines, linecolor, xlabels, plot_mean, mean_color)
 %This function plots the values in each column of mat as dots separated
 %with a random scatter of width col_width and inter-column spacing as
 %specified. Line spec can be used to specify marker style, color and size.
@@ -31,7 +31,7 @@ if with_lines == 0
         hold on
     end
 
-    hold off
+    
 elseif with_lines == 1
     %generating random offsets
     r_vec = rand(size(mat, 1), 1);
@@ -52,11 +52,28 @@ elseif with_lines == 1
         plot(r_vecs(row_n, :), curr_row, 'O', 'markerSize', markersize, 'markerEdgeColor', markercolor)
         hold on
     end
-    hold off
+    
 end
+
+%plotting mean marker
+if plot_mean == 1
+   for col_n = 1:n_cols
+        col_center = ( (col_n-1).*(col_width + (col_spacing)) + 0.5) + col_width./2;
+        saved_col_centers(col_n) = col_center;
+        curr_mean = mean(mat(:, col_n), 1, 'omitnan');
+        curr_se = std(mat(:, col_n), 0, 1, 'omitnan')./sqrt(size(mat, 1) - sum(isnan(mat(:, col_n))));
+        errorbar(col_center, curr_mean, curr_se, 'O', 'markerSize', markersize, 'markerEdgeColor', mean_color, 'markerFaceColor', mean_color, 'Color', mean_color, 'lineWidth', 2)
+        
+   end
+    
+  
+    
+else
+end
+
 
 ax = gca;
 ax.XTick = saved_col_centers;
 ax.XTickLabels = xlabels;
-
+hold off
 end
