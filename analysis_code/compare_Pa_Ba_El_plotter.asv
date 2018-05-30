@@ -62,6 +62,7 @@ for result_file_n = 1:size(result_file_list, 1)
         axis([0, 3, 0, 0.5]);
         fig_wrapup(4)
         
+        keyboard
     end
     
     
