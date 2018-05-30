@@ -2,7 +2,7 @@ clear all
 close all
 
 dataset_list_paths = [{'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Yoshi_PaBaEl_d5HT1b_Gamma.xls'};...
-                      {'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Yoshi_PaBaEl_c739_AlphaBeta.xls'} ...
+                      {'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Yoshi_PaBaEl_d5HT1b_AlphaBeta.xls'} ...
                       ];
 
 suppress_plots = 1;
@@ -80,7 +80,8 @@ for list_n = 1:size(dataset_list_paths, 1)
         n_responders = sum(sig_cell_mat(:, odor_list, :), 1, 'omitnan');
         sparsenesses = n_responders./n_cells_manual;
         sparsenesses_saved(:, :, dir_n) = sparsenesses;
-                
+        saved_an_results.sparsenesses = sparsenesses_saved;
+        
         od_pair_list = [1, 2; 1, 3; 2, 3];
         for dur_n = 1:length(odor_dur_list)
             
@@ -90,13 +91,12 @@ for list_n = 1:size(dataset_list_paths, 1)
                 sig_list2 = find(sig_cell_mat(:, odor_list(od_pair(2)), dur_n) == 1);
                 expected_int = (length(sig_list1)./n_cells).*(length(sig_list2)./n_cells).*n_cells;
                 saved_intersections(odor_pair_n, dur_n, dir_n) = length(intersect(sig_list1, sig_list2))./expected_int;
-                saved_intersections_n(odor_pair_n, dur_n, dir_n) = length(intersect(sig_list1, sig_list2))./n_cells;
-                saved_non_intersections(odor_pair_n, dur_n, dir_n) = (length(union(sig_list1, sig_list2)) - length(intersect(sig_list1, sig_list2)))./n_cells;
-               
+                saved_non_intersections(odor_pair_n, dur_n, dir_n) = (length(union(sig_list1, sig_list2)) - length(intersect(sig_list1, sig_list2)));
+                
             end
-            
         end
-             
+        saved_an_results.sig_intersections = saved_intersections;
+        sa
         
         %% Analysing pop-representation differences
         for dur_n = 1:length(odor_dur_list)
@@ -118,7 +118,7 @@ for list_n = 1:size(dataset_list_paths, 1)
                 
             end
             %averaging step_size frames
-           step_size = round(2./frame_time);       %step-size = 5 s
+           step_size = round(5./frame_time);       %step-size = 5 s
             trace_mats_ds = [];
             for t_step_n = 1:floor(size(trace_mats, 1)./step_size)
                 trace_mats_ds(t_step_n, :, :, :) = mean(trace_mats( ((t_step_n - 1).*step_size + 1):(t_step_n.*step_size), :, :, :) , 1, 'omitnan'); 
@@ -149,33 +149,29 @@ for list_n = 1:size(dataset_list_paths, 1)
 
             end
 
-            figure(1)
-            t_vec = 0:step_size:size(trace_mats, 1);
-            t_vec(1) = [];
-            plot(t_vec, dists_saved)
-            stim_frs = compute_stim_frs(stim_mat, curr_trs(1), frame_time);
-            ylabel(['odor-odor pop vec distances, ncells ' num2str(length(all_sig_cells))])
-            set_xlabels_time(1, frame_time, 5)
-            add_stim_bar(1, stim_frs, [0, 0, 0])
+%             figure(1)
+%             t_vec = 0:step_size:size(trace_mats, 1);
+%             t_vec(1) = [];
+%             plot(t_vec, dists_saved)
+%             stim_frs = compute_stim_frs(stim_mat, curr_trs(1), frame_time);
+%             ylabel(['odor-odor pop vec distances, ncells ' num2str(length(all_sig_cells))])
+%             set_xlabels_time(1, frame_time, 5)
+%             add_stim_bar(1, stim_frs, [0, 0, 0])
+%             
+%             
+            
+%             figure(2)
+%             subplot_tight(1, 2, 1)
+%             plot(t_vec, dists_saved)
             
             
-            close figure 1
+            %close figure 1
         end
         
     end
     dataset_list_name = findstr(curr_dir_list_path, '_');
     dataset_list_name = curr_dir_list_path(dataset_list_name(end):(end - 4));
     dataset_list_name(1) = [];
-    saved_an_results.sparsenesses = sparsenesses_saved;
-    saved_an_results.sig_intersections = saved_intersections;
-    saved_an_results.sig_intersections_n = saved_intersections_n;
-    saved_an_results.sig_nonintersections = saved_non_intersections;
     
     save(['C:\Data\Data\Analysed_data\Analysis_results\Yoshi_PaBaEl\', dataset_list_name, '_an_results.mat'], 'saved_an_results');
-    
-    clear saved_an_results
-    clear sparsenesses_saved;
-    clear saved_intersections;
-    clear saved_intersections_n;
-    clear saved_non_intersections;
 end
