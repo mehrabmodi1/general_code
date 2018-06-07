@@ -1,17 +1,24 @@
-function [stim_mat, stim_mat_simple, column_heads, color_vec] = load_params_trains(direc, tif_datenums)
+function [stim_mat, stim_mat_simple, column_heads, color_vec] = load_params_trains(direc, tif_datenums, match_tifs)
 %syntax: [stim_mat, stim_mat_simple, column_heads] = load_params_res(direc, n_trials_t)
 %This function compares the time stamps of the tiff files in a dataset with
 %those saved for each trial in the params file and aligns the two sets of
 %trial numbers based on these time stamps. It then extracts trial relevant
 %stimulus data from the params file and saves it as a readable struct.
 
+no_tifs = 0;
 if isempty(tif_datenums) == 0
     datenum_check = 1;
     n_trials_t = size(tif_datenums, 2);
 else
-    datenum_check = 0;
-    dir_contents_t = dir_date_sorted(direc, '*.tif');
-    n_trials_t = size(dir_contents_t, 2);    
+    try
+        datenum_check = 0;
+        dir_contents_t = dir_date_sorted(direc, '*.tif');
+        n_trials_t = size(dir_contents_t, 2);
+    catch
+        disp('no tifs found, continuing to load params without matching to tifs.');
+        no_tifs = 1;
+        datenum_check = 0;
+    end
 end
 
 
@@ -37,7 +44,11 @@ end
 
 if datenum_check == 1
     n_trials_p = size(params, 2);        %n_trials according to the param file
-
+    if no_tifs == 1
+        n_trials_t = n_trials_p;
+    else
+    end    
+    
     n_trials = min([n_trials_t, n_trials_p]);     %number of matchable trials
     match_mat = zeros(n_trials_p, n_trials_t) + nan;
 
@@ -98,6 +109,13 @@ if datenum_check == 1
 
    
 else
+    %allowing for there to be no tifs associated with the loaded params file
+    if no_tifs == 1
+        n_trials_t = size(params, 2);
+        
+    else
+    end    
+    
     n_matched_trials = n_trials_t;
     par_num = 1:1:n_trials_t;
     tif_num = 1:1:n_trials_t;
