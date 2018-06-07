@@ -1,6 +1,9 @@
 clear all
 close all
 
+%PICK UP THREAD HERE
+%Figure out how to plot saved int and non_int traces
+
 root_path = 'C:\Data\Data\Analysed_data\Analysis_results\Yoshi_PaBaEl\';
 cd(root_path);
 result_file_list = dir('*.mat');
@@ -22,6 +25,7 @@ for result_file_n = 1:size(result_file_list, 1)
     intersection_mat = saved_an_results.sig_intersections;
     intersection_mat_n = saved_an_results.sig_intersections_n;
     non_int_mat = saved_an_results.sig_nonintersections;
+    
     for dur_n = 1:2
         mean_color = [0.84, 0.38, 0.3];
         mat = squeeze(sparseness_mat(:, dur_n, :));
@@ -64,6 +68,27 @@ for result_file_n = 1:size(result_file_list, 1)
         
     end
     
+    %plotting distributions of significant response sizes
+    resp_vec = saved_an_results.pk_responses;
+    bins = 0:0.1:4; 
+    [counts] = hist(resp_vec, bins);
+    counts = counts./sum(counts);
+    figure(5)
+    if strcmp(dataset_name, 'AlphaBeta') == 1
+        line_col = [0.9, 0.4, 0.3];
+        resp_vec1 = resp_vec;
+    elseif strcmp(dataset_name,'Gamma') == 1
+        line_col = [0.3, 0.9, 0.4];
+        resp_vec2 = resp_vec;
+    else
+    end
     
-  
+    plot(bins, counts, 'Color', line_col, 'lineWidth', 3)
+    hold on
+    legend('Alpha/Beta', 'Gamma', 'Location', 'northeast')
+    xlabel('mean response size (dF/F)')
+    ylabel('frac. significant responses')
+    fig_wrapup(5)
+    
 end
+[h, p] = ttest2(resp_vec1, resp_vec2)

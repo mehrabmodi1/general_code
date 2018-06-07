@@ -21,6 +21,20 @@ for list_n = 1:size(dataset_list_paths, 1)
     dataset_list_name(1) = [];
     
     %loop to go through all experiment datasets listed in list file
+    n_cells_tot = 0;
+    saved_pk_resps_all = [];
+    
+    saved_int_resps_1s_1 = [];
+    saved_int_resps_1s_2 = [];
+    saved_int_resps_60s_1 = [];
+    saved_int_resps_60s_2 = [];
+    
+    saved_non_int_resps_1s_1 = [];
+    saved_non_int_resps_1s_2 = [];
+    saved_non_int_resps_60s_1 = [];
+    saved_non_int_resps_60s_2 = [];
+    
+    
     for dir_n = 1:n_dirs
         saved_an_results.scriptname = mfilename('fullpath');
         curr_dir = [dir_list{dir_n, 1}, '\'];
@@ -88,6 +102,7 @@ for list_n = 1:size(dataset_list_paths, 1)
                 
         od_pair_list = [1, 2; 1, 3; 2, 3];
         for dur_n = 1:length(odor_dur_list)
+            curr_dur = odor_dur_list(dur_n);
             
             for odor_pair_n = 1:size(od_pair_list, 1)
                 od_pair = od_pair_list(odor_pair_n, :);
@@ -97,8 +112,60 @@ for list_n = 1:size(dataset_list_paths, 1)
                 saved_intersections(odor_pair_n, dur_n, dir_n) = length(intersect(sig_list1, sig_list2))./expected_int;
                 saved_intersections_n(odor_pair_n, dur_n, dir_n) = length(intersect(sig_list1, sig_list2))./n_cells;
                 saved_non_intersections(odor_pair_n, dur_n, dir_n) = (length(union(sig_list1, sig_list2)) - length(intersect(sig_list1, sig_list2)))./n_cells;
-               
+                
+                
+                %saving mean resp traces from intersections/non_intersections
+                for pairmem = 1:2                            %only looking at members of the current odour pair
+                    odor_np = od_pair_list(pairmem);
+                    odor_ni = odor_list(odor_np);
+                    curr_trs = find(stim_mat_simple(:, 2) == odor_ni & stim_mat_simple(:, 3) == curr_dur);
+                    
+                    %separately saving responses of each cell to each pairmember
+                    if pairmem == 1
+                        int_resp_mat1 = mean(dff_data_mat_f(:, intersect(sig_list1, sig_list2), curr_trs), 3);      
+                        non_int_resp_mat1 = mean(dff_data_mat_f(:, setxor(sig_list1, sig_list2), curr_trs), 3);
+                    elseif pairmem == 2
+                        int_resp_mat2 = mean(dff_data_mat_f(:, intersect(sig_list1, sig_list2), curr_trs), 3);
+                        non_int_resp_mat2 = mean(dff_data_mat_f(:, setxor(sig_list1, sig_list2), curr_trs), 3);
+                    else
+                    end
+                end
+                
+                if dur_n == 1
+                    saved_int_resps_1s_1 = [saved_int_resps_1s_1, int_resp_mat1];
+                    saved_int_resps_1s_2 = [saved_int_resps_1s_2, int_resp_mat2];
+                    saved_non_int_resps_1s_1 = [saved_non_int_resps_1s_1, non_int_resp_mat1];
+                    saved_non_int_resps_1s_2 = [saved_non_int_resps_1s_2, non_int_resp_mat2];
+                    
+                elseif dur_n == 2
+                    saved_int_resps_60s_1 = [saved_int_resps_60s_1, int_resp_mat1];
+                    saved_int_resps_60s_2 = [saved_int_resps_60s_2, int_resp_mat2];
+                    saved_non_int_resps_60s_1 = [saved_non_int_resps_60s_1, non_int_resp_mat1];
+                    saved_non_int_resps_60s_2 = [saved_non_int_resps_60s_2, non_int_resp_mat2];
+                    
+                    
+                else
+                end
+                
             end
+            
+            
+            
+            
+            saved_pk_resps = [];
+            for odor_n = 1:length(odor_list)
+                sig_list = find(sig_cell_mat(:, odor_list(odor_n), dur_n) == 1);
+                odor_ni = odor_list(odor_n);
+                curr_trs = find(stim_mat_simple(:, 2) == odor_ni & stim_mat_simple(:, 3) == curr_dur);
+                stim_frs = compute_stim_frs(stim_mat, curr_trs(1), frame_time);
+                ave_mat = mean(dff_data_mat(stim_frs(1):(stim_frs(2) + round(5./frame_time) ), sig_list, curr_trs), 3, 'omitnan');
+                pk_resps = max(ave_mat, [], 1, 'omitnan');
+                pk_resps = reshape(pk_resps, [], 1);
+                saved_pk_resps = [saved_pk_resps; pk_resps];
+                clear ave_mat
+            end
+            
+            saved_pk_resps_all = [saved_pk_resps_all; saved_pk_resps];
             
         end
              
@@ -120,7 +187,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         
         %Step1. Computing max distance from origin of each n-D odor response vector and then finding the mean across odors to use as a
         %normalization factor for all distances measured in this space.
-        dist_type = 'cityblock';            %type of distance to be computed by pdist
+        dist_type = 'euclidean';            %type of distance to be computed by pdist
         norm_dist_vec = zeros(length(odor_dur_list), 1);
         for dur_n = 2
             curr_dur = odor_dur_list(dur_n);
@@ -145,10 +212,13 @@ for list_n = 1:size(dataset_list_paths, 1)
         end
         
         %Step2:Computing various distances and normalising to the pop-vec distance from origin computed in step 1.
-        for dur_n = 1:length(odor_dur_list)
+        for dur_n = length(odor_dur_list):-1:1
             curr_dur = odor_dur_list(dur_n);
-            summed_sig_cell_vec = sum(sig_cell_mat(:, :, dur_n), 2, 'omitnan');
-            all_sig_cells = find(summed_sig_cell_vec > 0);     %all the sig cells across odours, for for the current duration
+            if dur_n == 2
+                summed_sig_cell_vec = sum(sig_cell_mat(:, :, dur_n), 2, 'omitnan');
+                all_sig_cells = find(summed_sig_cell_vec > 0);     %all the sig cells across odours, for for the current duration
+            else
+            end
             %all_sig_cells = 1:1:n_cells;
             if length(all_sig_cells) < 2
                 continue
@@ -204,7 +274,7 @@ for list_n = 1:size(dataset_list_paths, 1)
             t_vec(1) = [];
             plot(t_vec, dists_saved, 'lineWidth', 2)
             ax_vals = axis;
-            ax_vals(4) = 0.15;
+            ax_vals(4) = 0.8;
             axis(ax_vals);
             if dur_n == 1
                 legend('PA-BA', 'PA-EL', 'BA-EL', 'Location', 'northwest')
@@ -220,18 +290,23 @@ for list_n = 1:size(dataset_list_paths, 1)
             add_stim_bar(1, stim_frs, [0.5, 0.5, 0.5])
             disp(dataset_list_name)
             
-            keyboard
+            %keyboard
             close figure 1
             
             
         end
-        
+        n_cells_tot = n_cells_tot + size(dff_data_mat, 2);
     end
-    
+    disp(['n cells ' int2str(n_cells_tot)]);
     saved_an_results.sparsenesses = sparsenesses_saved;
     saved_an_results.sig_intersections = saved_intersections;
     saved_an_results.sig_intersections_n = saved_intersections_n;
     saved_an_results.sig_nonintersections = saved_non_intersections;
+    saved_an_results.pk_responses = saved_pk_resps_all;
+    saved_an_results.int_resps_1s = cat(3, saved_int_resps_1s_1, saved_int_resps_1s_2);
+    saved_an_results.non_int_resps_1s = cat(3, saved_non_int_resps_1s_1, saved_non_int_resps_1s_2);
+    saved_an_results.int_resps_60s = cat(3, saved_int_resps_60s_1, saved_int_resps_60s_2);
+    saved_an_results.non_int_resps_60s = cat(3, saved_non_int_resps_60s_1, saved_non_int_resps_60s_2);
     
     save(['C:\Data\Data\Analysed_data\Analysis_results\Yoshi_PaBaEl\', dataset_list_name, '_an_results.mat'], 'saved_an_results');
     
