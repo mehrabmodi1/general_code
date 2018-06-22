@@ -3,6 +3,7 @@ function [params_mat_fused] = append_params(params_mat1, params_mat2)
 n_trs1 = size(params_mat1, 2);
 n_trs2 = size(params_mat2, 2);
 
+
 params_mat_fused = [params_mat1, params_mat2];
 
 % %building list of fields to append

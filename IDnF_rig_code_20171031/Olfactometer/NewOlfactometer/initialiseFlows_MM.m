@@ -33,16 +33,17 @@ try
     
 catch
     fprintf('Can''t load ADOValvecalib.mat, setting carrier to 0.5\n')
-    vCalib=0.5; %flow through needle valve 1
-    keyboard
+    vCalib=0.1; %flow through needle valve 1
+    
 end
 
 try
     a = load('E:\Turner lab\Matlab_scripts\Olfactometer\NewOlfactometer\calibration\sec_dil_calib.mat');
     secCalib = a.calib_second_dilution;
+    
 catch
     fprintf('Can''t load sec_dil_calib.mat, setting secondDilution to 4500mLpm\n')
-    secCalib=4500; %flow through needle valve 1
+    secCalib=4900; %flow through needle valve 1
 end
 
 setFlow(AC,sum(firstDilution)-vCalib,'C')
