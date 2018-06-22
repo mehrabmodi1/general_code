@@ -165,10 +165,31 @@ for pp=1:length(params) %this loop is not for trials
     
     
     %checking for LED and elec odours and creating new fields in the output params matrix for LED and ELEC stim.
+    led_ods = params_spec.led_odours;
+    elec_ods = params_spec.elec_odours;
     
-    
+    for tr_n = 1:size(params, 2)
+        %LED
+        if isempty(intersect(params(tr_n).odours, led_ods)) == 0
+            params(tr_n).led_on = 1;
+        elseif isempty(intersect(params(tr_n).odours, led_ods)) == 1
+            params(tr_n).led_on = 0;
+        else
+        end
+
+
+        %elec
+        if isempty(intersect(params(tr_n).odours, elec_ods)) == 0
+            params(tr_n).elec_on = 1;
+        elseif isempty(intersect(params(tr_n).odours, elec_ods)) == 1
+            params(tr_n).elec_on = 0;
+        else
+        end
+
+    end
+   
     
 end
-keyboard
+
 end
 
