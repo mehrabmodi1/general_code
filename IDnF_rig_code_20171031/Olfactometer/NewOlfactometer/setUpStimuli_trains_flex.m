@@ -124,7 +124,7 @@ for pp=1:length(params) %this loop is not for trials
                          if pulse_type == 0
                             curr_pulse = [curr_duration, curr_duration];
                         elseif pulse_type == 1
-                            curr_pulse = [curr_duration, curr_int_pul_i];
+                            curr_pulse = [curr_int_pul_i, curr_duration];
                         else
                         end
                     else
@@ -156,11 +156,19 @@ for pp=1:length(params) %this loop is not for trials
         params(trial_n).odourNames = params_spec.odourNames;
     end
     
-    %creating new fields in params to keep track of completed trials
+    %creating new fields in params to keep track of completed trials and
+    %whether multi-pulses are 50% duty-cycle.
     for trial_n = 1:n_trials
         params(trial_n).trs_done = 0;
+        params(trial_n).pulse_type = pulse_type;
     end
     
+    
+    %checking for LED and elec odours and creating new fields in the output params matrix for LED and ELEC stim.
+    
+    
+    
 end
+keyboard
 end
 
