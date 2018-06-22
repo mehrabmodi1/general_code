@@ -28,7 +28,7 @@ if exist([save_dir 'params.mat']) == 2
     elseif strcmp(button, 'Append') == 1
         params_mat_old = load([save_dir 'params.mat']);
         params_mat_old = params_mat_old.params_mat;
-        [params_mat_new, params_spec] = setUpStimuli_trains(params);
+        [params_mat_new, params_spec] = setUpStimuli_trains_flex(params);
         params_mat = append_params(params_mat_old, params_mat_new);
         n_trials = size(params_mat, 2);
         %identifying last tr completed
@@ -62,8 +62,8 @@ if isempty(AC) == 1
     AC = connectAlicat();
 end
     
-
-initialiseFlows_MM(AC, 0.1, 4500);      %initialising flows for the first time just to set things up. 
+secondDilution1 = params_mat(1).secondDilution;
+initialiseFlows_MM(AC, 0.1, secondDilution1);      %initialising flows for the first time just to set things up. 
 od_inj_dur = 24;                         %this is the duration in s for which MFC B flow is injected into an odor vial to fully fill the system with odor. Stim_latency has to be longer than this.
 
 for trial_n = start_tr:n_trials
@@ -78,9 +78,17 @@ for trial_n = start_tr:n_trials
     od_name = params_mat(trial_n).odourNames{odor_n};
     post_od_scan_dur = params_mat(trial_n).post_od_scan_dur;
     pulse_train = params_mat(trial_n).rand_train;
-    tot_tr_dur = max([stim_latency, od_inj_dur]) + duration + ...
-        (duration + inter_pulse_interval).*(n_od_pulses - 1) + post_od_scan_dur;
-     
+    pulse_type = params_mat(trial_n).pulse_type;
+    
+    if pulse_type == 1 
+        tot_tr_dur = max([stim_latency, od_inj_dur]) + duration + ...
+            (duration + inter_pulse_interval).*(n_od_pulses - 1) + post_od_scan_dur;
+    elseif pulse_type == 0
+        tot_tr_dur = max([stim_latency, od_inj_dur]) + duration + ...
+            (duration + duration).*(n_od_pulses - 1) + post_od_scan_dur;
+    else
+    end
+    
     if scale_isi == 0
         isi = params_mat(trial_n).isi;
     elseif scale_isi == 1
@@ -117,6 +125,7 @@ for trial_n = start_tr:n_trials
     s.DurationInSeconds = tot_tr_dur;
     lh = addlistener(s,'DataAvailable', @aq_data_bk);
     s.NotifyWhenDataAvailableExceeds = acq_rate.*tot_tr_dur;
+    
     initialiseFlows_MM(AC, firstDilution, secondDilution);  %setting MFC flow rates for required conc.
     
     tic
