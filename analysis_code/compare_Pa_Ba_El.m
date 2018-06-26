@@ -17,8 +17,8 @@ for list_n = 1:size(dataset_list_paths, 1)
     curr_dir_list_path = dataset_list_paths{list_n, 1};
     [del, dir_list] = xlsread(curr_dir_list_path, 1);        %list of Suite2P results directories
     n_dirs = size(dir_list, 1);
-    dataset_list_name = findstr(curr_dir_list_path, '_');
-    dataset_list_name = curr_dir_list_path(dataset_list_name(end):(end - 4));
+    dataset_list_name = findstr(curr_dir_list_path, 'El_');
+    dataset_list_name = curr_dir_list_path((dataset_list_name + 1):(end - 4));
     dataset_list_name(1) = [];
     
     %loop to go through all experiment datasets listed in list file
@@ -281,7 +281,7 @@ for list_n = 1:size(dataset_list_paths, 1)
             t_vec(1) = [];
             plot(t_vec, dists_saved, 'lineWidth', 2)
             ax_vals = axis;
-            ax_vals(4) = 0.8;
+            ax_vals(4) = 1.2;
             axis(ax_vals);
             if dur_n == 1
                 legend('PA-BA', 'PA-EL', 'BA-EL', 'Location', 'northwest')
