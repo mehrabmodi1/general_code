@@ -1,8 +1,9 @@
 clear all
 close all
 
-dataset_list_paths = [{'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Yoshi_PaBaEl_d5HT1b_Gamma.xls'};...
-                      {'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Yoshi_PaBaEl_c739_AlphaBeta.xls'} ...
+dataset_list_paths = [%{'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Yoshi_PaBaEl_d5HT1b_Gamma.xls'};...
+                      %{'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Yoshi_PaBaEl_c739_AlphaBeta.xls'} ...
+                      {'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Yoshi_PaBaEl_d5HT1b_Gamma_low_conc.xls'};...
                       ];
 
 suppress_plots = 1;
@@ -116,17 +117,17 @@ for list_n = 1:size(dataset_list_paths, 1)
                 
                 %saving mean resp traces from intersections/non_intersections
                 for pairmem = 1:2                            %only looking at members of the current odour pair
-                    odor_np = od_pair_list(pairmem);
+                    odor_np = od_pair_list(odor_pair_n, pairmem);
                     odor_ni = odor_list(odor_np);
                     curr_trs = find(stim_mat_simple(:, 2) == odor_ni & stim_mat_simple(:, 3) == curr_dur);
                     
                     %separately saving responses of each cell to each pairmember
                     if pairmem == 1
-                        int_resp_mat1 = mean(dff_data_mat_f(:, intersect(sig_list1, sig_list2), curr_trs), 3);      
-                        non_int_resp_mat1 = mean(dff_data_mat_f(:, setxor(sig_list1, sig_list2), curr_trs), 3);
+                        int_resp_mat1 = mean(dff_data_mat_f(:, intersect(sig_list1, sig_list2), curr_trs), 3, 'omitnan');      
+                        non_int_resp_mat1 = mean(dff_data_mat_f(:, setxor(sig_list1, sig_list2), curr_trs), 3, 'omitnan');
                     elseif pairmem == 2
-                        int_resp_mat2 = mean(dff_data_mat_f(:, intersect(sig_list1, sig_list2), curr_trs), 3);
-                        non_int_resp_mat2 = mean(dff_data_mat_f(:, setxor(sig_list1, sig_list2), curr_trs), 3);
+                        int_resp_mat2 = mean(dff_data_mat_f(:, intersect(sig_list1, sig_list2), curr_trs), 3, 'omitnan');
+                        non_int_resp_mat2 = mean(dff_data_mat_f(:, setxor(sig_list1, sig_list2), curr_trs), 3, 'omitnan');
                     else
                     end
                 end
@@ -143,7 +144,7 @@ for list_n = 1:size(dataset_list_paths, 1)
                     saved_non_int_resps_60s_1 = [saved_non_int_resps_60s_1, non_int_resp_mat1];
                     saved_non_int_resps_60s_2 = [saved_non_int_resps_60s_2, non_int_resp_mat2];
                     
-                    
+
                 else
                 end
                 
@@ -157,7 +158,13 @@ for list_n = 1:size(dataset_list_paths, 1)
                 sig_list = find(sig_cell_mat(:, odor_list(odor_n), dur_n) == 1);
                 odor_ni = odor_list(odor_n);
                 curr_trs = find(stim_mat_simple(:, 2) == odor_ni & stim_mat_simple(:, 3) == curr_dur);
-                stim_frs = compute_stim_frs(stim_mat, curr_trs(1), frame_time);
+                
+                try
+                    stim_frs = compute_stim_frs(stim_mat, curr_trs(1), frame_time);
+                catch
+                    keyboard
+                end
+                
                 ave_mat = mean(dff_data_mat(stim_frs(1):(stim_frs(2) + round(5./frame_time) ), sig_list, curr_trs), 3, 'omitnan');
                 pk_resps = max(ave_mat, [], 1, 'omitnan');
                 pk_resps = reshape(pk_resps, [], 1);
@@ -290,7 +297,7 @@ for list_n = 1:size(dataset_list_paths, 1)
             add_stim_bar(1, stim_frs, [0.5, 0.5, 0.5])
             disp(dataset_list_name)
             
-            %keyboard
+            keyboard
             close figure 1
             
             
@@ -307,6 +314,12 @@ for list_n = 1:size(dataset_list_paths, 1)
     saved_an_results.non_int_resps_1s = cat(3, saved_non_int_resps_1s_1, saved_non_int_resps_1s_2);
     saved_an_results.int_resps_60s = cat(3, saved_int_resps_60s_1, saved_int_resps_60s_2);
     saved_an_results.non_int_resps_60s = cat(3, saved_non_int_resps_60s_1, saved_non_int_resps_60s_2);
+    
+    tr_1s = find(stim_mat_simple(:, 3) == 1);
+    tr_60s = find(stim_mat_simple(:, 3) == 60);
+    stim_frs_saved(1, :) = compute_stim_frs(stim_mat, tr_1s(1), frame_time);
+    stim_frs_saved(2, :) = compute_stim_frs(stim_mat, tr_60s(1), frame_time);
+    saved_an_results.stim_frs_saved = stim_frs_saved;
     
     save(['C:\Data\Data\Analysed_data\Analysis_results\Yoshi_PaBaEl\', dataset_list_name, '_an_results.mat'], 'saved_an_results');
     

@@ -1,9 +1,6 @@
 clear all
 close all
 
-%PICK UP THREAD HERE
-%Figure out how to plot saved int and non_int traces
-
 root_path = 'C:\Data\Data\Analysed_data\Analysis_results\Yoshi_PaBaEl\';
 cd(root_path);
 result_file_list = dir('*.mat');
@@ -11,6 +8,11 @@ result_file_list = dir('*.mat');
 
 pair_names = [{'PA-BA'}, {'PA-EL'}, {'BA-EL'}];
 odor_names = [{'PA'}, {'BA'}, {'EL'}];
+
+a = colormap('bone');
+global greymap
+greymap = flipud(a);
+color_vec = setup_std_color_vec(3);
 
 for result_file_n = 1:size(result_file_list, 1)
     saved_an_results = load([root_path, result_file_list(result_file_n).name]);
@@ -25,6 +27,11 @@ for result_file_n = 1:size(result_file_list, 1)
     intersection_mat = saved_an_results.sig_intersections;
     intersection_mat_n = saved_an_results.sig_intersections_n;
     non_int_mat = saved_an_results.sig_nonintersections;
+    int_resps_mat_1s = saved_an_results.int_resps_1s;
+    non_int_resps_mat_1s = saved_an_results.non_int_resps_1s;
+    int_resps_mat_60s = saved_an_results.int_resps_60s;
+    non_int_resps_mat_60s = saved_an_results.non_int_resps_60s;
+    stim_frs = saved_an_results.stim_frs_saved;
     
     for dur_n = 1:2
         mean_color = [0.84, 0.38, 0.3];
@@ -90,5 +97,106 @@ for result_file_n = 1:size(result_file_list, 1)
     ylabel('frac. significant responses')
     fig_wrapup(5)
     
+    %plotting resp mats of cells sorted by time of center of mass
+        
+    %sorting cells by times of centers of mass of response vectors
+    int_1s_CoM_vec = sum(int_resps_mat_1s(stim_frs(1, 1):(stim_frs(1, 2) + 200), :, 1), 1, 'omitnan');
+    int_resps_mat_1s_1 = sort_by_vec(int_resps_mat_1s(:, :, 1), int_1s_CoM_vec, 1);
+    int_resps_mat_1s_2 = sort_by_vec(int_resps_mat_1s(:, :, 2), int_1s_CoM_vec, 1);
+    
+    int_60s_CoM_vec = sum(int_resps_mat_60s(stim_frs(2, 1):(stim_frs(2, 2) + 50), :, 1), 1, 'omitnan');
+    int_resps_mat_60s_1 = sort_by_vec(int_resps_mat_60s(:, :, 1), int_60s_CoM_vec, 1);
+    int_resps_mat_60s_2 = sort_by_vec(int_resps_mat_60s(:, :, 2), int_60s_CoM_vec, 1);
+    
+    non_int_1s_CoM_vec = sum(non_int_resps_mat_1s(stim_frs(1, 1):(stim_frs(1, 2) + 200), :, 1), 1, 'omitnan');
+    non_int_resps_mat_1s_1 = sort_by_vec(non_int_resps_mat_1s(:, :, 1), non_int_1s_CoM_vec, 1);
+    non_int_resps_mat_1s_2 = sort_by_vec(non_int_resps_mat_1s(:, :, 2), non_int_1s_CoM_vec, 1);
+    
+    non_int_60s_CoM_vec = sum(non_int_resps_mat_60s(stim_frs(2, 1):(stim_frs(2, 2) + 50), :, 1), 1, 'omitnan');
+    non_int_resps_mat_60s_1 = sort_by_vec(non_int_resps_mat_60s(:, :, 1), non_int_60s_CoM_vec, 1);
+    non_int_resps_mat_60s_2 = sort_by_vec(non_int_resps_mat_60s(:, :, 2), non_int_60s_CoM_vec, 1);
+    
+    figure(6)
+    imagesc(int_resps_mat_1s_1', [0, 2])
+    colormap(greymap)
+    ylabel('cell number')
+    set_xlabels_time(6, 0.099, 2)
+    fig_wrapup(6)
+    add_stim_bar(6, stim_frs(1, :), [0.5, 0.5, 0.5]);
+    
+    
+    figure(7)
+    imagesc(int_resps_mat_1s_2', [0, 2])
+    colormap(greymap)
+    ylabel('cell number')
+    set_xlabels_time(7, 0.099, 2)
+    fig_wrapup(7)
+    add_stim_bar(7, stim_frs(1, :), [0.5, 0.5, 0.5]);
+    
+    
+    figure(8)
+    imagesc(int_resps_mat_60s_1', [0, 2])
+    colormap(greymap)
+    ylabel('cell number')
+    set_xlabels_time(8, 0.099, 2)
+    fig_wrapup(8)
+    add_stim_bar(8, stim_frs(2, :), [0.5, 0.5, 0.5]);
+    
+    
+    figure(9)
+    imagesc(int_resps_mat_60s_2', [0, 2])
+    colormap(greymap)
+    ylabel('cell number')
+    set_xlabels_time(9, 0.099, 2)
+    %cb = colorbar('eastoutside');
+    fig_wrapup(9)
+    add_stim_bar(9, stim_frs(2, :), [0.5, 0.5, 0.5]);
+    
+    figure(10)
+    imagesc(non_int_resps_mat_1s_1', [0, 2])
+    colormap(greymap)
+    ylabel('cell number')
+    set_xlabels_time(10, 0.099, 2)
+    fig_wrapup(10)
+    add_stim_bar(10, stim_frs(1, :), [0.5, 0.5, 0.5]);
+    
+    
+    figure(11)
+    imagesc(non_int_resps_mat_1s_2', [0, 2])
+    colormap(greymap)
+    ylabel('cell number')
+    set_xlabels_time(11, 0.099, 2)
+    fig_wrapup(11)
+    add_stim_bar(11, stim_frs(1, :), [0.5, 0.5, 0.5]);
+    
+    
+    figure(12)
+    imagesc(non_int_resps_mat_60s_1', [0, 2])
+    colormap(greymap)
+    ylabel('cell number')
+    set_xlabels_time(12, 0.099, 2)
+    fig_wrapup(12)
+    add_stim_bar(12, stim_frs(2, :), [0.5, 0.5, 0.5]);
+    
+    
+    figure(13)
+    imagesc(non_int_resps_mat_60s_2', [0, 2])
+    colormap(greymap)
+    ylabel('cell number')
+    set_xlabels_time(13, 0.099, 2)
+    %cb = colorbar('eastoutside');
+    fig_wrapup(13)
+    add_stim_bar(13, stim_frs(2, :), [0.5, 0.5, 0.5]);
+    
+    keyboard
+    
+    close figure 6
+    close figure 7
+    close figure 8
+    close figure 9
+    close figure 10
+    close figure 11
+    close figure 12
+    close figure 13
 end
-[h, p] = ttest2(resp_vec1, resp_vec2)
+[h, p] = ttest2(resp_vec1, resp_vec2)   %testing for sig difference in ave resp size
