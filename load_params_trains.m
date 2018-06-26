@@ -57,9 +57,18 @@ if datenum_check == 1
         for trial_n_t = 1:n_trials_t
             curr_datenum_t = tif_datenums(trial_n_t).tstamp;
             curr_datenum_p = datetime(curr_datenum_p,'ConvertFrom','datenum');
-            match_mat(trial_n_p, trial_n_t) = seconds(curr_datenum_p - curr_datenum_t);      %calculating time elapsed from param time stamp to tif time stamp             
+            %making sure there's no am pm error
+            if (curr_datenum_p - curr_datenum_t) < hours(11)
+                match_mat(trial_n_p, trial_n_t) = seconds(curr_datenum_p - curr_datenum_t);      %calculating time elapsed from param time stamp to tif time stamp
+            elseif (curr_datenum_p - curr_datenum_t) > hours(11)
+                match_mat(trial_n_p, trial_n_t) = seconds(abs(curr_datenum_p - curr_datenum_t - hours(12)));      %calculating time elapsed from param time stamp to tif time stamp
+            else
+            end
         end   
     end
+    
+    %PICK UP THREAD HERE
+    %1. check what happens at the transition from tr 16 to tr 17
     
     %finding matches for each param time_stamp
     saved_matches = [];
@@ -96,7 +105,7 @@ if datenum_check == 1
     tif_num = saved_matches(:, 2);
     par_num = saved_matches(:, 3);    
     n_matched_trials = length(par_num);
-    
+
 %     figure(1)
 %     imagesc(match_mat)
 %     xlabel('tif trial n');
