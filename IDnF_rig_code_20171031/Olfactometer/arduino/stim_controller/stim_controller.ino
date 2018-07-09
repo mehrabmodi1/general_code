@@ -5,11 +5,16 @@ const byte numChars = 32;
 char receivedChars[numChars];
 
 boolean newData = false;
-const int ledPin = 5;
+const int led_pin = 5;
+const int elec_pin = 6;
+const int trig_pin = 4;
+int trig_state = 0;
 
 void setup() {
     
-    pinMode(ledPin, OUTPUT);
+    pinMode(led_pin, OUTPUT);
+    pinMode(elec_pin, OUTPUT);
+    pinMode(trig_pin, INPUT);
     Serial.begin(9600);
     Serial.println("<Arduino is ready>");
 }
@@ -60,19 +65,26 @@ void loop()
           //delivering stimulus pulses
           int pulse_n = 0;
 
-          //insert trigger wait loop here
-          
+          //waiting for scan trigger
+          while (trig_state == LOW) {trig_state = digitalRead(trig_pin);}
+          delay(init_delay_ms); //waiting for initial delay after scan trigger
+
+          //delivering stim pulses       
           delay(init_delay_ms);
           while (pulse_n < n_pulses)
           {
-                digitalWrite(ledPin, HIGH);
-                delay(on_dur);
-                digitalWrite(ledPin, LOW);
-                delay(off_dur);
+                if (LED_elec == 0) {digitalWrite(led_pin, HIGH);}
+                if (LED_elec == 1) {digitalWrite(elec_pin, HIGH);}
+                delay(on_dur);    //pulse on duration
+                if (LED_elec == 0) {digitalWrite(led_pin, LOW);}
+                if (LED_elec == 1) {digitalWrite(elec_pin, LOW);}
+                delay(off_dur);  //pulse off duration
+                
                 pulse_n = pulse_n + 1;
           }
-          //This resets the state to waiting for new data. 
+          //This resets the state to waiting for new data and trigger.
           param_n = 1;
+          trig_state = 0;
           
     }
 
