@@ -4,7 +4,7 @@ stim_ard = serial('COM13');
 set(stim_ard,'BaudRate',9600);
 fopen(stim_ard);
 
-pause(2);       %wiating for matlab to open the serial comm port
+pause(2);       %waiting for matlab to open the serial comm port
 
 %communicating stimulus parameters to stim arduino
 fprintf(stim_ard, '%s', ['<', num2str(LED_elec), '>']);              %specifying LED or elec stim (0 or 1 resp.)
