@@ -186,12 +186,11 @@ for pp=1:length(params) %this loop is not for trials
         else
         end
         
-        %adding other led/elec stimulus related parameters which will only
-        %be used if elec_on == 1 or led_on == 1
+        %other led/elec stimulus related parameters 
         params(tr_n).stim_init_delay_ms = params_spec.stim_init_delay_ms;
         params(tr_n).stim_dur = params_spec.stim_dur;
         params(tr_n).stim_freq = params_spec.stim_freq;
-        params(tr_n).st_duty_cyc = params_spec.st_duty_cyc;
+        params(tr_n).st_duty_cyc = params_spec.st_duty_cyc; %60s in ms
         
     end
    
