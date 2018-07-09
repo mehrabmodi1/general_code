@@ -28,7 +28,7 @@ void loop()
     int freq_hz = 0;
     int duty_cycle_pc = 0;
     
-    //reading in the 5 stimulus control parameters 
+    //reading in the five stimulus control parameters 
     while (param_n < 5)
     {
           recvWithStartEndMarkers();
@@ -41,10 +41,10 @@ void loop()
 
     }
 
-    //doing stuff with read parameters
-    
+    //beginning stimulus delivery only if all five parameters have been received
     if (param_n == 5)
-    {
+    {     
+          //computing stimulus delivery variables
           int cyc_dur = 1000/freq_hz;
           Serial.print("cyc_dur ");
           Serial.println(cyc_dur);
@@ -82,7 +82,7 @@ void loop()
                 
                 pulse_n = pulse_n + 1;
           }
-          //This resets the state to waiting for new data and trigger.
+          //This resets the state to waiting for new parameter data and a new scan trigger.
           param_n = 1;
           trig_state = 0;
           
