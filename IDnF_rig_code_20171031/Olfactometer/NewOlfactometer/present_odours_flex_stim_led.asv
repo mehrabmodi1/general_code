@@ -86,21 +86,15 @@ for trial_n = start_tr:n_trials
     if params_mat(trial_n).led_on == 1 || params_mat(trial_n).elec_on == 1      %condition to check if LED or elec stim is being delivered on current trial
         if params_mat(trial_n).led_on == 1
             LED_elec = 0;
-            %Warning User to change microscope state for stimulus delivery
-             del = input('WARNING: About to deliver LED stimulus, please move dichroic and press enter.');
-
         elseif params_mat(trial_n).elec_on == 1
             LED_elec = 1;
         end
         init_delay_ms = params_mat(trial_n).stim_init_delay_ms;
         duration_ms = params_mat(trial_n).stim_dur;
-        freq_hz = params_mat(trial_n).stim_freq;
-        duty_cyc_percent = params_mat(trial_n).st_duty_cyc;
+        freq_hz = params_mat(trial_n).
         
-        %communicating stimulus parameters to Arduino
-        stim_arduino_serial_comm(LED_elec, init_delay_ms, duration_ms, freq_hz, duty_cyc_percent);
-        keyboard
-            
+        stim_arduino_serial_comm(LED_elec, init_delay_ms, duration_ms, freq_hz, duty_cyc_percent)
+    
     else
     end
     
@@ -117,7 +111,6 @@ for trial_n = start_tr:n_trials
         isi = params_mat(trial_n).isi;
     elseif scale_isi == 1
         isi = max([60, ((tot_tr_dur - stim_latency - post_od_scan_dur).*3)]);         %scales isi to stim duration, with a minimum isi of 60s
-        isi = min([isi, 130]);                                                        %making sure scaled isi doesn't exceed 130s
         params_mat(trial_n).isi = isi;
     end
     
