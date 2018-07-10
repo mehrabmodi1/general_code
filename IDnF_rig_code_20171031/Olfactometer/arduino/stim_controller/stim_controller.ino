@@ -9,6 +9,13 @@ const int led_pin = 5;
 const int elec_pin = 6;
 const int trig_pin = 4;
 int trig_state = 0;
+int param_n = 0;    //this variable encodes the number of newly received param values
+int LED_elec = 0;
+float init_delay_ms = 0;
+float duration_ms = 0;
+float freq_hz = 0;
+float duty_cycle_pc = 0;
+
 
 void setup() {
     
@@ -21,12 +28,7 @@ void setup() {
 
 void loop() 
 {   
-    int param_n = 0;    //this variable encodes the number of newly received param values
-    int LED_elec = 0;
-    int init_delay_ms = 0;
-    int duration_ms = 0;
-    int freq_hz = 0;
-    int duty_cycle_pc = 0;
+    
     
     //reading in the five stimulus control parameters 
     while (param_n < 5)
@@ -34,10 +36,10 @@ void loop()
           recvWithStartEndMarkers();
           
           if (newData == true && param_n == 0) {LED_elec = atoi(receivedChars); param_n = param_n + 1; showNewData(); Serial.println(param_n);}
-          if (newData == true && param_n == 1) {init_delay_ms = atoi(receivedChars); param_n = param_n + 1; showNewData(); Serial.println(param_n);}
-          if (newData == true && param_n == 2) {duration_ms = atoi(receivedChars); param_n = param_n + 1; showNewData(); Serial.println(param_n);}
-          if (newData == true && param_n == 3) {freq_hz = atoi(receivedChars); param_n = param_n + 1; showNewData(); Serial.println(param_n);}
-          if (newData == true && param_n == 4) {duty_cycle_pc = atoi(receivedChars); param_n = param_n + 1; showNewData(); Serial.println(param_n);}      
+          if (newData == true && param_n == 1) {init_delay_ms = atof(receivedChars); param_n = param_n + 1; showNewData(); Serial.println(param_n);}
+          if (newData == true && param_n == 2) {duration_ms = atof(receivedChars); param_n = param_n + 1; showNewData(); Serial.println(param_n);}
+          if (newData == true && param_n == 3) {freq_hz = atof(receivedChars); param_n = param_n + 1; showNewData(); Serial.println(param_n);}
+          if (newData == true && param_n == 4) {duty_cycle_pc = atof(receivedChars); param_n = param_n + 1; showNewData(); Serial.println(param_n);}      
 
     }
 
@@ -45,7 +47,7 @@ void loop()
     if (param_n == 5)
     {     
           //computing stimulus delivery variables
-          int cyc_dur = 1000/freq_hz;
+          float cyc_dur = (float) 1000/(float)freq_hz;
           Serial.print("cyc_dur ");
           Serial.println(cyc_dur);
 
@@ -58,19 +60,19 @@ void loop()
           Serial.print("off_dur ");
           Serial.println(off_dur);
           
-          int n_pulses = duration_ms/cyc_dur;
+          float n_pulses = (float)duration_ms/(float)cyc_dur;
           Serial.print("n_pulses");
           Serial.println(n_pulses);
 
+
           //delivering stimulus pulses
-          int pulse_n = 0;
+          float pulse_n = 0;
 
           //waiting for scan trigger
           while (trig_state == LOW) {trig_state = digitalRead(trig_pin);}
           delay(init_delay_ms); //waiting for initial delay after scan trigger
 
           //delivering stim pulses       
-          delay(init_delay_ms);
           while (pulse_n < n_pulses)
           {
                 if (LED_elec == 0) {digitalWrite(led_pin, HIGH);}
@@ -82,10 +84,10 @@ void loop()
                 
                 pulse_n = pulse_n + 1;
           }
-          //This resets the state to waiting for new parameter data and a new scan trigger.
+          //This resets the state to waiting for new parameter data and a new scan  trigger.
           param_n = 1;
           trig_state = 0;
-          
+         
     }
 
 }
