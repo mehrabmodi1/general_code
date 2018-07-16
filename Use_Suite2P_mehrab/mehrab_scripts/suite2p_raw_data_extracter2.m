@@ -1,4 +1,4 @@
- clear all
+clear all
 close all
 
 results_direc = 'E:\Data\Analysed_data\Suite2p\Results\';
