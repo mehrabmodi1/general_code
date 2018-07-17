@@ -15,7 +15,7 @@ function [good_trials, bad_trials] = find_bad_trials_res(direc)
             frames = ScanImageTiffReader([direc f_name]).data();
         catch
             continue
-            else
+            
         end
         ave_frame = nanmean(frames, 3);         %calculating one averaged frame for each trial
         
