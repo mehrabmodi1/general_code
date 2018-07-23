@@ -2,7 +2,7 @@ clear all
 close all
 
 dataset_list_paths = [...
-                    {'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Yoshi_PaBaEl_MBONalpha1.xls'};...
+                    {'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Yoshi_PaBaEl_MBONalpha1_lowUS.xls'};...
 
 
                 ];
@@ -62,7 +62,30 @@ for list_n = 1:size(dataset_list_paths, 1)
         [resp_areas, sig_trace_mat, sig_trace_mat_old, sig_cell_mat] = cal_sig_responses_res(dff_data_mat, stim_mat, stim_mat_simple, curr_dir, frame_time);
         sig_cells = find(sum(sum(sig_cell_mat, 3), 2) > 0);         %list of all cells significant for any odor for any duration
         
-        imagesc(squeeze(dff_data_mat(:, 1, :))', [0, 1])
+        figure(1)
+        imagesc(squeeze(dff_data_mat_f(:, 1, :))', [0, 1])
+        stim_frs = compute_stim_frs(stim_mat, 1, frame_time);
+        xlabel('trial n')
+        set_xlabels_time(1, frame_time, 10)
+        fig_wrapup(1);
+        add_stim_bar(1, stim_frs, [0.5, 0.5, 0.5])
+        
+        
+        for odor_n = 1:n_odors
+            odor_ni = odor_list(odor_n);
+            curr_trs = find(stim_mat_simple(:, 2) == odor_ni);
+            figure(2)
+            imagesc(squeeze(dff_data_mat_f(:, 1, curr_trs))');
+            colormap(greymap)
+            stim_frs = compute_stim_frs(stim_mat, 1, frame_time);
+            odor_name = odor_names{odor_ni, 1};
+            ylabel([odor_name, ' trial n'])
+            set_xlabels_time(1, frame_time, 10)
+            fig_wrapup(2);
+            add_stim_bar(2, stim_frs, [0.5, 0.5, 0.5])
+            del = input('press enter for next odor.');
+            close figure 2
+        end
         
         keyboard
        
