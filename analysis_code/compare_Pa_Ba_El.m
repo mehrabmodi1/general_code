@@ -3,7 +3,7 @@ close all
 
 dataset_list_paths = [%{'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Yoshi_PaBaEl_d5HT1b_Gamma.xls'};...
                       %{'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Yoshi_PaBaEl_c739_AlphaBeta.xls'} ...
-                      %{'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Yoshi_PaBaEl_d5HT1b_Gamma_low_conc.xls'};...
+                      {'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Yoshi_PaBaEl_d5HT1b_Gamma_low_conc.xls'};...
                       %{'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Yoshi_PaBaEl_c739_AlphaBeta_low_conc.xls'};...
                       {'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Yoshi_PaBaEl_c305a_AlphapBetap_low_conc.xls'};...
                       ];
@@ -97,6 +97,17 @@ for list_n = 1:size(dataset_list_paths, 1)
         %analysing only the first 30 trials
         dff_data_mat(:, :, 31:end) = [];
         
+        %saving stuff for sharing data
+        if list_n == 1
+            share_path = ['C:\Data\Data\Analysed_data\data_sharing\Gamma\fly' int2str(dir_n)];
+        elseif list_n == 2
+            share_path = ['C:\Data\Data\Analysed_data\data_sharing\AlphaBeta\fly' int2str(dir_n)];
+        else
+        end
+        mkdir(share_path);
+        save([share_path, '\dFF_data.mat'], 'dff_data_mat_f');
+        save([share_path, '\sig_cells.mat'], 'sig_cell_mat');
+        save([share_path, '\stim_mat.mat'], 'stim_mat')
         
         %% Comparing basic stuff
         n_responders = sum(sig_cell_mat(:, odor_list, :), 1, 'omitnan');
@@ -299,7 +310,7 @@ for list_n = 1:size(dataset_list_paths, 1)
             add_stim_bar(1, stim_frs, [0.5, 0.5, 0.5])
             disp(dataset_list_name)
             
-            keyboard
+            %keyboard
             close figure 1
             
             
