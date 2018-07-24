@@ -1,7 +1,9 @@
 clear all
 close all
 
-root_path = 'C:\Data\Data\Analysed_data\Analysis_results\Yoshi_PaBaEl\';
+%root_path = 'C:\Data\Data\Analysed_data\Analysis_results\Yoshi_PaBaEl\';
+root_path = 'C:\Data\Data\Analysed_data\Analysis_results\Yoshi_PaBaEl_lowflux\';
+
 cd(root_path);
 result_file_list = dir('*.mat');
 [del, odor_names] = xlsread('C:\Data\Code\general_code\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList.xls', 1);
@@ -24,7 +26,7 @@ for result_file_n = 1:size(result_file_list, 1)
     
     %plotting sparsenesses
     sparseness_mat = saved_an_results.sparsenesses;
-    intersection_mat = saved_an_results.sig_intersections;
+    intersection_mat = saved_an_results.sig_intersections; 
     intersection_mat_n = saved_an_results.sig_intersections_n;
     non_int_mat = saved_an_results.sig_nonintersections;
     int_resps_mat_1s = saved_an_results.int_resps_1s;
@@ -72,7 +74,7 @@ for result_file_n = 1:size(result_file_list, 1)
         title([dataset_name, ', stimulus duration ' num2str(od_dur_list(dur_n)), 's'])
         axis([0, 3, 0, 0.5]);
         fig_wrapup(4)
-        
+        keyboard
     end
     
     %plotting distributions of significant response sizes
@@ -81,10 +83,10 @@ for result_file_n = 1:size(result_file_list, 1)
     [counts] = hist(resp_vec, bins);
     counts = counts./sum(counts);
     figure(5)
-    if strcmp(dataset_name, 'AlphaBeta') == 1
+    if isempty(findstr(dataset_name, 'AlphaBeta')) == 0
         line_col = [0.9, 0.4, 0.3];
         resp_vec1 = resp_vec;
-    elseif strcmp(dataset_name,'Gamma') == 1
+    elseif isempty(findstr(dataset_name,'Gamma')) == 0
         line_col = [0.3, 0.9, 0.4];
         resp_vec2 = resp_vec;
     else

@@ -1,3 +1,0 @@
-mat_ser = load('E:\Data\Analysed_data\Suite2p\Results\20180515\OK107_x_jGCaMP7f_freq_series\1\extracted_raw_data_mat_old');
-
-mat_par = load('E:\Data\Analysed_data\Suite2p\Results\20180515\OK107_x_jGCaMP7f_freq_series\1\extracted_raw_data_mat');

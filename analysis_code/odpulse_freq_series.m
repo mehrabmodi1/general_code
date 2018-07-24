@@ -11,7 +11,7 @@ a = colormap('bone');
 global greymap
 greymap = flipud(a);
 
-suppress_plots = 1;
+suppress_plots = 0;
 
 %loop to go through all experiment datasets listed in list file
 for dir_n = 1:n_dirs

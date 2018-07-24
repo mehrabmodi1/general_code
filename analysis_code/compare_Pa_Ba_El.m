@@ -3,7 +3,9 @@ close all
 
 dataset_list_paths = [%{'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Yoshi_PaBaEl_d5HT1b_Gamma.xls'};...
                       %{'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Yoshi_PaBaEl_c739_AlphaBeta.xls'} ...
-                      {'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Yoshi_PaBaEl_d5HT1b_Gamma_low_conc.xls'};...
+                      %{'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Yoshi_PaBaEl_d5HT1b_Gamma_low_conc.xls'};...
+                      %{'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Yoshi_PaBaEl_c739_AlphaBeta_low_conc.xls'};...
+                      {'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Yoshi_PaBaEl_c305a_AlphapBetap_low_conc.xls'};...
                       ];
 
 suppress_plots = 1;
@@ -321,8 +323,14 @@ for list_n = 1:size(dataset_list_paths, 1)
     stim_frs_saved(2, :) = compute_stim_frs(stim_mat, tr_60s(1), frame_time);
     saved_an_results.stim_frs_saved = stim_frs_saved;
     
-    save(['C:\Data\Data\Analysed_data\Analysis_results\Yoshi_PaBaEl\', dataset_list_name, '_an_results.mat'], 'saved_an_results');
-    
+    if isempty(findstr(curr_dir_list_path, 'low_conc')) == 0
+        save(['C:\Data\Data\Analysed_data\Analysis_results\Yoshi_PaBaEl_lowflux\', dataset_list_name, '_an_results.mat'], 'saved_an_results');
+    elseif isempty(findstr(curr_dir_list_path, 'low_conc')) == 1
+        save(['C:\Data\Data\Analysed_data\Analysis_results\Yoshi_PaBaEl\', dataset_list_name, '_an_results.mat'], 'saved_an_results');
+    else
+    end
+        
+        
     clear saved_an_results
     clear sparsenesses_saved;
     clear saved_intersections;

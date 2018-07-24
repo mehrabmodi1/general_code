@@ -85,6 +85,7 @@ for odor_n = 1:n_odors
         end
 
         if suppress_plots == 0
+            
             curr_sig_cells = find(peakiness_mat(:, odor_ni, dur_n) > 0.2);
             curr_insig_cells = 1:1:n_cells;
             curr_insig_cells(curr_sig_cells) = [];
