@@ -61,7 +61,7 @@ for do_over = 1:2
                 %dataset, for the user to click on a fixed landmark in each frame
                 %to correct x-y drift, and also indicate bad z-trials
                 for frame_n = 1:size(dataset_stack, 3)
-                    
+                    [xlag, ylag, zbad] = manual_xylags_zbad(dataset_stack);
                 end
                 keyboard
             end
