@@ -17,8 +17,8 @@ params_spec2 = params_spec1;
 params_spec2.duration = 60;
 params_spec2.reps = 1;
 params_spec2.odours = paired_odours;
-params.spec2.stim_init_delay_ms = params_spec2.stimLatency + 750;       %750 ms added on for odor to flow through tube and reach fly
-params.spec2.stim_dur = 60000;
+params_spec2.stim_init_delay_ms = (params_spec2.stimLatency.*1000) + 750;       %750 ms added on for odor to flow through tube and reach fly
+params_spec2.stim_dur = 60000;                      %60s in ms
 
 if led_elec == 0
     params_spec2.led_odours = paired_odours;
