@@ -29,7 +29,7 @@ if exist([save_path, 'extracted_raw_data_mat.mat']) == 2
             disp('all traces already extracted... skipping.')
             del = [];
             save([save_path, 'trace_extraction_complete.mat'], 'del');
-            keyboard
+           
             return
         else
             start_trial = max(done_trs) + 1;

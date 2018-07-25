@@ -38,8 +38,12 @@ else
 end
 
 %shifting stack
-reg_stack = circshift(curr_stack, row_lag, 1);
-reg_stack = circshift(reg_stack, col_lag, 2);
+try 
+    reg_stack = circshift(curr_stack, row_lag, 1);
+    reg_stack = circshift(reg_stack, col_lag, 2);
+catch
+    keyboard
+end
 
 %replacing circularly shifted pixels with nans
 if sign(col_lag) == 1
