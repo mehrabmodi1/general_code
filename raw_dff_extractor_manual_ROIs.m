@@ -31,20 +31,39 @@ for do_over = 1:2
             remove_small_tifs(direc);
             prev_direc = pwd;
             cd([direc]);
+            disp(['Reading in avg stack for ', direc])
             
             if do_over == 1
                 tif_list = dir('*.tif');
-                for tif_n = 1:length(tif_list)
+                if exist([direc, '\tr_avg_stack.mat']) == 2
+                    ave_stack = load([direc, '\tr_avg_stack.mat']);
+                    ave_stack = ave_stack.ave_stack;
+                    if size(ave_stack, 3) < length(tif_list)
+                        tif_start_n = size(ave_stack, 3) + 1;
+                    else
+                        continue
+                    end
+                else
+                end
+                for tif_n = tif_start_n:length(tif_list)
                     curr_stack = ScanImageTiffReader([direc, tif_list(1).name]).data();
                     curr_stack = permute(curr_stack,[2 1 3]);
                     ave_stack(:, :, tif_n) = mean(curr_stack, 3, 'omitnan');
-
+                    disp(['Saving avg stack, tr ', int2str(tif_n), ' done.'])
                 end
                 save([direc, '\tr_avg_stack.mat'], 'ave_stack');
                 clear ave_stack
             elseif do_over == 2
+                dataset_stack = load([direc, '\tr_avg_stack.mat']);
+                dataset_stack = dataset_stack.ave_stack;
                 
-                
+                %looping through an ave frame for each trial in the
+                %dataset, for the user to click on a fixed landmark in each frame
+                %to correct x-y drift, and also indicate bad z-trials
+                for frame_n = 1:size(dataset_stack, 3)
+                    
+                end
+                keyboard
             end
 
         end
