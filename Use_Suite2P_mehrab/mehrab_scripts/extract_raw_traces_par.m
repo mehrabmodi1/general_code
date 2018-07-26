@@ -90,10 +90,16 @@ for trial_n = start_trial:n_trials
     else
         
         if do_registration == 1
-            lag_mat = load([save_path, '\xy_lags.mat']);
-            lat_mat = lag_mat.xy_lags;
+            keyboard	
+            if exist([save_path, '\xy_lags.mat']) == 2
+                lag_mat = load([save_path, '\xy_lags.mat']);
+                lat_mat = lag_mat.xy_lags;
+                
+            else
+                lag_mat = [];
+            end
             keyboard
-            stack = slow_xy_motion_correct(stack, ref_im, ROI_mat);
+            stack = slow_xy_motion_correct(stack, ref_im, ROI_mat, lag_mat);
         else
         end
     end
