@@ -1,4 +1,4 @@
-function reg_stack = slow_xy_motion_correct(curr_stack, ref_im, ROI_mat)
+function reg_stack = slow_xy_motion_correct(curr_stack, ref_im, ROI_mat, lag_mat)
 %syntax: reg_stack = slow_xy_motion_correct(curr_stack, ref_im)
 %This function assumes any x-y motion is slow and negligible within a
 %single trial (tif stack). It then averages all frames in curr_stack and
@@ -22,15 +22,22 @@ function reg_stack = slow_xy_motion_correct(curr_stack, ref_im, ROI_mat)
 % curr_stack = ScanImageTiffReader(stack2_path).data();
 % ref_im = mean(stack1, 3, 'omitnan');
 
-curr_im = mean(curr_stack, 3, 'omitnan');
-c = xcorr2_fft(curr_im, ref_im); 
+if isempty(lag_mat) == 1
+    curr_im = mean(curr_stack, 3, 'omitnan');
+    c = xcorr2_fft(curr_im, ref_im); 
+    [maxr, maxcol] = find(c == max(max(c)));
 
-[maxr, maxcol] = find(c == max(max(c)));
+    %computing lags
+    col_lag = size(curr_stack, 1) - maxr;
+    row_lag = size(curr_stack, 2) - maxcol;
 
-%computing lags
-col_lag = size(curr_stack, 1) - maxr;
-row_lag = size(curr_stack, 2) - maxcol;
-
+%case where lags for this trial have been determined by a manually selected
+%landmark
+elseif isempty(lag_mat) == 0
+    col_lag = round(lag_mat(1, 1));
+    row_lag = round(lag_mat(1, 2));
+end
+    
 %generating a warning if lags more than 20% of size of frame
 if mean([col_lag, row_lag]) > (size(ref_im, 1)./5)
     disp('WARNING: X-Y movement of more than 20% frame size detected.')
@@ -38,27 +45,29 @@ else
 end
 
 %shifting stack
-try 
-    reg_stack = circshift(curr_stack, row_lag, 1);
-    reg_stack = circshift(reg_stack, col_lag, 2);
-catch
-    keyboard
-end
+reg_stack = translate_stack(curr_stack, [row_lag; col_lag], nan);
 
-%replacing circularly shifted pixels with nans
-if sign(col_lag) == 1
-    reg_stack(:, 1:col_lag, :) = nan;
-elseif sign(col_lag) == -1
-    reg_stack(:, (end + col_lag):end, :) = nan;
-else
-end
-
-if sign(row_lag) == 1
-    reg_stack(1:row_lag, :, :) = nan;
-elseif sign(row_lag) == -1
-    reg_stack((end + row_lag):end, :, :) = nan;
-else
-end
+% try 
+%     reg_stack = circshift(curr_stack, row_lag, 1);
+%     reg_stack = circshift(reg_stack, col_lag, 2);
+% catch
+%     keyboard
+% end
+% 
+% %replacing circularly shifted pixels with nans
+% if sign(col_lag) == 1
+%     reg_stack(:, 1:col_lag, :) = nan;
+% elseif sign(col_lag) == -1
+%     reg_stack(:, (end + col_lag):end, :) = nan;
+% else
+% end
+% 
+% if sign(row_lag) == 1
+%     reg_stack(1:row_lag, :, :) = nan;
+% elseif sign(row_lag) == -1
+%     reg_stack((end + row_lag):end, :, :) = nan;
+% else
+% end
 
 
 %testing plots

@@ -101,7 +101,7 @@ for trial_n = start_trial:n_trials
             end
             
             stack_reg = slow_xy_motion_correct(stack, ref_im, ROI_mat, lag_mat(trial_n, :));
-            
+p            keyboard
         else
         end
     end
