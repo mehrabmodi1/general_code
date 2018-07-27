@@ -5,7 +5,7 @@ function [direc, m_direc] = curr_aq_direc()
 %the date-format folder with the most recent (greatest) date number.
 
 
-mother_direc = 'E:\Turner lab\Data\mehrab\';
+mother_direc = 'E:\Turner lab\Data\';
 
 dir_contents = dir(mother_direc);
 dir_contents = {dir_contents.name};
