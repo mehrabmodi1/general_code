@@ -99,7 +99,7 @@ for trial_n = start_tr:n_trials
         
         %communicating stimulus parameters to Arduino
         stim_arduino_serial_comm(LED_elec, init_delay_ms, duration_ms, freq_hz, duty_cyc_percent);
-        keyboard
+        
             
     else
     end
