@@ -38,11 +38,15 @@ for do_over = 1:2
             
             %checking if dataset has already been analysed
             old_dir = pwd;
-            cd(save_path);
-            tif_list = dir('*.tif');
-            if isempty(tif_list) == 0
-                disp([dataset_name, 'already analysed. skipping...'])
-                continue
+            if isdir(save_path) == 1
+                cd(save_path);
+
+                tif_list = dir('*.tif');
+                if isempty(tif_list) == 0
+                    disp([dataset_name, 'already analysed. skipping...'])
+                    continue
+                else
+                end
             else
             end
                
