@@ -15,18 +15,19 @@ for raw_direc_n = 1:size(raw_direc_list, 1)
 
     %% Pre-prep
     %raw_direc = [raw_direc '\'];
-    %Getting rid of empty .tiff files in raw data folder(s) left behind by ScanImage
-    remove_small_tifs([raw_direc_base, raw_direc]);
-
-    %setting up master_file.m and make_db.m
-    ft_factor = setup_Suite2P_files(raw_direc_base, raw_direc, 'E:\Code\general_code_repo\Use_Suite2P_mehrab\mehrab_scripts\Suite2P_starter_files\master_file.m');
-
+    
     %Checking if this directory has already been analysed with Suite2P
     if isdir([results_direc raw_direc]) == 0
         prev_direc = pwd;
         cd([raw_direc_base, raw_direc]);
         disp(['currently analysing ' raw_direc_base, raw_direc]);
         
+        %Getting rid of empty .tiff files in raw data folder(s) left behind by ScanImage
+        remove_small_tifs([raw_direc_base, raw_direc]);
+
+        %setting up master_file.m and make_db.m
+        ft_factor = setup_Suite2P_files(raw_direc_base, raw_direc, 'E:\Code\general_code_repo\Use_Suite2P_mehrab\mehrab_scripts\Suite2P_starter_files\master_file.m');
+       
         %running Suite2P
 %         try
             master_file

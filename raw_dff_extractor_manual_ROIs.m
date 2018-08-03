@@ -26,7 +26,7 @@ for do_over = 1:2
 
         %loop to go through all experiment datasets listed in list file
         for direc_counter = 1:n_dirs
-             %% House-keeping
+            %% House-keeping
             direc = curr_direc_list{direc_counter, 1};
             direc = [direc, '\'];
             remove_small_tifs(direc);
@@ -35,6 +35,17 @@ for do_over = 1:2
             dataset_namei = findstr(direc, '\20');
             dataset_name = direc((dataset_namei + 1):end);
             save_path = [save_path_base, dataset_name, '\' ];
+            
+            %checking if dataset has already been analysed
+            old_dir = pwd;
+            cd(save_path);
+            tif_list = dir('*.tif');
+            if isempty(tif_list) == 0
+                disp([dataset_name, 'already analysed. skipping...'])
+                continue
+            else
+            end
+               
             
             disp(['Reading in avg stack for ', direc])
             
