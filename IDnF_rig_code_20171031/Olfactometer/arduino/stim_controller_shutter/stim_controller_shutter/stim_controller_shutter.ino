@@ -1,5 +1,6 @@
 //Mehrab Modi, 20180707. This program receives 5 numbers via serial, denoted by '<' and '>'. It then uses these to trigger LED or electrical stimulation. The 5 numbers are
-// select LED/elec (0/1), initial delay from trigger in ms, total stim dur in ms, freq in Hz and duty cycle as percent.
+// select LED/elec (0/1), initial delay from trigger in ms, total stim dur in ms, freq in Hz and duty cycle as percent. It also generates a warning signal whenever the stim 
+//LED is about to come on so as to close the PMT shutter and protect it.
 
 const byte numChars = 32;
 char receivedChars[numChars];
@@ -8,6 +9,9 @@ boolean newData = false;
 const int led_pin = 5;
 const int elec_pin = 6;
 const int trig_pin = 4;
+const int led_warning_pin = 7;
+const float led_warning_leadt = 50;
+
 int trig_state = 0;
 int param_n = 0;    //this variable encodes the number of newly received param values
 int LED_elec = 0;
@@ -59,6 +63,7 @@ void loop()
           float off_dur = (float) cyc_dur - on_dur;
           Serial.print("off_dur ");
           Serial.println(off_dur);
+          float off_dur = (float) off_dur - 
           
           float n_pulses = (float)duration_ms/(float)cyc_dur;
           Serial.print("n_pulses");
@@ -70,8 +75,12 @@ void loop()
 
           //waiting for scan trigger
           while (trig_state == LOW) {trig_state = digitalRead(trig_pin);}
-          
-          delay(init_delay_ms); //waiting for initial delay after scan trigger
+
+          //waiting for initial delay, but generating led warning if needed. This assumes that initial delay > led warning lead time
+          int init_delay_w = init_delay_ms - led_warning_leadt;
+          delay(init_delay_w); //waiting for initial delay after scan trigger
+          if (LED_elec == 0) {digitalWrite(led_warning_pin, HIGH);}
+          delay(led_warning_leadt);
 
           //delivering stim pulses       
           while (pulse_n < n_pulses)
@@ -81,6 +90,9 @@ void loop()
                 delay(on_dur);    //pulse on duration
                 if (LED_elec == 0) {digitalWrite(led_pin, LOW);}
                 if (LED_elec == 1) {digitalWrite(elec_pin, LOW);}
+                if (off_dur > led_warning_leadt && LED_elec == 0) (digitalWrite(led_warning_pin, LOW);)  //turning off led warning pin during inter pulse interval
+
+                
                 delay(off_dur);  //pulse off duration
                 
                 pulse_n = pulse_n + 1;
