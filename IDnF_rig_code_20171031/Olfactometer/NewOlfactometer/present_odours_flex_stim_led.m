@@ -67,7 +67,7 @@ initialiseFlows_MM(AC, 0.1, secondDilution1);      %initialising flows for the f
 od_inj_dur = 24;                         %this is the duration in s for which MFC B flow is injected into an odor vial to fully fill the system with odor. Stim_latency has to be longer than this.
 
 for trial_n = start_tr:n_trials
-    
+  
     odor_n = params_mat(trial_n).odours;
     duration = params_mat(trial_n).duration;
     firstDilution = params_mat(trial_n).firstDilution;

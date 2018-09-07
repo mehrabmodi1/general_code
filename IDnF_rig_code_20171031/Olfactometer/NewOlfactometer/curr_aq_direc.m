@@ -3,9 +3,18 @@ function [direc, m_direc] = curr_aq_direc()
 %matlab so as to automatically identify the directory currently being used
 %for acquisition. It looks in the main, parent acquisition directory for
 %the date-format folder with the most recent (greatest) date number.
+%%
+mother_direc = 'E:\Turner lab\Data\mehrab\';
 
-
+% ====  to solve the problem that data are saved in non-mehrab folder ====
+%identifying last modified user directory within mother directory
+% added by Yichun, Sep 2018
 mother_direc = 'E:\Turner lab\Data\';
+d = dir(mother_direc);
+[~,idx] = max([d.datenum]);
+foldername = d(idx).name;
+mother_direc = [mother_direc,foldername,'\'];
+% ========================================================================
 
 dir_contents = dir(mother_direc);
 dir_contents = {dir_contents.name};
