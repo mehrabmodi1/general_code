@@ -1,0 +1,6 @@
+C:\Data\CSHL\20150526\fluoresc_diff_expt_fly2
+C:\Data\CSHL\20150526\fluoresc_diff_expt_fly3
+C:\Data\CSHL\20150729\fly2
+C:\Data\CSHL\20150730\fly1\diff_exp
+C:\Data\CSHL\20150730\fly2\diff_exp
+C:\Data\CSHL\20150730\fly3\diff_expt

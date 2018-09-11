@@ -1,0 +1,4 @@
+D:\Data\CSHL\20160420\expt\
+D:\Data\CSHL\20160421\expt\
+D:\Data\CSHL\20160427\fly2\expt\
+D:\Data\CSHL\20160428\fly2\expt\

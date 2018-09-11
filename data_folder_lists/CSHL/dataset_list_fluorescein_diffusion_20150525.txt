@@ -1,0 +1,5 @@
+C:\Data\CSHL\20150519\expt\dye_fly
+C:\Data\CSHL\20150520\expt\fluorescein_expt
+C:\Data\CSHL\20150521\expt\fluorescein_expt
+C:\Data\CSHL\20150526\fluoresc_diff_expt_fly1
+C:\Data\CSHL\20150526\fluoresc_diff_expt_fly2

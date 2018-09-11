@@ -1,0 +1,4 @@
+C:\Data\CSHL\20150917\fly2
+C:\Data\CSHL\20150922\fly2
+C:\Data\CSHL\20150923\fly1
+C:\Data\CSHL\20150923\fly2

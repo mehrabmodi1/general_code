@@ -1,0 +1,8 @@
+C:\Data\CSHL\20141027\water_odor_stim
+C:\Data\CSHL\20141027\agar_odor_stim2
+C:\Data\CSHL\20141028\water_odor_stim
+C:\Data\CSHL\20141028\ag_odor_stim
+C:\Data\CSHL\20141029\water_odor_stim
+C:\Data\CSHL\20141029\ag_odor_stim
+C:\Data\CSHL\20141030\water_odor_stim
+C:\Data\CSHL\20141030\ag_odor_stim

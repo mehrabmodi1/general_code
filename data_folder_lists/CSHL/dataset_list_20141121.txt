@@ -1,0 +1,3 @@
+C:\Data\CSHL\20141110\water_odor_stim
+C:\Data\CSHL\20141113\water_odor_stim
+C:\Data\CSHL\20141114\water_odor_stim
