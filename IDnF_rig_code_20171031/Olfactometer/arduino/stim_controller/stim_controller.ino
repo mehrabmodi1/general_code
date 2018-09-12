@@ -69,6 +69,7 @@ void loop()
           float pulse_n = 0;
 
           //waiting for scan trigger
+          Serial.print("waiting for trig..");
           while (trig_state == LOW) {trig_state = digitalRead(trig_pin);}
           
           delay(init_delay_ms); //waiting for initial delay after scan trigger
@@ -86,8 +87,9 @@ void loop()
                 pulse_n = pulse_n + 1;
           }
           //This resets the state to waiting for new parameter data and a new scan  trigger.
-          param_n = 1;
+          param_n = 0;
           trig_state = 0;
+          Serial.print("done with stim.");
          
     }
 
