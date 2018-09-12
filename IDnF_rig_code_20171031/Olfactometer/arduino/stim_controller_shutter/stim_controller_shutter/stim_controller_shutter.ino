@@ -10,7 +10,7 @@ const int led_pin = 5;
 const int elec_pin = 6;
 const int trig_pin = 4;
 const int led_warning_pin = 7;
-const float led_warning_leadt = 50;
+const float led_warning_leadt = 500;
 
 int trig_state = 0;
 int param_n = 0;    //this variable encodes the number of newly received param values
@@ -63,7 +63,7 @@ void loop()
           float off_dur = (float) cyc_dur - on_dur;
           Serial.print("off_dur ");
           Serial.println(off_dur);
-          float off_dur = (float) off_dur - 
+          float off_dur_w = (float) off_dur - led_warning_leadt;
           
           float n_pulses = (float)duration_ms/(float)cyc_dur;
           Serial.print("n_pulses");
@@ -74,10 +74,11 @@ void loop()
           float pulse_n = 0;
 
           //waiting for scan trigger
+          Serial.print("waiting for trig..");
           while (trig_state == LOW) {trig_state = digitalRead(trig_pin);}
 
           //waiting for initial delay, but generating led warning if needed. This assumes that initial delay > led warning lead time
-          int init_delay_w = init_delay_ms - led_warning_leadt;
+          float init_delay_w = (float) init_delay_ms - led_warning_leadt;
           delay(init_delay_w); //waiting for initial delay after scan trigger
           if (LED_elec == 0) {digitalWrite(led_warning_pin, HIGH);}
           delay(led_warning_leadt);
@@ -90,16 +91,21 @@ void loop()
                 delay(on_dur);    //pulse on duration
                 if (LED_elec == 0) {digitalWrite(led_pin, LOW);}
                 if (LED_elec == 1) {digitalWrite(elec_pin, LOW);}
-                if (off_dur > led_warning_leadt && LED_elec == 0) (digitalWrite(led_warning_pin, LOW);)  //turning off led warning pin during inter pulse interval
+                if (off_dur > (led_warning_leadt*2) && LED_elec == 0) {digitalWrite(led_warning_pin, LOW);}  //turning off led warning pin during inter pulse interval
 
                 
-                delay(off_dur);  //pulse off duration
+                delay(off_dur_w);  //pulse off duration
+                if (LED_elec == 0 && pulse_n < (n_pulses - 1) ) {digitalWrite(led_warning_pin, HIGH);}
+                delay(led_warning_leadt);
                 
                 pulse_n = pulse_n + 1;
           }
+          digitalWrite(led_warning_pin, LOW);
+          
           //This resets the state to waiting for new parameter data and a new scan  trigger.
-          param_n = 1;
+          param_n = 0;
           trig_state = 0;
+          Serial.print("done with stim.");
          
     }
 
