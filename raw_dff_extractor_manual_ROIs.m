@@ -35,7 +35,7 @@ for do_over = 1:2
             dataset_namei = findstr(direc, '\20');
             dataset_name = direc((dataset_namei + 1):end);
             save_path = [save_path_base, dataset_name, '\' ];
-            
+           
             %checking if dataset has already been analysed
             old_dir = pwd;
             if isdir(save_path) == 1
@@ -54,6 +54,7 @@ for do_over = 1:2
             disp(['Reading in avg stack for ', direc])
             
             if do_over == 1
+                cd(direc)
                 tif_list = dir('*.tif');
                 if exist([save_path, '\tr_avg_stack.mat']) == 2
                     ave_stack = load([save_path, '\tr_avg_stack.mat']);
@@ -73,6 +74,7 @@ for do_over = 1:2
                     ave_stack(:, :, tif_n) = mean(curr_stack, 3, 'omitnan');
                     disp(['Saving avg stack, tr ', int2str(tif_n), ' done.'])
                 end
+                
                 mkdir(save_path);
                 save([save_path, '\tr_avg_stack.mat'], 'ave_stack');
                 clear ave_stack
