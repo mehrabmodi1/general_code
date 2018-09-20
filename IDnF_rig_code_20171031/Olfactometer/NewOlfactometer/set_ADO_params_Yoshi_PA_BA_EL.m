@@ -1,4 +1,4 @@
-function params=set_ADO_params_find_resp_ods(params)
+function params=set_ADO_params_Yoshi_PA_BA_EL(params)
 %  function params=defaultADOparams
 %
 % Create a parameter structure with the default values specified by
