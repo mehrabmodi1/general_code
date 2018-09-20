@@ -157,12 +157,14 @@ for trial_n = start_tr:n_trials
     t_stamp = now;
     s.startBackground();                    %starting PID acqn in the background
     trigger_scan(1);                        %triggering ScanImage to start image acquisition
+    disp('pre odor scanning...')
     pause(stim_latency - od_inj_dur)        %pause before filling system with odor for long stim latencies
     injectOdour_EP(odor_n)                  %filling system with odor, switching MFC B flow from empty vial to odor vial
     
     pause(od_inj_dur)                       %waiting for system to get filled with odor
     
     %flipping shuttle valve to deliver odor pulse(s)
+    disp('odor being delivered...')
     for r_pulse_n = 1:size(pulse_train, 1)
         pause(pulse_train(r_pulse_n, 1));
         FlipValve_EP('Final',0)                 
@@ -172,6 +174,7 @@ for trial_n = start_tr:n_trials
     
        
     ShutAllValves_EP;
+    disp('post odor scanning...')
     pause(post_od_scan_dur)                 %waiting to end image acquisition
     trigger_scan(0)                         %ending image acquisition
     
