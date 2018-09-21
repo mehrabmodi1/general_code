@@ -38,6 +38,7 @@ for trial_n = 1:size(dataset_stack, 3)
         
         subplot(1, 2, 2)
         curr_frame = squeeze(dataset_stack(:, :, trial_n));
+        curr_threshm = 0.05;
         imagesc(curr_frame, [0, 0.05.*max(max(curr_frame))])
         set(gca,'xtick',[])
         set(gca,'xticklabel',[])
@@ -53,10 +54,19 @@ for trial_n = 1:size(dataset_stack, 3)
             if x < 0 || x > size(frame1, 2) || y < 0 || y > size(frame1, 1)
                 %pulling up options box to re-do last landmark or mark current
                 %trial as z-drifted
-                choice = questdlg('What would you like to do?', 'landmark-marking', 'z-drifted', 'redo landmark', 'z-drifted');
-                if strcmp(choice, 'z-drifted') == 1
+                choice = listdlg('ListString', {'z-drifted', 'redo landmark', 'make brighter', 'make dimmer'}, 'SelectionMode', 'single');
+                
+                if choice == 1          %z-drift selected
                     z_drifted = 1;
                     done = 1;
+                elseif choice == 3      %make dimmer selected
+                    subplot(1, 2, 2)
+                    curr_threshm = curr_threshm.*0.5;
+                    imagesc(curr_frame, [0, curr_threshm.*max(max(curr_frame))])
+                elseif choice == 4      %make brighter selected
+                    subplot(1, 2, 2)
+                    curr_threshm = curr_threshm.*2;
+                    imagesc(curr_frame, [0, curr_threshm.*max(max(curr_frame))])
                 else
                 end
             else
@@ -75,17 +85,20 @@ for trial_n = 1:size(dataset_stack, 3)
         elseif z_drifted == 1
             lag_mat(trial_n, 3) = 1;
             bad_trs(trial_n, 1) = 1;
-            reg_stack(:, :, trial_n) = [];
+            
         end
         
     end
     
     
 end
+bad_tr_list = find(bad_trs == 1);
+reg_stack(:, :, bad_tr_list) = [];
 
 close figure 1
 
 %playing back trial frames for manual review
+keyboard
 playStack(reg_stack, 30, 0.5)
 choice = questdlg('Alignment OK?', 'Reviewing alignment', 'Yes, stack is OK', 'redo landmarks', 'Yes, stack is OK');
 if strcmp(choice, 'Yes, stack is OK') == 1
