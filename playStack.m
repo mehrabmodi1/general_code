@@ -15,7 +15,15 @@ while done == 0
     for frame_n = 1:size(stack, 3)
         frame = squeeze(stack(:, :, frame_n));
         high_int = double(max(max(frame))).*0.6.*int_multiplier;
-        imagesc(frame, [0, high_int]);
+        if high_int == 0 || isnan(high_int) == 1
+            high_int = 1;
+        else
+        end
+        try
+            imagesc(frame, [0, high_int]);
+        catch
+            keyboard
+        end
         title(['Frame ' int2str(frame_n), ' of  ', int2str(size(stack, 3)), '.'])
         drawnow
         pause(pause_dur.*0.001)
