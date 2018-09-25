@@ -98,6 +98,11 @@ reg_stack(:, :, bad_tr_list) = [];
 close figure 1
 
 %playing back trial frames for manual review
+%PICK UP THREAD HERE
+%verify that reg_stack is correct - recently changed how z-drifted trials
+%are removed from it.  
+
+keyboard
 playStack(reg_stack, 30, 0.5)
 choice = questdlg('Alignment OK?', 'Reviewing alignment', 'Yes, stack is OK', 'redo landmarks', 'Yes, stack is OK');
 if strcmp(choice, 'Yes, stack is OK') == 1
