@@ -43,56 +43,11 @@ for raw_direc_n = 1:size(raw_direc_list, 1)
     disp(['analysed ' int2str(n_direcs_analysed) ' new datasets.']);
 end
 
-
-%% loop to repeatedly run manual z-drift detection GUI for all new datasets
-for raw_direc_n = 1:size(raw_direc_list, 1)    
-    raw_direc = raw_direc_list{raw_direc_n, 1};
-    %% Reading in registered tiffs and displaying for manual removal of trials with z-drift
-    if exist([results_direc, raw_direc, 'bad_trial_list.mat']) ~= 2 &&  exist([results_direc, raw_direc, 'good_trial_list.mat']) ~= 2
-        %[bad_tr_list] = find_bad_trials_res([reg_tif_direc, raw_direc 'Plane1\']);  %these are actually the good trials
-        [good_tr_list, bad_tr_list] = find_bad_trials_res([raw_direc_base, raw_direc]);  %these are actually the good trials
-        save([results_direc, raw_direc, 'good_trial_list.mat'], 'good_tr_list');
-    else
-        disp('z-drift trials have already been manually identified... skipping.')
-    end
-end
-
-
-%% Loop to repeatedly call ROI_prune to manually curate ROIs
-for raw_direc_n = 1:size(raw_direc_list, 1)
-    raw_direc = raw_direc_list{raw_direc_n, 1};
-    disp(raw_direc);
-
-    %% Loading in Suite2P analysis results file
-    prev_direc = pwd;
-    cd([results_direc, raw_direc])
-    
-    if exist([results_direc, raw_direc, '\ROIs_pruned.txt']) ~= 2
-        new_main       %this is the ROI pruning GUI that comes with Suite2P
-        keyboard       %don't remove this keyboard - it's needed for normal running.
-        del = [];
-        save([results_direc, raw_direc, '\ROIs_pruned.txt'], 'del');
-    else
-        disp([results_direc, raw_direc, ' has ROIs already pruned. Skipping.']);
-    end
-    
-    %checking if directory structure was extended with a \1\ folder at the
-    %end and copying over the results file from ROI_prune to that folder
-    copy_files_to_1_direc(results_direc, raw_direc);
-    
-end
-
-log_m = [];
-
-%% Doing a slow, manual xy correction
+%% Doing a slow, manual xy correction and z-drift detection
 %looping through all datasets once to save mean frames and again to save manually determined slow x-y  offsets for each trial, as well as determine bad z-drift trials
 
 for do_over = 1:2
     
-%%PICK UP THREAD HERE
-%currently skipping manual xy correction parts because it thinks directory
-%is already analysed. Force re-analysis.
-
     %loop to go through all experiment datasets listed in list file
     for direc_counter = 1:size(raw_direc_list, 1)
         %% House-keeping
@@ -177,6 +132,33 @@ for do_over = 1:2
     
     end
 end
+
+%% Loop to repeatedly call ROI_prune to manually curate ROIs
+for raw_direc_n = 1:size(raw_direc_list, 1)
+    raw_direc = raw_direc_list{raw_direc_n, 1};
+    disp(raw_direc);
+
+    %% Loading in Suite2P analysis results file
+    prev_direc = pwd;
+    cd([results_direc, raw_direc])
+    
+    if exist([results_direc, raw_direc, '\ROIs_pruned.txt']) ~= 2
+        new_main       %this is the ROI pruning GUI that comes with Suite2P
+        keyboard       %don't remove this keyboard - it's needed for normal running.
+        del = [];
+        save([results_direc, raw_direc, '\ROIs_pruned.txt'], 'del');
+    else
+        disp([results_direc, raw_direc, ' has ROIs already pruned. Skipping.']);
+    end
+    
+    %checking if directory structure was extended with a \1\ folder at the
+    %end and copying over the results file from ROI_prune to that folder
+    copy_files_to_1_direc(results_direc, raw_direc);
+    
+end
+
+log_m = [];
+
 
 
 %% Extracting raw F data, writing to file
