@@ -86,9 +86,7 @@ for trial_n = start_tr:n_trials
     if params_mat(trial_n).led_on == 1 || params_mat(trial_n).elec_on == 1      %condition to check if LED or elec stim is being delivered on current trial
         if params_mat(trial_n).led_on == 1
             LED_elec = 0;
-            %Warning User to change microscope state for stimulus delivery
-             del = input('WARNING: About to deliver LED stimulus, please move dichroic and press enter.');
-
+            
         elseif params_mat(trial_n).elec_on == 1
             LED_elec = 1;
         end
@@ -132,8 +130,7 @@ for trial_n = start_tr:n_trials
     del_conc = CalcTotalDilution(firstDilution, secondDilution).*100;
     disp(['Concentration delivered ' num2str(del_conc) '%.'])
     disp(['duration ' num2str(duration) 's, n pulses ' int2str(n_od_pulses) '.'])
-    disp(' ')
-    disp(' ')
+    
     
     if stim_latency < od_inj_dur 
         error(['stim_latency set too low. Must be >' num2str(od_inj_dur) ' s.'])
@@ -191,7 +188,8 @@ for trial_n = start_tr:n_trials
     save([save_dir 'PID_trace_tr-' int2str(trial_n) '.mat'], 'PID_data');
     
     disp('Updated param-file. Waiting for isi.');
-    
+    disp(' ')
+    disp(' ')
     
     %tricking scanimage into releasing current trial file...
     %by triggering a fake, short trial
