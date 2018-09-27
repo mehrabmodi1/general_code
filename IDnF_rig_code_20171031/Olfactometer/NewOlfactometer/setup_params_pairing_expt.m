@@ -1,4 +1,4 @@
-function [params_spec1] = setup_params_pairing_expt(paired_odours, led_elec, pairing_dur)
+function [params_spec1] = setup_params_pairing_expt(paired_odours, led_elec, CS_dur, US_dur)
 %This function sets up a detailed stimulus specification structure and saves
 %it into curr_aq_direc to set up stimulus delivery for a pre, pairing and
 %post experiment protocol. Paired odor is the vector of odor numbers to be paired.
@@ -14,11 +14,11 @@ params = params_struc1;           %this is the main parameter structure that wil
 %step2: Setting up the pairing trial
 %editing param specification structure for only pairing trials. 
 params_spec2 = params_spec1;
-params_spec2.duration = pairing_dur;
+params_spec2.duration = CS_dur;
 params_spec2.reps = 1;
 params_spec2.odours = paired_odours;
-params_spec2.stim_init_delay_ms = (params_spec2.stimLatency.*1000) + 750;     %750 ms added on for odor to flow through tube and reach fly
-params_spec2.stim_dur = 1000.*pairing_dur;                                    %in ms
+params_spec2.stim_init_delay_ms = (params_spec2.stimLatency.*1000) + 750 + ((CS_dur - US_dur).*1000);     %750 ms added on for odor to flow through tube and reach fly
+params_spec2.stim_dur = 1000.*US_dur;                                    %in ms
 params_spec2.st_duty_cyc = 5;                                                 % reduced LED stim duty cycle to 5% form 50%
 
 if led_elec == 0
