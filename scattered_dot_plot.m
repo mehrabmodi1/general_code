@@ -1,5 +1,5 @@
-function fig_h = scattered_dot_plot(mat, fig_n, col_width, col_spacing, markersize, markercolor, with_lines, linecolor, xlabels, plot_mean, mean_color)
-%syntax: fig_h = scattered_dot_plot(mat, fig_n, col_width, col_spacing, markersize, markercolor, with_lines, linecolor, xlabels, plot_mean, mean_color)
+function fig_h = scattered_dot_plot(mat, fig_n, col_width, col_spacing, markersize, markercolor, marker_filled, with_lines, linecolor, xlabels, plot_mean, mean_color)
+%syntax: fig_h = scattered_dot_plot(mat, fig_n, col_width, col_spacing, markersize, markercolor, marker_filled, with_lines, linecolor, xlabels, plot_mean, mean_color)
 %This function plots the values in each column of mat as dots separated
 %with a random scatter of width col_width and inter-column spacing as
 %specified. Line spec can be used to specify marker style, color and size.
@@ -16,6 +16,13 @@ function fig_h = scattered_dot_plot(mat, fig_n, col_width, col_spacing, markersi
 
 n_cols = size(mat, 2);
 
+%allowing for explicitly defined colors for each column, or just one color
+%for all
+if size(markercolor, 1) == 1
+    markercolor = repmat(markercolor, n_cols, 1);
+else
+end
+
 fig_h = figure(fig_n);
 saved_col_centers = zeros(1, n_cols);
 if with_lines == 0
@@ -25,9 +32,12 @@ if with_lines == 0
         saved_col_centers(col_n) = col_center;
         r_vec = rand(length(curr_vec), 1).*col_width + ( (col_n-1).*(col_width + (col_spacing)) + 0.5);
 
-
-        plot(r_vec, curr_vec, 'O', 'markerSize', markersize, 'markerEdgeColor', markercolor)
-
+        if marker_filled == 0
+            plot(r_vec, curr_vec, 'O', 'markerSize', markersize, 'markerEdgeColor', markercolor(col_n, :))
+        elseif marker_filled == 1
+            plot(r_vec, curr_vec, 'O', 'markerSize', markersize, 'markerEdgeColor', markercolor(col_n, :), 'markerFaceColor', (markercolor(col_n, :)) )
+        else
+        end
         hold on
     end
 
