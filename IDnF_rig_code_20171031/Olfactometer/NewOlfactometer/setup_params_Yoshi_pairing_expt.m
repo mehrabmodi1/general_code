@@ -8,7 +8,7 @@ function [params_spec1] = setup_params_Yoshi_pairing_expt(paired_odours, pairing
 %creating param specification structure for std odpr resp expt. This is for pre-pairing characterisation. 
 params_spec1 = set_ADO_params_default;
 params_spec1.odours = [1, 4];
-params_spec1.reps = 10; 
+params_spec1.reps = 5; 
 params_spec1.duration = 10;
 params_spec1.isi = 70;
 
@@ -26,8 +26,9 @@ params_spec2. odours = paired_odours;
 params_spec2.led_odours = paired_odours;
 
 
-%detailed param matrix for a single paired odor trial
-params_paired_tr = setUpStimuli_trains_flex(params_spec2);     %
+
+%detailed param matrix for a single paired odor trial for CS+
+params_paired_tr = setUpStimuli_trains_flex(params_spec2);    
 
 params_spec2unpr = params_spec2;
 unpaired_odour = [1, 4];
@@ -35,26 +36,18 @@ unpaired_odour(unpaired_odour == paired_odours) = [];
 params_spec2unpr.odours = unpaired_odour;
 params_spec2unpr.led_odours = [];
 
-%detailed param matrix for a single unpaired odor trial
+%detailed param matrix for a single unpaired odor trial for CS-
 params_unpaired_tr = setUpStimuli_trains_flex(params_spec2unpr);
 
-params_pairing_trs = append_params(params_paired_tr, params_paired_tr);
-params_pairing_trs = append_params(params_paired_tr, params_paired_tr);
-
-
 %concatenating pairing trials to params
-params = append_params(params, params_struc2);
+params = append_params(params, params_paired_tr);
+params = append_params(params, params_unpaired_tr);
 
-%adding on trials for CS minus presentation
-other_ods = params_spec1.odours;
-other_ods(other_ods == paired_odours) = [];
-params_spec2.odours = other_ods;
-params_spec2.led_odours = [];
-params_spec2.elec_odours = [];
-params_struc2 = setUpStimuli_trains_flex(params_spec2);         %detailed, trial-by-trial parameter specification structure.
-%concatenating CS minus trials to params
-params = append_params(params, params_struc2);
-
+for p_trial_n = 1:9
+    params = append_params(params, params_paired_tr);
+    params = append_params(params, params_unpaired_tr);
+   
+end
 
 %step3: Adding on the post trials
 params = append_params(params, params_struc1);
