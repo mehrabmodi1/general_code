@@ -2,7 +2,7 @@ clear all
 close all
 
 dataset_list_paths = [...
-                    {'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Yoshi_PaBaEl_MBONalpha1_lowUS.xls'};...
+                    {'C:\Data\Code\general_code\data_folder_lists\Janelia\dataset_list_Yoshi_PaBaEl_MBONalpha1_lowUS.xls'};...
 
 
                 ];
@@ -148,15 +148,15 @@ for list_n = 1:size(dataset_list_paths, 1)
     
     end
     
-    fig_h4 = scattered_dot_plot(flies_resp_size_mat, 4, 2, 4, 8, marker_colors, 1, 0, marker_colors, [{'PA pre'}, {'PA post'}, {'BA pre'}, {'BA post'}, {'EL pre'}, {'EL post'}], 1, [0.65, 0.65, 0.65]);
+    fig_h4 = scattered_dot_plot(flies_resp_size_mat, 4, 2, 4, 8, marker_colors, 1, 0, [0.75, 0.75, 0.75], [{'PA pre'}, {'PA post'}, {'BA pre'}, {'BA post'}, {'EL pre'}, {'EL post'}], 1, [0.65, 0.65, 0.65]);
     
     %statistical testing
     %PA
-    [pPA, hPA] = ttest(flies_resp_size_mat(:, 1), flies_resp_size_mat(:, 2));
+    [hPA, pPA] = ttest(flies_resp_size_mat(:, 1), flies_resp_size_mat(:, 2))
     %BA
-    [pBA, hBA] = ttest(flies_resp_size_mat(:, 3), flies_resp_size_mat(:, 4));
+    [hBA, pBA] = ttest(flies_resp_size_mat(:, 3), flies_resp_size_mat(:, 4))
     %EL
-    [pEL, hEL] = ttest(flies_resp_size_mat(:, 5), flies_resp_size_mat(:, 6));
+    [hEL, pEL] = ttest(flies_resp_size_mat(:, 5), flies_resp_size_mat(:, 6))
     keyboard 
     
 end
