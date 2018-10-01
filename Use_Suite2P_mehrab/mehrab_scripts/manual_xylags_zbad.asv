@@ -24,6 +24,28 @@ for trial_n = 1:size(dataset_stack, 3)
     if trial_n == 1
         title('Trial1 mean, click on a landmark.')
         [x1, y1] = ginputc(1, 'Color', [1, 0, 0]);
+        
+        %allowing user to ask for brighter or dimmer colormapping
+        if x < 0 || x > size(frame1, 2) || y < 0 || y > size(frame1, 1)
+                %pulling up options box to re-do last landmark or mark current
+                %trial as z-drifted
+                choice = listdlg('ListString', {'make brighter', 'make dimmer'}, 'SelectionMode', 'single');
+                
+                if choice == 1      %make dimmer selected
+                    subplot(1, 2, 2)
+                    curr_threshm = curr_threshm.*0.5;
+                    imagesc(curr_frame, [0, curr_threshm.*max(max(curr_frame))])
+                elseif choice == 2     %make brighter selected
+                    subplot(1, 2, 2)
+                    curr_threshm = curr_threshm.*2;
+                    imagesc(curr_frame, [0, curr_threshm.*max(max(curr_frame))])
+                else
+                end
+            else
+                z_drifted = 0;
+                done = 1;
+            end
+        
         landmark_ROI = zeros(size(frame1, 1), size(frame1, 2));
         landmark_ROI = draw_circle(y1, x1, 3, landmark_ROI, 1);
         landmark_ROI_rgb = landmark_ROI;
@@ -98,11 +120,6 @@ reg_stack(:, :, bad_tr_list) = [];
 close figure 1
 
 %playing back trial frames for manual review
-%PICK UP THREAD HERE
-%verify that reg_stack is correct - recently changed how z-drifted trials
-%are removed from it.  
-
-keyboard
 playStack(reg_stack, 30, 0.5)
 choice = questdlg('Alignment OK?', 'Reviewing alignment', 'Yes, stack is OK', 'redo landmarks', 'Yes, stack is OK');
 if strcmp(choice, 'Yes, stack is OK') == 1

@@ -7,23 +7,54 @@ function [lag_mat, bad_trs, done_marking] = manual_xylags_zbad(dataset_stack)
 lag_mat = zeros(size(dataset_stack, 3), 3);
 bad_trs = zeros(size(dataset_stack, 3), 1);
 reg_stack = zeros(size(dataset_stack, 1), size(dataset_stack, 2), size(dataset_stack, 3));
-
+curr_threshm = 0.05;
 for trial_n = 1:size(dataset_stack, 3)
 
     figure(1)
     subplot(1, 2, 1)
     frame1 = squeeze(dataset_stack(:, :, 1));
-    imagesc(frame1, [0, 0.05.*max(max(frame1))]);
+    imagesc(frame1, [0, curr_threshm.*max(max(frame1))]);
     set(gca,'xtick',[])
     set(gca,'xticklabel',[])
     set(gca,'ytick',[])
     set(gca,'yticklabel',[])
     colormap('gray')
     plot_big_fig(1);
-    
+   
     if trial_n == 1
         title('Trial1 mean, click on a landmark.')
-        [x1, y1] = ginputc(1, 'Color', [1, 0, 0]);
+        done = 0;
+        
+        while done == 0
+            [x1, y1] = ginputc(1, 'Color', [1, 0, 0]);
+            %allowing user to ask for brighter or dimmer colormapping
+            if x1 < 0 || x1 > size(frame1, 2) || y1 < 0 || y1 > size(frame1, 1)
+                %pulling up options box to re-do last landmark or mark current
+                %trial as z-drifted
+                choice = listdlg('ListString', {'make brighter', 'make dimmer'}, 'SelectionMode', 'single');
+
+                if choice == 1      %make dimmer selected
+                    subplot(1, 2, 1)
+                    curr_threshm = curr_threshm.*0.5;
+                    imagesc(frame1, [0, curr_threshm.*max(max(frame1))])
+                    set(gca,'xtick',[])
+                    set(gca,'xticklabel',[])
+                    set(gca,'ytick',[])
+                    set(gca,'yticklabel',[])
+                elseif choice == 2     %make brighter selected
+                    subplot(1, 2, 1)
+                    curr_threshm = curr_threshm.*2;
+                    imagesc(frame1, [0, curr_threshm.*max(max(frame1))])
+                    set(gca,'xtick',[])
+                    set(gca,'xticklabel',[])
+                    set(gca,'ytick',[])
+                    set(gca,'yticklabel',[])
+                else
+                end
+            else
+                done = 1;
+            end
+        end
         landmark_ROI = zeros(size(frame1, 1), size(frame1, 2));
         landmark_ROI = draw_circle(y1, x1, 3, landmark_ROI, 1);
         landmark_ROI_rgb = landmark_ROI;
@@ -38,8 +69,8 @@ for trial_n = 1:size(dataset_stack, 3)
         
         subplot(1, 2, 2)
         curr_frame = squeeze(dataset_stack(:, :, trial_n));
-        curr_threshm = 0.05;
-        imagesc(curr_frame, [0, 0.05.*max(max(curr_frame))])
+        %curr_threshm = 0.05;
+        imagesc(curr_frame, [0, curr_threshm.*max(max(curr_frame))])
         set(gca,'xtick',[])
         set(gca,'xticklabel',[])
         set(gca,'ytick',[])
@@ -63,10 +94,18 @@ for trial_n = 1:size(dataset_stack, 3)
                     subplot(1, 2, 2)
                     curr_threshm = curr_threshm.*0.5;
                     imagesc(curr_frame, [0, curr_threshm.*max(max(curr_frame))])
+                    set(gca,'xtick',[])
+                    set(gca,'xticklabel',[])
+                    set(gca,'ytick',[])
+                    set(gca,'yticklabel',[])
                 elseif choice == 4      %make brighter selected
                     subplot(1, 2, 2)
                     curr_threshm = curr_threshm.*2;
                     imagesc(curr_frame, [0, curr_threshm.*max(max(curr_frame))])
+                    set(gca,'xtick',[])
+                    set(gca,'xticklabel',[])
+                    set(gca,'ytick',[])
+                    set(gca,'yticklabel',[])
                 else
                 end
             else
