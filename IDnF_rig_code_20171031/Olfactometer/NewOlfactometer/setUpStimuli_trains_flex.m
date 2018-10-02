@@ -72,11 +72,13 @@ for pp=1:length(params) %this loop is not for trials
     
     %randomising trial order if needed
     if params.randomize == 1
-        t_order = randperm(n_trials)';
-        param_mat = [t_order, param_mat];
-        param_mat = sortrows(param_mat);
-        param_mat(:, 1) = [];
-
+        for rand_rep = 1:7
+            t_order = randperm(n_trials)';
+            param_mat = [t_order, param_mat];
+            param_mat = sortrows(param_mat);
+            param_mat(:, 1) = [];
+        end
+    
     else
     end
     
