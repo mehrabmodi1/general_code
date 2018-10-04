@@ -24,7 +24,18 @@ if exist([save_dir 'params.mat']) == 2
             else
             end
         end
-        start_tr = d_tr_n;
+        
+        a = inputdlg('Input trial n to acquire next; 0 for last trial done.', 'Trial n', 1, {'0'});
+        a = str2num(a{1, 1});
+        if a == 0
+            start_tr = d_tr_n;
+        else
+            start_tr = a;
+        end
+        
+        for tr_n = start_tr:n_trials
+            params_mat(tr_n).trs_done = 0;
+        end
     elseif strcmp(button, 'Append') == 1
         params_mat_old = load([save_dir 'params.mat']);
         params_mat_old = params_mat_old.params_mat;
