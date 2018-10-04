@@ -17,6 +17,7 @@ params_spec2 = params_spec1;
 params_spec2.duration = CS_dur;
 stimLatency_old = params_spec2.stimLatency;
 params_spec2.stimLatency = stimLatency_old + US_dur;
+params_spec2.isi = params_spec2.isi + US_dur;
 params_spec2.reps = 1;
 params_spec2.odours = paired_odours;
 params_spec2.stim_init_delay_ms = (stimLatency_old.*1000) + 750;     %750 ms added on for odor to flow through tube and reach fly
