@@ -10,15 +10,10 @@ if isempty(tif_datenums) == 0
     datenum_check = 1;
     n_trials_t = size(tif_datenums, 2);
 else
-    try
-        datenum_check = 0;
-        dir_contents_t = dir_date_sorted(direc, '*.tif');
-        n_trials_t = size(dir_contents_t, 2);
-    catch
-        disp('no tifs found, continuing to load params without matching to tifs.');
-        no_tifs = 1;
-        datenum_check = 0;
-    end
+    disp('no tifs datenums, continuing to load params without matching trial times to tifs.');
+    no_tifs = 1;
+    datenum_check = 0;
+    
 end
 
 
