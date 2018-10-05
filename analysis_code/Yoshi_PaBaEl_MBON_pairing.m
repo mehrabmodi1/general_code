@@ -2,10 +2,11 @@ clear all
 close all
 
 dataset_list_paths = [...
-                    {'C:\Data\Code\general_code\data_folder_lists\Janelia\dataset_list_Yoshi_PaBaEl_MBONalpha1_lowUS.xls'};...
+                      %{'C:\Data\Code\general_code\data_folder_lists\Janelia\dataset_list_Yoshi_PaBaEl_MBONalpha1_lowUS.xls'};...
+                      {'C:\Data\Code\general_code\data_folder_lists\Janelia\dataset_list_YoshiPaBaEl_MBON_alpha1_lowUS_backward_ctrl.xls'}
+                      %{'C:\Data\Code\general_code\data_folder_lists\Janelia\dataset_list_YoshiPaBaEl_MBON_gamma1_lowUS.xls'}
 
-
-                ];
+                     ];
             
 suppress_plots = 1;
 [del, odor_names] = xlsread('C:\Data\Code\general_code\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList.xls', 1);
@@ -31,6 +32,8 @@ for list_n = 1:size(dataset_list_paths, 1)
               
        saved_an_results.scriptname = mfilename('fullpath');
        curr_dir = [dir_list{dir_n, 1}, '\'];
+       curr_dir = manage_base_paths(curr_dir, 2);
+       
        tif_times = load([curr_dir, 'tif_time_stamps.mat']);           %reading in time stamps for each tif file recorded by raw_data_extracter
        tif_times = tif_times.time_stamps;
        [stim_mat, stim_mat_simple, column_heads, color_vec] = load_params_trains(curr_dir, tif_times);    %reading in trial stimulus parameters after matching time stamps to F traces
@@ -114,6 +117,8 @@ for list_n = 1:size(dataset_list_paths, 1)
             fig_wrapup(3);
             add_stim_bar(3, stim_frs, [0.5, 0.5, 0.5])
             
+            disp(curr_dir)
+            %comment out this line to block single fly plots
             %del = input('press enter for next odor.');
             
             

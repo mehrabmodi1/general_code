@@ -5,7 +5,8 @@ function [path_out] = manage_base_paths(path_in, out_type)
 
 
 %reading in base_paths specific to this computer (convention, raw data in row1col1 and an data in row2col1)
-[del, saved_local_paths] = xlsread('D:\Data\local_base_paths.xls', 1);
+saved_local_paths = [{'C:\Data\Data\Raw_data'};...
+                     {'C:\Data\Data\Analysed_data\Manual_ROI_results'}];
 
 if out_type == 1
     base_path = saved_local_paths{1, 1};
