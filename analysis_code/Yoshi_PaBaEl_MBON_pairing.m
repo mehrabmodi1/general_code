@@ -2,8 +2,8 @@ clear all
 close all
 
 dataset_list_paths = [...
-                      %{'C:\Data\Code\general_code\data_folder_lists\Janelia\dataset_list_Yoshi_PaBaEl_MBONalpha1_lowUS.xls'};...
-                      {'C:\Data\Code\general_code\data_folder_lists\Janelia\dataset_list_YoshiPaBaEl_MBON_alpha1_lowUS_backward_ctrl.xls'}
+                      {'C:\Data\Code\general_code\data_folder_lists\Janelia\dataset_list_Yoshi_PaBaEl_MBONalpha1_lowUS.xls'};...
+                      %{'C:\Data\Code\general_code\data_folder_lists\Janelia\dataset_list_YoshiPaBaEl_MBON_alpha1_lowUS_backward_ctrl.xls'}
                       %{'C:\Data\Code\general_code\data_folder_lists\Janelia\dataset_list_YoshiPaBaEl_MBON_gamma1_lowUS.xls'}
 
                      ];
@@ -143,17 +143,14 @@ for list_n = 1:size(dataset_list_paths, 1)
     %plotting response sizes across flies for this dataset list
     figure(4)
     marker_colors = [];
-    for odor_n = 1:n_odors
-        if odor_n == 1
-            marker_colors = [marker_colors; repmat(color_vec(2, :).*0.75, 2, 1)];
-        else 
-            marker_colors = [marker_colors; repmat(color_vec(odor_n, :), 2, 1)];
-       
-        end
+    marker_colors(1:2, :) = [repmat(color_vec(3, :), 2, 1)];
+    marker_colors(3:4, :) = [repmat(color_vec(3, :).*0.75, 2, 1)];
+    marker_colors(5:6, :) = [repmat(color_vec(2, :), 2, 1)];
     
-    end
     
-    fig_h4 = scattered_dot_plot(flies_resp_size_mat, 4, 2, 4, 8, marker_colors, 1, 0, [0.75, 0.75, 0.75], [{'PA pre'}, {'PA post'}, {'BA pre'}, {'BA post'}, {'EL pre'}, {'EL post'}], 1, [0.65, 0.65, 0.65]);
+    col_pairs = [1, 2; 3, 4; 5, 6];         %this is a list of pairs of columns of points to be connected by lines in the plot
+    fig_h4 = scattered_dot_plot(flies_resp_size_mat, 4, 1, 4, 8, marker_colors, 1, col_pairs, [0.75, 0.75, 0.75],...
+                            [{'PA pre'}, {'PA post'}, {'BA pre'}, {'BA post'}, {'EL pre'}, {'EL post'}], 1, [0.35, 0.35, 0.35]);
     
     %statistical testing
     %PA
@@ -162,6 +159,7 @@ for list_n = 1:size(dataset_list_paths, 1)
     [hBA, pBA] = ttest(flies_resp_size_mat(:, 3), flies_resp_size_mat(:, 4))
     %EL
     [hEL, pEL] = ttest(flies_resp_size_mat(:, 5), flies_resp_size_mat(:, 6))
+    fig_wrapup(4)
     keyboard 
     
 end
