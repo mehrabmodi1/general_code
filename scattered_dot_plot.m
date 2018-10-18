@@ -3,9 +3,8 @@ function fig_h = scattered_dot_plot(mat, fig_n, col_width, col_spacing, markersi
 %This function plots the values in each column of mat as dots separated
 %with a random scatter of width col_width and inter-column spacing as
 %specified. Line spec can be used to specify marker style, color and size.
-%If with_lines = 1, each point in a row will be plotted with the same
-%random offset from its col center, with a line connecting these points
-%across cols.
+%With_lines if not [], is a list of pairs of columns to be connected by
+%lines.
 
 % col_width = 1;
 % col_spacing = 1;
@@ -25,7 +24,7 @@ end
 
 fig_h = figure(fig_n);
 saved_col_centers = zeros(1, n_cols);
-if with_lines == 0
+if isempty(with_lines) == 1
     for col_n = 1:n_cols
         curr_vec = mat(:, col_n);
         col_center = ( (col_n-1).*(col_width + (col_spacing)) + 0.5) + col_width./2;
@@ -42,7 +41,7 @@ if with_lines == 0
     end
 
     
-elseif with_lines == 1
+elseif isempty(with_lines) == 0
     %generating random offsets
     r_vec = rand(size(mat, 1), 1);
     for col_n = 1:n_cols
@@ -51,17 +50,25 @@ elseif with_lines == 1
         r_vecs(:, col_n) = r_vec.*col_width + ( (col_n-1).*(col_width + (col_spacing)) + 0.5);
     end
     
-    %plotting each row as a line
+    %plotting lines for pairs of cols as specified in with_lines
     for row_n = 1:size(mat, 1)
-        curr_row = mat(row_n, :);
-        plot(r_vecs(row_n, :), curr_row, '-O', 'markerSize', markersize, 'markerEdgeColor', markercolor, 'Color', linecolor, 'lineWidth', 1)
-        hold on
+        for conn_pair_n = 1:size(with_lines, 1)
+            curr_pair = with_lines(conn_pair_n, :);
+            curr_row = mat(row_n, curr_pair(1):curr_pair(2) );
+            if marker_filled == 0
+                plot(r_vecs(row_n, curr_pair(1):curr_pair(2)), curr_row, '-O', 'markerSize', markersize, 'markerEdgeColor', markercolor(curr_pair(1), :), 'Color', markercolor(curr_pair(1), :), 'lineWidth', 1)
+            elseif marker_filled == 1
+                plot(r_vecs(row_n, curr_pair(1):curr_pair(2)), curr_row, '-O', 'markerSize', markersize, 'markerEdgeColor', markercolor(curr_pair(1), :), 'markerFaceColor', markercolor(curr_pair(1), :), 'Color', markercolor(curr_pair(1), :), 'lineWidth', 1)
+            else
+            end
+            hold on
+        end
     end
-    for row_n = 1:size(mat, 1)
-        curr_row = mat(row_n, :);
-        plot(r_vecs(row_n, :), curr_row, 'O', 'markerSize', markersize, 'markerEdgeColor', markercolor)
-        hold on
-    end
+%     for row_n = 1:size(mat, 1)
+%         curr_row = mat(row_n, :);
+%         plot(r_vecs(row_n, :), curr_row, 'O', 'markerSize', markersize, 'markerEdgeColor', markercolor(col_n, :))
+%         hold on
+%     end
     
 end
 
