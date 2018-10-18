@@ -24,7 +24,6 @@ function varargout = centerOfMass(A,varargin)
 %   See also: 
 %
 %
-
 %
 %   Jered R Wells
 %   2013/05/07
@@ -36,24 +35,20 @@ function varargout = centerOfMass(A,varargin)
 %       YYYY/MM/DD - jrw - v1.1
 %
 %
-
 %% INPUT CHECK
 narginchk(0,1);
 nargoutchk(0,1);
 fname = 'centerOfMass';
-
 % Checked required inputs
-validateattributes(A,{'numeric'},{'real','finite'},fname,'A',1);
-
-%% INITIALIZE VARIABLES
 A(isnan(A)) = 0;
+validateattributes(A,{'numeric'},{'real','finite'},fname,'A',1);
+%% INITIALIZE VARIABLES
 if ~(strcmpi(class(A),'double') || strcmpi(class(A),'single'))
     A = single(A);
 end
 if any(A(:)<0)
     warning('MATLAB:centerOfMass:neg','Array A contains negative values.');
 end
-
 %% PROCESS
 sz = size(A);
 nd = ndims(A);
@@ -71,8 +66,6 @@ else
         C(ii) = sum(ind(:).*A(:))./M;
     end
 end
-
 % Assemble the VARARGOUT cell array
 varargout = {C};
-
 end % MAIN
