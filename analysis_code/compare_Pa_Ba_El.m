@@ -14,6 +14,8 @@ a = colormap('bone');
 global greymap
 greymap = flipud(a);
 
+CoM_vecs = [];
+od_resp_tracker_all_saved = [];
 
 for list_n = 1:size(dataset_list_paths, 1)
     curr_dir_list_path = dataset_list_paths{list_n, 1};
@@ -37,6 +39,9 @@ for list_n = 1:size(dataset_list_paths, 1)
     saved_non_int_resps_60s_1 = [];
     saved_non_int_resps_60s_2 = [];
     
+    sig_resp_mat_all = [];
+
+    od_resp_tracker_all = [];
     
     for dir_n = 1:n_dirs
         saved_an_results.scriptname = mfilename('fullpath');
@@ -79,7 +84,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         n_cells = size(raw_data_mat, 2);
 
         %calculating dF/F traces from raw data
-        filt_time = 0.5;            %in s, the time window for boxcar filter for generating filtered traces
+        filt_time = 1;            %in s, the time window for boxcar filter for generating filtered traces
         [dff_data_mat, dff_data_mat_f] = cal_dff_traces_res(raw_data_mat, stim_mat, frame_time, filt_time, curr_dir);
         del = find(dff_data_mat_f < -1);
         dff_data_mat_f(del) = -1;       %forcing crazy values to sane ones
@@ -189,6 +194,36 @@ for list_n = 1:size(dataset_list_paths, 1)
             
         end
              
+        
+        %% Doing some Center of Mass based analyses
+        for odor_n = 1:length(odor_list)
+            odor_ni = odor_list(odor_n);
+            dur_n = find(odor_dur_list == 60);
+            curr_trs = find(stim_mat_simple(:, 2) == odor_ni & stim_mat_simple(:, 3) == 60);
+            curr_sig_cells = find(sig_cell_mat(:, odor_ni, dur_n) == 1);
+            
+            sig_resp_mat = mean(dff_data_mat_f(:, curr_sig_cells, curr_trs), 3, 'omitnan');
+            sig_resp_mat_all = pad_n_concatenate(sig_resp_mat_all, sig_resp_mat, 2, nan);
+            
+            if odor_ni == 3 || odor_ni == 10
+                %checking if current sig cells responded to PA (scored 1), BA (scored 2) or both (scored 3). Other cells are scored 0.
+                od_resp_tracker = zeros(size(curr_sig_cells, 1), 1);
+                
+                PA_respondersi = find(sig_cell_mat(curr_sig_cells, 3, 2) == 1);
+                od_resp_tracker(PA_respondersi) = od_resp_tracker(PA_respondersi) + 1;
+                
+                BA_respondersi = find(sig_cell_mat(curr_sig_cells, 10, 2) == 1);
+                od_resp_tracker(BA_respondersi) = od_resp_tracker(BA_respondersi) + 2;
+                                
+            else
+                od_resp_tracker = zeros(size(curr_sig_cells, 1), 1);        %all zeros for EL respondses
+            end
+            
+            od_resp_tracker_all = [od_resp_tracker_all; od_resp_tracker];
+        end
+        
+        
+        
         
         %% Analysing pop-representation differences
         %Step0. Computing the maximum, repeat averaged response size for each cell in the long duration stimulus to be used as a
@@ -310,13 +345,19 @@ for list_n = 1:size(dataset_list_paths, 1)
             add_stim_bar(1, stim_frs, [0.5, 0.5, 0.5])
             disp(dataset_list_name)
             
-            %keyboard
+            if suppress_plots == 0
+                keyboard
+            else
+            end
+            
             close figure 1
             
             
         end
         n_cells_tot = n_cells_tot + size(dff_data_mat, 2);
     end
+    
+    
     disp(['n cells ' int2str(n_cells_tot)]);
     saved_an_results.sparsenesses = sparsenesses_saved;
     saved_an_results.sig_intersections = saved_intersections;
@@ -347,4 +388,108 @@ for list_n = 1:size(dataset_list_paths, 1)
     clear saved_intersections;
     clear saved_intersections_n;
     clear saved_non_intersections;
+    
+    
+    %% Doing some CoM based analysis
+    CoM_vec = [];
+    curr_tr = find(stim_mat_simple(:, 3) == 60);
+    stim_frs = compute_stim_frs(stim_mat, curr_tr(1), frame_time);
+    for cell_n = 1:size(sig_resp_mat_all, 2)
+        curr_vec = sig_resp_mat_all(:, cell_n);
+        if sum(isnan(curr_vec)) == length(curr_vec)
+            CoM_vec(1, cell_n) = 1;
+            continue
+        else
+        end
+
+        if sign(min(curr_vec)) == -1
+            curr_vec = curr_vec + (min(curr_vec).* -1);
+        else
+        end
+        
+        CoMs = centerOfMass(curr_vec');
+        
+        CoM_vec(1, cell_n) = CoMs(1, 2);
+    end
+    
+    sig_resp_mat_sorted = sort_by_vec(sig_resp_mat_all, CoM_vec, 1);
+    norm_vec = max(sig_resp_mat_sorted(stim_frs(1, 1):(stim_frs(1, 2) + 100), :), [], 1);
+    sig_resp_mat_sorted_n = sig_resp_mat_sorted./repmat(norm_vec, size(sig_resp_mat_sorted, 1), 1);
+    
+    figure(1)
+    imagesc(sig_resp_mat_sorted_n', [0, 1])
+    colormap(greymap)
+    set_xlabels_time(1, frame_time, 2)
+    fig_wrapup(1)
+    add_stim_bar(1, stim_frs, [0.65, 0.65, 0.65]);    
+    keyboard
+    close figure 1
+    
+    CoM_vecs = pad_n_concatenate(CoM_vecs, CoM_vec, 1, nan);
+    od_resp_tracker_all_saved = pad_n_concatenate(od_resp_tracker_all_saved, od_resp_tracker_all, 2, nan);     %keeping track of PA, BA and PA-BA responders for both AB and G cells.
 end
+
+%Plotting CoM histograms
+[counts_ab, centers_ab] = hist(CoM_vecs(2, :));
+counts_g = hist(CoM_vecs(1, :), centers_ab);
+
+%normalising counts
+counts_ab = counts_ab./sum(counts_ab);
+counts_g = counts_g./sum(counts_g);
+
+figure(1)
+plot(centers_ab, counts_ab, 'Color', [0.4, 0.8, 0.3], 'LineWidth', 3)
+hold on
+plot(centers_ab, counts_g, 'Color', [0.4, 0.5, 0.8], 'LineWidth', 3)
+set_xlabels_time_offset(1, frame_time, 10, -25);
+fig_wrapup(1)
+
+%plotting histograms of CoMs for unique or both responders for PA and BA
+%Gamma KCs
+unique_CoMsi = find(od_resp_tracker_all_saved(:, 1) == 1 | od_resp_tracker_all_saved(:, 1) == 2);
+unique_CoMs = CoM_vecs(1, unique_CoMsi);
+ovlap_CoMsi = find(od_resp_tracker_all_saved(:, 1) == 3);
+ovlap_CoMs = CoM_vecs(1, ovlap_CoMsi);
+
+[counts_unique, centers_unique] = hist(unique_CoMs);
+counts_ovlap = hist(ovlap_CoMs, centers_unique);
+
+%normalising counts
+counts_unique = counts_unique./sum(counts_unique);
+counts_ovlap = counts_ovlap./sum(counts_ovlap);
+[hG, pG] = ttest2(unique_CoMs, ovlap_CoMs)
+
+figure(2)
+plot(centers_unique, counts_unique, 'Color', [0.4, 0.5, 0.8], 'LineWidth', 3)
+hold on
+plot(centers_unique, counts_ovlap, 'Color', [0.4, 0.5, 0.8].*0.55, 'LineWidth', 3)
+title('Gamma KCs')
+set_xlabels_time_offset(2, frame_time, 10, -25)
+xlabel('CoM time (s)')
+ylabel('frac. cell-odour pairs')
+fig_wrapup(2)
+
+%AB KCs
+unique_CoMsi = find(od_resp_tracker_all_saved(:, 2) == 1 | od_resp_tracker_all_saved(:, 2) == 2);
+unique_CoMs = CoM_vecs(2, unique_CoMsi);
+ovlap_CoMsi = find(od_resp_tracker_all_saved(:, 2) == 3);
+ovlap_CoMs = CoM_vecs(2, ovlap_CoMsi);
+
+[counts_unique, centers_unique] = hist(unique_CoMs);
+counts_ovlap = hist(ovlap_CoMs, centers_unique);
+
+%normalising counts
+counts_unique = counts_unique./sum(counts_unique);
+counts_ovlap = counts_ovlap./sum(counts_ovlap);
+[hAB, pAB] = ttest2(unique_CoMs, ovlap_CoMs)
+
+figure(3)
+plot(centers_unique, counts_unique, 'Color', [0.4, 0.8, 0.3], 'LineWidth', 3)
+hold on
+plot(centers_unique, counts_ovlap, 'Color', [0.4, 0.8, 0.3].*0.55, 'LineWidth', 3)
+set_xlabels_time_offset(3, frame_time, 10, -25)
+title('Alpha/Beta KCs')
+xlabel('CoM time (s)')
+ylabel('frac. cell-odour pairs')
+fig_wrapup(3)
+
