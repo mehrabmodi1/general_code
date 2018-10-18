@@ -16,6 +16,8 @@ global greymap
 greymap = flipud(a);
 color_vec = setup_std_color_vec(3);
 
+suppress_plots = 1;
+
 for result_file_n = 1:size(result_file_list, 1)
     saved_an_results = load([root_path, result_file_list(result_file_n).name]);
     saved_an_results = saved_an_results.saved_an_results;
@@ -39,7 +41,7 @@ for result_file_n = 1:size(result_file_list, 1)
         mean_color = [0.84, 0.38, 0.3];
         mat = squeeze(sparseness_mat(:, dur_n, :));
         figure(1)
-        scattered_dot_plot(mat', 1, 0.5, 0.5, 8, [0.3, 0.3, 0.3], 0, [1, 1, 1], odor_names, 1, mean_color);
+        scattered_dot_plot(mat', 1, 0.5, 0.5, 8, [0.3, 0.3, 0.3], 0, [], [1, 1, 1], odor_names, 1, mean_color);
         ylabel('responder fraction')
         title([dataset_name, ', stimulus duration ' num2str(od_dur_list(dur_n)), 's'])
         axis([0, 3, 0, 0.5]);
@@ -49,7 +51,7 @@ for result_file_n = 1:size(result_file_list, 1)
         mat = squeeze(intersection_mat(:, dur_n, :));
         mat(isnan(mat)) = 0;
         figure(2)
-        scattered_dot_plot(mat', 2, 0.5, 0.5, 8, [0.3, 0.3, 0.3], 1, [0.5, 0.5, 0.5], pair_names, 1, mean_color);
+        scattered_dot_plot(mat', 2, 0.5, 0.5, 8, [0.3, 0.3, 0.3], 1, [], [0.5, 0.5, 0.5], pair_names, 1, mean_color);
         ylabel('repr. overlap (fold expected)')
         title([dataset_name, ', stimulus duration ' num2str(od_dur_list(dur_n)), 's'])
         axis([0, 3, 0, 15]);
@@ -59,7 +61,7 @@ for result_file_n = 1:size(result_file_list, 1)
         mat = squeeze(intersection_mat_n(:, dur_n, :));
         mat(isnan(mat)) = 0;
         figure(3)
-        scattered_dot_plot(mat', 3, 0.5, 0.5, 8, [0.5, 0.5, 0.5], 1, [0.5, 0.5, 0.5], pair_names, 1, mean_color);
+        scattered_dot_plot(mat', 3, 0.5, 0.5, 8, [0.5, 0.5, 0.5], 1, [], [0.5, 0.5, 0.5], pair_names, 1, mean_color);
         ylabel('repr. overlap (frac. cells)')
         title([dataset_name, ', stimulus duration ' num2str(od_dur_list(dur_n)), 's'])
         axis([0, 3, 0, 0.5]);
@@ -69,12 +71,17 @@ for result_file_n = 1:size(result_file_list, 1)
         mat = squeeze(non_int_mat(:, dur_n, :));
         mat(isnan(mat)) = 0;
         figure(4)
-        scattered_dot_plot(mat', 4, 0.5, 0.5, 8, [0.5, 0.5, 0.5], 1, [0.5, 0.5, 0.5], pair_names, 1, mean_color);
+        scattered_dot_plot(mat', 4, 0.5, 0.5, 8, [0.5, 0.5, 0.5], 1, [], [0.5, 0.5, 0.5], pair_names, 1, mean_color);
         ylabel('repr. nonoverlap (frac. cells)')
         title([dataset_name, ', stimulus duration ' num2str(od_dur_list(dur_n)), 's'])
         axis([0, 3, 0, 0.5]);
         fig_wrapup(4)
-        keyboard
+        
+        if suppress_plots == 0
+            keyboard
+        else
+        end
+    
     end
     
     %plotting distributions of significant response sizes
@@ -105,7 +112,6 @@ for result_file_n = 1:size(result_file_list, 1)
     int_1s_CoM_vec = sum(int_resps_mat_1s(stim_frs(1, 1):(stim_frs(1, 2) + 200), :, 1), 1, 'omitnan');
     int_resps_mat_1s_1 = sort_by_vec(int_resps_mat_1s(:, :, 1), int_1s_CoM_vec, 1);
     int_resps_mat_1s_2 = sort_by_vec(int_resps_mat_1s(:, :, 2), int_1s_CoM_vec, 1);
-    
     int_60s_CoM_vec = sum(int_resps_mat_60s(stim_frs(2, 1):(stim_frs(2, 2) + 50), :, 1), 1, 'omitnan');
     int_resps_mat_60s_1 = sort_by_vec(int_resps_mat_60s(:, :, 1), int_60s_CoM_vec, 1);
     int_resps_mat_60s_2 = sort_by_vec(int_resps_mat_60s(:, :, 2), int_60s_CoM_vec, 1);
@@ -190,8 +196,7 @@ for result_file_n = 1:size(result_file_list, 1)
     fig_wrapup(13)
     add_stim_bar(13, stim_frs(2, :), [0.5, 0.5, 0.5]);
     
-    keyboard
-    
+     
     close figure 6
     close figure 7
     close figure 8
