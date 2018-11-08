@@ -1,8 +1,8 @@
 clear all
 close all
 
-direc = 'C:\Users\Mehrab\Google Drive\Backup\Stuff\Janelia\Talks\DIG\20171019\sus_act_movies\20180628_fly3\';
-fname = 'odor_trs_00011.tif';
+direc = 'C:\Users\Mehrab\Google Drive\Backup\Stuff\Janelia\Talks\DIG\20171019\sus_act_movies\20180626_fly3\';
+fname = 'odor_trs_00009.tif';
 
 stk = ScanImageTiffReader([direc, fname]).data();
 stk = double(stk);
