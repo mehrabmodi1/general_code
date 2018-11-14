@@ -72,7 +72,7 @@ for trial_n = start_trial:n_trials
     end
     
     %applying a slow x-y motion correction assuming negligible motion
-    %within a trial
+    %within a trial, unless otherwise specified by user
     if start_trial == 1 && trial_n == 1
         ref_im = mean(stack, 3, 'omitnan');
         %Selecting out a dilated region around all the ROIs from ref_im as the
@@ -87,9 +87,15 @@ for trial_n = start_trial:n_trials
         ref_im_trimmed(relevant_pixels) = ref_im(relevant_pixels);
         ref_im_old = ref_im;
         ref_im = ref_im_trimmed;
+        
+        %doing per-frame motion correction if specified by user
+        if do_registration == 2
+            stack_reg = slow_xy_motion_correct(stack, ref_im, ROI_mat, [0, 0], do_registration);
+        else
+        end
     else
         
-        if do_registration == 1
+        if do_registration == 1 %assume negligible motion within a trial and correct all frames within a stack with the same, manually determined lags
            	
             if exist([save_path, '\xy_lags.mat']) == 2
                 lag_mat = load([save_path, '\xy_lags.mat']);
@@ -100,9 +106,20 @@ for trial_n = start_trial:n_trials
                 lag_mat = [];
             end
             
-            stack_reg = slow_xy_motion_correct(stack, ref_im, ROI_mat, lag_mat(trial_n, :));
+            stack_reg = slow_xy_motion_correct(stack, ref_im, lag_mat(trial_n, :), do_registration);
             
-        else
+        elseif do_registration == 2 %do a 2D cc to identify lags for each frame in a stack relative to the meam frame for that stack after doing the slow correction above
+            if exist([save_path, '\xy_lags.mat']) == 2
+                lag_mat = load([save_path, '\xy_lags.mat']);
+                
+                lag_mat = lag_mat.lag_mat;
+                
+            else
+                lag_mat = [];
+            end
+            
+            stack_reg = slow_xy_motion_correct(stack, ref_im, lag_mat(trial_n, :), do_registration);
+            
         end
     end
 

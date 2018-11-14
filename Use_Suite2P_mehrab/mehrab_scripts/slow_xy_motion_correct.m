@@ -1,9 +1,12 @@
-function reg_stack = slow_xy_motion_correct(curr_stack, ref_im, ROI_mat, lag_mat)
-%syntax: reg_stack = slow_xy_motion_correct(curr_stack, ref_im)
-%This function assumes any x-y motion is slow and negligible within a
+function reg_stack = slow_xy_motion_correct(curr_stack, ref_im, lag_mat, registration_type)
+%syntax: reg_stack = slow_xy_motion_correct(curr_stack, ref_im, lag_mat, registration_type)
+%If registration_type = 1, this function assumes any x-y motion is slow and negligible within a
 %single trial (tif stack). It then averages all frames in curr_stack and
 %aligns the result to ref_im. It uses the same lags to correct the
 %individual frames in curr_stack to give reg_stack.
+%If registration_type = 2, this function first does the whole-stack
+%correction and then computes lags for aach frame to do a per-frame motion
+%correction.
 %Mehrab Modi 20180118
 
 %test variables easy
@@ -47,6 +50,48 @@ end
 %shifting stack
 reg_stack = translate_stack(curr_stack, [row_lag; col_lag], nan);
 
+
+%doing per-frame registration, if specified for by user
+if registration_type == 2
+   reg_stack_orig = reg_stack;
+   reg_stack = zeros(size(reg_stack_orig, 1), size(reg_stack_orig, 2), size(reg_stack_orig, 3)) + nan;
+   ref_im = mean(reg_stack_orig, 3, 'omitnan');
+   for frame_n = 1:size(reg_stack, 3)
+       curr_im = reg_stack_orig(:, :, frame_n);
+       c = xcorr2_fft(curr_im, ref_im); 
+       [maxr, maxcol] = find(c == max(max(c)));
+
+       %computing lags
+       col_lag = size(curr_stack, 1) - maxr;
+       row_lag = size(curr_stack, 2) - maxcol;
+       
+       if sign(col_lag) == 1
+           col_lag = min([col_lag, 20]);
+       elseif sign(col_lag) == -1
+           col_lag = max([col_lag, -20]);
+       else
+       end
+       
+       if sign(row_lag) == 1
+           row_lag = min([row_lag, 20]);
+       elseif sign(row_lag) == -1
+           row_lag = max([row_lag, -20]);
+       else
+       end
+       
+       
+       saved_lags(frame_n, :) = [row_lag, col_lag];
+       curr_im = translate_stack(curr_im, [row_lag; col_lag], nan);
+       reg_stack(:, :, frame_n) = curr_im;
+
+   end
+    
+    
+else
+end
+
+
+
 % try 
 %     reg_stack = circshift(curr_stack, row_lag, 1);
 %     reg_stack = circshift(reg_stack, col_lag, 2);
@@ -82,6 +127,8 @@ reg_stack = translate_stack(curr_stack, [row_lag; col_lag], nan);
 % imagesc(ave_corrected)
 % subplot(2, 2, 4)
 % imagesc(ref_im - ave_corrected)
+% 
+% figure(2)
+% plot(saved_lags)
+% 
 % del = input('press enter');
-
-
