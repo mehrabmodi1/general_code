@@ -142,13 +142,7 @@ for direc_list_n = 1:n_direc_lists
         curr_stack = ScanImageTiffReader([direc, tif_list(1).name]).data();
         curr_stack = permute(curr_stack,[2 1 3]);
         ref_im = mean(curr_stack, 3, 'omitnan');
-        keyboard
         %loading in manually drawn, FIJI ROIs
-%         if exist([direc, 'ROIs']) ~= 7
-%             mkdir([direc, 'ROIs']);
-%         	unzip([direc, 'RoiSet.zip'], [direc, 'ROIs\']);     %extracting ROIs from .zip file
-%         else
-%         end
         prev_direc = pwd;
         cd([direc, 'ROIs\']);
         ROI_list = dir('*.roi');
@@ -168,7 +162,7 @@ for direc_list_n = 1:n_direc_lists
         dataset_name = direc((dataset_namei + 1):end);
         save_path = [save_path_base, dataset_name, '\' ];
         
-        [raw_data_mat] = extract_raw_traces_par(direc, ROI_mat, save_path, 1);
+        [raw_data_mat] = extract_raw_traces_par(direc, ROI_mat, save_path, 2);
         
         
         %copying over files needed for further analysis to results
@@ -197,22 +191,4 @@ for direc_list_n = 1:n_direc_lists
         cd(prev_direc)        
     end
     
-    %looping through all the directories again to manually identify bad trials
-    for direc_counter = 1:n_dirs
-        %% House-keeping
-        direc = curr_direc_list{direc_counter, 1};
-        direc = [direc, '\'];
-        
-        dataset_namei = findstr(direc, '\20');
-        dataset_name = direc((dataset_namei + 1):end);
-        save_path = [save_path_base, dataset_name, '\' ];
-        
-        if exist([save_path, 'bad_trial_list.mat']) ~= 2
-            [bad_tr_list] = find_bad_trials_res(direc);  %these are actually the good trials
-            save([save_path, 'bad_trial_list.mat'], 'bad_tr_list');
-        else
-            disp('z-drift trials have already been manually identified... skipping.')
-        end
-
-    end
 end
