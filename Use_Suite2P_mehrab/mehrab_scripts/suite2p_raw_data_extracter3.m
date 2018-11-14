@@ -2,6 +2,7 @@ clear all
 close all
 
 results_direc = 'E:\Data\Analysed_data\Suite2p\Results\';
+results_direc_manual_ROIs = 'E:\Data\Analysed_data\Manual_ROIs\';
 reg_tif_direc = 'E:\Data\Analysed_data\Suite2p\Reg_Tiff\';
 raw_direc_base = 'E:\Data\Raw_Data_Current\Resonant\';
 
@@ -16,7 +17,14 @@ for raw_direc_n = 1:size(raw_direc_list, 1)
     %% Pre-prep
     %raw_direc = [raw_direc '\'];
     
-    %Checking if this directory has already been analysed with Suite2P
+    %Checking if this directory has already been analysed with Suite2P or ManualROIextracter
+
+    if isdir([results_direc_manual_ROIs, raw_direc]) == 1
+        raw_direc_list(raw_direc_n) = [];
+        continue
+    else
+    end
+    
     if isdir([results_direc raw_direc]) == 0
         prev_direc = pwd;
         cd([raw_direc_base, raw_direc]);
@@ -39,6 +47,7 @@ for raw_direc_n = 1:size(raw_direc_list, 1)
         cd(prev_direc);
     else
         disp([raw_direc_base, raw_direc ' has already been analysed... skipping.'])
+        raw_direc_list(raw_direc_n) = [];
     end
     disp(['analysed ' int2str(n_direcs_analysed) ' new datasets.']);
 end
@@ -204,7 +213,7 @@ for raw_direc_n = 1:size(raw_direc_list, 1)
     
     %% Extracting raw fluorescence traces after doing a slow xy-correction, and copying over files needed for further analysis
     prev_direc = pwd;
-    [raw_data_mat] = extract_raw_traces_par([raw_direc_base, raw_direc], ROI_mat, [results_direc, raw_direc, '\'], 0);
+    [raw_data_mat] = extract_raw_traces_par([raw_direc_base, raw_direc], ROI_mat, [results_direc, raw_direc, '\'], 2);
     disp(['done extracting traces from ' reg_tif_direc, raw_direc]);
     
     %copying over stimulus param files
