@@ -142,7 +142,7 @@ for direc_list_n = 1:n_direc_lists
         curr_stack = ScanImageTiffReader([direc, tif_list(1).name]).data();
         curr_stack = permute(curr_stack,[2 1 3]);
         ref_im = mean(curr_stack, 3, 'omitnan');
-        
+        keyboard
         %loading in manually drawn, FIJI ROIs
 %         if exist([direc, 'ROIs']) ~= 7
 %             mkdir([direc, 'ROIs']);
