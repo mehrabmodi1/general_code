@@ -8,10 +8,12 @@ raw_direc_base = 'E:\Data\Raw_Data_Current\Resonant\';
 
 %% going through raw_direc_base and building a list of all raw data direcs that have a stimulus params file to analyse them
 [raw_direc_list] = setup_raw_direc_list(raw_direc_base);
-
+raw_direc_list_copy = raw_direc_list;
 %%Setting up loop to repeatedly run Suite2P for each identified dataset directory (ie. all sub-directories of raw_direc_base that contain stim params files.)
 n_direcs_analysed = 0;
+rem_dir_list = [];
 for raw_direc_n = 1:size(raw_direc_list, 1)
+   
     raw_direc = raw_direc_list{raw_direc_n, 1};
 
     %% Pre-prep
@@ -20,7 +22,7 @@ for raw_direc_n = 1:size(raw_direc_list, 1)
     %Checking if this directory has already been analysed with Suite2P or ManualROIextracter
 
     if isdir([results_direc_manual_ROIs, raw_direc]) == 1
-        raw_direc_list(raw_direc_n) = [];
+        %raw_direc_list(raw_direc_n) = [];
         continue
     else
     end
@@ -47,10 +49,11 @@ for raw_direc_n = 1:size(raw_direc_list, 1)
         cd(prev_direc);
     else
         disp([raw_direc_base, raw_direc ' has already been analysed... skipping.'])
-        raw_direc_list(raw_direc_n) = [];
+        rem_dir_list = [rem_dir_list; raw_direc_n];
     end
     disp(['analysed ' int2str(n_direcs_analysed) ' new datasets.']);
 end
+%raw_direc_list(rem_dir_list) = [];
 
 %% Doing a slow, manual xy correction and z-drift detection
 %looping through all datasets once to save mean frames and again to save manually determined slow x-y  offsets for each trial, as well as determine bad z-drift trials
@@ -59,6 +62,11 @@ for do_over = 1:2
     
     %loop to go through all experiment datasets listed in list file
     for direc_counter = 1:size(raw_direc_list, 1)
+        if exist([raw_direc_base, raw_direc, 'skip_direc.txt']) == 2
+            continue
+        else
+        end
+        
         %% House-keeping
         raw_direc = raw_direc_list{direc_counter, 1};
         raw_direc = [raw_direc_base, raw_direc, '\'];
@@ -104,7 +112,8 @@ for do_over = 1:2
             for tif_n = tif_start_n:length(tif_list)
                 curr_stack = ScanImageTiffReader([raw_direc, tif_list(tif_n).name]).data();
                 curr_stack = permute(curr_stack,[2 1 3]);
-                ave_stack(:, :, tif_n) = mean(curr_stack, 3, 'omitnan');
+                curr_stack = double(curr_stack);
+                ave_stack(:, :, tif_n) = std(curr_stack, 0, 3, 'omitnan');
                 disp(['Saving avg stack, tr ', int2str(tif_n), ' done.'])
             end
             mkdir(save_path);
@@ -188,6 +197,10 @@ for raw_direc_n = 1:size(raw_direc_list, 1)
     
     %reading in most recent Suite2P results file to get Suite2P ROIs
     newest_results_file = find_newest_file([results_direc, raw_direc], '_proc');
+    if isempty(newest_results_file) == 1
+        continue
+    else
+    end
     disp(['Loading Suite2P results file ' newest_results_file])
     data_mat = load([results_direc, raw_direc, newest_results_file]);
     
