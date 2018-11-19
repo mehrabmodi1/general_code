@@ -15,6 +15,7 @@ direc_lists_mat = [...
 n_direc_lists = size(direc_lists_mat, 1);
 
 save_path_base = 'E:\Data\Analysed_data\Manual_ROIs\';
+fuse_ROIs = 1;          %0-no, 1-yes. This flattens dim3 of ROI_mat in case there is a multi-patch neuron that needs to be considered as a single object.
 
 %looping through all directory lists and all datasets once to save mean frames and again to save manually determined slow x-y  offsets for each trial, as well as determine bad z-drift trials
 for do_over = 1:2
@@ -162,6 +163,10 @@ for direc_list_n = 1:n_direc_lists
             ROI_mat(:, :, ROI_n) = poly2mask(curr_ROI.mnCoordinates(:, 1), curr_ROI.mnCoordinates(:, 2), size(ref_im, 1), size(ref_im, 2));
         end
         
+        if fuse_ROIs == 1
+            ROI_mat = sum(ROI_mat, 3);
+        else
+        end
         
         %extracting raw traces
         dataset_namei = findstr(direc, '\20');
