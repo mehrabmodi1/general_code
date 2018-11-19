@@ -13,6 +13,8 @@ n_cells = size(ROI_mat, 3);
 raw_data_mat = zeros(100, n_cells, n_trials) + nan;
 n_frames = zeros(n_trials, 1);
 
+
+
 %checking if any trials have already been extracted and recovering
 if exist([save_path, 'extracted_raw_data_mat.mat']) == 2
     try
@@ -125,8 +127,8 @@ for trial_n = start_trial:n_trials
             
         end
     end
-
-    %reading in raw fluorescence data for each ROI into a single matrix (dim1 - frame_n, dim2 - ROI_n)
+        
+    %% reading in raw fluorescence data for each ROI into a single matrix (dim1 - frame_n, dim2 - ROI_n)
     n_frames = size(stack, 3);
     
     p = gcp('nocreate');
