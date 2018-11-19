@@ -20,6 +20,16 @@ curr_threshm = 0.05;
 for trial_n = 1:size(dataset_stack, 3)
 
     figure(1)
+    subplot(1, 2, 2)
+    curr_frame = squeeze(dataset_stack(:, :, 2));
+    %curr_threshm = 0.05;
+    imagesc(curr_frame, [0, curr_threshm.*max(max(curr_frame))])
+    set(gca,'xtick',[])
+    set(gca,'xticklabel',[])
+    set(gca,'ytick',[])
+    set(gca,'yticklabel',[])
+    colormap('gray')
+    
     subplot(1, 2, 1)
     frame1 = squeeze(dataset_stack(:, :, 1));
     
@@ -33,16 +43,6 @@ for trial_n = 1:size(dataset_stack, 3)
     catch
         keyboard
     end
-    set(gca,'xtick',[])
-    set(gca,'xticklabel',[])
-    set(gca,'ytick',[])
-    set(gca,'yticklabel',[])
-    colormap('gray')
-    
-    subplot(1, 2, 2)
-    curr_frame = squeeze(dataset_stack(:, :, 2));
-    %curr_threshm = 0.05;
-    imagesc(curr_frame, [0, curr_threshm.*max(max(curr_frame))])
     set(gca,'xtick',[])
     set(gca,'xticklabel',[])
     set(gca,'ytick',[])
@@ -97,7 +97,7 @@ for trial_n = 1:size(dataset_stack, 3)
         h.AlphaData = landmark_ROI;
         hold off
         
-        subplot(1, 2, 2)
+        h2 = subplot(1, 2, 2);
         curr_frame = squeeze(dataset_stack(:, :, trial_n));
         %curr_threshm = 0.05;
         imagesc(curr_frame, [0, curr_threshm.*max(max(curr_frame))])
@@ -106,12 +106,14 @@ for trial_n = 1:size(dataset_stack, 3)
         set(gca,'ytick',[])
         set(gca,'yticklabel',[])
         colormap('gray')
-        title(['Trial ', int2str(trial_n), ' mean, click on landmark, or outside image if z-drifted.'  ])
+        title(['ROI matrix, click on landmark, or outside image if z-drifted.'  ])
                 
         %checking if click was outside image
         done = 0;
         while done == 0
+            axes(h2)
             [x, y] = ginputc(1, 'Color', [1, 0, 0]);
+            
             if x < 0 || x > size(frame1, 2) || y < 0 || y > size(frame1, 1)
                 %pulling up options box to re-do last landmark or mark current
                 %trial as z-drifted
@@ -167,7 +169,18 @@ reg_stack(:, :, bad_tr_list) = [];
 close figure 1
 
 %playing back trial frames for manual review
-playStack(reg_stack, 30, 0.5)
+figure(2)
+ROI_flat_mat = reg_stack(:, :, 2);
+del = find(ROI_flat_mat > 0);
+im = dataset_stack(:, :, 1);
+im(del) = im(del).*2;
+imagesc(im)
+set(gca,'xtick',[])
+set(gca,'xticklabel',[])
+set(gca,'ytick',[])
+set(gca,'yticklabel',[])
+plot_big_fig(1);
+
 choice = questdlg('Alignment OK?', 'Reviewing alignment', 'Yes, stack is OK', 'redo landmarks', 'Yes, stack is OK');
 if strcmp(choice, 'Yes, stack is OK') == 1
     done_marking = 1;
