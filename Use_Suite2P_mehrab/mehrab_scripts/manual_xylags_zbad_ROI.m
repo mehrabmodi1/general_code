@@ -38,8 +38,19 @@ for trial_n = 1:size(dataset_stack, 3)
     set(gca,'ytick',[])
     set(gca,'yticklabel',[])
     colormap('gray')
+    
+    subplot(1, 2, 2)
+    curr_frame = squeeze(dataset_stack(:, :, 2));
+    %curr_threshm = 0.05;
+    imagesc(curr_frame, [0, curr_threshm.*max(max(curr_frame))])
+    set(gca,'xtick',[])
+    set(gca,'xticklabel',[])
+    set(gca,'ytick',[])
+    set(gca,'yticklabel',[])
+    colormap('gray')
+    
     plot_big_fig(1);
-   
+       
     if trial_n == 1
         title('Trial1 mean, click on a landmark.')
         done = 0;

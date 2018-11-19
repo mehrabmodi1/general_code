@@ -4,16 +4,18 @@ function [lag_mat, bad_trs, done_marking] = manual_xylags_zbad_ROI(dataset_stack
 %to allow the user to report bad, z-drift trials by clicking outside the
 %image.
 
+%checking if only ROI_mat needs to be aligned to trial1 of the dataset i.e. frame1 of the ave stack
+if isempty(ROI_mat) == 0
+    dataset_stack = dataset_stack(:, :, 1);
+    dataset_stack = cat(3, dataset_stack, sum(ROI_mat, 3));
+    
+else
+end
+
 lag_mat = zeros(size(dataset_stack, 3), 3);
 bad_trs = zeros(size(dataset_stack, 3), 1);
 reg_stack = zeros(size(dataset_stack, 1), size(dataset_stack, 2), size(dataset_stack, 3));
 curr_threshm = 0.05;
-
-%checking if only ROI_mat needs to be aligned to trial1 of the dataset i.e. frame1 of the ave stack
-if isempty(ROI_mat) == 0
-    dataset_stack = dataset_stack(:, :, 1);
-else
-end
 
 for trial_n = 1:size(dataset_stack, 3)
 
@@ -36,8 +38,26 @@ for trial_n = 1:size(dataset_stack, 3)
     set(gca,'ytick',[])
     set(gca,'yticklabel',[])
     colormap('gray')
+    
+    subplot(1, 2, 2)
+        curr_frame = squeeze(dataset_stack(:, :, trial_n));
+        %curr_threshm = 0.05;
+        imagesc(curr_frame, [0, curr_threshm.*max(max(curr_frame))])
+        set(gca,'xtick',[])
+        set(gca,'xticklabel',[])
+        set(gca,'ytick',[])
+        set(gca,'yticklabel',[])
+        colormap('gray')
+    
+    
+    
     plot_big_fig(1);
    
+    
+    
+    
+    
+    
     if trial_n == 1
         title('Trial1 mean, click on a landmark.')
         done = 0;
