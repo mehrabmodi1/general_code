@@ -34,7 +34,8 @@ try
     newest_filename = dir_contents(max_datenum(2)).name;
 catch
     keyboard
+    newest_filename = [];
     %if there's an error here, check if ROIs have really been pruned. If
-    %not, delete ROIs_pruned text file and run suite2P_raw_data_extracter2 again.
+    %not, delete ROIs_pruned text file and run suite2P_raw_data_extracter3 again.
 end
 cd(prev_direc)

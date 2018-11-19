@@ -76,7 +76,7 @@ for do_over = 1:2
                 for tif_n = tif_start_n:length(tif_list)
                     curr_stack = ScanImageTiffReader([direc, tif_list(tif_n).name]).data();
                     curr_stack = permute(curr_stack,[2 1 3]);
-                    curr_stack = double(curr_stack);
+                    curr_stack = double
                     ave_stack(:, :, tif_n) = std(curr_stack, 0, 3, 'omitnan');
                     disp(['Saving avg stack, tr ', int2str(tif_n), ' done.'])
                 end
@@ -141,11 +141,7 @@ for direc_list_n = 1:n_direc_lists
         tif_list = dir('*.tif');
         
         disp(['Extracting traces from ' direc]);
-        try
-            curr_stack = ScanImageTiffReader([direc, tif_list(1).name]).data();
-        catch
-            keyboard
-        end
+        curr_stack = ScanImageTiffReader([direc, tif_list(1).name]).data();
         curr_stack = permute(curr_stack,[2 1 3]);
         ref_im = mean(curr_stack, 3, 'omitnan');
         %loading in manually drawn, FIJI ROIs

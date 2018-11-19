@@ -90,8 +90,11 @@ for trial_n = start_trial:n_trials
         
         %doing per-frame motion correction if specified by user
         if do_registration == 2
-            stack_reg = slow_xy_motion_correct(stack, ref_im, ROI_mat, [0, 0], do_registration);
-        else
+            try
+                stack_reg = slow_xy_motion_correct(stack, ref_im, [0, 0], do_registration);
+            catch
+                keyboard
+            end
         end
     else
         

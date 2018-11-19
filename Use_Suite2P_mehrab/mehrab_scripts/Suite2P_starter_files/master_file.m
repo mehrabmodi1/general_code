@@ -47,7 +47,7 @@ ops0.RegFileTiffLocation    = ['E:\Data\Analysed_data\Suite2p\Reg_Tiff']; %'D:/D
 % if you want to save red channel tiffs, also set ops0.REDbinary = 1
 
 % ---- registration options ------------------------------------- %
-ops0.doRegistration         = 0; % skip (0) if data is already registered
+ops0.doRegistration         = 1; % skip (0) if data is already registered
 ops0.showTargetRegistration = 1; % shows the image targets for all planes to be registered
 ops0.PhaseCorrelation       = 1; % set to 0 for non-whitened cross-correlation
 ops0.SubPixel               = Inf; % 2 is alignment by 0.5 pixel, Inf is the exact number from phase correlation

@@ -13,7 +13,17 @@ for trial_n = 1:size(dataset_stack, 3)
     figure(1)
     subplot(1, 2, 1)
     frame1 = squeeze(dataset_stack(:, :, 1));
-    imagesc(frame1, [0, curr_threshm.*max(max(frame1))]);
+    
+    if sign(min(min(frame1))) == -1
+        frame1 = frame1 + (-1 .* min(min(frame1)));
+    else
+    end
+    
+    try
+        imagesc(frame1, [0, curr_threshm.*max(max(frame1))]);
+    catch
+        keyboard
+    end
     set(gca,'xtick',[])
     set(gca,'xticklabel',[])
     set(gca,'ytick',[])
