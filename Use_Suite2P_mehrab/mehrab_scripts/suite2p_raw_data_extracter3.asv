@@ -179,7 +179,7 @@ log_m = [];
 
 
 
-%% Re-formatting and manually aligning ROI matrix with trial1 image
+%% Extracting raw F data, writing to file
 for raw_direc_n = 1:size(raw_direc_list, 1)
     raw_direc = raw_direc_list{raw_direc_n, 1};
     raw_direc_full = [raw_direc_base, raw_direc, '\'];
@@ -192,9 +192,10 @@ for raw_direc_n = 1:size(raw_direc_list, 1)
     disp(raw_direc);
     cd([results_direc, raw_direc])
     
-    %checking if ROIs have already been aligned
-    if exist([results_direc, raw_direc, 'ROI_mat_aligned.mat']) == 2
+    %checking if data has already been extracted
+    if exist([results_direc, raw_direc, 'trace_extraction_complete.mat']) == 2
        
+       disp(['traces have alredy been extracted for ' [results_direc, raw_direc] '. Skipping...']);
        continue
        
     else
@@ -234,22 +235,18 @@ for raw_direc_n = 1:size(raw_direc_list, 1)
     col_lag = lag_mat(2, 2);
     ROI_mat = translate_stack(ROI_mat, [row_lag; col_lag], nan);
     
-    save([save_path, 'ROI_mat_aligned.mat'], 'ROI_mat');
+    figure(1)
+    ROI_flat_mat = sum(ROI_mat, 3);
+    del = find(ROI_flat_mat > 1);
+    im = dataset_stack(:, :, 1);
+    im(del) = im(del).*2;
+    imagesc
     
-%     %testing
-%     figure(1)
-%     ROI_flat_mat = sum(ROI_mat, 3);
-%     del = find(ROI_flat_mat > 0);
-%     im = dataset_stack(:, :, 1);
-%     im(del) = im(del).*2;
-%     imagesc(im)
+    keyboard
     
-end
-
-%% Extracting raw fluorescence traces after doing a slow xy-correction, and copying over files needed for further analysis
-for raw_direc_n = 1:size(raw_direc_list, 1)
-    raw_direc = raw_direc_list{raw_direc_n, 1};
-    disp(raw_direc);
+    
+    
+    %% Extracting raw fluorescence traces after doing a slow xy-correction, and copying over files needed for further analysis
     prev_direc = pwd;
     [raw_data_mat] = extract_raw_traces_par([raw_direc_base, raw_direc], ROI_mat, [results_direc, raw_direc, '\'], 2);
     disp(['done extracting traces from ' reg_tif_direc, raw_direc]);
