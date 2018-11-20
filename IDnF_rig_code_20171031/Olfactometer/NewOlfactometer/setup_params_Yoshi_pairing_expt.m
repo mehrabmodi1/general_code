@@ -1,4 +1,5 @@
 function [params_spec1] = setup_params_Yoshi_pairing_expt(paired_odours, pairing_dur)
+%syntax [params_spec1] = setup_params_Yoshi_pairing_expt(paired_odours, pairing_dur)
 %This function sets up a detailed stimulus specification structure and saves
 %it into curr_aq_direc to set up stimulus delivery for a pre, pairing and
 %post experiment protocol. Paired odor is the vector of odor numbers to be paired.
