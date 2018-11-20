@@ -64,23 +64,28 @@ for pp=1:length(params) %this loop is not for trials
     %creating a copy of the rand_train column to keep track of rand train
     %number
     param_mat = [param_mat, param_mat(:, 10)];
+
     
-    %house-keeping steps
+    %setting up repeats with randomisation if specified
+    unit_param_mat = param_mat;
     n_reps = params.reps;
-    param_mat = repmat(param_mat, n_reps, 1);      %replicating existing param_mat by n_reps
+    size_repeat = size(unit_param_mat, 1);
+    for rep_n = 1:n_reps
+       
+        if params.randomize == 1
+
+            t_order = randperm(size_repeat)';
+            sub_param_mat = [t_order, unit_param_mat];
+            sub_param_mat = sortrows(sub_param_mat);
+            sub_param_mat(:, 1) = [];
+
+        else
+            sub_param_mat = unit_param_mat;
+        end
+        param_mat = cat(1, param_mat, sub_param_mat);
+    end
     n_trials = size(param_mat, 1);
     
-    %randomising trial order if needed
-    if params.randomize == 1
-        for rand_rep = 1:7
-            t_order = randperm(n_trials)';
-            param_mat = [t_order, param_mat];
-            param_mat = sortrows(param_mat);
-            param_mat(:, 1) = [];
-        end
-    
-    else
-    end
     
     %generating random pulse trains and inserting them into param_mat as per rand train number, if needed
     n_durations = length(params.duration);
