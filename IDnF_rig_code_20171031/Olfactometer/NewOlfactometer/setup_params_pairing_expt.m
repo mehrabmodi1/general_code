@@ -1,4 +1,5 @@
 function [params_spec1] = setup_params_pairing_expt(paired_odours, led_elec, CS_dur, US_dur, US_dutycyc)
+%syntax: function [params_spec1] = setup_params_pairing_expt(paired_odours, led_elec, CS_dur, US_dur, US_dutycyc)
 %This function sets up a detailed stimulus specification structure and saves
 %it into curr_aq_direc to set up stimulus delivery for a pre, pairing and
 %post experiment protocol. Paired odor is the vector of odor numbers to be paired.
@@ -6,7 +7,7 @@ function [params_spec1] = setup_params_pairing_expt(paired_odours, led_elec, CS_
 
 %step1:Setting up the pre trials
 %creating param specification structure for std KC recording expt. This is for pre-pairing characterisation. 
-params_spec1 = set_ADO_params_Yoshi_PA_BA_EL;
+params_spec1 = set_ADO_params_Yoshi_PA_BA_EL_forpairing;
 params_struc1 = setUpStimuli_trains_flex(params_spec1);         %detailed, trial-by-trial parameter specification structure.
 params = params_struc1;           %this is the main parameter structure that will ultimately be saved in curr_aq_direc.
 
