@@ -49,6 +49,14 @@ params_mat = params;
 
 %saving params to current acquisition directory
 curr_dir = curr_aq_direc;
-save([curr_dir, 'params.mat'], 'params_mat');
+if exist([curr_dir, 'params.mat']) == 2
+    ovwrite = input('paramfile already exists - overwrite (0-no, 1-yes)?');
+    if ovwrite == 1
+         save([curr_dir, 'params.mat'], 'params_mat');
+    elseif ovwrite == 0
+    end
+else
+    save([curr_dir, 'params.mat'], 'params_mat');
+end
 disp(['saved detailed stim params structure in ', curr_dir]);
 
