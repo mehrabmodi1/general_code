@@ -1,4 +1,4 @@
-function [frame_time, zoom, n_chans, PMT_offsets] = SI_tif_info(stack_obj)
+function [frame_time, zoom, n_chans, PMT_offsets, lpower] = SI_tif_info(stack_obj)
 %syntax: [frame_time, zoom, n_chans] = SI_tif_info(stack_obj)
 
 %%testing variables
@@ -65,3 +65,12 @@ if isempty(truei) == 0
     PMT_offsets = [0, 0];
 else
 end
+
+%getting laser power used
+lpower_subi = strfind(metadata, 'hBeams.powers');
+lpower_sub_newlinei = newlinesi - lpower_subi;
+lpower_sub_newlinei(lpower_sub_newlinei < 0) = nan;
+[del, lpower_sub_newlinei] = nanmin(lpower_sub_newlinei);
+lpower_sub_newlinei = newlinesi(lpower_sub_newlinei);
+lpower = metadata((lpower_subi + 16):(lpower_sub_newlinei - 1));
+lpower = str2num(lpower);
