@@ -8,6 +8,7 @@ lag_mat = zeros(size(dataset_stack, 3), 3);
 bad_trs = zeros(size(dataset_stack, 3), 1);
 reg_stack = zeros(size(dataset_stack, 1), size(dataset_stack, 2), size(dataset_stack, 3));
 curr_threshm = 0.05;
+curr_threshm_tr1 = 0.05;
 for trial_n = 1:size(dataset_stack, 3)
 
     figure(1)
@@ -20,7 +21,7 @@ for trial_n = 1:size(dataset_stack, 3)
     end
     
     try
-        imagesc(frame1, [0, curr_threshm.*max(max(frame1))]);
+        imagesc(frame1, [0, curr_threshm_tr1.*max(max(frame1))]);
     catch
         keyboard
     end
@@ -45,16 +46,16 @@ for trial_n = 1:size(dataset_stack, 3)
 
                 if choice == 1      %make dimmer selected
                     subplot(1, 2, 1)
-                    curr_threshm = curr_threshm.*0.5;
-                    imagesc(frame1, [0, curr_threshm.*max(max(frame1))])
+                    curr_threshm_tr1 = curr_threshm_tr1.*0.5;
+                    imagesc(frame1, [0, curr_threshm_tr1.*max(max(frame1))])
                     set(gca,'xtick',[])
                     set(gca,'xticklabel',[])
                     set(gca,'ytick',[])
                     set(gca,'yticklabel',[])
                 elseif choice == 2     %make brighter selected
                     subplot(1, 2, 1)
-                    curr_threshm = curr_threshm.*2;
-                    imagesc(frame1, [0, curr_threshm.*max(max(frame1))])
+                    curr_threshm_tr1 = curr_threshm_tr1.*2;
+                    imagesc(frame1, [0, curr_threshm_tr1.*max(max(frame1))])
                     set(gca,'xtick',[])
                     set(gca,'xticklabel',[])
                     set(gca,'ytick',[])
