@@ -73,6 +73,12 @@ for trial_n = start_trial:n_trials
         continue            %skipping trace extraction from unreadable trials - this doesn't matter because time-stamps will be matched up later with the stim param file anyway.
     end
     
+    p = gcp('nocreate');
+    if isempty(p) == 1
+        parpool(7)
+    else
+    end
+    
     %applying a slow x-y motion correction assuming negligible motion
     %within a trial, unless otherwise specified by user
     
@@ -82,7 +88,7 @@ for trial_n = start_trial:n_trials
         %doing per-frame motion correction if specified by user
         if do_registration == 2
             try
-                stack_reg = slow_xy_motion_correct(stack, ref_im, [0, 0], do_registration);
+                [stack_reg, saved_lags] = slow_xy_motion_correct(stack, ref_im, [0, 0], do_registration);
             catch
                 keyboard
             end
@@ -112,28 +118,30 @@ for trial_n = start_trial:n_trials
                 lag_mat = [];
             end
             
-            stack_reg = slow_xy_motion_correct(stack, ref_im, lag_mat(trial_n, :), do_registration);
+            [stack_reg, saved_lags] = slow_xy_motion_correct(stack, ref_im, lag_mat(trial_n, :), do_registration);
             
         end
+        detailed_lags(trial_n).frame_lags = saved_lags;
     end
+    save([save_path, '\detailed_lags.mat'])
         
     %% reading in raw fluorescence data for each ROI into a single matrix (dim1 - frame_n, dim2 - ROI_n)
     n_frames = size(stack, 3);
     
+    pre_im = mean(stack, 3);
+    figure(1) 
+    imagesc(pre_im)
     %checking for line noise and subtracting it away.
-    for frame_n = 1:n_frames
+    parfor frame_n = 1:n_frames
         curr_fr = stack(:, :, frame_n);
         bk_fr = check_sig_noise(curr_fr);
-        
+        curr_fr_a = curr_fr - bk_fr;
+        stack(:, :, frame_n) = curr_fr_a;
     end
-    
-    
-    
-    p = gcp('nocreate');
-    if isempty(p) == 1
-        parpool(7)
-    else
-    end
+    post_im = mean(stack, 3);
+    figure(2)
+    imagesc(post_im)
+    keyboard
     
     
     parfor frame_n = 1:n_frames

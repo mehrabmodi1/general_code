@@ -12,7 +12,9 @@ row_length = size(frame, 2);
 col_width = round(row_length./10);
 
 left_bk_vals = mean(frame(:, 1:col_width), 2);
+left_bk_vals = movmean(left_bk_vals, 10);
 right_bk_vals = mean(frame(:, (row_length - col_width):row_length), 2);
+right_bk_vals = movmean(right_bk_vals, 10);
 
 c = corrcoef(left_bk_vals, right_bk_vals);
 
@@ -20,11 +22,14 @@ if c(1, 2) > 0.8
     noise_vec = mean([left_bk_vals, right_bk_vals], 2);
     noise_mat = repmat(noise_vec, 1, row_length);
     noise_mat = int16(noise_mat);
+    
 else
     noise_mat = zeros(size(frame, 1), size(frame, 2));
+    noise_mat = int16(noise_mat);
+    
 end
 
-% %function testing lines
+%function testing lines
 % imagesc(frame)
 % figure(2)
 % imagesc(left_bk_vals)
