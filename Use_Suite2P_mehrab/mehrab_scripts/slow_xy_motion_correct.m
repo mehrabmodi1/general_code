@@ -1,4 +1,4 @@
-function reg_stack = slow_xy_motion_correct(curr_stack, ref_im, lag_mat, registration_type)
+function [reg_stack, saved_lags] = slow_xy_motion_correct(curr_stack, ref_im, lag_mat, registration_type)
 %syntax: reg_stack = slow_xy_motion_correct(curr_stack, ref_im, lag_mat, registration_type)
 %If registration_type = 1, this function assumes any x-y motion is slow and negligible within a
 %single trial (tif stack). It then averages all frames in curr_stack and
@@ -56,7 +56,7 @@ if registration_type == 2
    reg_stack_orig = reg_stack;
    reg_stack = zeros(size(reg_stack_orig, 1), size(reg_stack_orig, 2), size(reg_stack_orig, 3)) + nan;
    ref_im = mean(reg_stack_orig, 3, 'omitnan');
-   for frame_n = 1:size(reg_stack, 3)
+   parfor frame_n = 1:size(reg_stack, 3)
        curr_im = reg_stack_orig(:, :, frame_n);
        c = xcorr2_fft(curr_im, ref_im); 
        [maxr, maxcol] = find(c == max(max(c)));
@@ -88,6 +88,7 @@ if registration_type == 2
     
     
 else
+    saved_lags = [];
 end
 
 
