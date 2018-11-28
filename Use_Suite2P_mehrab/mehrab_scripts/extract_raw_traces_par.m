@@ -120,11 +120,27 @@ for trial_n = start_trial:n_trials
     %% reading in raw fluorescence data for each ROI into a single matrix (dim1 - frame_n, dim2 - ROI_n)
     n_frames = size(stack, 3);
     
+    %checking for line noise and subtracting it away.
+    for frame_n = 1:n_frames
+        curr_fr = stack(:, :, frame_n);
+        bk_fr = check_sig_noise(curr_fr);
+        curr_fr_a = curr_fr - bk_fr;
+        
+        imagesc(curr_fr)
+        figure(2)
+        imagesc(curr_fr_a)
+        stack(:, :, frame_n) = curr_fr_a;
+        keyboard
+    end
+    
+    
+    
     p = gcp('nocreate');
     if isempty(p) == 1
         parpool(7)
     else
     end
+    
     
     parfor frame_n = 1:n_frames
         curr_frame = stack(:, :, frame_n);
