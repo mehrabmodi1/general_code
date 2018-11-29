@@ -121,16 +121,17 @@ for trial_n = start_trial:n_trials
             [stack_reg, saved_lags] = slow_xy_motion_correct(stack, ref_im, lag_mat(trial_n, :), do_registration);
             
         end
-        detailed_lags(trial_n).frame_lags = saved_lags;
-    end
-    save([save_path, '\detailed_lags.mat'])
         
+    end
+    detailed_lags(trial_n).frame_lags = saved_lags;
+    try
+        save([save_path, '\detailed_xy_lags.mat'], 'detailed_lags')
+    catch
+        keyboard
+    end
     %% reading in raw fluorescence data for each ROI into a single matrix (dim1 - frame_n, dim2 - ROI_n)
     n_frames = size(stack, 3);
-    
-    pre_im = mean(stack, 3);
-    figure(1) 
-    imagesc(pre_im)
+   
     %checking for line noise and subtracting it away.
     parfor frame_n = 1:n_frames
         curr_fr = stack(:, :, frame_n);
@@ -138,11 +139,7 @@ for trial_n = start_trial:n_trials
         curr_fr_a = curr_fr - bk_fr;
         stack(:, :, frame_n) = curr_fr_a;
     end
-    post_im = mean(stack, 3);
-    figure(2)
-    imagesc(post_im)
-    keyboard
-    
+ 
     
     parfor frame_n = 1:n_frames
         curr_frame = stack(:, :, frame_n);

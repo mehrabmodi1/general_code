@@ -121,16 +121,13 @@ for trial_n = start_trial:n_trials
             [stack_reg, saved_lags] = slow_xy_motion_correct(stack, ref_im, lag_mat(trial_n, :), do_registration);
             
         end
-        detailed_lags(trial_n).frame_lags = saved_lags;
-    end
-    save([save_path, '\detailed_xy_lags.mat'], 'detailed_lags')
         
+    end
+    detailed_lags(trial_n).frame_lags = saved_lags;
+   
     %% reading in raw fluorescence data for each ROI into a single matrix (dim1 - frame_n, dim2 - ROI_n)
     n_frames = size(stack, 3);
-    
-    pre_im = mean(stack, 3);
-    figure(1) 
-    imagesc(pre_im, [-5, 5])
+   
     %checking for line noise and subtracting it away.
     parfor frame_n = 1:n_frames
         curr_fr = stack(:, :, frame_n);
@@ -138,10 +135,7 @@ for trial_n = start_trial:n_trials
         curr_fr_a = curr_fr - bk_fr;
         stack(:, :, frame_n) = curr_fr_a;
     end
-    post_im = mean(stack, 3);
-    figure(2)
-    imagesc(post_im, [-5, 5])
-   
+ 
     
     parfor frame_n = 1:n_frames
         curr_frame = stack(:, :, frame_n);
@@ -190,6 +184,9 @@ for trial_n = start_trial:n_trials
     disp(['traces extracted, from trial ', int2str(trial_n), ', and saved.'])
     
 end
+
+save([save_path, '\detailed_xy_lags.mat'], 'detailed_lags')
+    
 
 del = [];
 save([save_path, 'trace_extraction_complete.mat'], 'del');
