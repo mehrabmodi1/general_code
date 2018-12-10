@@ -11,6 +11,7 @@ direc_lists_mat = [...
                     %{'E:\Data\Raw_Data_Current\dataset_lists\Yoshi_THnull_G1pedc.xls'};...
                     %{'E:\Data\Raw_Data_Current\dataset_lists\MBON_DAN_gamma1_Chrim_stim_lifetime.xls'};...
                     {'E:\Data\Raw_Data_Current\dataset_lists\MBON_DAN_gamma1_lowUS_MB085C.xls'}...
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\dataset_list_Yoshi_PaBaEl_MBON_DAN_gamma1_lowUS_MB085C_nansets'}...
                     ];
                 
 n_direc_lists = size(direc_lists_mat, 1);
@@ -76,8 +77,26 @@ for do_over = 1:2
                     tif_start_n = 1;
                 end
                 for tif_n = tif_start_n:length(tif_list)
-                    curr_stack = ScanImageTiffReader([direc, tif_list(tif_n).name]).data();
+                    stack_obj = ScanImageTiffReader([direc, tif_list(tif_n).name]);
+                    curr_stack = stack_obj.data();
                     curr_stack = permute(curr_stack,[2 1 3]);
+                    
+                    %checking how many color channels were acquired and saving red chan separately
+                    [frame_time, zoom, n_chans] = SI_tif_info(stack_obj);
+                    if n_chans == 2
+                        red_stack = curr_stack(:, :, [2:2:end]);
+                        curr_stack = curr_stack(:, :, [1:2:end]);
+                        
+                    else
+                    end
+                    
+                    %PICK UP THREAD HERE
+                    %set up saving ave stacks for the red channel as well,
+                    %set up using these for slow and fast mov correction, 
+                    %if specified by the user. Copy over to Suite2P
+                    %extracter.
+                    
+                    
                     curr_stack = double(curr_stack);
                     ave_stack(:, :, tif_n) = std(curr_stack, 0, 3, 'omitnan');
                     disp(['Saving avg stack, tr ', int2str(tif_n), ' done.'])
@@ -150,12 +169,20 @@ for direc_list_n = 1:n_direc_lists
         end
         curr_stack = permute(curr_stack,[2 1 3]);
         ref_im = mean(curr_stack, 3, 'omitnan');
+        
+        %checking if multiple ROIs have been drawn and unzipping them all
+        if exist([direc, 'ROIs\RoiSet.zip']) == 2
+            unzip([direc, 'ROIs\RoiSet.zip'], [direc, 'ROIs\']);
+        else
+        end
+       
         %loading in manually drawn, FIJI ROIs
         prev_direc = pwd;
         cd([direc, 'ROIs\']);
         ROI_list = dir('*.roi');
         cd(prev_direc);
         n_ROIs = size(ROI_list, 1);
+        
         
         ROI_mat = zeros(size(ref_im, 1), size(ref_im, 2), n_ROIs);
         for ROI_n = 1:n_ROIs
