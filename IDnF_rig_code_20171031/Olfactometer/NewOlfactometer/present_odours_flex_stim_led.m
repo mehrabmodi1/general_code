@@ -75,7 +75,7 @@ end
     
 secondDilution1 = params_mat(1).secondDilution;
 initialiseFlows_MM(AC, 0.1, secondDilution1);      %initialising flows for the first time just to set things up. 
-od_inj_dur = 24;                         %this is the duration in s for which MFC B flow is injected into an odor vial to fully fill the system with odor. Stim_latency has to be longer than this.
+od_inj_dur = 24.5;                         %this is the duration in s for which MFC B flow is injected into an odor vial to fully fill the system with odor. Stim_latency has to be longer than this.
 
 for trial_n = start_tr:n_trials
   
@@ -114,10 +114,10 @@ for trial_n = start_tr:n_trials
     end
     
     if pulse_type == 1 
-        tot_tr_dur = max([stim_latency, od_inj_dur]) + duration + ...
+        tot_tr_dur = stim_latency + duration + ...
             (duration + inter_pulse_interval).*(n_od_pulses - 1) + post_od_scan_dur;
     elseif pulse_type == 0
-        tot_tr_dur = max([stim_latency, od_inj_dur]) + duration + ...
+        tot_tr_dur = stim_latency + duration + ...
             (duration + duration).*(n_od_pulses - 1) + post_od_scan_dur;
     else
     end
@@ -143,12 +143,16 @@ for trial_n = start_tr:n_trials
     disp(['duration ' num2str(duration) 's, n pulses ' int2str(n_od_pulses) '.'])
     
     
-    if stim_latency < od_inj_dur 
-        error(['stim_latency set too low. Must be >' num2str(od_inj_dur) ' s.'])
+    %checking to see if olfactometer odor fill needs to be initialised
+    %before scan trigger or after.
+    if stim_latency < od_inj_dur
+        od_fill_early = 1;
+    elseif stim_latency >= od_inj_dur
+        od_fill_early = 0;
     else
     end
-    
-    
+
+
     %% delivering odor
     %Setting up PID acuisition, 
     s = daq.createSession('ni');
@@ -161,15 +165,28 @@ for trial_n = start_tr:n_trials
     
     initialiseFlows_MM(AC, firstDilution, secondDilution);  %setting MFC flow rates for required conc.
     
-    tic
-    t_stamp = now;
-    s.startBackground();                    %starting PID acqn in the background
-    trigger_scan(1);                        %triggering ScanImage to start image acquisition
-    disp('pre odor scanning...')
-    pause(stim_latency - od_inj_dur)        %pause before filling system with odor for long stim latencies
-    injectOdour_EP(odor_n)                  %filling system with odor, switching MFC B flow from empty vial to odor vial
+    if od_fill_early == 0
+        tic
+        t_stamp = now;
+        s.startBackground();                    %starting PID acqn in the background
+        trigger_scan(1);                        %triggering ScanImage to start image acquisition
+        disp('pre odor scanning...')
+        pause(stim_latency - od_inj_dur)        %pause before filling system with odor for long stim latencies
+        injectOdour_EP(odor_n)                  %filling system with odor, switching MFC B flow from empty vial to odor vial
+
+        pause(od_inj_dur)                       %waiting for system to get filled with odor
     
-    pause(od_inj_dur)                       %waiting for system to get filled with odor
+    elseif od_fill_early == 1
+        injectOdour_EP(odor_n)                  %filling system with odor, switching MFC B flow from empty vial to odor vial
+        pause((od_inj_dur - stim_latency));     %waiting for olfactometer odorisation before triggering a shorter stim_latency scan
+        tic
+        t_stamp = now;
+        s.startBackground();                    %starting PID acqn in the background
+        trigger_scan(1);                        %triggering ScanImage to start image acquisition
+        disp('pre odor scanning...')
+        pause(stim_latency)   
+    else
+    end
     
     %flipping shuttle valve to deliver odor pulse(s)
     disp('odor being delivered...')
@@ -211,7 +228,12 @@ for trial_n = start_tr:n_trials
     
     %pause for inter stimulus interval (between this and next trial)
     if trial_n < n_trials
-        pause(isi-toc)
+        if od_fill_early == 0
+            pause(isi-toc)
+        elseif od_fill_early == 1
+            pause(isi - toc - (od_inj_dur - stim_latency))      %accounting for the extra seconds spent odorising the olfactometer before triggering scan.
+        else
+        end
     else
     end
     
