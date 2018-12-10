@@ -40,6 +40,7 @@ for trial_n = 1:size(dataset_stack, 3)
     
     try
         imagesc(frame1, [0, curr_threshm.*max(max(frame1))]);
+        keyboard
     catch
         keyboard
     end
@@ -67,6 +68,7 @@ for trial_n = 1:size(dataset_stack, 3)
                     subplot(1, 2, 1)
                     curr_threshm = curr_threshm.*0.5;
                     imagesc(frame1, [0, curr_threshm.*max(max(frame1))])
+                    keyboard
                     set(gca,'xtick',[])
                     set(gca,'xticklabel',[])
                     set(gca,'ytick',[])

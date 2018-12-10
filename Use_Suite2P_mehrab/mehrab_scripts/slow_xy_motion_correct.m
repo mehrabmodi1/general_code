@@ -56,7 +56,7 @@ if registration_type == 2
    reg_stack_orig = reg_stack;
    reg_stack = zeros(size(reg_stack_orig, 1), size(reg_stack_orig, 2), size(reg_stack_orig, 3)) + nan;
    ref_im = mean(reg_stack_orig, 3, 'omitnan');
-   parfor frame_n = 1:size(reg_stack, 3)
+   for frame_n = 1:size(reg_stack, 3)
        curr_im = reg_stack_orig(:, :, frame_n);
        c = xcorr2_fft(curr_im, ref_im); 
        [maxr, maxcol] = find(c == max(max(c)));
