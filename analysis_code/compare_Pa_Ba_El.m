@@ -1,15 +1,17 @@
 clear all
 close all
 
-dataset_list_paths = [{'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Yoshi_PaBaEl_d5HT1b_Gamma.xls'};...
-                      {'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Yoshi_PaBaEl_c739_AlphaBeta.xls'} ...
+dataset_list_paths = [%{'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Yoshi_PaBaEl_d5HT1b_Gamma.xls'};...
+                      %{'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Yoshi_PaBaEl_c739_AlphaBeta.xls'} ...
                       %{'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Yoshi_PaBaEl_d5HT1b_Gamma_low_conc.xls'};...
                       %{'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Yoshi_PaBaEl_c739_AlphaBeta_low_conc.xls'};...
                       %{'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Yoshi_PaBaEl_c305a_AlphapBetap_low_conc.xls'};...
+                      {'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Yoshi_PaBaEl_d5HT1b_Gamma_set2.xls'};...
+                      {'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Yoshi_PaBaEl_c739_AlphaBeta_set2.xls'}...
                       ];
 
 suppress_plots = 1;
-[del, odor_names] = xlsread('C:\Data\Code\general_code\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList.xls', 1);
+[del, odor_names] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList.xls', 1);
 a = colormap('bone');
 global greymap
 greymap = flipud(a);
@@ -104,9 +106,9 @@ for list_n = 1:size(dataset_list_paths, 1)
         
         %saving stuff for sharing data
         if list_n == 1
-            share_path = ['C:\Data\Data\Analysed_data\data_sharing\Gamma_highC\fly' int2str(dir_n)];
+            share_path = ['C:\Data\Data\Analysed_data\data_sharing\Gamma_set2\fly' int2str(dir_n)];
         elseif list_n == 2
-            share_path = ['C:\Data\Data\Analysed_data\data_sharing\AlphaBeta_highC\fly' int2str(dir_n)];
+            share_path = ['C:\Data\Data\Analysed_data\data_sharing\AlphaBeta_set2\fly' int2str(dir_n)];
         else
         end
         mkdir(share_path);
@@ -468,6 +470,8 @@ set_xlabels_time_offset(2, frame_time, 10, -25)
 xlabel('CoM time (s)')
 ylabel('frac. cell-odour pairs')
 fig_wrapup(2)
+disp(['n G ovlap = ', int2str(length(ovlap_CoMs))]);
+disp(['n G unique = ', int2str(length(unique_CoMs))]);
 
 %AB KCs
 unique_CoMsi = find(od_resp_tracker_all_saved(:, 2) == 1 | od_resp_tracker_all_saved(:, 2) == 2);
@@ -492,4 +496,5 @@ title('Alpha/Beta KCs')
 xlabel('CoM time (s)')
 ylabel('frac. cell-odour pairs')
 fig_wrapup(3)
-
+disp(['n A/B ovlap = ', int2str(length(ovlap_CoMs))]);
+disp(['n A/B unique = ', int2str(length(unique_CoMs))]);

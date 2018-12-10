@@ -3,7 +3,7 @@ function color_vec = setup_std_color_vec(n_colours)
 %This function sets up a nice set of RGB triplets given the number of
 %colours neeed.
 
-color_vecs = load(['C:\Data\Code\general_code\std_color_vecs.mat']);
+color_vecs = load(['C:\Data\Code\general_code_old\std_color_vecs.mat']);
 color_vecs = color_vecs.color_vecs;
 
 if n_colours <= 6
