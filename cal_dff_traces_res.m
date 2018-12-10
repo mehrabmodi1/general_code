@@ -50,16 +50,18 @@ for trial_n = 1:n_trials
     %calculating dF/F for all cells, for current trial
     raw_mat = squeeze(raw_data_mat(:, :, trial_n) );
     
-    baseline_vec = mean(raw_mat(round(stim_frame - 4./frame_time):(stim_frame - 2), :), 1, 'omitnan');          %vector of F baselines for all cells
+    baseline_vec = mean(raw_mat(1:(stim_frame - 2), :), 1, 'omitnan');          %vector of F baselines for all cells
     baseline_mat = repmat(baseline_vec, n_frames, 1);
     dff_mat = (raw_mat - baseline_mat)./baseline_mat;
     b_vec = zeros(1, round(filt_time./frame_time)) + 1;
     a_vec = round(1./frame_time);
+    
     try
         dff_mat_f = filter(b_vec, a_vec, dff_mat, [], 1);
     catch
         keyboard
     end
+    
     %checking if this trial was identified as bad and skipping if so.
     if isempty(intersect(good_tr_list, trial_n)) == 1
         continue            %leaves this trial as NaNs in dff_data_mat
