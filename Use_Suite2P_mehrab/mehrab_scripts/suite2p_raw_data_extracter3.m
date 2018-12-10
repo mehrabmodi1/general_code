@@ -110,9 +110,22 @@ for do_over = 1:2
                 tif_start_n = 1;
             end
             for tif_n = tif_start_n:length(tif_list)
-                curr_stack = ScanImageTiffReader([raw_direc, tif_list(tif_n).name]).data();
+                stack_obj = ScanImageTiffReader([raw_direc, tif_list(tif_n).name]);
+                curr_stack = stack_obj.data();
                 curr_stack = permute(curr_stack,[2 1 3]);
                 curr_stack = double(curr_stack);
+                
+                [frame_time, zoom, n_chans] = SI_tif_info(stack_obj);
+                if n_chans == 2
+                    red_stack = curr_stack(:, :, [2:2:end]);
+                    curr_stack = curr_stack(:, :, [1:2:end]);
+
+                else
+                end
+                    
+                
+                
+                
                 ave_stack(:, :, tif_n) = std(curr_stack, 0, 3, 'omitnan');
                 disp(['Saving avg stack, tr ', int2str(tif_n), ' done.'])
             end
