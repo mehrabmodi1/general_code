@@ -23,6 +23,10 @@ if exist([save_path, 'extracted_raw_data_mat.mat']) == 2
         
         if length(size(raw_data_mat)) == 3
             done_trs = find(squeeze(isnan(raw_data_mat(1, 1, :))) == 0);
+            if isempty(done_trs) == 1
+                done_trs = 0;
+            else
+            end
         else
             done_trs = 0;
         end
@@ -68,8 +72,20 @@ for trial_n = start_trial:n_trials
         curr_time_stamp = parse_tiff_timestamp(im_obj);
         time_stamps(trial_n).tstamp = curr_time_stamp;
         time_stamps(trial_n).name = dir_contents(trial_n).name;
+        
+        %checking how many color channels there are
+        [frame_time, zoom, n_chans] = SI_tif_info(im_obj);
+        
+        if n_chans == 2
+            stack = stack(:, :, 1:2:end);       %getting rid of red channel frames
+        else
+        end
+  
+        clear frame_time
+        clear zoom
     catch
         keyboard
+        disp('skipping trace extraction from unreadable trials...')
         continue            %skipping trace extraction from unreadable trials - this doesn't matter because time-stamps will be matched up later with the stim param file anyway.
     end
     
@@ -123,17 +139,19 @@ for trial_n = start_trial:n_trials
         end
         
     end
+    
     detailed_lags(trial_n).frame_lags = saved_lags;
    
     %% reading in raw fluorescence data for each ROI into a single matrix (dim1 - frame_n, dim2 - ROI_n)
     n_frames = size(stack, 3);
    
     %checking for line noise and subtracting it away.
-    parfor frame_n = 1:n_frames
+    for frame_n = 1:n_frames
         curr_fr = stack(:, :, frame_n);
         bk_fr = check_sig_noise(curr_fr);
         curr_fr_a = curr_fr - bk_fr;
         stack(:, :, frame_n) = curr_fr_a;
+        
     end
  
     
@@ -182,11 +200,16 @@ for trial_n = start_trial:n_trials
     save([save_path, 'ref_im.mat'], 'ref_im');
     save([save_path, 'tif_time_stamps.mat'], 'time_stamps');
     disp(['traces extracted, from trial ', int2str(trial_n), ', and saved.'])
-    
+   
+    try
+        save([save_path, '\detailed_xy_lags.mat'], 'detailed_lags')
+    catch
+        keyboard
+    end
+        
 end
 
-save([save_path, '\detailed_xy_lags.mat'], 'detailed_lags')
-    
+
 
 del = [];
 save([save_path, 'trace_extraction_complete.mat'], 'del');
