@@ -70,6 +70,7 @@ for pp=1:length(params) %this loop is not for trials
     unit_param_mat = param_mat;
     n_reps = params.reps;
     size_repeat = size(unit_param_mat, 1);
+    param_mat = [];
     for rep_n = 1:n_reps
        
         if params.randomize == 1
@@ -86,7 +87,7 @@ for pp=1:length(params) %this loop is not for trials
     end
     n_trials = size(param_mat, 1);
     
-    
+   
     %generating random pulse trains and inserting them into param_mat as per rand train number, if needed
     n_durations = length(params.duration);
     %generating lists of rows before converting param_mat to a cell array

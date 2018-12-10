@@ -8,6 +8,7 @@ function [params_spec1] = setup_params_pairing_expt(paired_odours, led_elec, CS_
 %step1:Setting up the pre trials
 %creating param specification structure for std KC recording expt. This is for pre-pairing characterisation. 
 params_spec1 = set_ADO_params_Yoshi_PA_BA_EL_forpairing;
+params_spec1.reps = 7;
 params_struc1 = setUpStimuli_trains_flex(params_spec1);         %detailed, trial-by-trial parameter specification structure.
 params = params_struc1;           %this is the main parameter structure that will ultimately be saved in curr_aq_direc.
 
@@ -21,6 +22,7 @@ params_spec2.odours = paired_odours;
 params_spec2.stim_init_delay_ms = (params_spec2.stimLatency.*1000) + 750 + ((CS_dur - US_dur).*1000);     %750 ms added on for odor to flow through tube and reach fly
 params_spec2.stim_dur = 1000.*US_dur;                                    %in ms
 params_spec2.st_duty_cyc = US_dutycyc;                                                 % reduced LED stim duty cycle to 5% form 50%
+params_spec2.isi = 80;
 
 if led_elec == 0
     params_spec2.led_odours = paired_odours;
@@ -44,6 +46,8 @@ params = append_params(params, params_struc2);
 
 
 %step3: Adding on the post trials
+params_spec1.reps = 5;
+params_struc1 = setUpStimuli_trains_flex(params_spec1);         %detailed, trial-by-trial parameter specification structure.
 params = append_params(params, params_struc1);
 params_mat = params;
 
