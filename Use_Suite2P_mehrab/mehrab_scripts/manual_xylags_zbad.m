@@ -7,10 +7,12 @@ function [lag_mat, bad_trs, done_marking] = manual_xylags_zbad(dataset_stack)
 lag_mat = zeros(size(dataset_stack, 3), 3);
 bad_trs = zeros(size(dataset_stack, 3), 1);
 reg_stack = zeros(size(dataset_stack, 1), size(dataset_stack, 2), size(dataset_stack, 3));
-curr_threshm = 0.05;
-curr_threshm_tr1 = 0.05;
-for trial_n = 1:size(dataset_stack, 3)
-
+curr_threshm = 2;
+curr_threshm_tr1 = curr_threshm;
+int_ranges = zeros(size(dataset_stack, 3), 2);
+trial_n = 0;
+while trial_n < size(dataset_stack, 3)
+    trial_n = trial_n + 1;
     figure(1)
     subplot(1, 2, 1)
     frame1 = squeeze(dataset_stack(:, :, 1));
@@ -21,7 +23,7 @@ for trial_n = 1:size(dataset_stack, 3)
     end
     
     try
-        imagesc(frame1, [0, curr_threshm_tr1.*max(max(frame1))]);
+        imagesc(frame1, [0, curr_threshm_tr1.*median(reshape(frame1, 1, []))]);
     catch
         keyboard
     end
@@ -31,6 +33,7 @@ for trial_n = 1:size(dataset_stack, 3)
     set(gca,'yticklabel',[])
     colormap('gray')
     plot_big_fig(1);
+   
    
     if trial_n == 1
         title('Trial1 mean, click on a landmark.')
@@ -46,16 +49,16 @@ for trial_n = 1:size(dataset_stack, 3)
 
                 if choice == 1      %make dimmer selected
                     subplot(1, 2, 1)
-                    curr_threshm_tr1 = curr_threshm_tr1.*0.5;
-                    imagesc(frame1, [0, curr_threshm_tr1.*max(max(frame1))])
+                    curr_threshm_tr1 = curr_threshm_tr1.*0.85;
+                    imagesc(frame1, [0, curr_threshm_tr1.*median(reshape(frame1, 1, []))])
                     set(gca,'xtick',[])
                     set(gca,'xticklabel',[])
                     set(gca,'ytick',[])
                     set(gca,'yticklabel',[])
                 elseif choice == 2     %make brighter selected
                     subplot(1, 2, 1)
-                    curr_threshm_tr1 = curr_threshm_tr1.*2;
-                    imagesc(frame1, [0, curr_threshm_tr1.*max(max(frame1))])
+                    curr_threshm_tr1 = curr_threshm_tr1.*1.15;
+                    imagesc(frame1, [0, curr_threshm_tr1.*median(reshape(frame1, 1, []))])
                     set(gca,'xtick',[])
                     set(gca,'xticklabel',[])
                     set(gca,'ytick',[])
@@ -71,6 +74,9 @@ for trial_n = 1:size(dataset_stack, 3)
         landmark_ROI_rgb = landmark_ROI;
         landmark_ROI_rgb(:, :, 2:3) = zeros(size(frame1, 1), size(frame1, 2), 2);
         reg_stack(:, :, 1) = frame1;
+        ax = gca;
+        int_ranges(trial_n, :) = ax.CLim;
+        
     else
         title('Trial1 mean with landmark highlighted.')
         hold on
@@ -81,7 +87,7 @@ for trial_n = 1:size(dataset_stack, 3)
         subplot(1, 2, 2)
         curr_frame = squeeze(dataset_stack(:, :, trial_n));
         %curr_threshm = 0.05;
-        imagesc(curr_frame, [0, curr_threshm.*max(max(curr_frame))])
+        imagesc(curr_frame, [0, curr_threshm.*median(reshape(curr_frame, 1, []))])
         set(gca,'xtick',[])
         set(gca,'xticklabel',[])
         set(gca,'ytick',[])
@@ -103,21 +109,23 @@ for trial_n = 1:size(dataset_stack, 3)
                     done = 1; 
                 elseif choice == 3      %make dimmer selected
                     subplot(1, 2, 2)
-                    curr_threshm = curr_threshm.*0.5;
-                    imagesc(curr_frame, [0, curr_threshm.*max(max(curr_frame))])
+                    curr_threshm = curr_threshm.*0.85;
+                    imagesc(curr_frame, [0, curr_threshm.*median(reshape(curr_frame, 1, []))])
                     set(gca,'xtick',[])
                     set(gca,'xticklabel',[])
                     set(gca,'ytick',[])
                     set(gca,'yticklabel',[])
                 elseif choice == 4      %make brighter selected
                     subplot(1, 2, 2)
-                    curr_threshm = curr_threshm.*2;
-                    imagesc(curr_frame, [0, curr_threshm.*max(max(curr_frame))])
+                    curr_threshm = curr_threshm.*1.15;
+                    imagesc(curr_frame, [0, curr_threshm.*median(reshape(curr_frame, 1, []))])
                     set(gca,'xtick',[])
                     set(gca,'xticklabel',[])
                     set(gca,'ytick',[])
                     set(gca,'yticklabel',[])
-                else
+                elseif choice == 2      %re-do last landmark selected
+                    trial_n = trial_n - 1;
+                    continue
                 end
             else
                 z_drifted = 0;
@@ -131,11 +139,13 @@ for trial_n = 1:size(dataset_stack, 3)
             z_drifted = 0;
             %saving a lag-corrected version of the current frame
             reg_stack(:, :, (trial_n - sum(bad_trs))) = translate_stack(curr_frame, [lag_mat(trial_n, 1); lag_mat(trial_n, 2)], nan);
-
+            ax = gca;
+            int_ranges(trial_n, :) = ax.CLim;
+           
         elseif z_drifted == 1
             lag_mat(trial_n, 3) = 1;
             bad_trs(trial_n, 1) = 1;
-            
+            int_ranges(trial_n, :) = [];
         end
         
     end
@@ -148,7 +158,8 @@ reg_stack(:, :, bad_tr_list) = [];
 close figure 1
 
 %playing back trial frames for manual review
-playStack(reg_stack, 30, 0.5)
+playStack_specint(reg_stack, 30, int_ranges)
+
 choice = questdlg('Alignment OK?', 'Reviewing alignment', 'Yes, stack is OK', 'redo landmarks', 'Yes, stack is OK');
 if strcmp(choice, 'Yes, stack is OK') == 1
     done_marking = 1;
