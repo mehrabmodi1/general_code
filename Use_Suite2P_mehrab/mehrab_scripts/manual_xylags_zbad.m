@@ -1,4 +1,4 @@
-function [lag_mat, bad_trs, done_marking] = manual_xylags_zbad(dataset_stack)
+function [lag_mat, bad_trs, done_marking, bk_ROI] = manual_xylags_zbad(dataset_stack)
 %This function displays an averaged image of each frame for the user to
 %click on a fixed landmark to determine x-y lags for slow drift as well as
 %to allow the user to report bad, z-drift trials by clicking outside the
@@ -14,31 +14,21 @@ trial_n = 0;
 while trial_n < size(dataset_stack, 3)
     trial_n = trial_n + 1;
     figure(1)
-    subplot(1, 2, 1)
     frame1 = squeeze(dataset_stack(:, :, 1));
-    
     if sign(min(min(frame1))) == -1
         frame1 = frame1 + (-1 .* min(min(frame1)));
     else
     end
     
-    try
-        imagesc(frame1, [0, curr_threshm_tr1.*median(reshape(frame1, 1, []))]);
-    catch
-        keyboard
-    end
-    set(gca,'xtick',[])
-    set(gca,'xticklabel',[])
-    set(gca,'ytick',[])
-    set(gca,'yticklabel',[])
-    colormap('gray')
-    plot_big_fig(1);
-   
-   
+    plot_frame(frame1, curr_threshm, [1, 2, 1])   
+    
     if trial_n == 1
+        title('Draw background ROI.')
+        bk_ROI = roipoly;
+                
         title('Trial1 mean, click on a landmark.')
         done = 0;
-        
+       
         while done == 0
             [x1, y1] = ginputc(1, 'Color', [1, 0, 0]);
             %allowing user to ask for brighter or dimmer colormapping
@@ -168,3 +158,13 @@ elseif strcmp(choice, 'redo landmarks') == 1
 else
 end
 
+function plot_frame(frame, curr_thresh, subplot_n)
+    figure(1)
+    subplot(subplot_n(1), subplot_n(2), subplot_n(3))
+    imagesc(frame, [0, curr_thresh.*median(reshape(frame, 1, []))])
+    set(gca,'xtick',[])
+    set(gca,'xticklabel',[])
+    set(gca,'ytick',[])
+    set(gca,'yticklabel',[])
+    colormap('gray')
+    plot_big_fig(1)

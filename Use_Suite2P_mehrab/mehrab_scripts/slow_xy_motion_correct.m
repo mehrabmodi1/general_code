@@ -1,4 +1,4 @@
-function [reg_stack, saved_lags] = slow_xy_motion_correct(curr_stack, ref_im, lag_mat, registration_type)
+function [reg_stack, saved_lags, bk_ROI] = slow_xy_motion_correct(curr_stack, ref_im, lag_mat, registration_type)
 %syntax: reg_stack = slow_xy_motion_correct(curr_stack, ref_im, lag_mat, registration_type)
 %If registration_type = 1, this function assumes any x-y motion is slow and negligible within a
 %single trial (tif stack). It then averages all frames in curr_stack and

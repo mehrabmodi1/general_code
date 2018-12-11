@@ -121,13 +121,14 @@ for do_over = 1:2
                 
                 done_marking = 0;
                 while done_marking == 0
-                    [lag_mat, bad_trs, done_marking] = manual_xylags_zbad(dataset_stack);
+                    [lag_mat, bad_trs, done_marking, bk_ROI] = manual_xylags_zbad(dataset_stack);
                 end
                 
                 bad_tr_list = 1:1:size(dataset_stack, 3);
                 bad_tr_list(bad_trs == 1) = [];
                 save([save_path, '\xy_lags.mat'], 'lag_mat');
                 save([save_path, '\bad_trial_list.mat'], 'bad_tr_list');        %bad_tr_list is actually the list of good trials.
+                save([save_path, '\bk_ROI.mat'], 'bk_ROI');                     %manually drawn background ROI for background subtraction.
                 clear lag_mat
                 clear bad_trs
                 
