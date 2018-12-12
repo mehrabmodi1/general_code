@@ -21,11 +21,11 @@ c = corrcoef(left_bk_vals, right_bk_vals);
 if c(1, 2) > 0.8
     noise_vec = mean([left_bk_vals, right_bk_vals], 2);
     noise_mat = repmat(noise_vec, 1, row_length);
-    noise_mat = int16(noise_mat);
+    noise_mat = double(noise_mat);
     
 else
     noise_mat = zeros(size(frame, 1), size(frame, 2));
-    noise_mat = int16(noise_mat);
+    noise_mat = double(noise_mat);
     
 end
 
