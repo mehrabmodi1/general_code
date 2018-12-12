@@ -2,14 +2,14 @@ clear all
 close all
 
 dataset_list_paths = [...
-                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_Yoshi_PaBaEl_MBONalpha1_lowUS.xls'};...
+                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_Yoshi_PaBaEl_MBONalpha1_lowUS.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_YoshiPaBaEl_MBON_alpha1_lowUS_backward_ctrl.xls'}...
-                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_Yoshi_PaBaEl_MBON_DAN_gamma1_lowUS_MB085C.xls'}...
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_Yoshi_PaBaEl_MBON_DAN_gamma1_lowUS_MB085C.xls'}...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_YoshiPaBaEl_MBON_gamma1_lowUS.xls'}...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_Yoshi_El_THnull_gamma1pedc.xls'}...
                      ];
             
-suppress_plots = 0;
+suppress_plots = 1;
 [del, odor_names] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList.xls', 1);
 global color_vec;                
 color_vec = load('C:\Users\Mehrab\Google Drive\Backup\Stuff\CSHL\Glenn lab\Code\std_color_vec.txt');
@@ -172,7 +172,17 @@ for list_n = 1:size(dataset_list_paths, 1)
     col_pairs = [1, 2; 3, 4; 5, 6];         %this is a list of pairs of columns of points to be connected by lines in the plot
     fig_h4 = scattered_dot_plot(flies_resp_size_mat, 4, 1, 4, 8, marker_colors, 1, col_pairs, [0.75, 0.75, 0.75],...
                             [{'PA pre'}, {'PA post'}, {'BA pre'}, {'BA post'}, {'EL pre'}, {'EL post'}], 1, [0.35, 0.35, 0.35]);
+    fig_wrapup(4)
                         
+    %plotting same data as in fig 4 with bars
+    line_color = [0.6, 0.6, 0.6];
+    pre_color = [78, 54, 255]./256;
+    post_color = [255, 130, 0]./256;
+    bar_width = 10;
+    bar_space = 10;
+    
+    fig_h5 = bar_line_plot(5, flies_resp_size_mat, line_color, pre_color, post_color, bar_width, bar_space);
+    fig_wrapup(5)
     
     %statistical testing
     %PA
@@ -181,7 +191,7 @@ for list_n = 1:size(dataset_list_paths, 1)
     [hBA, pBA] = ttest(flies_resp_size_mat(:, 3), flies_resp_size_mat(:, 4))
     %EL
     [hEL, pEL] = ttest(flies_resp_size_mat(:, 5), flies_resp_size_mat(:, 6))
-    fig_wrapup(4)
+    
    
     
 end
