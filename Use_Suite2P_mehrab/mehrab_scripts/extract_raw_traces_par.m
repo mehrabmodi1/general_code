@@ -60,8 +60,9 @@ else
 end
 
 %reading in previously saved background region ROI for background (PMT offset) subtraction
-if exist([direc, 'bk_ROI.mat']) == 2
-    bk_ROI = load([direc, '\bk_ROI.mat']);
+if exist([save_path, 'bk_ROI.mat']) == 2
+    bk_ROI = load([save_path, '\bk_ROI.mat']);
+    bk_ROI = bk_ROI.bk_ROI;
 else
     bk_ROI = [];
 end
@@ -145,7 +146,8 @@ for trial_n = start_trial:n_trials
             
         end
         curr_lags = round(lag_mat(trial_n, :));
-        bk_ROI_curr = translate_stack(bk_ROI, curr_lags(1, 2), curr_lags(1, 1), nan);   %translating bk_ROI by manually chosen lag values for current trial
+       
+        bk_ROI_curr = translate_stack(single(bk_ROI), [curr_lags(1, 2); curr_lags(1, 1)], nan);   %translating bk_ROI by manually chosen lag values for current trial
         
     end
     
@@ -203,6 +205,7 @@ for trial_n = start_trial:n_trials
     end
     
     clear stack
+    clear stack_reg
     clear curr_raw_data_mat
     
     %saving extracted traces
