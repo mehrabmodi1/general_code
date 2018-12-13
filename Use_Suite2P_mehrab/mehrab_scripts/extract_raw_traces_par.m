@@ -147,7 +147,10 @@ for trial_n = start_trial:n_trials
         end
         curr_lags = round(lag_mat(trial_n, :));
        
-        bk_ROI_curr = translate_stack(single(bk_ROI), [curr_lags(1, 2); curr_lags(1, 1)], nan);   %translating bk_ROI by manually chosen lag values for current trial
+        if isempty(bk_ROI) == 0
+            bk_ROI_curr = translate_stack(single(bk_ROI), [curr_lags(1, 2); curr_lags(1, 1)], nan);   %translating bk_ROI by manually chosen lag values for current trial
+        else
+        end
         
     end
     
@@ -164,7 +167,24 @@ for trial_n = start_trial:n_trials
         stack_reg(:, :, frame_n) = curr_fr_a;
         
     end
- 
+    
+    
+    %testing lines of code
+    if trial_n == 20
+        playStack(stack_reg, 0.03, [])
+        figure(2)
+        imagesc(mean(stack_reg, 3))
+        colormap('gray')
+        ROI_im = sum(ROI_mat, 3);
+        hold on
+        s = imagesc(ROI_im);
+        alpha(s, 0.5);
+        
+        figure(3)
+        imagesc(sum(ROI_mat, 3))
+        keyboard
+    else
+    end
     
     parfor frame_n = 1:n_frames
         curr_frame = stack_reg(:, :, frame_n);
