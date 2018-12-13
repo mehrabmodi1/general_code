@@ -25,6 +25,8 @@ end
 if sign(row_lag) == 1
     reg_stack(1:row_lag, :, :) = pad;
 elseif sign(row_lag) == -1
+  
     reg_stack((end + row_lag):end, :, :) = pad;
+    
 else
 end
