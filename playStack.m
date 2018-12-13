@@ -11,10 +11,15 @@ set(gca,'ytick',[])
 set(gca,'yticklabel',[])
 colormap('gray')
 done = 0;
+if isempty(int_multiplier) == 1 | int_multiplier == 0
+    int_multiplier = 1;
+else
+end
+
 while done == 0
     for frame_n = 1:size(stack, 3)
         frame = squeeze(stack(:, :, frame_n));
-        high_int = double(max(max(frame))).*0.6.*int_multiplier;
+        high_int = double(median(reshape(frame, 1, []))).*2.*int_multiplier;
         if high_int == 0 || isnan(high_int) == 1
             high_int = 1;
         else
