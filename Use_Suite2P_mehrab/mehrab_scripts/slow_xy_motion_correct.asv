@@ -117,25 +117,20 @@ end
 
 
 %testing plots
-% ave_corrected = mean(reg_stack, 3, 'omitnan');
-% ave_uncorrected = mean(curr_stack, 3, 'omitnan');
-% figure(1)
-% subplot(2, 2, 1)
-% imagesc(ref_im)
-% subplot(2, 2, 2)
-% imagesc(ave_uncorrected)
-% subplot(2, 2, 3)
-% imagesc(ave_corrected)
-% subplot(2, 2, 4)
-% imagesc(ref_im - ave_corrected)
-% 
-% figure(2)
-% plot(saved_lags)
-% 
-% del = input('press enter');
-% close figure 1
-% close figure 2
-% try
-%     close figure 3
-% catch
-% end
+ave_corrected = mean(reg_stack, 3, 'omitnan');
+ave_uncorrected = mean(curr_stack, 3, 'omitnan');
+figure(1)
+subplot(2, 2, 1)
+imagesc(ref_im)
+subplot(2, 2, 2)
+imagesc(ave_uncorrected)
+subplot(2, 2, 3)
+imagesc(ave_corrected)
+subplot(2, 2, 4)
+imagesc(ref_im - ave_corrected)
+
+figure(2)
+plot(saved_lags)
+keyboard
+
+del = input('press enter');
