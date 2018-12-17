@@ -202,17 +202,17 @@ for trial_n = start_trial:n_trials
         
         subplot(2, 1, 2)
         imagesc(std(stack_reg, [], 3, 'omitnan'))
-        colormap('gray')
         
         figure(3)
-        diff_fr = std(stack_reg, [], 3, 'omitnan') - first_fr;
-        imagesc(diff_fr, [-10, 10]);
-        colormap('gray')
+        diff_fr = std(stack_reg, [], 3, 'omitnan')
+        imagesc()
+        
         
         keyboard
-    elseif trial_n == 1
-        first_fr = std(stack_reg, [], 3, 'omitnan');
+    else
     end
+    prev_fr = std(stack_reg, [], 3, 'omitnan');
+    
     
     bk_pixi = find(bk_ROI == 1);
     parfor frame_n = 1:n_frames

@@ -202,7 +202,7 @@ for direc_list_n = 1:n_direc_lists
         dataset_name = direc((dataset_namei + 1):end);
         save_path = [save_path_base, dataset_name, '\' ];
         
-        [raw_data_mat] = extract_raw_traces_par(direc, ROI_mat, save_path, 2);
+        [raw_data_mat] = extract_raw_traces_par(direc, ROI_mat, save_path, 1);
         
         
         %copying over files needed for further analysis to results
