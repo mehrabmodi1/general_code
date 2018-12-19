@@ -18,6 +18,7 @@ n_direc_lists = size(direc_lists_mat, 1);
 
 save_path_base = 'E:\Data\Analysed_data\Manual_ROIs\';
 fuse_ROIs = 1;          %0-no, 1-yes. This flattens dim3 of ROI_mat in case there is a multi-patch neuron that needs to be considered as a single object.
+dilate_ROIs = 15;        %This is the number of pixels by which the manually drawn ROIs are dilated before data extraction.
 
 %looping through all directory lists and all datasets once to save mean frames and again to save manually determined slow x-y  offsets for each trial, as well as determine bad z-drift trials
 for do_over = 1:2
@@ -194,6 +195,15 @@ for direc_list_n = 1:n_direc_lists
         
         if fuse_ROIs == 1
             ROI_mat = sum(ROI_mat, 3);
+        else
+        end
+        
+        %dilating ROIs if specified by user
+        if dilate_ROIs > 0
+            str = strel('disk', dilate_ROIs, 0); 
+            ROI_mat = imdilate(ROI_mat, str);
+            
+        
         else
         end
         
