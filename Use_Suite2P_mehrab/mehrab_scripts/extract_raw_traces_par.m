@@ -190,29 +190,38 @@ for trial_n = start_trial:n_trials
     
    
     %testing lines of code
-%     if trial_n > 1
-%         figure(2)
-%         subplot(2, 1, 1)
-%         imagesc(std(stack_reg, [], 3, 'omitnan'), [0, 10])
-%         colormap('gray')
-%         ROI_im = sum(ROI_mat, 3);
-%         hold on
-%         s = imagesc(ROI_im);
-%         alpha(s, 0.5);
-%         
-%         subplot(2, 1, 2)
-%         imagesc(std(stack_reg, [], 3, 'omitnan'))
-%         colormap('gray')
-%         
-%         figure(3)
-%         diff_fr = std(stack_reg, [], 3, 'omitnan') - first_fr;
-%         imagesc(diff_fr, [-10, 10]);
-%         colormap('gray')
-%         
-%        
-%     elseif trial_n == 1
-%         first_fr = std(stack_reg, [], 3, 'omitnan');
-%     end
+    if trial_n > 1 && rem(trial_n, 5) == 0
+        figure(2)
+        subplot(2, 1, 1)
+        imagesc(std(stack_reg, [], 3, 'omitnan'), [0, 10])
+        colormap('gray')
+        ROI_im = sum(ROI_mat, 3);
+        hold on
+        s = imagesc(ROI_im);
+        alpha(s, 0.5);
+        
+        subplot(2, 1, 2)
+        imagesc(std(stack_reg, [], 3, 'omitnan'))
+        colormap('gray')
+        
+        figure(3)
+        try
+            diff_fr = std(stack_reg, [], 3, 'omitnan') - first_fr;
+            imagesc(diff_fr, [-10, 10]);
+            colormap('gray')
+        catch
+            first_fr = std(stack_reg, [], 3, 'omitnan');
+            diff_fr = std(stack_reg, [], 3, 'omitnan') - first_fr;
+            imagesc(diff_fr, [-10, 10]);
+            colormap('gray')
+        end
+    
+        keyboard
+    
+    elseif trial_n == 1
+        first_fr = std(stack_reg, [], 3, 'omitnan');
+    end
+    
     
     bk_pixi = find(bk_ROI == 1);
     parfor frame_n = 1:n_frames

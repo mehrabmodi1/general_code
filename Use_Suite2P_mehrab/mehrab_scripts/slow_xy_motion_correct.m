@@ -37,8 +37,8 @@ if isempty(lag_mat) == 1
 %case where lags for this trial have been determined by a manually selected
 %landmark
 elseif isempty(lag_mat) == 0
-    col_lag = round(lag_mat(1, 1)).*-1;
-    row_lag = round(lag_mat(1, 2)).*-1;
+    col_lag = round(lag_mat(1, 1));
+    row_lag = round(lag_mat(1, 2));
 end
     
 %generating a warning if lags more than 20% of size of frame
