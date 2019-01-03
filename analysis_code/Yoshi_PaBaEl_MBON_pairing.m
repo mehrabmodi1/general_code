@@ -26,6 +26,7 @@ for list_n = 1:size(dataset_list_paths, 1)
     dataset_list_name = curr_dir_list_path((dataset_list_name + 1):(end - 4));
     dataset_list_name(1) = [];
     flies_resp_size_mat = [];
+    saved_resp_sizes_all = [];
     
     %loop to go through all experiment datasets listed in list file
     for dir_n = 1:n_dirs
@@ -122,7 +123,7 @@ for list_n = 1:size(dataset_list_paths, 1)
             ylabel([odor_name, ' dF/F'])
             hold on           
             
-            %plotting post-trials traces
+            %plotting post-trials' traces
             traces_post = squeeze(dff_data_mat_f(:, 1, curr_trs(curr_trs > last_csminus_tr)));
             %plot(traces_post, 'Color', [0.6, 0.6, 0.6]);
             stim_frs = compute_stim_frs(stim_mat, 1, frame_time);
@@ -149,20 +150,14 @@ for list_n = 1:size(dataset_list_paths, 1)
             disp(curr_dir)
             
             %plotting odor response sizes across trials for each fly
-            od_names = {'PA', 'BA', 'EL'};
-            figure(6 + odor_n)
-            hold on
+            
             odor_ni = odor_list(odor_n);
-            curr_trs = find(stim_mat_simple(:, 2) == odor_ni & stim_mat_simple(:, 3) == 2);
+            curr_trs = find(stim_mat_simple(:, 2) == odor_ni);
             curr_resps = resp_sizes(1, curr_trs);
-            plot(curr_resps, 'lineWidth', 2, 'Color', [0.2, 0.3, 0.8]);
-
-            ylabel('peak dF/F')
-            xlabel('trial number')
-            odor_name = od_names{odor_n}; 
-            title([odor_name, ' odor responses'])
-
-
+            saved_resp_sizes(:, odor_n) = curr_resps;
+            
+            
+            
             if suppress_plots == 0
                 keyboard
             else
@@ -173,6 +168,8 @@ for list_n = 1:size(dataset_list_paths, 1)
             close figure 2
             
         end
+        saved_resp_sizes_all = pad_n_concatenate(saved_resp_sizes_all, saved_resp_sizes, 3, nan);
+        clear saved_resp_sizes;
         
         flies_resp_size_mat(fly_n, :) = fly_resp_size_vec;
         
@@ -206,6 +203,8 @@ for list_n = 1:size(dataset_list_paths, 1)
     bar_space = 10;
     
     fig_h5 = bar_line_plot(5, flies_resp_size_mat, line_color, pre_color, post_color, bar_width, bar_space);
+    ylabel('peak dF/F')
+    xticklabels({'PA', 'BA', 'EL'})
     fig_wrapup(5)
     
     %statistical testing
@@ -217,7 +216,24 @@ for list_n = 1:size(dataset_list_paths, 1)
     [hEL, pEL] = ttest(flies_resp_size_mat(:, 5), flies_resp_size_mat(:, 6))
     
    
-    
+    %plotting resp sizes to show washout effect
+    colour_vecs = [[0.2, 0.3, 1.0]; [0.4, 0.5, 1.0]; [0.9, 0.45, 0.1];];
+    for odor_n = 1:n_odors
+        
+        mean_vec = mean(saved_resp_sizes_all(:, odor_n, :), 3, 'omitnan');
+        se_vec = std(saved_resp_sizes_all(:, odor_n, :), [], 3, 'omitnan');
+        se_vec = se_vec./sqrt(size(saved_resp_sizes_all, 3));
+        
+        
+        figure(6)
+        hold on
+        curr_colour = colour_vecs(odor_n, :);
+        shadedErrorBar([], mean_vec, se_vec, {'Color', curr_colour, 'lineWidth', 2}, 1)
+        ylabel('peak dF/F')
+        xlabel('trial number')
+        
+    end
+    fig_wrapup(6)
 end
 save_path = 'C:\Users\Mehrab\Dropbox (HHMI)\data_sharing\Glenn_talk_2018\slide_30\';
 save([save_path, 'resp_size_mat.mat'], 'flies_resp_size_mat');
