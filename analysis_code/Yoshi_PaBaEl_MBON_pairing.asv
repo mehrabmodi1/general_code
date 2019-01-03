@@ -149,26 +149,27 @@ for list_n = 1:size(dataset_list_paths, 1)
             disp(curr_dir)
             
             %plotting odor response sizes across trials for each fly
-            od_names = {'PA', 'BA', 'EL'};
-            figure(6 + odor_n)
-            hold on
-            odor_ni = odor_list(odor_n);
-            curr_trs = find(stim_mat_simple(:, 2) == odor_ni & stim_mat_simple(:, 3) == 2);
-            curr_resps = resp_sizes(1, curr_trs);
-            plot(curr_resps, 'lineWidth', 2, 'Color', [0.2, 0.3, 0.8]);
+            odor_names = {'PA', 'BA', 'EL'};
+            for odor_n = 1:n_odors
+                figure(6 + odor_n)
+                odor_ni = odor_list(odor_n);
+                curr_trs = find(stim_mat_simple(:, 2) == odor_ni && stim_mat_simple(:, 3) == 2);
+                
 
-            ylabel('peak dF/F')
-            xlabel('trial number')
-            odor_name = od_names{odor_n}; 
-            title([odor_name, ' odor responses'])
-
-
-            if suppress_plots == 0
                 keyboard
-            else
+
+
+                ylabel('peak dF/F')
+                xlabel('trial number')
+                odor_name = odor_names{odor_n}; 
+                title([odor_name, ' odor responses'])
+
+
+                if suppress_plots == 0
+                    keyboard
+                else
+                end
             end
-            
-            
             
             close figure 2
             
