@@ -2,9 +2,9 @@ clear all
 close all
 
 dataset_list_paths = [...
-                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_Yoshi_PaBaEl_MBONalpha1_lowUS.xls'};...
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_Yoshi_PaBaEl_MBONalpha1_lowUS.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_YoshiPaBaEl_MBON_alpha1_lowUS_backward_ctrl.xls'}...
-                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_Yoshi_PaBaEl_MBON_DAN_gamma1_lowUS_MB085C.xls'}...
+                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_Yoshi_PaBaEl_MBON_DAN_gamma1_lowUS_MB085C.xls'}...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_YoshiPaBaEl_MBON_gamma1_lowUS.xls'}...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_Yoshi_El_THnull_gamma1pedc.xls'}...
                      ];
@@ -26,6 +26,7 @@ for list_n = 1:size(dataset_list_paths, 1)
     dataset_list_name = curr_dir_list_path((dataset_list_name + 1):(end - 4));
     dataset_list_name(1) = [];
     flies_resp_size_mat = [];
+    saved_resp_sizes_all = [];
     
     %loop to go through all experiment datasets listed in list file
     for dir_n = 1:n_dirs
@@ -72,6 +73,16 @@ for list_n = 1:size(dataset_list_paths, 1)
         [resp_sizes, sig_trace_mat, sig_trace_mat_old, sig_cell_mat] = cal_sig_responses_res(dff_data_mat, stim_mat, stim_mat_simple, curr_dir, frame_time);
         sig_cells = find(sum(sum(sig_cell_mat, 3), 2) > 0);         %list of all cells significant for any odor for any duration
         
+        
+        %putting in condition that MBON should be significantly responsive
+        %to all three odorants in the pre or post trials.
+        if sum(sig_cell_mat(:, :, 1), 2) < 3
+            disp('warning: not sigresp to all odors')
+            %continue
+        else
+        end
+        
+        
         figure(1)
         imagesc(squeeze(dff_data_mat_f(:, 1, :))', [0, 1])
         stim_frs = compute_stim_frs(stim_mat, 1, frame_time);
@@ -112,7 +123,7 @@ for list_n = 1:size(dataset_list_paths, 1)
             ylabel([odor_name, ' dF/F'])
             hold on           
             
-            %plotting post-trials traces
+            %plotting post-trials' traces
             traces_post = squeeze(dff_data_mat_f(:, 1, curr_trs(curr_trs > last_csminus_tr)));
             %plot(traces_post, 'Color', [0.6, 0.6, 0.6]);
             stim_frs = compute_stim_frs(stim_mat, 1, frame_time);
@@ -137,8 +148,15 @@ for list_n = 1:size(dataset_list_paths, 1)
             save([share_path, odor_name, '_post.mat'], 'traces_post');
             
             disp(curr_dir)
-            %comment out this line to block single fly plots
-            %del = input('press enter for next odor.');
+            
+            %plotting odor response sizes across trials for each fly
+            
+            odor_ni = odor_list(odor_n);
+            curr_trs = find(stim_mat_simple(:, 2) == odor_ni);
+            curr_resps = resp_sizes(1, curr_trs);
+            saved_resp_sizes(:, odor_n) = curr_resps;
+            
+            
             
             if suppress_plots == 0
                 keyboard
@@ -146,9 +164,12 @@ for list_n = 1:size(dataset_list_paths, 1)
             end
             
             
+            
             close figure 2
             
         end
+        saved_resp_sizes_all = pad_n_concatenate(saved_resp_sizes_all, saved_resp_sizes, 3, nan);
+        clear saved_resp_sizes;
         
         flies_resp_size_mat(fly_n, :) = fly_resp_size_vec;
         
@@ -182,6 +203,8 @@ for list_n = 1:size(dataset_list_paths, 1)
     bar_space = 10;
     
     fig_h5 = bar_line_plot(5, flies_resp_size_mat, line_color, pre_color, post_color, bar_width, bar_space);
+    ylabel('peak dF/F')
+    xticklabels({'PA', 'BA', 'EL'})
     fig_wrapup(5)
     
     %statistical testing
@@ -193,7 +216,24 @@ for list_n = 1:size(dataset_list_paths, 1)
     [hEL, pEL] = ttest(flies_resp_size_mat(:, 5), flies_resp_size_mat(:, 6))
     
    
-    
+    %plotting resp sizes to show washout effect
+    colour_vecs = [[0.2, 0.3, 1.0]; [0.4, 0.5, 1.0]; [0.9, 0.45, 0.1];];
+    for odor_n = 1:n_odors
+        
+        mean_vec = mean(saved_resp_sizes_all(:, odor_n, :), 3, 'omitnan');
+        se_vec = std(saved_resp_sizes_all(:, odor_n, :), [], 3, 'omitnan');
+        se_vec = se_vec./sqrt(size(saved_resp_sizes_all, 3));
+        
+        
+        figure(6)
+        hold on
+        curr_colour = colour_vecs(odor_n, :);
+        shadedErrorBar([], mean_vec, se_vec, {'Color', curr_colour, 'lineWidth', 2}, 1)
+        ylabel('peak dF/F')
+        xlabel('trial number')
+        
+    end
+    fig_wrapup(6)
 end
 save_path = 'C:\Users\Mehrab\Dropbox (HHMI)\data_sharing\Glenn_talk_2018\slide_30\';
 save([save_path, 'resp_size_mat.mat'], 'flies_resp_size_mat');

@@ -79,7 +79,7 @@ for rep_gp = 1:n_rep_gps                %a rep_gp is a group of repeats of the s
         thresh_mean = mean(mean(base_traces, 2, 'omitnan'), 'omitnan') + 0.*std(mean(base_traces, 2, 'omitnan'), 'omitnan');       %significance criterion for resp in mean trace
         
         try
-            resp_traces = curr_traces_f(stim_frame:round(stim_end_fr + 3./frame_time), :); %extending analysis window to 3s after odor off to capture off responses
+            resp_traces = curr_traces_f(stim_frame:round(stim_end_fr + 5./frame_time), :); %extending analysis window to 5s after odor off to capture off responses
         catch
             keyboard
         end
