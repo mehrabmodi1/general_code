@@ -21,7 +21,7 @@ while trial_n < size(dataset_stack, 3)
     end
     
     plot_frame(frame1, curr_threshm, [1, 2, 1])   
-    
+    disp('Slow, manual motion correction beginning...')
     if trial_n == 1
         title('Draw background ROI.')
         bk_ROI = roipoly;
