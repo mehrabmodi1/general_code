@@ -27,8 +27,18 @@ while done == 0
         else
         end
         try
-            imagesc(frame, curr_int_range);
+            if sum(curr_int_range) > 0
+                imagesc(frame, curr_int_range);
+            else
+                while sum(curr_int_range) == 0
+                    int_range(frame_n, :) = [];
+                    curr_int_range  = int_range(frame_n, :);
+                end
+            end
+                
         catch
+            
+            
             keyboard
         end
         title(['Frame ' int2str(frame_n), ' of  ', int2str(size(stack, 3)), '.'])
