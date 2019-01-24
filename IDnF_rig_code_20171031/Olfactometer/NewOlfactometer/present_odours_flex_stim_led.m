@@ -39,6 +39,8 @@ if exist([save_dir 'params.mat']) == 2
     elseif strcmp(button, 'Append') == 1
         params_mat_old = load([save_dir 'params.mat']);
         params_mat_old = params_mat_old.params_mat;
+       
+        %setting up explicit stimulus specification matrix from condensed params structure
         [params_mat_new, params_spec] = setUpStimuli_trains_flex(params);
         params_mat = append_params(params_mat_old, params_mat_new);
         n_trials = size(params_mat, 2);
