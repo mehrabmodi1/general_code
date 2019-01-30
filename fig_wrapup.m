@@ -22,8 +22,6 @@ marker_sizes_f = 4;
 
 fig_h = figure(fig_n);
 set(fig_h, 'Position', [100, 100, 100 + plot_width, 100 + plot_height]);
-inset_vals = get(gca, 'TightInset');
-set(gca, 'LooseInset', [inset_vals(1, 1).*2, inset_vals(1, 2).*2.5, inset_vals(1, 3).*2, inset_vals(1, 4)]).*2;
 ax_handle = gca;
 ax_handle.FontSize = axis_font_size;
 ax_handle.TickLength = [0.005, 0.005];
@@ -31,12 +29,6 @@ ax_handle.Box = 'off';
 ax_handle.TickDir = 'out';
 
 %adding script name to figure
-%figuring out where to put text
-ax_vals = axis;
-x_pos = ax_vals(1, 1);
-y_pos = ax_vals(1, 3) - (ax_vals(1, 4) - ax_vals(1, 3))./5;
-script_name = [script_name, '.m,  ' date];
-text(x_pos, y_pos, script_name);
-keyboard
+add_scriptname(fig_n, script_name);
 
 end
