@@ -24,7 +24,6 @@ function [reg_stack, saved_lags, bk_ROI] = slow_xy_motion_correct(curr_stack, re
 % stack1 = ScanImageTiffReader(stack1_path).data();
 % curr_stack = ScanImageTiffReader(stack2_path).data();
 % ref_im = mean(stack1, 3, 'omitnan');
-
 if isempty(lag_mat) == 1
     curr_im = mean(curr_stack, 3, 'omitnan');
     c = xcorr2_fft(curr_im, ref_im); 
@@ -93,15 +92,9 @@ if registration_type == 2
     
     
 elseif registration_type == 3
-    for frame_n = 1:size(curr_stack, 3)
-        curr_im = curr_stack(:, :, frame_n);
-        row_lag = detailed_lag_mat(frame_n, 1);
-        col_lag = detailed_lag_mat(frame_n, 2);
-        curr_im = translate_stack(curr_im, [row_lag; col_lag], nan);
-        reg_stack(:, :, frame_n) = curr_im;
-        saved_lags(frame_n, :) = [row_lag, col_lag];
-       
-    end
+    
+    
+    keyboard
 else
     saved_lags = [];
 end

@@ -117,21 +117,20 @@ for trial_n = start_trial:n_trials
         %doing per-frame motion correction if specified by user
         if do_registration == 2
             %checking if detailed lags exist for current trial from a previous analysis run
-            if exist([save_path, 'detailed_xy_lags.mat']) == 2
+            if exist([save_path, 'detailed_xy_lags.mat']) == 1
                 detailed_lags = load([save_path, 'detailed_xy_lags.mat']);
                 detailed_lags = detailed_lags.detailed_lags;
-                local_registration_type = 3;
+                temp_registration = 3;
                 detailed_lag_mat = detailed_lags(trial_n).frame_lags;
             
             else
-                local_registration_type = do_registration;
+                temp_registration_type = do_registration;
                 detailed_lag_mat = [];
             end
 
             try
-                keyboard
                 disp(['registering frames for trial ' int2str(trial_n)])
-                [stack_reg, saved_lags] = slow_xy_motion_correct(stack, ref_im, [0, 0], detailed_lag_mat, local_registration_type);        %lag_mat is [0, 0] because this is trial 1.
+                [stack_reg, saved_lags] = slow_xy_motion_correct(stack, ref_im, [0, 0], detailed_lag_mat, temp_registration_type);        %lag_mat is [0, 0] because this is trial 1.
             catch
                 keyboard
             end
@@ -150,20 +149,7 @@ for trial_n = start_trial:n_trials
                 lag_mat = [];
             end
             
-            %checking if detailed lags exist for current trial from a previous analysis run
-            if exist([save_path, 'detailed_xy_lags.mat']) == 1
-                detailed_lags = load([save_path, 'detailed_xy_lags.mat']);
-                detailed_lags = detailed_lags.detailed_lags;
-                local_registration_type = 3;
-                detailed_lag_mat = detailed_lags(trial_n).frame_lags;
-            
-            else
-                local_registration_type = do_registration;
-                detailed_lag_mat = [];
-            end
-            
-            disp(['registering frames for trial ' int2str(trial_n)])
-            [stack_reg, saved_lags] = slow_xy_motion_correct(stack, ref_im, lag_mat(trial_n, :), detailed_lags, local_registration_type);
+            [stack_reg, saved_lags] = slow_xy_motion_correct(stack, ref_im, lag_mat(trial_n, :), do_registration);
             
             
             
@@ -177,21 +163,7 @@ for trial_n = start_trial:n_trials
                 lag_mat = [];
             end
             
-            %checking if detailed lags exist for current trial from a previous analysis run
-            if exist([save_path, 'detailed_xy_lags.mat']) == 1
-                detailed_lags = load([save_path, 'detailed_xy_lags.mat']);
-                detailed_lags = detailed_lags.detailed_lags;
-                local_registration_type = 3;
-                detailed_lag_mat = detailed_lags(trial_n).frame_lags;
-            
-            else
-                local_registration_type = do_registration;
-                detailed_lag_mat = [];
-            end
-            
-            
-            disp(['registering frames for trial ' int2str(trial_n)])
-            [stack_reg, saved_lags] = slow_xy_motion_correct(stack, ref_im, lag_mat(trial_n, :), detailed_lags, local_registration_type);
+            [stack_reg, saved_lags] = slow_xy_motion_correct(stack, ref_im, lag_mat(trial_n, :), do_registration);
             
         end
                 
@@ -269,7 +241,7 @@ for trial_n = start_trial:n_trials
             raw_vec(1, ROI_n) = mean(curr_frame(curr_ROI == 1));
             
         end
-       
+        keyboard
         curr_raw_data_mat(frame_n, :) = raw_vec;   %raw data mat for current trial
         
     end
