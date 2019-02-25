@@ -1,4 +1,4 @@
-function [] = fig_wrapup_mod(fig_n, type)
+function [] = fig_wrapup_mod(fig_n, type, script_name)
 %Syntax: [] = fig_wrapup(fig_n, type)
 %This function changes figure window size, gets rid of top and right side
 %grid lines, adjusts ticklabel font size, and changes size, orientation of
@@ -35,5 +35,8 @@ ax_handle.FontSize = axis_font_size;
 ax_handle.TickLength = [0.005, 0.005];
 ax_handle.Box = 'off';
 ax_handle.TickDir = 'out';
+
+%adding script name to figure
+add_scriptname(fig_n, script_name);
 
 end

@@ -6,11 +6,11 @@ dataset_list_paths = [%{'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Y
                       %{'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Yoshi_PaBaEl_d5HT1b_Gamma_low_conc.xls'};...
                       %{'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Yoshi_PaBaEl_c739_AlphaBeta_low_conc.xls'};...
                       %{'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Yoshi_PaBaEl_c305a_AlphapBetap_low_conc.xls'};...
-                      {'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Yoshi_PaBaEl_d5HT1b_Gamma_set2.xls'};...
-                      {'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Yoshi_PaBaEl_c739_AlphaBeta_set2.xls'}...
+                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_Yoshi_PaBaEl_d5HT1b_Gamma_set2.xls'};...
+                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_Yoshi_PaBaEl_c739_AlphaBeta_set2.xls'}...
                       ];
 
-suppress_plots = 1;
+suppress_plots = 0;
 [del, odor_names] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList.xls', 1);
 a = colormap('bone');
 global greymap
@@ -114,9 +114,12 @@ for list_n = 1:size(dataset_list_paths, 1)
         
         
         %storing venn diagram matrices
-        [del, img] = vennX_MM([n_responders1, n_responders1_2, n_responders2, n_responders2_3, n_responders3, n_responders1_3, n_responders1_2_3]./n_cells, 0.005, [], 0, 1, 0);
-        venn_mats = pad_n_concatenate(venn_mats, img, 3, 0);
-        
+%         [del, img] = vennX_MM([n_responders1, n_responders1_2, n_responders2, n_responders2_3, n_responders3, n_responders1_3, n_responders1_2_3]./n_cells, 0.005, [], 0, 1, 0);
+%         venn_mats = pad_n_concatenate(venn_mats, img, 3, 0);
+        keyboard
+        close figure 1
+        close figure 2
+        close figure 3
     end
     
     %identifying sig responders to each odor and plotting their mean resp areas for each odor
@@ -173,16 +176,16 @@ for list_n = 1:size(dataset_list_paths, 1)
     
        
     %plotting Venn diagrams
-    figure(5)
-    for dir_n = 1:n_dirs
-        curr_mat = venn_mats(:, :, dir_n);
-        bk_pixi = find(curr_mat == 0);
-        curr_mat(bk_pixi) = 14;
-        a = imagesc(curr_mat);
-        alpha(a, 0.5./dir_n)
-        hold on
-    end
-    colormap(gray)
+%     figure(5)
+%     for dir_n = 1:n_dirs
+%         curr_mat = venn_mats(:, :, dir_n);
+%         bk_pixi = find(curr_mat == 0);
+%         curr_mat(bk_pixi) = 14;
+%         a = imagesc(curr_mat);
+%         alpha(a, 0.5./dir_n)
+%         hold on
+%     end
+%     colormap(gray)
         
     keyboard
     close figure 1

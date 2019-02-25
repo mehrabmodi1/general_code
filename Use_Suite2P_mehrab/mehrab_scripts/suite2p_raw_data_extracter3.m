@@ -281,8 +281,13 @@ for raw_direc_n = 1:size(raw_direc_list, 1)
     else
         
     end
+
+    try
+        ROI_mat = load([results_direc, raw_direc, '\ROI_mat_aligned.mat']);
+    catch
+        continue
+    end
     
-    ROI_mat = load([results_direc, raw_direc, '\ROI_mat_aligned.mat']);
     ROI_mat = ROI_mat.ROI_mat;
     
     [raw_data_mat] = extract_raw_traces_par([raw_direc_base, raw_direc], ROI_mat, [results_direc, raw_direc, '\'], 2);
