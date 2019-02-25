@@ -15,7 +15,7 @@ float init_delay_ms = 0;
 float duration_ms = 0;
 float freq_hz = 0;
 float duty_cycle_pc = 0;
-
+float on_dur_us = 0;
 
 void setup() {
     
@@ -51,7 +51,7 @@ void loop()
           Serial.print("cyc_dur ");
           Serial.println(cyc_dur);
 
-          float duty_cycle = (float)duty_cycle_pc./100;
+          float duty_cycle = (float)duty_cycle_pc/100;
           float on_dur = (float)cyc_dur*duty_cycle;
           Serial.print("on_dur ");
           Serial.println(on_dur);
@@ -79,11 +79,14 @@ void loop()
           {
                 if (LED_elec == 0) {digitalWrite(led_pin, HIGH);}
                 if (LED_elec == 1) {digitalWrite(elec_pin, HIGH);}
+                
                 if (on_dur > 2)
-                  {delay(on_dur);    //pulse on duration}
+                  {
+                    delay(on_dur);    //pulse on duration
+                  }
                 else if (on_dur <= 2)
                   {
-                    float on_dur_us = float on_dur * 1000;
+                    on_dur_us = on_dur * 1000;
                     delayMicroseconds(on_dur_us);
                   }
                 
