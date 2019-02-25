@@ -46,8 +46,6 @@ params = append_params(params, params_struc2);
 
 
 %step3: Adding on the post trials
-params_spec1.reps = 5;
-params_struc1 = setUpStimuli_trains_flex(params_spec1);         %detailed, trial-by-trial parameter specification structure.
 params = append_params(params, params_struc1);
 params_mat = params;
 

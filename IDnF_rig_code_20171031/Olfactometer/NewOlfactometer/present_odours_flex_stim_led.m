@@ -1,4 +1,4 @@
-function present_odours_flex_stim_function(params, scale_isi)
+function present_odours_flex_stim_led(params, scale_isi)
 
 save_dir = curr_aq_direc;
 %testing vars
@@ -194,9 +194,11 @@ for trial_n = start_tr:n_trials
     disp('odor being delivered...')
     for r_pulse_n = 1:size(pulse_train, 1)
         pause(pulse_train(r_pulse_n, 1));
-        FlipValve_EP('Final',0)                 
+        FlipValve_EP('Final',0)        
+        
         pause(pulse_train(r_pulse_n, 2));
         FlipValve_EP('Final',1)
+        
     end
     
        
