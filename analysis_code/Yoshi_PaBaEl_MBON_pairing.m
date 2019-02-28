@@ -4,9 +4,12 @@ close all
 dataset_list_paths = [...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_Yoshi_PaBaEl_MBONalpha1_lowUS.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_YoshiPaBaEl_MBON_alpha1_lowUS_backward_ctrl.xls'}...
-                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_Yoshi_PaBaEl_MBON_DAN_gamma1_lowUS_MB085C.xls'}...
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_Yoshi_PaBaEl_MBON_DAN_gamma1_lowUS_MB085C.xls'}...
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_YoshiPaBaEl_MBON_DAN_gamma1_lowUS_MB085C_epoxy.xls'}...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_YoshiPaBaEl_MBON_gamma1_lowUS.xls'}...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_Yoshi_El_THnull_gamma1pedc.xls'}...
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_YoshiPaBaEl_MBON_DAN_gamma1pedc_loctite_LED_1ms_0.1Hz.xls'}...     %variable resps, loctite glue, incomplete curing? 4 flies.
+                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_YoshiPaBaEl_MBON_DAN_gamma1pedc_loctite_LED_1ms.xls'}...           %1 fly, loctite, 0.5 HZ, 1 ms LED pulses.
                      ];
             
 suppress_plots = 1;
@@ -17,6 +20,7 @@ a = colormap('bone');
 global greymap
 greymap = flipud(a);
 fly_n = 0;
+script_name = mfilename;
 
 for list_n = 1:size(dataset_list_paths, 1)
     curr_dir_list_path = dataset_list_paths{list_n, 1};
@@ -24,6 +28,7 @@ for list_n = 1:size(dataset_list_paths, 1)
     n_dirs = size(dir_list, 1);
     dataset_list_name = findstr(curr_dir_list_path, 'El_');
     dataset_list_name = curr_dir_list_path((dataset_list_name + 1):(end - 4));
+    
     dataset_list_name(1) = [];
     flies_resp_size_mat = [];
     saved_resp_sizes_all = [];
@@ -89,7 +94,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         xlabel('trial n')
         set_xlabels_time(1, frame_time, 10)
         
-        fig_wrapup(1);
+        fig_wrapup(1, script_name);
         add_stim_bar(1, stim_frs, [0.5, 0.5, 0.5])
         colormap(greymap)
         
@@ -102,9 +107,17 @@ for list_n = 1:size(dataset_list_paths, 1)
         last_csminus_tr = pairing_tr + length(odor_list) - 1;
         
         share_path = 'C:\Data\Data\Analysed_data\data_sharing\Glenn_talk_20181121\';
+        saved_resp_sizes = [];
         for odor_n = 1:n_odors
             odor_ni = odor_list(odor_n);
             curr_trs = find(stim_mat_simple(:, 2) == odor_ni);
+            if odor_n == 1 
+                curr_colour = color_vec(3, :);
+            elseif odor_n == 2
+                curr_colour = color_vec(3, :).*0.75;
+            elseif odor_n == 3
+                curr_colour = color_vec(2, :);
+            end
             
             %plotting pre-trials traces
             figure(2)
@@ -117,7 +130,8 @@ for list_n = 1:size(dataset_list_paths, 1)
             tr_size = max(mean_trace(stim_frs(1, 1):(stim_frs(1,2))), [], 1);
             fly_resp_size_vec((odor_n - 1).*2 + 1) = tr_size;
             ses = std(traces_pre, [], 2)./sqrt(size(traces_pre, 2));
-            shadedErrorBar([], mean_trace, ses, {'Color', [166, 156, 204]./256}, 1)
+            %shadedErrorBar([], mean_trace, ses, {'Color', [166, 156, 204]./256}, 1)
+            shadedErrorBar([], mean_trace, ses, {':', 'Color', curr_colour, 'lineWidth', 1}, 1);
             axis([0, trace_lengths, -0.25, 1])
             odor_name = odor_names{odor_ni, 1};
             ylabel([odor_name, ' dF/F'])
@@ -131,12 +145,14 @@ for list_n = 1:size(dataset_list_paths, 1)
             tr_size = max(mean_trace(stim_frs(1, 1):(stim_frs(1,2))), [], 1);
             fly_resp_size_vec((odor_n - 1).*2 + 2) = tr_size;
             ses = std(traces_post, [], 2)./sqrt(size(traces_post, 2));
-            shadedErrorBar([], mean_trace, ses, {'Color', [247, 148, 29]./256}, 1)
+            %shadedErrorBar([], mean_trace, ses, {'Color', [247, 148, 29]./256}, 1)
+            shadedErrorBar([], mean_trace, ses, {'Color', curr_colour.*0.75, 'lineWidth', 1}, 1);
             %plot(mean_trace', 'Color', 'k', 'LineWidth', 3);
-            axis([0, trace_lengths, -0.25, 1])
+            axis([0, trace_lengths, -0.25, 1.5])
             odor_name = odor_names{odor_ni, 1};
             set_xlabels_time(2, frame_time, 10)
-            fig_wrapup(2);
+            script_name = mfilename;
+            fig_wrapup(2, script_name);
             add_stim_bar(2, stim_frs, [0.5, 0.5, 0.5])
             
             %saving data to file for sharing
@@ -150,12 +166,15 @@ for list_n = 1:size(dataset_list_paths, 1)
             disp(curr_dir)
             
             %plotting odor response sizes across trials for each fly
-            
             odor_ni = odor_list(odor_n);
             curr_trs = find(stim_mat_simple(:, 2) == odor_ni);
             curr_resps = resp_sizes(1, curr_trs);
-            saved_resp_sizes(:, odor_n) = curr_resps;
             
+            try
+                saved_resp_sizes = pad_n_concatenate(saved_resp_sizes, curr_resps, 2, nan);
+            catch 
+                keyboard
+            end
             
             
             if suppress_plots == 0
@@ -193,7 +212,7 @@ for list_n = 1:size(dataset_list_paths, 1)
     col_pairs = [1, 2; 3, 4; 5, 6];         %this is a list of pairs of columns of points to be connected by lines in the plot
     fig_h4 = scattered_dot_plot(flies_resp_size_mat, 4, 1, 4, 8, marker_colors, 1, col_pairs, [0.75, 0.75, 0.75],...
                             [{'PA pre'}, {'PA post'}, {'BA pre'}, {'BA post'}, {'EL pre'}, {'EL post'}], 1, [0.35, 0.35, 0.35]);
-    fig_wrapup(4)
+    fig_wrapup(4, script_name)
                         
     %plotting same data as in fig 4 with bars
     line_color = [0.6, 0.6, 0.6];
@@ -205,7 +224,7 @@ for list_n = 1:size(dataset_list_paths, 1)
     fig_h5 = bar_line_plot(5, flies_resp_size_mat, line_color, pre_color, post_color, bar_width, bar_space);
     ylabel('peak dF/F')
     xticklabels({'PA', 'BA', 'EL'})
-    fig_wrapup(5)
+    fig_wrapup(5, script_name)
     
     %statistical testing
     %PA
