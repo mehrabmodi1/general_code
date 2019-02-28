@@ -21,8 +21,6 @@ global greymap
 greymap = flipud(a);
 fly_n = 0;
 script_name = mfilename;
-odor_colors = [color_vec(3, :); color_vec(3, :).*0.75; color_vec(2, :)];
-
 
 for list_n = 1:size(dataset_list_paths, 1)
     curr_dir_list_path = dataset_list_paths{list_n, 1};
@@ -258,13 +256,9 @@ for list_n = 1:size(dataset_list_paths, 1)
     
     %plotting response sizes across repeats for each odor, for all flies.
     figure(7)
-    mean_resp_sizes = mean(saved_resp_sizes_all, 3, 'omitnan');
-    se_resp_sizes = std(saved_resp_sizes_all, [], 3, 'omitnan')./sqrt(size(saved_resp_sizes_all, 3));
+    mean_resp_sizes = mean(save, 'omitnan');
     
-    for odor_n = 1:3
-        shadedErrorBar([], mean_resp_sizes(odor_n, :), se_resp_sizes(odor_n, :), {'Color', odor_colors(odor_n, :)}, 1);
-        hold on
-    end
+    
 end
 %save_path = 'C:\Users\Mehrab\Dropbox (HHMI)\data_sharing\Glenn_talk_2018\slide_30\';
 save([save_path, 'resp_size_mat.mat'], 'flies_resp_size_mat');
