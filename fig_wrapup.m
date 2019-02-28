@@ -13,7 +13,7 @@ function [] = fig_wrapup(fig_n, script_name)
 
 
 plot_height = 200;
-plot_width = 280;
+plot_width = 250;
 axis_font_size = 15;
 tick_length = [0.02, 0.05];
 line_widths = 2;
@@ -27,7 +27,7 @@ ax_handle.FontSize = axis_font_size;
 ax_handle.TickLength = [0.005, 0.005];
 ax_handle.Box = 'off';
 ax_handle.TickDir = 'out';
-
+ax_handle.LineWidth = 1.2;
 %adding script name to figure
 add_scriptname(fig_n, script_name);
 

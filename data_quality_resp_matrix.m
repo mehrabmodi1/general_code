@@ -28,7 +28,7 @@ c_vals_mat = [c(1, 2), c(1, 3), c(2, 3)];
 
 if plot_matrix == 1
     fig_h = figure(fig_n);
-    imagesc(resp_areas_sorted', [0, 10])
+    imagesc(resp_areas_sorted', [0, 5])
     xlabel('cell number')
     ylabel('trials')
 else
