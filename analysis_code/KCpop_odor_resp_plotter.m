@@ -1,4 +1,4 @@
-function [] = KCpop_odor_resp_plotter(dff_data_mat_f, stim_mat_simple, stim_mat, sig_cell_mat, frame_time, start_fig_n)
+function [] = KCpop_odor_resp_plotter(dff_data_mat_f, stim_mat_simple, stim_mat, sig_cell_mat, frame_time, start_fig_n, script_name)
 
 color_vec = load('C:\Users\Mehrab\Google Drive\Backup\Stuff\CSHL\Glenn lab\Code\std_color_vec.txt');
 a = colormap('bone');
@@ -38,7 +38,7 @@ for odor_n = 1:length(odor_list)
         colormap(greymap)
         ylabel('cell number')
         set_xlabels_time(start_fig_n, frame_time, 40)
-        fig_wrapup_mod(start_fig_n, 'tall')   
+        fig_wrapup_mod(start_fig_n, 'tall', script_name)   
         add_stim_bar(start_fig_n, stim_frs, [0.5, 0.5, 0.5])
                      
         disp([num2str(start_fig_n), ' ', curr_od_name, ', ' num2str(od_duri), 's'])

@@ -6,8 +6,8 @@ dataset_list_paths = [%{'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Y
                       %{'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Yoshi_PaBaEl_d5HT1b_Gamma_low_conc.xls'};...
                       %{'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Yoshi_PaBaEl_c739_AlphaBeta_low_conc.xls'};...
                       %{'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Yoshi_PaBaEl_c305a_AlphapBetap_low_conc.xls'};...
-                      {'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Yoshi_PaBaEl_d5HT1b_Gamma_set2.xls'};...
-                      {'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Yoshi_PaBaEl_c739_AlphaBeta_set2.xls'}...
+                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_Yoshi_PaBaEl_d5HT1b_Gamma_set2.xls'};...
+                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_Yoshi_PaBaEl_c739_AlphaBeta_set2.xls'}...
                       ];
 
 suppress_plots = 1;
@@ -15,7 +15,7 @@ suppress_plots = 1;
 a = colormap('bone');
 global greymap
 greymap = flipud(a);
-
+script_name = mfilename;
 
 for list_n = 1:size(dataset_list_paths, 1)
     curr_dir_list_path = dataset_list_paths{list_n, 1};
@@ -77,10 +77,10 @@ for list_n = 1:size(dataset_list_paths, 1)
         %visualising odor sorted responses
         [resp_areas_sorted, fig_h, c_vals_mat] = data_quality_resp_matrix(resp_areas, stim_mat_simple, sig_cell_mat, 1, 1);
         pop_c_vals(dir_n, :) = c_vals_mat;
-        
+        colormap(greymap)
         
         %plotting ave KC pop resp traces to each odor
-        KCpop_odor_resp_plotter(dff_data_mat_f, stim_mat_simple, stim_mat, sig_cell_mat, frame_time, 1);
+        KCpop_odor_resp_plotter(dff_data_mat_f, stim_mat_simple, stim_mat, sig_cell_mat, frame_time, 2, script_name);
         keyboard
         close all
         %saving stuff for sharing data
