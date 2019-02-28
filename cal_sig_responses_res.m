@@ -1,4 +1,4 @@
-function [resp_areas, sig_trace_mat, sig_trace_mat_old, sig_cell_mat] = cal_sig_responses_res(dff_data_mat, stim_mat_struc, stim_mat_simple, direc, frame_time)
+function [resp_sizes, sig_trace_mat, sig_trace_mat_old, sig_cell_mat, resp_areaundercurves] = cal_sig_responses_res(dff_data_mat, stim_mat_struc, stim_mat_simple, direc, frame_time)
 %This function takes as inputs, the 3-D dff_data_mat that contains dF/F traces stored
 %by frame_n, cell_n, trial_n and odor_n; and stim_mat which contains
 %stimulus delivery information for each trial. The outputs are three 2D
@@ -28,6 +28,7 @@ pre_stim_frame = 1;
 
 
 resp_areas = zeros(n_cells, n_trials) + nan;
+resp_areaundercurves = zeros(n_cells, n_trials) + nan;
 sig_trace_mat = zeros(n_cells, n_trials);
 sig_cell_mat = zeros(n_cells, 12, n_odor_durs);
 
@@ -100,6 +101,7 @@ for rep_gp = 1:n_rep_gps                %a rep_gp is a group of repeats of the s
         try
             resp_traces_win = resp_traces((max([(ave_pk_fr-round(1./frame_time)), 1])):(min([(ave_pk_fr+round(1./frame_time)), size(resp_traces, 1)])), :);
             resp_areas(cell_n, rep_tr_list) = max(resp_traces_win, [], 1);
+            resp_areaundercurves(cell_n, rep_tr_list) = mean(resp_traces, 1, 'omitnan');
         catch
             keyboard
         end
