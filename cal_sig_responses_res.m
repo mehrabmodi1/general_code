@@ -27,7 +27,7 @@ stim_frame = floor(stim_time./frame_time);                  %frame no at which o
 pre_stim_frame = 1;
 
 
-resp_areas = zeros(n_cells, n_trials) + nan;
+resp_sizes = zeros(n_cells, n_trials) + nan;
 resp_areaundercurves = zeros(n_cells, n_trials) + nan;
 sig_trace_mat = zeros(n_cells, n_trials);
 sig_cell_mat = zeros(n_cells, 12, n_odor_durs);
@@ -100,7 +100,7 @@ for rep_gp = 1:n_rep_gps                %a rep_gp is a group of repeats of the s
         %resp_areas(cell_n, rep_tr_list) = pk_resps;
         try
             resp_traces_win = resp_traces((max([(ave_pk_fr-round(1./frame_time)), 1])):(min([(ave_pk_fr+round(1./frame_time)), size(resp_traces, 1)])), :);
-            resp_areas(cell_n, rep_tr_list) = max(resp_traces_win, [], 1);
+            resp_sizes(cell_n, rep_tr_list) = max(resp_traces_win, [], 1);
             resp_areaundercurves(cell_n, rep_tr_list) = mean(resp_traces, 1, 'omitnan');
         catch
             keyboard

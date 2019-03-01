@@ -8,21 +8,19 @@ dataset_list_paths = [...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_YoshiPaBaEl_MBON_DAN_gamma1_lowUS_MB085C_epoxy.xls'}...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_YoshiPaBaEl_MBON_gamma1_lowUS.xls'}...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_Yoshi_El_THnull_gamma1pedc.xls'}...
-                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_YoshiPaBaEl_MBON_DAN_gamma1pedc_loctite_LED_1ms_0.1Hz.xls'}...     %variable resps, loctite glue, incomplete curing? 4 flies.
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_YoshiPaBaEl_MBON_DAN_gamma1pedc_loctite_LED_1ms_0.1Hz.xls'}...     %variable resps, loctite glue, incomplete curing? 4 flies.
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_YoshiPaBaEl_MBON_DAN_gamma1pedc_loctite_LED_1ms.xls'}...           %1 fly, loctite, 0.5 HZ, 1 ms LED pulses.
-                     ];
+                       {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_YoshiPaBaEl_MBON_DAN_gamma1pedc_epoxy_LED_1ms_0.1Hz.xls'}...       %6 flies, epoxy, 0.1Hz, 1 ms LED pulses
+                    ];
             
-suppress_plots = 1;
+suppress_plots = 0;
 [del, odor_names] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList.xls', 1);
 global color_vec;                
-color_vec = load('C:\Users\Mehrab\Google Drive\Backup\Stuff\CSHL\Glenn lab\Code\std_color_vec.txt');
 a = colormap('bone');
 global greymap
 greymap = flipud(a);
 fly_n = 0;
 script_name = mfilename;
-odor_colors = [color_vec(3, :); color_vec(3, :).*0.75; color_vec(2, :)];
-
 
 for list_n = 1:size(dataset_list_paths, 1)
     curr_dir_list_path = dataset_list_paths{list_n, 1};
@@ -46,9 +44,11 @@ for list_n = 1:size(dataset_list_paths, 1)
        tif_times = load([curr_dir, 'tif_time_stamps.mat']);           %reading in time stamps for each tif file recorded by raw_data_extracter
        tif_times = tif_times.time_stamps;
        [stim_mat, stim_mat_simple, column_heads, color_vec] = load_params_trains(curr_dir, tif_times);    %reading in trial stimulus parameters after matching time stamps to F traces
+       odor_colors = [color_vec(3, :); color_vec(3, :).*0.75; color_vec(2, :)];
        
        %Reading in experimental parameters
-        odor_list = unique(stim_mat_simple(:, 2) );
+        %odor_list = unique(stim_mat_simple(:, 2) );
+        odor_list = [3, 10, 11];
         n_odors = length(odor_list);
         odor_dur_list = unique(stim_mat_simple(:, 3) );
         n_od_durs = length(odor_dur_list);
@@ -77,7 +77,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         dff_data_mat_f(del) = -1;       %forcing crazy values to sane ones
         
         %identifying significantly responsive cells
-        [resp_sizes, sig_trace_mat, sig_trace_mat_old, sig_cell_mat] = cal_sig_responses_res(dff_data_mat, stim_mat, stim_mat_simple, curr_dir, frame_time);
+        [resp_sizes, sig_trace_mat, sig_trace_mat_old, sig_cell_mat, resp_areas] = cal_sig_responses_res(dff_data_mat, stim_mat, stim_mat_simple, curr_dir, frame_time);
         sig_cells = find(sum(sum(sig_cell_mat, 3), 2) > 0);         %list of all cells significant for any odor for any duration
         
         
@@ -124,7 +124,11 @@ for list_n = 1:size(dataset_list_paths, 1)
             %plotting pre-trials traces
             figure(2)
             traces_pre = squeeze(dff_data_mat_f(:, 1, curr_trs(curr_trs < pairing_tr)));
-            traces_pre(:, 1:2) = [];                 %not considering first two trials bec of habituation effect
+            try
+                traces_pre(:, 1:2) = [];                 %not considering first two trials bec of habituation effect
+            catch
+                keyboard
+            end
             trace_lengths = size(traces_pre, 1) - sum(isnan(traces_pre(:, 1)));
             trace_lengths = max([trace_lengths, 1]);
             stim_frs = compute_stim_frs(stim_mat, 1, frame_time);
@@ -170,7 +174,7 @@ for list_n = 1:size(dataset_list_paths, 1)
             %plotting odor response sizes across trials for each fly
             odor_ni = odor_list(odor_n);
             curr_trs = find(stim_mat_simple(:, 2) == odor_ni);
-            curr_resps = resp_sizes(1, curr_trs);
+            curr_resps = resp_areas(1, curr_trs);
             
             try
                 saved_resp_sizes = pad_n_concatenate(saved_resp_sizes, curr_resps, 1, nan);
@@ -236,26 +240,6 @@ for list_n = 1:size(dataset_list_paths, 1)
     %EL
     [hEL, pEL] = ttest(flies_resp_size_mat(:, 5), flies_resp_size_mat(:, 6))
     
-   
-    %plotting resp sizes to show washout effect
-    colour_vecs = [[0.2, 0.3, 1.0]; [0.4, 0.5, 1.0]; [0.9, 0.45, 0.1];];
-    for odor_n = 1:n_odors
-        
-        mean_vec = mean(saved_resp_sizes_all(:, odor_n, :), 3, 'omitnan');
-        se_vec = std(saved_resp_sizes_all(:, odor_n, :), [], 3, 'omitnan');
-        se_vec = se_vec./sqrt(size(saved_resp_sizes_all, 3));
-        
-        
-        figure(6)
-        hold on
-        curr_colour = colour_vecs(odor_n, :);
-        shadedErrorBar([], mean_vec, se_vec, {'Color', curr_colour, 'lineWidth', 2}, 1)
-        ylabel('peak dF/F')
-        xlabel('trial number')
-        
-    end
-    fig_wrapup(6)
-    
     %plotting response sizes across repeats for each odor, for all flies.
     figure(7)
     mean_resp_sizes = mean(saved_resp_sizes_all, 3, 'omitnan');
@@ -265,6 +249,13 @@ for list_n = 1:size(dataset_list_paths, 1)
         shadedErrorBar([], mean_resp_sizes(odor_n, :), se_resp_sizes(odor_n, :), {'Color', odor_colors(odor_n, :)}, 1);
         hold on
     end
+    
+    figure(8)
+    for odor_n = 1:3
+        plot( squeeze(saved_resp_sizes_all(odor_n, :, :)), 'Color', odor_colors(odor_n, :));
+        hold on
+    end
+    
 end
 %save_path = 'C:\Users\Mehrab\Dropbox (HHMI)\data_sharing\Glenn_talk_2018\slide_30\';
-save([save_path, 'resp_size_mat.mat'], 'flies_resp_size_mat');
+%save([save_path, 'resp_size_mat.mat'], 'flies_resp_size_mat');
