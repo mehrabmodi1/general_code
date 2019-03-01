@@ -148,13 +148,14 @@ for do_over = 1:2
 
             done_marking = 0;
             while done_marking == 0
-                [lag_mat, bad_trs, done_marking] = manual_xylags_zbad(dataset_stack);
+                [lag_mat, bad_trs, done_marking, bk_ROI] = manual_xylags_zbad(dataset_stack);
             end
 
             bad_tr_list = 1:1:size(dataset_stack, 3);
             bad_tr_list(bad_trs == 1) = [];
             save([save_path, '\xy_lags.mat'], 'lag_mat');
             save([save_path, '\bad_trial_list.mat'], 'bad_tr_list');        %bad_tr_list is actually the list of good trials.
+            save([save_path, '\bk_ROI.mat'], 'bk_ROI'); 
             clear lag_mat
             clear bad_trs
 
@@ -266,6 +267,33 @@ for raw_direc_n = 1:size(raw_direc_list, 1)
 %     
     
 end
+
+%temporary code to handle bk_ROI saving bug.
+for raw_direc_n = 1:size(raw_direc_list, 1)
+    raw_direc = raw_direc_list{raw_direc_n, 1};
+    if exist([results_direc, raw_direc, '\trace_extraction_complete.mat']) == 2
+        continue
+    else
+    end
+    
+    if exist([results_direc, raw_direc, '\bk_ROI.mat']) == 2
+        continue
+        
+    else
+        stack = load([results_direc, raw_direc, '\tr_avg_stack.mat']);
+        stack = stack.ave_stack;
+        imagesc(stack(:, :, 1))
+        disp('need to re-draw bk_ROI')
+        bk_ROI = roipoly();
+        save([save_path, '\bk_ROI.mat'], 'bk_ROI');
+        
+        disp(raw_direc)
+        keyboard
+    end
+end
+
+
+
 
 %% Extracting raw fluorescence traces after doing a slow xy-correction, and copying over files needed for further analysis
 for raw_direc_n = 1:size(raw_direc_list, 1)

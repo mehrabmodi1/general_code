@@ -97,7 +97,11 @@ elseif registration_type == 3
         curr_im = curr_stack(:, :, frame_n);
         row_lag = detailed_lag_mat(frame_n, 1);
         col_lag = detailed_lag_mat(frame_n, 2);
-        curr_im = translate_stack(curr_im, [row_lag; col_lag], nan);
+        try
+            curr_im = translate_stack(curr_im, [row_lag; col_lag], nan);
+        catch
+            keyboard
+        end
         reg_stack(:, :, frame_n) = curr_im;
         saved_lags(frame_n, :) = [row_lag, col_lag];
        
