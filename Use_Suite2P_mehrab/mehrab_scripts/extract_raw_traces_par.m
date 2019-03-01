@@ -60,11 +60,12 @@ else
 end
 
 %reading in previously saved background region ROI for background (PMT offset) subtraction
-if exist([save_path, 'bk_ROI.mat']) == 2
+if exist([save_path, '\bk_ROI.mat']) == 2
     bk_ROI = load([save_path, '\bk_ROI.mat']);
     bk_ROI = bk_ROI.bk_ROI;
 else
     bk_ROI = [];
+    keyboard
 end
 
 
@@ -129,9 +130,10 @@ for trial_n = start_trial:n_trials
             end
 
             try
-                keyboard
+                
                 disp(['registering frames for trial ' int2str(trial_n)])
                 [stack_reg, saved_lags] = slow_xy_motion_correct(stack, ref_im, [0, 0], detailed_lag_mat, local_registration_type);        %lag_mat is [0, 0] because this is trial 1.
+                disp(['registration done. extracting data.'])
             catch
                 keyboard
             end
@@ -163,8 +165,8 @@ for trial_n = start_trial:n_trials
             end
             
             disp(['registering frames for trial ' int2str(trial_n)])
-            [stack_reg, saved_lags] = slow_xy_motion_correct(stack, ref_im, lag_mat(trial_n, :), detailed_lags, local_registration_type);
-            
+            [stack_reg, saved_lags] = slow_xy_motion_correct(stack, ref_im, lag_mat(trial_n, :), detailed_lag_mat, local_registration_type);
+            disp(['registration done. extracting data.'])
             
             
         elseif do_registration == 2 %do a 2D cc to identify lags for each frame in a stack relative to the meam frame for that stack after doing the slow correction above
@@ -178,7 +180,7 @@ for trial_n = start_trial:n_trials
             end
             
             %checking if detailed lags exist for current trial from a previous analysis run
-            if exist([save_path, 'detailed_xy_lags.mat']) == 1
+            if exist([save_path, 'detailed_xy_lags.mat']) == 2
                 detailed_lags = load([save_path, 'detailed_xy_lags.mat']);
                 detailed_lags = detailed_lags.detailed_lags;
                 local_registration_type = 3;
@@ -189,10 +191,13 @@ for trial_n = start_trial:n_trials
                 detailed_lag_mat = [];
             end
             
-            
             disp(['registering frames for trial ' int2str(trial_n)])
-            [stack_reg, saved_lags] = slow_xy_motion_correct(stack, ref_im, lag_mat(trial_n, :), detailed_lags, local_registration_type);
-            
+            try
+                [stack_reg, saved_lags] = slow_xy_motion_correct(stack, ref_im, lag_mat(trial_n, :), detailed_lag_mat, local_registration_type);
+            catch
+                keyboard
+            end
+            disp(['registration done. extracting data.'])
         end
                 
     end
@@ -211,13 +216,15 @@ for trial_n = start_trial:n_trials
     for frame_n = 1:n_frames
         curr_fr = stack_reg(:, :, frame_n);
         bk_fr = check_sig_noise(curr_fr);
-        curr_fr_a = curr_fr - bk_fr;
-        stack_reg(:, :, frame_n) = curr_fr_a;
-        
+        if median(median(bk_fr)) < median(median(curr_fr)).*0.05
+            curr_fr_a = curr_fr - bk_fr;
+            stack_reg(:, :, frame_n) = curr_fr_a;
+        else
+        end
+
     end
-    
    
-    %testing lines of code
+    %registration testing lines of code
 %     if trial_n > 1 && rem(trial_n, 5) == 0
 %         figure(2)
 %         subplot(2, 1, 1)
@@ -250,15 +257,34 @@ for trial_n = start_trial:n_trials
 %     
     
     bk_pixi = find(bk_ROI == 1);
-    parfor frame_n = 1:n_frames
+    
+    if isempty(bk_pixi)     %bk_ROI not saved, re-drawing
+        disp('need to re-draw bk_ROI')
+        imagesc(stack_reg(:, :, 1))
+        bk_ROI = roipoly();
+        save([save_path, '\bk_ROI.mat'], 'bk_ROI');
+        bk_pixi = find(bk_ROI == 1);
+        
+    else
+    end
+    
+    
+    for frame_n = 1:size(stack_reg, 3)
+        
         curr_frame = stack_reg(:, :, frame_n);
         curr_frame = double(curr_frame);
         
         %doing a background subtraction to subtract away the PMT offset, if any
-        bk_val = mean(mean(curr_frame(bk_pixi)));
+        if isempty(bk_pixi) == 0
+            bk_val = mean(mean(curr_frame(bk_pixi)));
+        else
+            bk_val = 0;
+        end
+       
         curr_frame = curr_frame - bk_val;
-        
+                
         raw_vec = zeros(1, n_cells);
+        
         for ROI_n = 1:n_cells
             try
                 curr_ROI = ROI_mat(:, :, ROI_n);
@@ -267,11 +293,11 @@ for trial_n = start_trial:n_trials
             end
                     
             raw_vec(1, ROI_n) = mean(curr_frame(curr_ROI == 1));
-            
+            %disp(['extracting data from ROI ' int2str(ROI_n)]); 
         end
        
         curr_raw_data_mat(frame_n, :) = raw_vec;   %raw data mat for current trial
-        
+        %disp(['extracting data from frame ' int2str(frame_n)]); 
     end
     
     %putting raw data mat for current trial into big matrix for all trials
