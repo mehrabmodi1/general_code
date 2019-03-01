@@ -7,11 +7,13 @@ direc_lists_mat = [...
                     %{'E:\Data\Raw_Data_Current\dataset_lists\MBON_DAN_alpha1_lowUS_set3.xls'};...
                     %{'E:\Data\Raw_Data_Current\dataset_lists\MBON_DAN_alpha1_lowUS_set4.xls'};...
                     %{'E:\Data\Raw_Data_Current\dataset_lists\MBON_DAN_gamma1_lowUS_set1.xls'};...
-                    %{'E:\Data\Raw_Data_Current\dataset_lists\MBON_DAN_alpha1_lowUS_backward_ctrl.xls'}...
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\MBON_DAN_alpha1_lowUS_backward_ctrl.xls'};...
                     %{'E:\Data\Raw_Data_Current\dataset_lists\Yoshi_THnull_G1pedc.xls'};...
                     %{'E:\Data\Raw_Data_Current\dataset_lists\MBON_DAN_gamma1_Chrim_stim_lifetime.xls'};...
-                    {'E:\Data\Raw_Data_Current\dataset_lists\MBON_DAN_gamma1_lowUS_MB085C.xls'}...
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\MBON_DAN_gamma1_lowUS_MB085C.xls'};...
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\MBON_DAN_gamma1_lowUS_MB085C_epoxy.xls'}
                     %{'E:\Data\Raw_Data_Current\dataset_lists\dataset_list_Yoshi_PaBaEl_MBON_DAN_gamma1_lowUS_MB085C_nansets'}...
+                    {'E:\Data\Raw_Data_Current\dataset_lists\MBON_DAN_gamma1_lowUS_MB085C_new_set.xls'}
                     ];
                 
 n_direc_lists = size(direc_lists_mat, 1);
@@ -91,13 +93,7 @@ for do_over = 1:2
                     else
                     end
                     
-                    %PICK UP THREAD HERE
-                    %set up saving ave stacks for the red channel as well,
-                    %set up using these for slow and fast mov correction, 
-                    %if specified by the user. Copy over to Suite2P
-                    %extracter.
-                    
-                    
+                                     
                     curr_stack = double(curr_stack);
                     ave_stack(:, :, tif_n) = std(curr_stack, 0, 3, 'omitnan');
                     disp(['Saving avg stack, tr ', int2str(tif_n), ' done.'])
@@ -112,6 +108,45 @@ for do_over = 1:2
                 dataset_stack = load([save_path, '\tr_avg_stack.mat']);
                 dataset_stack = dataset_stack.ave_stack;
                 
+                ref_im = dataset_stack(:, :, 1);
+                
+                %checking if multiple ROIs have been drawn and unzipping them all
+                if exist([direc, 'ROIs\RoiSet.zip']) == 2
+                    unzip([direc, 'ROIs\RoiSet.zip'], [direc, 'ROIs\']);
+                else
+                end
+
+                %loading in manually drawn, FIJI ROIs
+                prev_direc = pwd;
+                cd([direc, 'ROIs\']);
+                ROI_list = dir('*.roi');
+                cd(prev_direc);
+                n_ROIs = size(ROI_list, 1);
+
+                keyboard
+                ROI_mat = zeros(size(ref_im, 1), size(ref_im, 2), n_ROIs);
+                for ROI_n = 1:n_ROIs
+                    curr_name = ROI_list(ROI_n).name;
+                    curr_ROI = ReadImageJROI([direc, 'ROIs\', curr_name]);
+                    ROI_mat(:, :, ROI_n) = poly2mask(curr_ROI.mnCoordinates(:, 1), curr_ROI.mnCoordinates(:, 2), size(ref_im, 1), size(ref_im, 2));
+                end
+
+                if fuse_ROIs == 1
+                    ROI_mat = sum(ROI_mat, 3);
+                else
+                end
+
+                %dilating ROIs if specified by user
+                if dilate_ROIs > 0
+                    str = strel('disk', dilate_ROIs, 0); 
+                    ROI_mat = imdilate(ROI_mat, str);
+
+                else
+                end
+                
+                %re-saving ROIs in easy to load form
+                save([save_path_base, dataset_name, '\ROI_mat.mat'], 'ROI_mat');
+                
                 %looping through an ave frame for each trial in the
                 %dataset, for the user to click on a fixed landmark in each frame
                 %to correct x-y drift, and also indicate bad z-trials
@@ -122,7 +157,7 @@ for do_over = 1:2
                 
                 done_marking = 0;
                 while done_marking == 0
-                    [lag_mat, bad_trs, done_marking, bk_ROI] = manual_xylags_zbad(dataset_stack);
+                    [lag_mat, bad_trs, done_marking, bk_ROI] = manual_xylags_zbad2(dataset_stack, ROI_mat);
                 end
                 
                 bad_tr_list = 1:1:size(dataset_stack, 3);
@@ -172,40 +207,10 @@ for direc_list_n = 1:n_direc_lists
         curr_stack = permute(curr_stack,[2 1 3]);
         ref_im = mean(curr_stack, 3, 'omitnan');
         
-        %checking if multiple ROIs have been drawn and unzipping them all
-        if exist([direc, 'ROIs\RoiSet.zip']) == 2
-            unzip([direc, 'ROIs\RoiSet.zip'], [direc, 'ROIs\']);
-        else
-        end
-       
-        %loading in manually drawn, FIJI ROIs
-        prev_direc = pwd;
-        cd([direc, 'ROIs\']);
-        ROI_list = dir('*.roi');
-        cd(prev_direc);
-        n_ROIs = size(ROI_list, 1);
-        
-        
-        ROI_mat = zeros(size(ref_im, 1), size(ref_im, 2), n_ROIs);
-        for ROI_n = 1:n_ROIs
-            curr_name = ROI_list(ROI_n).name;
-            curr_ROI = ReadImageJROI([direc, 'ROIs\', curr_name]);
-            ROI_mat(:, :, ROI_n) = poly2mask(curr_ROI.mnCoordinates(:, 1), curr_ROI.mnCoordinates(:, 2), size(ref_im, 1), size(ref_im, 2));
-        end
-        
-        if fuse_ROIs == 1
-            ROI_mat = sum(ROI_mat, 3);
-        else
-        end
-        
-        %dilating ROIs if specified by user
-        if dilate_ROIs > 0
-            str = strel('disk', dilate_ROIs, 0); 
-            ROI_mat = imdilate(ROI_mat, str);
-            
-        
-        else
-        end
+        %loading in previously saved ROI_mat
+        ROI_mat = load([save_path_base, dataset_name, '\ROI_mat.mat']);
+        ROI_mat = ROI_mat.ROI_mat;
+        keyboard
         
         %extracting raw traces
         dataset_namei = findstr(direc, '\20');
