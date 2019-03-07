@@ -148,7 +148,7 @@ for do_over = 1:2
 
             done_marking = 0;
             while done_marking == 0
-                [lag_mat, bad_trs, done_marking, bk_ROI] = manual_xylags_zbad(dataset_stack);
+                [lag_mat, bad_trs, done_marking, bk_ROI] = manual_xylags_zbad2(dataset_stack, ROI_mat);
             end
 
             bad_tr_list = 1:1:size(dataset_stack, 3);
