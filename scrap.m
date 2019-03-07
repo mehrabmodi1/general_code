@@ -1,18 +1,35 @@
 clear all
 close all
 
-f = figure;
-axis([0, 10, 0, 5])
+global xpos1
+global ypos1
+global xpos0
+global ypos0
 
-greenrect = rectangle('Position',[0.7 0.1 0.1 0.2]);
-set(greenrect,'FaceColor','g');
-draggable(greenrect);
+f = figure;
+bk_mat = rand(100, 100);
+imagesc(bk_mat);
+colormap('gray')
 
 hold on
 
-a = rand(2, 2) + 1;
+a = zeros(10, 10) + 2;
 im = imagesc(a);
-draggable(im, 'none', [-inf inf -inf inf]);
+alpha(im, 0.5)
+draggable(im, 'none', [-inf inf -inf inf], 'endfcn', @get_final_pos);
 
-im.XData
-im.YData
+xpos0 = im.XData;
+ypos0 = im.YData;
+
+function get_final_pos(im)
+    disp('endfcn executed')
+    global xpos1
+    xpos1 = im.XData;
+    global ypos1 
+    ypos1 = im.YData;
+    global xpos0
+    global ypos0
+    
+    ydisp = ypos1 - ypos0
+    xdisp = xpos1 - xpos0
+end
