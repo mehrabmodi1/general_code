@@ -11,6 +11,11 @@ curr_threshm = 2;
 curr_threshm_tr1 = curr_threshm;
 int_ranges = zeros(size(dataset_stack, 3), 2);
 trial_n = 0;
+global im_posx1
+global im_posy1
+last_lagx = 0;
+last_lagy = 0;
+
 while trial_n < size(dataset_stack, 3)
     trial_n = trial_n + 1;
     figure(1)
@@ -20,15 +25,21 @@ while trial_n < size(dataset_stack, 3)
     else
     end
     
-    plot_frame(frame1, curr_threshm, [1, 2, 1])   
+    [frame_obj, ROI_obj] = plot_frame(frame1, curr_threshm, [1, 2, 1], ROI_mat);   
+    %recording original position of frame 1 image displayed.
+    im_posx0 = ROI_obj.XData;
+    im_posx0 = im_posx0(1);
+    im_posy0 = ROI_obj.YData;
+    im_posy0 = im_posy0(1);
+        
     disp('Slow, manual motion correction beginning...')
     if trial_n == 1
         title('Draw background ROI.')
         bk_ROI = roipoly;
                 
-        title('Trial1 mean, click on a landmark.')
+        title('Trial1 mean and ROI. Click to continue.')
         done = 0;
-       
+        
         while done == 0
             [x1, y1] = ginputc(1, 'Color', [1, 0, 0]);
             %allowing user to ask for brighter or dimmer colormapping
@@ -36,60 +47,49 @@ while trial_n < size(dataset_stack, 3)
                 %pulling up options box to re-do last landmark or mark current
                 %trial as z-drifted
                 choice = listdlg('ListString', {'make brighter', 'make dimmer'}, 'SelectionMode', 'single');
-
-                if choice == 1      %make dimmer selected
+                
+                if choice == 1      %make brighter selected
                     subplot(1, 2, 1)
                     curr_threshm_tr1 = curr_threshm_tr1.*0.85;
-                    imagesc(frame1, [0, curr_threshm_tr1.*median(reshape(frame1, 1, []))])
-                    set(gca,'xtick',[])
-                    set(gca,'xticklabel',[])
-                    set(gca,'ytick',[])
-                    set(gca,'yticklabel',[])
-                elseif choice == 2     %make brighter selected
+                    [frame_obj, ROI_obj] = plot_frame(frame1, curr_threshm_tr1, [1, 2, 1], ROI_mat);
+                    
+                elseif choice == 2     %make dimmer selected
                     subplot(1, 2, 1)
                     curr_threshm_tr1 = curr_threshm_tr1.*1.15;
-                    imagesc(frame1, [0, curr_threshm_tr1.*median(reshape(frame1, 1, []))])
-                    set(gca,'xtick',[])
-                    set(gca,'xticklabel',[])
-                    set(gca,'ytick',[])
-                    set(gca,'yticklabel',[])
+                    [frame_obj, ROI_obj] = plot_frame(frame1, curr_threshm_tr1, [1, 2, 1], ROI_mat);
+                    
                 else
                 end
             else
-                keyboard
+                
+                x1 = im_posx0;
+                y1 = im_posy0;
                 done = 1;
+                curr_threshm = curr_threshm_tr1;
             end
         end
-        landmark_ROI = zeros(size(frame1, 1), size(frame1, 2));
-        landmark_ROI = draw_circle(y1, x1, 3, landmark_ROI, 1);
-        landmark_ROI_rgb = landmark_ROI;
-        landmark_ROI_rgb(:, :, 2:3) = zeros(size(frame1, 1), size(frame1, 2), 2);
-        reg_stack(:, :, 1) = frame1;
+        
+        reg_stack(:, :, 1) = frame1;        %first frame of registered stack is the reference frame from averaging trial 1
         ax = gca;
         int_ranges(trial_n, :) = ax.CLim;
         
-    else
-        title('Trial1 mean with landmark highlighted.')
-        hold on
-        h = imagesc(landmark_ROI_rgb);
-        h.AlphaData = landmark_ROI;
-        hold off
-        
-        subplot(1, 2, 2)
-        curr_frame = squeeze(dataset_stack(:, :, trial_n));
-        %curr_threshm = 0.05;
-        imagesc(curr_frame, [0, curr_threshm.*median(reshape(curr_frame, 1, []))])
-        set(gca,'xtick',[])
-        set(gca,'xticklabel',[])
-        set(gca,'ytick',[])
-        set(gca,'yticklabel',[])
-        colormap('gray')
-        title(['Trial ', int2str(trial_n), ' mean, click on landmark, or outside image if z-drifted.'  ])
+    else   %Now dealing with trial_n > 1
+        title('Trial1 mean with ROI.')
                 
-        %checking if click was outside image
+        subplot(1, 2, 2)
+        curr_frame_orig = squeeze(dataset_stack(:, :, trial_n));
+        curr_frame = translate_stack (curr_frame_orig, [last_lagy; last_lagx], nan);
+        
         done = 0;
         while done == 0
+            [frame_obj, ROI_obj] = plot_frame(curr_frame, curr_threshm, [1, 2, 2], ROI_mat);
+            title(['Trial ', int2str(trial_n), ' mean, drag to match ROI, or click to bring up cursor.'  ])
+            draggable(ROI_obj, 'none', [-inf inf -inf inf], 'endfcn', @end_drag_func); 
+            uiwait(gcf)
+            title(['Trial ', int2str(trial_n), ' click on image to continue or outside for more options.'  ])
             [x, y] = ginputc(1, 'Color', [1, 0, 0]);
+            
+            %checking if click was outside image
             if x < 0 || x > size(frame1, 2) || y < 0 || y > size(frame1, 1)
                 %pulling up options box to re-do last landmark or mark current
                 %trial as z-drifted
@@ -101,35 +101,40 @@ while trial_n < size(dataset_stack, 3)
                 elseif choice == 3      %make dimmer selected
                     subplot(1, 2, 2)
                     curr_threshm = curr_threshm.*0.85;
-                    imagesc(curr_frame, [0, curr_threshm.*median(reshape(curr_frame, 1, []))])
-                    set(gca,'xtick',[])
-                    set(gca,'xticklabel',[])
-                    set(gca,'ytick',[])
-                    set(gca,'yticklabel',[])
+                    [frame_obj, ROI_obj] = plot_frame(curr_frame, curr_threshm, [1, 2, 2], ROI_mat);
                 elseif choice == 4      %make brighter selected
                     subplot(1, 2, 2)
                     curr_threshm = curr_threshm.*1.15;
-                    imagesc(curr_frame, [0, curr_threshm.*median(reshape(curr_frame, 1, []))])
-                    set(gca,'xtick',[])
-                    set(gca,'xticklabel',[])
-                    set(gca,'ytick',[])
-                    set(gca,'yticklabel',[])
+                    [frame_obj, ROI_obj] = plot_frame(curr_frame, curr_threshm, [1, 2, 2], ROI_mat);
                 elseif choice == 2      %re-do last landmark selected
                     trial_n = trial_n - 1;
                     continue
                 end
             else
+                
                 z_drifted = 0;
+                x = im_posx1;
+                y = im_posy1;
+                x_lag = im_posx0 - im_posx1 + last_lagx;        %adding last tr's lag because this is automatically applied without any dragging
+                y_lag = im_posy0 - im_posy1 + last_lagy;        %adding last tr's lag because this is automatically applied without any dragging
+                
+                %keeping track of last lags to plot next image
+                last_lagx = x_lag;
+                last_lagy = y_lag;
+                
+                curr_frame_reg = translate_stack (curr_frame_orig, [y_lag; x_lag], nan);
+                
                 done = 1;
             end
         end
         if z_drifted == 0
-            lag_mat(trial_n, 1) = y1 - y;
-            lag_mat(trial_n, 2) = x1 - x;
+            lag_mat(trial_n, 1) = y_lag;
+            lag_mat(trial_n, 2) = x_lag;
             lag_mat(trial_n, 3) = 0;
             z_drifted = 0;
+            
             %saving a lag-corrected version of the current frame
-            reg_stack(:, :, (trial_n - sum(bad_trs))) = translate_stack(curr_frame, [lag_mat(trial_n, 1); lag_mat(trial_n, 2)], nan);
+            reg_stack(:, :, (trial_n - sum(bad_trs))) = curr_frame_reg;
             ax = gca;
             int_ranges(trial_n, :) = ax.CLim;
            
@@ -159,13 +164,31 @@ elseif strcmp(choice, 'redo landmarks') == 1
 else
 end
 
-function plot_frame(frame, curr_thresh, subplot_n)
+%This function creates a subplot with the frame and the ROI on top of it.
+function [frame_obj, ROI_obj] = plot_frame(frame, curr_thresh, subplot_n, ROI_mat)
     figure(1)
     subplot(subplot_n(1), subplot_n(2), subplot_n(3))
-    imagesc(frame, [0, curr_thresh.*median(reshape(frame, 1, []))])
+    frame_obj = imagesc(frame, [0, curr_thresh.*median(reshape(frame, 1, []), 'omitnan')]);
     set(gca,'xtick',[])
     set(gca,'xticklabel',[])
     set(gca,'ytick',[])
     set(gca,'yticklabel',[])
     colormap('gray')
+    hold on
+    ROI_mat_sc = ROI_mat.*max(max(frame));
+    ROI_obj = imagesc(ROI_mat_sc);
+    hold off
+    ROI_obj.AlphaData = ROI_mat.*0.5;
     plot_big_fig(1)
+    
+    
+%This function is called by draggable every time the user drags and then
+%drops the ROI after translating it
+function end_drag_func(ROI_obj)
+    global im_posx1
+    global im_posy1
+    im_posx1 = ROI_obj.XData;
+    im_posx1 = im_posx1(1);
+    im_posy1 = ROI_obj.YData;
+    im_posy1 = im_posy1(1); 
+    uiresume(gcf)
