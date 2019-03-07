@@ -13,7 +13,9 @@ direc_lists_mat = [...
                     %{'E:\Data\Raw_Data_Current\dataset_lists\MBON_DAN_gamma1_lowUS_MB085C.xls'};...
                     %{'E:\Data\Raw_Data_Current\dataset_lists\MBON_DAN_gamma1_lowUS_MB085C_epoxy.xls'}
                     %{'E:\Data\Raw_Data_Current\dataset_lists\dataset_list_Yoshi_PaBaEl_MBON_DAN_gamma1_lowUS_MB085C_nansets'}...
-                    {'E:\Data\Raw_Data_Current\dataset_lists\MBON_DAN_gamma1_lowUS_MB085C_new_set.xls'}
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\MBON_DAN_gamma1_lowUS_MB085C_new_set.xls'}
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\MBON_DAN_gamma1_lowUS_MB085C_epoxy_short_session.xls'}...
+                    {'E:\Data\Raw_Data_Current\dataset_lists\MBON_DAN_gamma1_lowUS_MB085C_epoxy_short_session_noUS.xls'}...
                     ];
                 
 n_direc_lists = size(direc_lists_mat, 1);
@@ -123,7 +125,7 @@ for do_over = 1:2
                 cd(prev_direc);
                 n_ROIs = size(ROI_list, 1);
 
-                keyboard
+              
                 ROI_mat = zeros(size(ref_im, 1), size(ref_im, 2), n_ROIs);
                 for ROI_n = 1:n_ROIs
                     curr_name = ROI_list(ROI_n).name;
@@ -193,10 +195,19 @@ for direc_list_n = 1:n_direc_lists
         %% House-keeping
         direc = curr_direc_list{direc_counter, 1};
         direc = [direc, '\'];
+        dataset_namei = findstr(direc, '\20');
+        dataset_name = direc((dataset_namei + 1):end);
+        
         remove_small_tifs(direc);
         prev_direc = pwd;
         cd([direc]);
         tif_list = dir('*.tif');
+        
+        if exist([save_path_base, dataset_name, '\trace_extraction_complete.mat']) == 2
+           continue
+            
+        else
+        end
         
         disp(['Extracting traces from ' direc]);
         try
@@ -210,7 +221,7 @@ for direc_list_n = 1:n_direc_lists
         %loading in previously saved ROI_mat
         ROI_mat = load([save_path_base, dataset_name, '\ROI_mat.mat']);
         ROI_mat = ROI_mat.ROI_mat;
-        keyboard
+        
         
         %extracting raw traces
         dataset_namei = findstr(direc, '\20');
