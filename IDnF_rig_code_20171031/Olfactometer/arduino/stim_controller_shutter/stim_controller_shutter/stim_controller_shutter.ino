@@ -10,7 +10,7 @@ const int led_pin = 5;
 const int elec_pin = 6;
 const int trig_pin = 4;
 const int led_warning_pin = 7;
-const float led_warning_leadt = 7;
+const float led_warning_leadt = 20;
 
 int trig_state = 0;
 int param_n = 0;    //this variable encodes the number of newly received param values
@@ -19,7 +19,7 @@ float init_delay_ms = 0;
 float duration_ms = 0;
 float freq_hz = 0;
 float duty_cycle_pc = 0;
-
+float on_dur_us = 0;
 
 void setup() {
     
@@ -92,7 +92,17 @@ void loop()
                 //Turning on LED or elec stim
                 if (LED_elec == 0) {digitalWrite(led_pin, HIGH);}           
                 if (LED_elec == 1) {digitalWrite(elec_pin, HIGH);}
-                delay(on_dur);    //pulse on duration
+                
+                if (on_dur > 2)
+                  {
+                    delay(on_dur);    //pulse on duration
+                  }
+                else if (on_dur <= 2)
+                  {
+                    on_dur_us = on_dur * 1000;
+                    delayMicroseconds(on_dur_us);
+                  }
+                
                 //Turning off LED or elec stim
                 if (LED_elec == 0) {digitalWrite(led_pin, LOW);}
                 if (LED_elec == 1) {digitalWrite(elec_pin, LOW);}
