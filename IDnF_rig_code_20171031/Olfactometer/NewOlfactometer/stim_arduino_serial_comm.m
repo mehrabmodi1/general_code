@@ -1,4 +1,4 @@
-function stim_arduino_serial_comm(LED_elec, init_delay_ms, duration_ms, freq_hz, duty_cyc_percent)
+function stim_arduino_serial_comm(LED_elec, init_delay_ms, duration_ms, freq_hz, duty_cyc_percent, led_power)
 
 stim_ard = serial('COM13');
 set(stim_ard,'BaudRate',9600);
@@ -12,6 +12,7 @@ fprintf(stim_ard, '%s', ['<', num2str(init_delay_ms), '>']);         %initial de
 fprintf(stim_ard, '%s', ['<', num2str(duration_ms), '>']);           %total stim duration in ms 
 fprintf(stim_ard, '%s', ['<', num2str(freq_hz), '>']);               %frequency of stim pulses in Hz
 fprintf(stim_ard, '%s', ['<', num2str(duty_cyc_percent), '>']);      %duty cycle of on part of stim pulse in percent
+fprintf(stim_ard, '%s', ['<', num2str(led_power), '>']);             %LED control voltage to be delivered
 
 %closing, clearing stim arduino comm port
 fclose(stim_ard);
