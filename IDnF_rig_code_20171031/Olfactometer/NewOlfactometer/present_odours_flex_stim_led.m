@@ -92,7 +92,7 @@ for trial_n = start_tr:n_trials
     post_od_scan_dur = params_mat(trial_n).post_od_scan_dur;
     pulse_train = params_mat(trial_n).rand_train;
     pulse_type = params_mat(trial_n).pulse_type;
-    LED_power = params_mat(trial_n).led_power;
+    LED_power = 5.*(params_mat(trial_n).led_power./100);
     
     %listing parameters and communicating with led/elec stimulating Arduino
     %if necessary for current trial
