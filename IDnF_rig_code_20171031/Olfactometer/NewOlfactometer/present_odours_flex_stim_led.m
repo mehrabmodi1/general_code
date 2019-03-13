@@ -94,6 +94,7 @@ for trial_n = start_tr:n_trials
     pulse_type = params_mat(trial_n).pulse_type;
     LED_power = 5.*(params_mat(trial_n).led_power./100);
     
+    
     %listing parameters and communicating with led/elec stimulating Arduino
     %if necessary for current trial
     if params_mat(trial_n).led_on == 1 || params_mat(trial_n).elec_on == 1      %condition to check if LED or elec stim is being delivered on current trial
@@ -109,6 +110,7 @@ for trial_n = start_tr:n_trials
         duty_cyc_percent = params_mat(trial_n).st_duty_cyc;
         
         %communicating stimulus parameters to Arduino
+        keyboard
         stim_arduino_serial_comm(LED_elec, init_delay_ms, duration_ms, freq_hz, duty_cyc_percent, LED_power);
         
             

@@ -107,9 +107,12 @@ void loop()
                 if (LED_elec == 0) {digitalWrite(led_pin, LOW);}
                 if (LED_elec == 1) {digitalWrite(elec_pin, LOW);}
                 
-                if (off_dur > led_warning_leadt) {digitalWrite(led_warning_pin, LOW);}  //turning off led warning pin during inter pulse interval
+                if (off_dur > led_warning_leadt) 
+                        {digitalWrite(led_warning_pin, LOW);  
+                          delay(off_dur_w);}                  //pulse off duration  //turning off led warning pin during inter pulse interval
                 
-                delay(off_dur_w);  //pulse off duration
+                if (off_dur <= led_warning_leadt) {delay(off_dur);}         //if off dur is too short for LED warning, led_warning_pin is left high and off_dur is used.
+
                 
                 pulse_n = pulse_n + 1;
           }
