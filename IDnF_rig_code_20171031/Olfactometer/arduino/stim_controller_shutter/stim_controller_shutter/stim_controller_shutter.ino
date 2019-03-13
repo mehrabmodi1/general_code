@@ -87,7 +87,7 @@ void loop()
           while (pulse_n < n_pulses)
           {
                 if (LED_elec == 0) {digitalWrite(led_warning_pin, HIGH);}   //Turning on LED warning signal
-                delay(led_warning_leadt);
+                if (off_dur > led_warning_leadt) {delay(led_warning_leadt);}
 
                 //Turning on LED or elec stim
                 if (LED_elec == 0) {digitalWrite(led_pin, HIGH);}           
