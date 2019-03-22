@@ -1,4 +1,4 @@
-function [raw_data_mat] = extract_raw_traces(direc, ROI_mat, save_path, do_registration)
+function [raw_data_mat] = extract_raw_traces(direc, ROI_mat, save_path, do_registration, extract_both_channels)
 %syntax: [raw_data_mat] = extract_raw_traces(direc, ROI_mat, save_path)
 %This function extracts raw traces from all the large tif files in direc using 
 %the specified ROI_mat. It saves the extracted raw_data_mat after each trial 
@@ -85,6 +85,10 @@ for trial_n = start_trial:n_trials
         
         %checking how many color channels there are
         [frame_time, zoom, n_chans] = SI_tif_info(im_obj);
+        if extract_both_channels == 1
+            n_chans = 1;
+        else
+        end
         
         if n_chans == 2
             stack = stack(:, :, 1:2:end);       %getting rid of red channel frames
