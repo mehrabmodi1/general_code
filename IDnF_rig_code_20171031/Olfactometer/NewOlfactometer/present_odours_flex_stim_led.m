@@ -92,6 +92,7 @@ for trial_n = start_tr:n_trials
     post_od_scan_dur = params_mat(trial_n).post_od_scan_dur;
     pulse_train = params_mat(trial_n).rand_train;
     pulse_type = params_mat(trial_n).pulse_type;
+    LED_power = 5.*(params_mat(trial_n).led_power./100);
     
     
     %listing parameters and communicating with led/elec stimulating Arduino
@@ -109,7 +110,8 @@ for trial_n = start_tr:n_trials
         duty_cyc_percent = params_mat(trial_n).st_duty_cyc;
         
         %communicating stimulus parameters to Arduino
-        stim_arduino_serial_comm(LED_elec, init_delay_ms, duration_ms, freq_hz, duty_cyc_percent);
+        keyboard
+        stim_arduino_serial_comm(LED_elec, init_delay_ms, duration_ms, freq_hz, duty_cyc_percent, LED_power);
         
             
     else

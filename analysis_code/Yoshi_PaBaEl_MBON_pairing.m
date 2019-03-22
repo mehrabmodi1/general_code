@@ -10,7 +10,9 @@ dataset_list_paths = [...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_Yoshi_El_THnull_gamma1pedc.xls'}...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_YoshiPaBaEl_MBON_DAN_gamma1pedc_loctite_LED_1ms_0.1Hz.xls'}...     %variable resps, loctite glue, incomplete curing? 4 flies.
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_YoshiPaBaEl_MBON_DAN_gamma1pedc_loctite_LED_1ms.xls'}...           %1 fly, loctite, 0.5 HZ, 1 ms LED pulses.
-                       {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_YoshiPaBaEl_MBON_DAN_gamma1pedc_epoxy_LED_1ms_0.1Hz.xls'}...       %6 flies, epoxy, 0.1Hz, 1 ms LED pulses
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_YoshiPaBaEl_MBON_DAN_gamma1pedc_epoxy_LED_1ms_0.1Hz.xls'}...       %6 flies, epoxy, 0.1Hz, 1 ms LED pulses
+                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\PaBaEl_MBON_DAN_gamma1_lowUS_MB085C_epoxy_short_session.xls'}...                       %4 flies, epoxy, 0.1Hz, 1ms LED pulses, 2 reps pre and post
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\PaBaEl_MBON_DAN_gamma1_lowUS_MB085C_epoxy_short_session_noUS.xls'}... 
                     ];
             
 suppress_plots = 0;
@@ -106,8 +108,8 @@ for list_n = 1:size(dataset_list_paths, 1)
             pairing_tr = 15;
         else
         end
-        last_csminus_tr = pairing_tr + length(odor_list) - 1;
-        
+        %last_csminus_tr = pairing_tr + length(odor_list) - 1;
+        last_csminus_tr = pairing_tr + 1;
         share_path = 'C:\Data\Data\Analysed_data\data_sharing\Glenn_talk_20181121\';
         saved_resp_sizes = [];
         for odor_n = 1:n_odors
@@ -125,10 +127,11 @@ for list_n = 1:size(dataset_list_paths, 1)
             figure(2)
             traces_pre = squeeze(dff_data_mat_f(:, 1, curr_trs(curr_trs < pairing_tr)));
             try
-                traces_pre(:, 1:2) = [];                 %not considering first two trials bec of habituation effect
+                %traces_pre(:, 1:2) = [];                 %not considering first two trials bec of habituation effect
             catch
                 keyboard
             end
+            
             trace_lengths = size(traces_pre, 1) - sum(isnan(traces_pre(:, 1)));
             trace_lengths = max([trace_lengths, 1]);
             stim_frs = compute_stim_frs(stim_mat, 1, frame_time);
@@ -154,7 +157,7 @@ for list_n = 1:size(dataset_list_paths, 1)
             %shadedErrorBar([], mean_trace, ses, {'Color', [247, 148, 29]./256}, 1)
             shadedErrorBar([], mean_trace, ses, {'Color', curr_colour.*0.75, 'lineWidth', 1}, 1);
             %plot(mean_trace', 'Color', 'k', 'LineWidth', 3);
-            axis([0, trace_lengths, -0.25, 1.5])
+            axis([0, trace_lengths, -0.25, 2])
             odor_name = odor_names{odor_ni, 1};
             set_xlabels_time(2, frame_time, 10)
             script_name = mfilename;

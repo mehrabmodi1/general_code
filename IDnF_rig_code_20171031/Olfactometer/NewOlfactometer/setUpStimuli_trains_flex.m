@@ -180,8 +180,14 @@ for pp=1:length(params) %this loop is not for trials
         %LED
         if isempty(intersect(params(tr_n).odours, led_ods)) == 0
             params(tr_n).led_on = 1;
+            try
+                params(tr_n).led_power = params_spec.LED_power;
+            catch
+                params(tr_n).led_power = 0;
+            end
         elseif isempty(intersect(params(tr_n).odours, led_ods)) == 1
             params(tr_n).led_on = 0;
+            params(tr_n).led_power = 0;
         else
         end
 
