@@ -14,11 +14,12 @@ dataset_list_paths = [...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\PaBaEl_MBON_DAN_gamma1_lowUS_MB085C_epoxy_short_session.xls'}...                       %4 flies, epoxy, 0.1Hz, 1ms LED pulses, 2 reps pre and post
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\PaBaEl_MBON_DAN_gamma1_lowUS_MB085C_epoxy_short_session_noUS.xls'}... 
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\PaBaEl_MBON_DAN_gamma1_lowUS_MB085C_epoxy_short_session_noUS _shortCS.xls'}... 
-                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\PaBaEl_MBON_DAN_gamma1_lowUS_MB085C_epoxy_short_session_low_LED.xls'}... 
-                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\PaBaEl_MBON_DAN_gamma1_lowUS_MB085C_epoxy_short_session_low_LED_1Hz.xls'}... 
+                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\PaBaEl_MBON_DAN_gamma1_lowUS_MB085C_epoxy_short_session_low_LED_0.1Hz.xls'}... 
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\PaBaEl_MBON_DAN_gamma1_lowUS_MB085C_epoxy_short_session_low_LED_1Hz.xls'}...
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\PaBaEl_MBON_DAN_gamma1_lowUS_MB085C_epoxy_short_session_low_LED_0.5Hz.xls'}...
                     ];
             
-suppress_plots = 0;
+suppress_plots = 1;
 [del, odor_names] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList.xls', 1);
 global color_vec;                
 a = colormap('bone');
@@ -142,8 +143,9 @@ for list_n = 1:size(dataset_list_paths, 1)
             tr_size = max(mean_trace(stim_frs(1, 1):(stim_frs(1,2))), [], 1);
             fly_resp_size_vec((odor_n - 1).*2 + 1) = tr_size;
             ses = std(traces_pre, [], 2)./sqrt(size(traces_pre, 2));
+            plot(traces_pre, 'Color', [0.3, 0.45, 0.6], 'lineWidth', 3);
             %shadedErrorBar([], mean_trace, ses, {'Color', [166, 156, 204]./256}, 1)
-            shadedErrorBar([], mean_trace, ses, {':', 'Color', curr_colour, 'lineWidth', 1}, 1);
+            %shadedErrorBar([], mean_trace, ses, {':', 'Color', curr_colour, 'lineWidth', 1}, 1);
             axis([0, trace_lengths, -0.25, 1])
             odor_name = odor_names{odor_ni, 1};
             ylabel([odor_name, ' dF/F'])
@@ -151,16 +153,16 @@ for list_n = 1:size(dataset_list_paths, 1)
             
             %plotting post-trials' traces
             traces_post = squeeze(dff_data_mat_f(:, 1, curr_trs(curr_trs > last_csminus_tr)));
-            %plot(traces_post, 'Color', [0.6, 0.6, 0.6]);
+            plot(traces_post, 'Color', [0.8, 0.4, 0.5], 'lineWidth', 3);
             stim_frs = compute_stim_frs(stim_mat, 1, frame_time);
             mean_trace = mean(traces_post, 2, 'omitnan');
             tr_size = max(mean_trace(stim_frs(1, 1):(stim_frs(1,2))), [], 1);
             fly_resp_size_vec((odor_n - 1).*2 + 2) = tr_size;
             ses = std(traces_post, [], 2)./sqrt(size(traces_post, 2));
             %shadedErrorBar([], mean_trace, ses, {'Color', [247, 148, 29]./256}, 1)
-            shadedErrorBar([], mean_trace, ses, {'Color', curr_colour.*0.75, 'lineWidth', 1}, 1);
+            %shadedErrorBar([], mean_trace, ses, {'Color', curr_colour.*0.75, 'lineWidth', 1}, 1);
             %plot(mean_trace', 'Color', 'k', 'LineWidth', 3);
-            axis([0, trace_lengths, -0.25, 2])
+            axis([0, trace_lengths, -0.25, 4])
             odor_name = odor_names{odor_ni, 1};
             set_xlabels_time(2, frame_time, 10)
             script_name = mfilename;
@@ -224,6 +226,10 @@ for list_n = 1:size(dataset_list_paths, 1)
     col_pairs = [1, 2; 3, 4; 5, 6];         %this is a list of pairs of columns of points to be connected by lines in the plot
     fig_h4 = scattered_dot_plot(flies_resp_size_mat, 4, 1, 4, 8, marker_colors, 1, col_pairs, [0.75, 0.75, 0.75],...
                             [{'PA pre'}, {'PA post'}, {'BA pre'}, {'BA post'}, {'EL pre'}, {'EL post'}], 1, [0.35, 0.35, 0.35]);
+    hold on
+    axis([0, 30, 0, 3]);
+    ax_vals = axis;
+    plot([ax_vals(1, 1), ax_vals(1, 2)], [0, 0], '--', 'Color', [0.7, 0.7, 0.7]);
     fig_wrapup(4, script_name)
                         
     %plotting same data as in fig 4 with bars
@@ -245,6 +251,9 @@ for list_n = 1:size(dataset_list_paths, 1)
     [hBA, pBA] = ttest(flies_resp_size_mat(:, 3), flies_resp_size_mat(:, 4))
     %EL
     [hEL, pEL] = ttest(flies_resp_size_mat(:, 5), flies_resp_size_mat(:, 6))
+    
+    %PApost BApost
+    [hPaBa pPaBa] = ttest(flies_resp_size_mat(:, 2), flies_resp_size_mat(:, 4))
     
     %plotting response sizes across repeats for each odor, for all flies.
     figure(7)
