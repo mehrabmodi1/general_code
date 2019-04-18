@@ -1,4 +1,4 @@
-function [params_spec1] = setup_params_pairing_expt_long_od(paired_odours, led_elec, CS_dur, US_dur, US_dutycyc, LED_power)
+function [params_spec1] = setup_params_pairing_expt_long_od(paired_odours, led_elec, CS_dur, US_dur, US_dutycyc, US_freq, LED_power)
 %syntax: function [params_spec1] = setup_params_pairing_expt(paired_odours, led_elec, CS_dur, US_dur, US_dutycyc)
 %This function sets up a detailed stimulus specification structure and saves
 %it into curr_aq_direc to set up stimulus delivery for a pre, pairing and
@@ -8,7 +8,7 @@ function [params_spec1] = setup_params_pairing_expt_long_od(paired_odours, led_e
 %step1:Setting up the pre trials
 %creating param specification structure for std KC recording expt. This is for pre-pairing characterisation. 
 params_spec1 = set_ADO_params_Yoshi_PA_BA_EL_forpairing;
-params_spec1.reps = 2;
+params_spec1.reps = 3;
 params_spec1.duration = 10;
 params_spec1.isi = 70;
 params_struc1 = setUpStimuli_trains_flex(params_spec1);         %detailed, trial-by-trial parameter specification structure.
@@ -25,7 +25,7 @@ params_spec2.stim_init_delay_ms = (params_spec2.stimLatency.*1000) + 750 + ((CS_
 params_spec2.stim_dur = 1000.*US_dur;                                    %in ms
 params_spec2.st_duty_cyc = US_dutycyc;                                                 
 params_spec2.isi = 120;
-params_spec2.stim_freq = 0.1;
+params_spec2.stim_freq = US_freq;
 params_spec2.randomize = 0;
 params_spec2.LED_power = LED_power;
 if led_elec == 0
