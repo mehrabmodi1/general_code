@@ -15,14 +15,21 @@ direc_lists_mat = [...
                     %{'E:\Data\Raw_Data_Current\dataset_lists\dataset_list_Yoshi_PaBaEl_MBON_DAN_gamma1_lowUS_MB085C_nansets'}...
                     %{'E:\Data\Raw_Data_Current\dataset_lists\MBON_DAN_gamma1_lowUS_MB085C_new_set.xls'}
                     %{'E:\Data\Raw_Data_Current\dataset_lists\MBON_DAN_gamma1_lowUS_MB085C_epoxy_short_session.xls'}...
-                    {'E:\Data\Raw_Data_Current\dataset_lists\MBON_DAN_gamma1_lowUS_MB085C_epoxy_short_session_noUS.xls'}...
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\MBON_DAN_gamma1_lowUS_MB085C_epoxy_short_session_noUS.xls'}...
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\MBON_DAN_gamma1_lowUS_MB085C_epoxy_short_session_noUS_shortCS.xls'}...
+                    {'E:\Data\Raw_Data_Current\dataset_lists\MBON_DAN_gamma1_lowUS_MB085C_epoxy_short_session_low_LED.xls'}...
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\MBON_DAN_gamma1_lowUS_MB085C_epoxy_short_session_low_LED_1Hz.xls'}...
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\MBON_DAN_gamma1_lowUS_MB085C_epoxy_short_session_low_LED_0.5Hz.xls'}...
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\MPPC_KC_set.xls'}...
                     ];
                 
 n_direc_lists = size(direc_lists_mat, 1);
 
 save_path_base = 'E:\Data\Analysed_data\Manual_ROIs\';
-fuse_ROIs = 1;          %0-no, 1-yes. This flattens dim3 of ROI_mat in case there is a multi-patch neuron that needs to be considered as a single object.
+fuse_ROIs = 0;          %0-no, 1-yes. This flattens dim3 of ROI_mat in case there is a multi-patch neuron that needs to be considered as a single object.
 dilate_ROIs = 15;        %This is the number of pixels by which the manually drawn ROIs are dilated before data extraction.
+
+extract_both_channels = 1;  
 
 %looping through all directory lists and all datasets once to save mean frames and again to save manually determined slow x-y  offsets for each trial, as well as determine bad z-drift trials
 for do_over = 1:2
@@ -88,6 +95,14 @@ for do_over = 1:2
                     
                     %checking how many color channels were acquired and saving red chan separately
                     [frame_time, zoom, n_chans] = SI_tif_info(stack_obj);
+                    if extract_both_channels == 1 && n_chans == 2
+                        warning('2 channels detected, extracting both channels..');
+                        if del == 1
+                            n_chans = 1;
+                        else
+                        end
+                    else
+                    end
                     if n_chans == 2
                         red_stack = curr_stack(:, :, [2:2:end]);
                         curr_stack = curr_stack(:, :, [1:2:end]);
@@ -159,7 +174,12 @@ for do_over = 1:2
                 
                 done_marking = 0;
                 while done_marking == 0
-                    [lag_mat, bad_trs, done_marking, bk_ROI] = manual_xylags_zbad2(dataset_stack, ROI_mat);
+                    if size(ROI_mat, 3) > 1
+                        ROI_mat_s = sum(ROI_mat, 3);
+                    else
+                        ROI_mat_s = ROI_mat;
+                    end
+                    [lag_mat, bad_trs, done_marking, bk_ROI] = manual_xylags_zbad2(dataset_stack, ROI_mat_s);
                 end
                 
                 bad_tr_list = 1:1:size(dataset_stack, 3);
@@ -228,7 +248,7 @@ for direc_list_n = 1:n_direc_lists
         dataset_name = direc((dataset_namei + 1):end);
         save_path = [save_path_base, dataset_name, '\' ];
         
-        [raw_data_mat] = extract_raw_traces_par(direc, ROI_mat, save_path, 1);
+        [raw_data_mat] = extract_raw_traces_par(direc, ROI_mat, save_path, 1, extract_both_channels);
         
         
         %copying over files needed for further analysis to results

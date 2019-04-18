@@ -1,35 +1,25 @@
 clear all
 close all
 
-global xpos1
-global ypos1
-global xpos0
-global ypos0
+path = 'C:\Data\Data\Analysed_data\Manual_ROI_results\20190312\MPPC_PMT_13F02LexA_opGC6f_short_dur - Copy\';
+%reading in stack object
+im_obj = ScanImageTiffReader([path, 'odor_trs_00001.tif']);
+%obtaining image stack
+stack = im_obj.data();
+%stack_orig = stack;
+stack = permute(stack,[2 1 3]);
+stack = double(stack);
 
-f = figure;
-bk_mat = rand(100, 100);
-imagesc(bk_mat);
-colormap('gray')
+%separating channels
+stack_PMT = stack(:, :, 1:2:size(stack, 3));
+stack_MPPC = stack(:, :, 2:2:size(stack, 3));
 
-hold on
+bk_ROI = load([path, 'bk_ROI.mat']);
+bk_ROI = bk_ROI.bk_ROI;
+curr_pix = find(bk_ROI == 1);
 
-a = zeros(10, 10) + 2;
-im = imagesc(a);
-alpha(im, 0.5)
-draggable(im, 'none', [-inf inf -inf inf], 'endfcn', @get_final_pos);
+curr_fr_PMT = stack_PMT(:, :, 792);
+bk_val = mean(curr_fr_PMT(curr_pix))
 
-xpos0 = im.XData;
-ypos0 = im.YData;
-
-function get_final_pos(im)
-    disp('endfcn executed')
-    global xpos1
-    xpos1 = im.XData;
-    global ypos1 
-    ypos1 = im.YData;
-    global xpos0
-    global ypos0
-    
-    ydisp = ypos1 - ypos0
-    xdisp = xpos1 - xpos0
-end
+curr_fr_MPPC = stack_MPPC(:, :, 792);
+bk_val = mean(curr_fr_MPPC(curr_pix))

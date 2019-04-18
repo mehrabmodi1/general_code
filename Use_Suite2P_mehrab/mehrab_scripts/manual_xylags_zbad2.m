@@ -3,7 +3,6 @@ function [lag_mat, bad_trs, done_marking, bk_ROI] = manual_xylags_zbad(dataset_s
 %click on a fixed landmark to determine x-y lags for slow drift as well as
 %to allow the user to report bad, z-drift trials by clicking outside the
 %image.
-
 lag_mat = zeros(size(dataset_stack, 3), 3);
 bad_trs = zeros(size(dataset_stack, 3), 1);
 reg_stack = zeros(size(dataset_stack, 1), size(dataset_stack, 2), size(dataset_stack, 3));

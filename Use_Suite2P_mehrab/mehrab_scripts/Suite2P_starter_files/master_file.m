@@ -92,10 +92,8 @@ ops0.redMeanImg             = 0;
 % notred = redratio < mean(redratio) + redmax*std(redratio)
 ops0.redthres               = 1.5; % the higher the thres the less red cells
 ops0.redmax                 = 1; % the higher the max the more NON-red cells
-
 db0 = db;
 %% RUN THE PIPELINE HERE
-
 for iexp = 1 %[1:length(db0)]
     db = db0(iexp);
     run_pipeline(db, ops0);
