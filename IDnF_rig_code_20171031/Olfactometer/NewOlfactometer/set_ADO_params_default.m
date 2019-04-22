@@ -16,7 +16,7 @@ function params=set_ADO_params_default(params)
 % structure to stimulus matrix using this:
 % params=setUpStimuli(params);
 %
-% Rob Campbll - July 2010
+% Rob Campbll - July 2010, edited by Mehrab Modi - 2016, 2018, 2019
 
   
 %Set up default parameters
@@ -48,6 +48,23 @@ defaults={...
     'stim_dur', [];...
     'stim_freq', 1;...
     'st_duty_cyc', 50;...
+    
+    %olfactometer2 params
+    'duration_olf2', [1];...
+    'rel_stimLatency_olf2', 0;...           %stim latency of olfactometer2 pulse train relative to olfactometer1 pulse train
+    'odours_olf2',[0];... % for now
+    %simple train params
+    'n_od_pulses_olf2', 1;...                %will deliver n_odor_pulses of length duration and inter_pulse_interval in between
+    'inter_pulse_interval_olf2', 1.5;...
+    'pulse_type_olf2', 0;                %0 - duty cycle of 0.5, ignores inter_pulse_interval; 1 - use inter_pulse_interval
+    %rand_train params
+    'rand_trains_olf2', 0;
+    'n_rand_trains_olf2', 1;
+    'min_pulse_dur_olf2', 0.5;           %in seconds, the shortest pulse the olfactometer can deliver
+    
+    
+    
+    
     };
     
 
