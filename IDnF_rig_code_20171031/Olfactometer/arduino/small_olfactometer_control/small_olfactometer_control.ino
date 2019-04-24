@@ -18,7 +18,7 @@ const int trig_in = 43;
 
 int start_session = 0;
 int trig_state = 0;
-int init_wait_time = 0;
+float init_wait_time = 0;
 int seq_length = 0;
 int count = 0;
 int on_count = 0;
@@ -57,8 +57,8 @@ void loop() {
       
       Serial.print("seq_length =");
       Serial.println(seq_length);
-      int on_durations[seq_length]; 
-      int off_durations[seq_length]; 
+      float on_durations[seq_length]; 
+      float off_durations[seq_length]; 
       int odor_IDs[seq_length];  
 
       // receiving serial info about the train of pulses to be delivered. This fills up on_durations, off_durations, odor_IDs and init_wait_time
@@ -66,18 +66,19 @@ void loop() {
       while (count < (3*seq_length)+1){                  
       
           recvWithStartEndMarkers();
-          if(newData == true && count < seq_length) {on_durations[on_count+1] = atoi(receivedChars);on_count = on_count+1; count = count+1; Serial.print("on_durations ="); Serial.println(on_durations[on_count]); newData = false;}
-          if(newData == true && count > seq_length-1 && count <(seq_length*2)) {off_durations[off_count+1] = atoi(receivedChars);off_count = off_count+1;count = count+1; Serial.print("off_durations ="); Serial.println(off_durations[off_count]);newData = false;}
+          if(newData == true && count < seq_length) {on_durations[on_count+1] = atof(receivedChars);on_count = on_count+1; count = count+1; Serial.print("on_durations ="); Serial.println(on_durations[on_count]); newData = false;}
+          if(newData == true && count > seq_length-1 && count <(seq_length*2)) {off_durations[off_count+1] = atof(receivedChars);off_count = off_count+1;count = count+1; Serial.print("off_durations ="); Serial.println(off_durations[off_count]);newData = false;}
           if(newData == true && count > (2*seq_length)-1 && count <(seq_length*3)) {odor_IDs[od_count+1] = atoi(receivedChars);od_count = od_count+1;count = count+1; Serial.print("odor_IDs ="); Serial.println(odor_IDs[od_count]);newData = false;}
-          if(newData == true && count > (3*seq_length)-1) {init_wait_time = atoi(receivedChars); count = count+1;  Serial.print("init_wait_time ="); Serial.println(init_wait_time);newData = false;}
+          if(newData == true && count > (3*seq_length)-1) {init_wait_time = atof(receivedChars); count = count+1;  Serial.print("init_wait_time ="); Serial.println(init_wait_time);newData = false;}
       
       }
 
       //waiting for trigger in
       //waiting for scan trigger
-          Serial.print("waiting for trig..");
+          Serial.println("waiting for trig..");
           while (trig_state == LOW) {trig_state = digitalRead(trig_in);}
           trig_state = LOW;
+          Serial.println("trigger received, waiting for initial delay");
 
           
       // writing high and low states in appropriate pins based on on_durations, off_durations, odor_IDs and init_wait_time
