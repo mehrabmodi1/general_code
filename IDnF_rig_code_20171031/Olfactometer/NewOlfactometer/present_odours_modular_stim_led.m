@@ -78,6 +78,8 @@ end
 secondDilution1 = params_mat(1).secondDilution;
 initialiseFlows_MM(AC, 0.1, secondDilution1);      %initialising flows for the first time just to set things up. 
 od_inj_dur = 24.5;                         %this is the duration in s for which MFC B flow is injected into an odor vial to fully fill the system with odor. Stim_latency has to be longer than this.
+olf1_olf2_delay = load('E:\Turner lab\Bitbucket_repos\general_code\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\olf1_olf2_delay.mat');
+olf1_olf2_delay = olf1_olf2_delay.olf1_olf2_delay;
 
 for trial_n = start_tr:n_trials
     %reading in stimulus parameters for current trial
@@ -172,7 +174,7 @@ for trial_n = start_tr:n_trials
     
     %olfactometer1 info
     disp(['Trial ' int2str(trial_n) ' of ' int2str(n_trials) '.'])
-    disp(['Delivering Odor ' int2str(odor_n) ': ' od_name 'on olfactometer 1.'])
+    disp(['Delivering Odor ' int2str(odor_n) ': ' od_name ' on olfactometer 1.'])
     del_conc = CalcTotalDilution(firstDilution, secondDilution).*100;
     disp(['Concentration delivered ' num2str(del_conc) '%.'])
     if params_mat(trial_n).rand_trains == 0
@@ -185,7 +187,7 @@ for trial_n = start_tr:n_trials
     
     %olfactometer2 info
     if no_olf2 == 0
-        disp(['Delivering Odor ' int2str(odor_n_olf2) ': ' od_name 'on olfactometer 2.'])
+        disp(['Delivering Odor ' int2str(odor_n_olf2) ': ' od_name ' on olfactometer 2.'])
         if params_mat(trial_n).rand_trains_olf2 == 0
             disp(['duration ' num2str(duration_olf2) 's, n pulses ' int2str(n_od_pulses_olf2) '.'])
         elseif params_mat(trial_n).rand_trains == 1
@@ -231,7 +233,7 @@ for trial_n = start_tr:n_trials
             mid_trial = 1;
         end
         odor_vec_olf2 = zeros(size(pulse_train_olf2, 1), 1) + odor_n_olf2;
-        initial_delay_olf2 = stimLatency + rel_stimLatency_olf2;
+        initial_delay_olf2 = stimLatency + rel_stimLatency_olf2 - olf1_olf2_delay;
         %sending params to olf2 arduino
         olf_arduino_serial_comm(mid_trial, pulse_train_olf2, odor_vec_olf2, initial_delay_olf2); 
     else
@@ -329,10 +331,7 @@ if exist('PulsePalSystem') == 1
 else
 
 if no_olf2 == 0
-    global olf2_ard
-    fclose(olf2_ard);
-    delete(olf2_ard);
-    clear olf2_ard;
+    close_serial_port(13)
 else
 end
     
