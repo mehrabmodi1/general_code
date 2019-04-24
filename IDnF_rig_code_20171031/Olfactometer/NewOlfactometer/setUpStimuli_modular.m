@@ -232,8 +232,8 @@ function [params, params_spec]=setUpStimuli_modular(params)
             for tr_n = 1:length(curr_trs)
                 tr_ni = curr_trs(tr_n);
                 simple_pulse_train = [];
-                curr_n_pulses = param_mat{tr_ni, 16};
-                curr_int_pul_i = param_mat{tr_n, 17};
+                curr_n_pulses = param_mat{tr_ni, 17};
+                curr_int_pul_i = param_mat{tr_n, 18};
                 for pulse_n = 1:curr_n_pulses
                     if pulse_n == 1
                         curr_pulse = [0, curr_duration]; 
@@ -252,14 +252,6 @@ function [params, params_spec]=setUpStimuli_modular(params)
                 param_mat(curr_trs, 19) = {nan};             %forcing simple train parameters to nans because this is a rand train
             end
         end
-    end
-    
-    %plugging in stim latency for olf2 relative to onset for olf1 Note that these latencies can only be positive. ie olf1 always begins first or at the same time as olf2.
-    for trial_n = 1:size(param_mat, 1)
-        curr_rel_latency = param_mat{trial_n, 15};
-        curr_pulsetr_olf2 = param_mat{trial_n, 21};
-        curr_pulsetr_olf2(1, 1) = curr_rel_latency;
-        param_mat(trial_n, 21) = {curr_pulsetr_olf2};
     end
     
     params_spec = params;
