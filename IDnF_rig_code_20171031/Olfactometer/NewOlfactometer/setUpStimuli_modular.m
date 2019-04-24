@@ -16,16 +16,19 @@ function [params, params_spec]=setUpStimuli_modular(params)
 
     
     %making sure that the train numbers are listed individually in param_mat below.
-    del = params.n_rand_trains;
+    del = max([params.n_rand_trains, params.n_rand_trains_olf2]);
     n_rand_trains = max(del);
+    if params.rand_trains == 0 && params.rand_trains_olf2 == 0
+        n_rand_trains = 1;
+    else
+    end
+    
     if params.rand_trains == 1
         params.rand_train = 1:n_rand_trains; 
     else
         params.rand_train = ones(n_rand_trains);
     end
     
-    del = params.n_rand_trains_olf2;
-    n_rand_trains = max(del);
     if params.rand_trains_olf2 == 1
         params.rand_train_olf2 = 1:n_rand_trains;
     else
