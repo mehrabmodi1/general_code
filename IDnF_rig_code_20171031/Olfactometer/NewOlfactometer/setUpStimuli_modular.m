@@ -49,8 +49,20 @@ function [params, params_spec]=setUpStimuli_modular(params)
     
     
     %checking if olf2 is being used in current set of trials
-    if params.odours_olf2 == 0 | params.duration_olf2 == 0
+    if params.odours_olf2 == 0
         no_olf2 = 1;
+    elseif params.duration_olf2 == 0
+        no_olf2 = 1;
+    elseif isempty(params.odours_olf2) == 1
+        no_olf2 = 1;
+    elseif isempty(params.duration_olf2) == 1
+        no_olf2 = 1;
+    else
+        no_olf2 = 0;
+    end
+        
+    if no_olf2 == 1 
+        
         params.odours_olf2 = zeros(1, length(params.odours));
         params.duration_olf2 = zeros(1, length(params.duration));
         params.n_od_pulses_olf2 = zeros(1, length(params.n_od_pulses));
@@ -58,10 +70,8 @@ function [params, params_spec]=setUpStimuli_modular(params)
         params.rand_trains_olf2 = zeros(1, length(params.rand_trains));
         params.mean_rand_pulse_dur_olf2 = zeros(1, length(params.mean_rand_pulse_dur));
     else
-        no_olf2 = 0;
     end
-    
-    
+   
     
     %creating a new param_mat for olf2 and appending as extra columns to the main param_mat.
     %checking for inconsistencies between param list lengths for olf1 and olf2
@@ -354,7 +364,7 @@ function [params, params_spec]=setUpStimuli_modular(params)
         
         %adding other led/elec stimulus related parameters which will only
         %be used if elec_on == 1 or led_on == 1
-        params(tr_n).stim_init_delay_ms = params_spec.stim_init_delay_ms;
+        params(tr_n).rel_stim_init_delay = params_spec.rel_stim_init_delay;
         params(tr_n).stim_dur = params_spec.stim_dur;
         params(tr_n).stim_freq = params_spec.stim_freq;
         params(tr_n).st_duty_cyc = params_spec.st_duty_cyc;
