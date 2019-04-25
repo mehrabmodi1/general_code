@@ -78,8 +78,12 @@ end
 secondDilution1 = params_mat(1).secondDilution;
 initialiseFlows_MM(AC, 0.1, secondDilution1);      %initialising flows for the first time just to set things up. 
 od_inj_dur = 24.5;                         %this is the duration in s for which MFC B flow is injected into an odor vial to fully fill the system with odor. Stim_latency has to be longer than this.
+
+%reading in manually measured odor propagation delays to align stimuli in time
 olf1_olf2_delay = load('E:\Turner lab\Bitbucket_repos\general_code\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\olf1_olf2_delay.mat');
 olf1_olf2_delay = olf1_olf2_delay.olf1_olf2_delay;
+LED_olf1_delay = load('E:\Turner lab\Bitbucket_repos\general_code\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\LED_olf1_delay.mat');
+LED_olf1_delay = LED_olf1_delay.LED_olf1_delay;
 
 for trial_n = start_tr:n_trials
     %reading in stimulus parameters for current trial
@@ -122,34 +126,45 @@ for trial_n = start_tr:n_trials
     elseif params_mat(trial_n).elec_on == 1
         LED_elec = 1;
     else
-        LED_elec = 1;
+        LED_elec = 2;
     end
-    LED_power = 5.*(params_mat(trial_n).led_power./100);
-    init_delay_ms = params_mat(trial_n).stim_init_delay_ms;
-    duration_ms = params_mat(trial_n).stim_dur;
+    
+    
+    if LED_elec == 0
+        LED_power = 5.*(params_mat(trial_n).led_power./100);
+    elseif LED_elec == 1 | LED_elec == 2
+        LED_power = 0;
+    end
+    rel_init_delay = params_mat(trial_n).rel_stim_init_delay;
+    init_delay = rel_init_delay.*1000 + stimLatency.*1000 + LED_olf1_delay.*1000;
+    duration_ms = params_mat(trial_n).stim_dur.*1000;
     freq_hz = params_mat(trial_n).stim_freq;
     duty_cyc_percent = params_mat(trial_n).st_duty_cyc;
 
-    if isempty(init_delay_ms) == 1
-        init_dely_ms = 1000;
+    if isempty(rel_init_delay) == 1
+        rel_init_delay = 1000;
         duration_ms = 500;
     else
     end
        
     %communicating stimulus parameters to LED/elec controlling PulsePal
     try
-        program_pulsepal_LED_elec(LED_elec, init_delay_ms, duration_ms, freq_hz, duty_cyc_percent, LED_power);
+        program_pulsepal_LED_elec(LED_elec, init_delay, duration_ms, freq_hz, duty_cyc_percent, LED_power);
     catch
         keyboard
     end
     
     
     %computing total duration of stimulus presentation and imaging for current trial    
-    train_dur_olf1 = sum(sum(pulse_train));                                 %duration of odor train presentation with olf1
-    train_dur_olf2 = sum(sum(pulse_train_olf2, 'omitnan'), 'omitnan');      %duration of odor train presentation with olf1
-    trains_dur = max([train_dur_olf1, train_dur_olf2], [], 'omitnan');      %duration of longer odor train
-    tot_tr_dur = stim_latency + trains_dur + post_od_scan_dur;              %total imaging duration (for which scan trigger will be high)
-    
+    if no_olf2 == 0
+        train_dur_olf1 = sum(sum(pulse_train));                                 %duration of odor train presentation with olf1
+        train_dur_olf2 = sum(sum(pulse_train_olf2, 'omitnan'), 'omitnan');      %duration of odor train presentation with olf1
+        trains_dur = max([train_dur_olf1, train_dur_olf2], [], 'omitnan');      %duration of longer odor train
+        tot_tr_dur = stim_latency + trains_dur + post_od_scan_dur;              %total imaging duration (for which scan trigger will be high)
+    else
+        train_dur_olf1 = sum(sum(pulse_train));                                 %duration of odor train presentation with olf1
+        tot_tr_dur = stim_latency + train_dur_olf1 + post_od_scan_dur;          %total imaging duration (for which scan trigger will be high)
+    end
     
     if scale_isi == 0
         isi = params_mat(trial_n).isi;
@@ -214,7 +229,7 @@ for trial_n = start_tr:n_trials
     %% delivering odor
     %Setting up PID acuisition, 
     s = daq.createSession('ni');
-    addAnalogInputChannel(s,'Dev3', 0, 'Voltage');
+    addAnalogInputChannel(s,'Dev3', [0, 1], 'Voltage');
     acq_rate = 2000;        %Hz
     s.Rate = acq_rate;
     s.DurationInSeconds = tot_tr_dur;
