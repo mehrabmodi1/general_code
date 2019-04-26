@@ -153,7 +153,9 @@ for trial_n = start_tr:n_trials
        
     %communicating stimulus parameters to LED/elec controlling PulsePal
     try
-        program_pulsepal_LED_elec(LED_elec, init_delay, duration_ms, freq_hz, duty_cyc_percent, LED_power);
+        keyboard
+        %FIX PULSEPAL OR REPLACE WITH ARDUINO!!
+        %program_pulsepal_LED_elec(LED_elec, init_delay, duration_ms, freq_hz, duty_cyc_percent, LED_power);
     catch
         keyboard
     end
