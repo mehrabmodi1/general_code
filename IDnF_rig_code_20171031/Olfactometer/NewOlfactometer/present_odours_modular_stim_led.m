@@ -9,6 +9,7 @@ c = onCleanup(@()my_cleanup());        %to shut all valves if user presses Ctrl 
 %recovering interrupted dataset if specified, or starting afresh
 %checking if curr direc already has a params file. If yes, prompting user
 %to re-specify recover.
+recovering_session = 0;
 if exist([save_dir 'params.mat']) == 2
     button = questdlg('What would you like to do?','Old param file found!','Recover','Append','Over-write', 'Recover');
 
@@ -36,7 +37,9 @@ if exist([save_dir 'params.mat']) == 2
         for tr_n = start_tr:n_trials
             params_mat(tr_n).trs_done = 0;
         end
+        recovering_session = 1;
     elseif strcmp(button, 'Append') == 1
+        
         params_mat_old = load([save_dir 'params.mat']);
         params_mat_old = params_mat_old.params_mat;
        
@@ -54,6 +57,7 @@ if exist([save_dir 'params.mat']) == 2
         end
         start_tr = d_tr_n;
         save([save_dir 'params_spec2.mat'], 'params_spec');          %saving the params specifications to file
+        recovering_session = 1;
     elseif strcmp(button, 'Over-write') == 1
         [params_mat, params_spec] = setUpStimuli_modular(params);
         start_tr = 1;
@@ -126,13 +130,13 @@ for trial_n = start_tr:n_trials
     elseif params_mat(trial_n).elec_on == 1
         LED_elec = 1;
     else
-        LED_elec = 2;
+        LED_elec = 1;
     end
     
     
     if LED_elec == 0
         LED_power = 5.*(params_mat(trial_n).led_power./100);
-    elseif LED_elec == 1 | LED_elec == 2
+    elseif LED_elec == 1
         LED_power = 0;
     end
     rel_init_delay = params_mat(trial_n).rel_stim_init_delay;
@@ -157,20 +161,30 @@ for trial_n = start_tr:n_trials
     
     %computing total duration of stimulus presentation and imaging for current trial    
     if no_olf2 == 0
-        train_dur_olf1 = sum(sum(pulse_train));                                 %duration of odor train presentation with olf1
-        train_dur_olf2 = sum(sum(pulse_train_olf2, 'omitnan'), 'omitnan');      %duration of odor train presentation with olf1
-        trains_dur = max([train_dur_olf1, train_dur_olf2], [], 'omitnan');      %duration of longer odor train
-        tot_tr_dur = stim_latency + trains_dur + post_od_scan_dur;              %total imaging duration (for which scan trigger will be high)
+        train_dur_olf1 = sum(sum(pulse_train));                                                        %duration of odor train presentation with olf1
+        train_dur_olf2 = sum(sum(pulse_train_olf2, 'omitnan'), 'omitnan') + rel_stimLatency_olf2;      %duration of odor train presentation with olf1
+        trains_dur = max([train_dur_olf1, train_dur_olf2], [], 'omitnan');                             %duration of longer odor train
+        tot_tr_dur = stim_latency + trains_dur + post_od_scan_dur;                                     %total imaging duration (for which scan trigger will be high)
+        %computing extra pause needed if olf2 train is longer than olf1 train
+        if train_dur_olf2 > train_dur_olf1
+            olf2_train_pause = train_dur_olf2 - train_dur_olf1 + post_od_scan_dur;
+        else
+            olf2_train_pause = 0;
+        end
+            
     else
         train_dur_olf1 = sum(sum(pulse_train));                                 %duration of odor train presentation with olf1
-        tot_tr_dur = stim_latency + train_dur_olf1 + post_od_scan_dur;          %total imaging duration (for which scan trigger will be high)
+        trains_dur = train_dur_olf1;
+        tot_tr_dur = stim_latency + trains_dur + post_od_scan_dur;          %total imaging duration (for which scan trigger will be high)
+        olf2_train_pause = 0;
     end
+    
     
     if scale_isi == 0
         isi = params_mat(trial_n).isi;
         if isi < (tot_tr_dur + (od_inj_dur - stimLatency))
+            disp('isi is shorter than odor train for olf1 or olf2, make it longer')
             keyboard
-            error('isi is shorter than odor train for olf1 or olf2, make it longer')
         else
         end
         
@@ -202,7 +216,7 @@ for trial_n = start_tr:n_trials
     
     %olfactometer2 info
     if no_olf2 == 0
-        disp(['Delivering Odor ' int2str(odor_n_olf2) ': ' od_name ' on olfactometer 2.'])
+        disp(['Delivering Odor ' int2str(odor_n_olf2) ': ' od_name_olf2 ' on olfactometer 2.'])
         if params_mat(trial_n).rand_trains_olf2 == 0
             disp(['duration ' num2str(duration_olf2) 's, n pulses ' int2str(n_od_pulses_olf2) '.'])
         elseif params_mat(trial_n).rand_trains == 1
@@ -244,6 +258,8 @@ for trial_n = start_tr:n_trials
             mid_trial = 0;
         elseif trial_n == n_trials
             mid_trial = 2;
+        elseif recovering_session == 1
+            mid_trial = 0;
         else
             mid_trial = 1;
         end
@@ -289,9 +305,12 @@ for trial_n = start_tr:n_trials
         FlipValve_EP('Final',1)
         
     end
+   
+    %pausing for olf2 train to end, if necessary
+    pause(olf2_train_pause);
     
-       
     ShutAllValves_EP;
+    
     disp('post odor scanning...')
     pause(post_od_scan_dur)                 %waiting to end image acquisition
     trigger_scan(0)                         %ending image acquisition
@@ -329,7 +348,7 @@ for trial_n = start_tr:n_trials
         end
     else
     end
-    
+    recovering_session = 0;
 end
 release(s)
 if exist('PulsePalSystem') == 1
@@ -346,7 +365,7 @@ if exist('PulsePalSystem') == 1
 else
 
 if no_olf2 == 0
-    close_serial_port(13)
+    sleep_olf2              %opens NO valve and closes empty vial valves.
 else
 end
     
