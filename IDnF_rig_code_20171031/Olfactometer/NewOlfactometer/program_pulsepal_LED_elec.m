@@ -47,10 +47,18 @@ else
     warning_V = 0;
 end
     
-    
+%rounding to nearest 100 microseconds
+on_dur = round(on_dur, 4);
+off_dur = round(off_dur, 4);
+duration = round(duration, 4);
+init_delay = round(init_delay, 4);
+on_dur_w = round(on_dur_w, 4);
+off_dur_w = round(off_dur_w, 4);
+init_delay_w = round(init_delay_w, 4);
+
 %communicating pulse train parameters to PulsePal for stimulus on channel
 bitout = ProgramPulsePalParam(channel_on, 'Phase1Voltage', stim_voltage); % Set
-bitout = ProgramPulsePalParam(channel_on, 'Phase1Duration', on_dur); % Set output channel 1 to produce 2ms pulses
+bitout = ProgramPulsePalParam(channel_on, 'Phase1Duration', on_dur); % Set output channel 1 to produce pulses
 bitout = ProgramPulsePalParam(channel_on, 'InterPulseInterval', off_dur); % Set inter pulse interval to off_dur
 bitout = ProgramPulsePalParam(channel_on, 'PulseTrainDuration', duration); % Set pulse train to last duration seconds
 bitout = ProgramPulsePalParam(channel_on, 'PulseTrainDelay', init_delay); % Set pulse train onset delay
