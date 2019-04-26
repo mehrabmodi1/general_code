@@ -66,12 +66,20 @@ void loop() {
       while (count < (3*seq_length)+1){                  
       
           recvWithStartEndMarkers();
-          if(newData == true && count < seq_length) {on_durations[on_count+1] = atof(receivedChars);on_count = on_count+1; count = count+1; Serial.print("on_durations ="); Serial.println(on_durations[on_count]); newData = false;}
-          if(newData == true && count > seq_length-1 && count <(seq_length*2)) {off_durations[off_count+1] = atof(receivedChars);off_count = off_count+1;count = count+1; Serial.print("off_durations ="); Serial.println(off_durations[off_count]);newData = false;}
-          if(newData == true && count > (2*seq_length)-1 && count <(seq_length*3)) {odor_IDs[od_count+1] = atoi(receivedChars);od_count = od_count+1;count = count+1; Serial.print("odor_IDs ="); Serial.println(odor_IDs[od_count]);newData = false;}
-          if(newData == true && count > (3*seq_length)-1) {init_wait_time = atof(receivedChars); count = count+1;  Serial.print("init_wait_time ="); Serial.println(init_wait_time);newData = false;}
+          if(newData == true && count < seq_length) {on_durations[on_count] = atof(receivedChars);on_count = on_count+1; count = count+1; Serial.print("on_durations ="); Serial.println(on_durations[on_count-1]); newData = false;}
+          if(newData == true && count > (seq_length-1) && count <(seq_length*2)) {off_durations[off_count] = atof(receivedChars);off_count = off_count+1;count = count+1; Serial.print("off_durations ="); Serial.println(off_durations[off_count-1]);newData = false;}
+          if(newData == true && count > ((2*seq_length)-1) && count <(seq_length*3)) {odor_IDs[od_count] = atoi(receivedChars);od_count = od_count+1;count = count+1; Serial.print("odor_IDs ="); Serial.println(odor_IDs[od_count-1]);newData = false;}
+          if(newData == true && count > ((3*seq_length - 1)) ) {init_wait_time = atof(receivedChars); count = count+1;  Serial.print("init_wait_time ="); Serial.println(init_wait_time);newData = false;}
       
       }
+
+      Serial.println("on_durations =");
+      Serial.println(on_durations[0]);
+      Serial.println(on_durations[1]);
+      Serial.println(on_durations[2]);
+      Serial.println(on_durations[3]);
+      Serial.println(on_durations[4]);
+
 
       //waiting for trigger in
       //waiting for scan trigger
@@ -84,12 +92,15 @@ void loop() {
       // writing high and low states in appropriate pins based on on_durations, off_durations, odor_IDs and init_wait_time
       for (int i = 0; i<seq_length; i++) {
           if (i == 0) { delay(init_wait_time);}
+          delay(off_durations[i]);
           digitalWrite(empty_valve, LOW);
-          digitalWrite(odor_IDs[i+1]+1, HIGH);   // turn the LED on (HIGH is the voltage level)
-          delay(on_durations[i+1]);               // wait for a second
-          digitalWrite(odor_IDs[i+1]+1, LOW);    // turn the LED off by making the voltage LOW
+          digitalWrite(odor_IDs[i]+1, HIGH);   // turn the valve on (HIGH is the voltage level)
+          delay(on_durations[i]);               // wait for a second
+          digitalWrite(odor_IDs[i]+1, LOW);    // turn the valve off by making the voltage LOW
           digitalWrite(empty_valve, HIGH);
-          delay(off_durations[i+1]);
+          
+          Serial.println(i);
+          Serial.println(on_durations[i]);
       }
       Serial.print("Train complete");
 
