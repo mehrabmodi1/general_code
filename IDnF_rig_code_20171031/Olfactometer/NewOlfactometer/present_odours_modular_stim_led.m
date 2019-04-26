@@ -45,7 +45,7 @@ if exist([save_dir 'params.mat']) == 2
        
         %setting up explicit stimulus specification matrix from condensed params structure
         [params_mat_new, params_spec] = setUpStimuli_modular(params);
-        params_mat = append_params(params_mat_old, params_mat_new);
+        params_mat = append_params(params_mat_old, params_mat_new, 0);
         n_trials = size(params_mat, 2);
         %identifying last tr completed
         for d_tr_n = 1:n_trials
