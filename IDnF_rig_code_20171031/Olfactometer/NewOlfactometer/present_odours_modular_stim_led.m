@@ -366,6 +366,7 @@ else
 
 if no_olf2 == 0
     sleep_olf2              %opens NO valve and closes empty vial valves.
+    pause(2);
 else
 end
     
