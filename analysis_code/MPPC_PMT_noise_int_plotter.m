@@ -36,17 +36,20 @@ for point_n = 1:n_points
     curr_pix_MPPC = curr_fr_MPPC(curr_pix);
     
     mean_PMT_vec(point_n, 1) = mean(curr_pix_PMT);
-    var_PMT_vec(point_n, 1) = std(curr_pix_PMT).^2;
+    sd_PMT_vec(point_n, 1) = std(curr_pix_PMT);
     
     mean_MPPC_vec(point_n, 1) = mean(curr_pix_MPPC);
-    var_MPPC_vec(point_n, 1) = std(curr_pix_MPPC).^2;
+    sd_MPPC_vec(point_n, 1) = std(curr_pix_MPPC);
     
     
 end
 
+norm_PMT_vec = mean_PMT_vec./sd_PMT_vec;
+norm_MPPC_vec = mean_MPPC_vec./sd_MPPC_vec;
+
+
 %plotting
 mean_PMT_vec = mean_PMT_vec;
-mean_MPPC_vec = mean_MPPC_vec - min(mean_MPPC_vec);
 val_vecs_PMT = [mean_PMT_vec, var_PMT_vec];
 val_vecs_PMT = sortrows(val_vecs_PMT);
 val_vecs_MPPC = [mean_MPPC_vec, var_MPPC_vec];
