@@ -96,26 +96,34 @@ for trial_n = start_tr:n_trials
     
     
     %listing parameters and communicating with led/elec stimulating Arduino
-    %if necessary for current trial
-    if params_mat(trial_n).led_on == 1 || params_mat(trial_n).elec_on == 1      %condition to check if LED or elec stim is being delivered on current trial
-        if params_mat(trial_n).led_on == 1
+    if params_mat(trial_n).led_on == 1
             LED_elec = 0;
             
-        elseif params_mat(trial_n).elec_on == 1
-            LED_elec = 1;
-        end
-        init_delay_ms = params_mat(trial_n).stim_init_delay_ms;
-        duration_ms = params_mat(trial_n).stim_dur;
-        freq_hz = params_mat(trial_n).stim_freq;
-        duty_cyc_percent = params_mat(trial_n).st_duty_cyc;
-        
-        %communicating stimulus parameters to Arduino
-        keyboard
-        stim_arduino_serial_comm(LED_elec, init_delay_ms, duration_ms, freq_hz, duty_cyc_percent, LED_power);
-        
-            
+    elseif params_mat(trial_n).elec_on == 1
+        LED_elec = 1;
+    else
+        LED_elec = 1;
+    end
+    init_delay_ms = params_mat(trial_n).stim_init_delay_ms;
+    duration_ms = params_mat(trial_n).stim_dur;
+    freq_hz = params_mat(trial_n).stim_freq;
+    duty_cyc_percent = params_mat(trial_n).st_duty_cyc;
+
+    if isempty(init_delay_ms) == 1
+        init_dely_ms = 1000;
+        duration_ms = 500;
     else
     end
+       
+    %communicating stimulus parameters to LED/elec controlling PulsePal
+    try
+        program_pulsepal_LED_elec(LED_elec, init_delay_ms, duration_ms, freq_hz, duty_cyc_percent, LED_power);
+    catch
+        keyboard
+    end
+    %stim_arduino_serial_comm(LED_elec, init_delay_ms, duration_ms, freq_hz, duty_cyc_percent, LED_power);
+
+        
     
     if pulse_type == 1 
         tot_tr_dur = stim_latency + duration + ...
@@ -245,8 +253,16 @@ for trial_n = start_tr:n_trials
     
 end
 release(s)
+if exist('PulsePalSystem') == 1
+    EndPulsePal;
+else
+end
 
 %defining clean up function
 function [] = my_cleanup()
 ShutAllValves_EP;
 trigger_scan(0);
+if exist('PulsePalSystem') == 1
+    EndPulsePal;
+else
+end
