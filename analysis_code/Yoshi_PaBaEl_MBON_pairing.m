@@ -19,7 +19,7 @@ dataset_list_paths = [...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\PaBaEl_MBON_DAN_gamma1_lowUS_MB085C_epoxy_short_session_low_LED_0.5Hz.xls'}...
                     ];
             
-suppress_plots = 1;
+suppress_plots = 0;
 [del, odor_names] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList.xls', 1);
 global color_vec;                
 a = colormap('bone');
@@ -119,6 +119,14 @@ for list_n = 1:size(dataset_list_paths, 1)
         for odor_n = 1:n_odors
             odor_ni = odor_list(odor_n);
             curr_trs = find(stim_mat_simple(:, 2) == odor_ni);
+            
+            %skipping first trial of each odor for datasets with 3 pre
+            %trials
+            if fly_n > 3
+                curr_trs(1) = [];
+            else
+            end
+            
             if odor_n == 1 
                 curr_colour = color_vec(3, :);
             elseif odor_n == 2
@@ -192,6 +200,7 @@ for list_n = 1:size(dataset_list_paths, 1)
             
             
             if suppress_plots == 0
+                figure(2)
                 keyboard
             else
             end
