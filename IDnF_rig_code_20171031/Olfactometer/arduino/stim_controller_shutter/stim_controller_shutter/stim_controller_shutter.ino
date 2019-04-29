@@ -6,10 +6,10 @@ const byte numChars = 32;
 char receivedChars[numChars];
 
 boolean newData = false;
-const int led_pin = 5;
+const int led_pin = 2;
 const int elec_pin = 6;
-const int trig_pin = 4;
-const int led_warning_pin = 7;
+const int trig_pin = 5;
+const int led_warning_pin = 8;
 const float led_warning_leadt = 20;
 
 int trig_state = 0;
@@ -121,7 +121,8 @@ void loop()
           //This resets the state to waiting for new parameter data and a new scan  trigger.
           param_n = 0;
           trig_state = 0;
-          Serial.print("done with stim.");
+          Serial.println("done with stim.");
+          Serial.println("");
          
     }
 
