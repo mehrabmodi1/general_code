@@ -29,7 +29,7 @@ int final_trial = 2;
 
 // the setup routine runs once when you press reset:
 void setup() {                
-  // initialize the digital pin as an output.
+  // initialize the digital pin as an output. 
   pinMode(valve1, OUTPUT); 
   pinMode(valve2, OUTPUT);
   pinMode(valve3, OUTPUT);
