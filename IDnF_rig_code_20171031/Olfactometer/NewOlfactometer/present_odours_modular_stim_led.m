@@ -140,8 +140,8 @@ for trial_n = start_tr:n_trials
         LED_power = 0;
     end
     rel_init_delay = params_mat(trial_n).rel_stim_init_delay;
-    init_delay = rel_init_delay.*1000 + stimLatency.*1000 + LED_olf1_delay.*1000;
-    duration_ms = params_mat(trial_n).stim_dur.*1000;
+    init_delay_ms = rel_init_delay.*1000 + stimLatency.*1000 + LED_olf1_delay.*1000;
+    duration_ms = params_mat(trial_n).stim_dur.*1000;    
     freq_hz = params_mat(trial_n).stim_freq;
     duty_cyc_percent = params_mat(trial_n).st_duty_cyc;
 
@@ -152,7 +152,7 @@ for trial_n = start_tr:n_trials
     end
        
     %communicating stimulus parameters to LED/elec controlling arduino
-    disp('warning: The LED_power param doesn''t actually control LED power. This is currently adjusted manually, to 5% with a V-divider.')
+    disp('warning: The LED_power param doesn''t actually control LED power. This is currently adjusted manually to 5% with a V-divider.')
     stim_arduino_serial_comm(LED_elec, init_delay_ms, duration_ms, freq_hz, duty_cyc_percent);
     
     %program_pulsepal_LED_elec(LED_elec, init_delay, duration_ms, freq_hz, duty_cyc_percent, LED_power);
@@ -351,23 +351,20 @@ for trial_n = start_tr:n_trials
     recovering_session = 0;
 end
 release(s)
-if exist('PulsePalSystem') == 1
-    EndPulsePal;
-else
-end
+close_serial_port(19);   %LED_arduino
+close_serial_port(13);   %olf2_arduino
+
+
 
 %defining clean up function
 function [] = my_cleanup()
 ShutAllValves_EP;
 trigger_scan(0);
-if exist('PulsePalSystem') == 1
-    EndPulsePal;
-else
+close_serial_port(19)
 
 if no_olf2 == 0
     sleep_olf2              %opens NO valve and closes empty vial valves.
-    pause(2);
+    pause(3);
 else
 end
     
-end

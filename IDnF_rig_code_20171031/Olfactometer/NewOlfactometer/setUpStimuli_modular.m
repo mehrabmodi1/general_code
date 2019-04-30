@@ -337,7 +337,6 @@ function [params, params_spec]=setUpStimuli_modular(params)
     %checking for LED and elec odours and creating new fields in the output params matrix for LED and ELEC stim.
     led_ods = params_spec.led_odours;
     elec_ods = params_spec.elec_odours;
-    
     for tr_n = 1:size(params, 2)
         %LED
         if isempty(intersect(params(tr_n).odours, led_ods)) == 0
