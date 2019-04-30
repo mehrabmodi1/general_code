@@ -9,7 +9,6 @@ function [params_spec1] = setup_params_pairing_expt_integrator_HepIAA(US_dutycyc
 last_long_od = load('E:\Turner lab\Bitbucket_repos\general_code\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\reciprocal_expt_logs\pairing_expt_integrator_HepIAA_lastlongod.mat');
 last_long_od = last_long_od.last_long_od;
 
-
 %step1:Setting up the pre trials
 %creating param specification structure for std KC recording expt. This is for pre-pairing characterisation. 
 params_spec1 = set_ADO_params_HepIAA;
@@ -30,7 +29,16 @@ params = params_struc_pre;           %this is the main parameter structure that 
 %step2: Setting up the pairing trial
 %editing param specification structure for only pairing trial. 
 params_spec2 = set_ADO_params_fore_distracter_HepIAA;
+
+if last_long_od == 5    %case when last expt was with 2-Hep as foreground odour
+    params_spec2.odours = 9;
+    params_spec2.led_odours = 9;
+    params_spec2.odours_olf2 = 3;
+else
+end
+keyboard
 params_struc_pairing = setUpStimuli_modular(params_spec2);         %detailed, trial-by-trial parameter specification structure.
+
 
 %concatenating pairing trial to params
 params = append_params(params, params_struc_pairing, 0);
@@ -41,13 +49,16 @@ params = append_params(params, params_struc_pairing, 0);
 params = append_params(params, params_struc_pre, 0);
 params_mat = params;
 
-
 %saving params to current acquisition directory
 curr_dir = curr_aq_direc;
 if exist([curr_dir, 'params.mat']) == 2
     ovwrite = input('paramfile already exists - overwrite (0-no, 1-yes)?');
     if ovwrite == 1
-         save([curr_dir, 'params.mat'], 'params_mat');
+        save([curr_dir, 'params.mat'], 'params_mat');
+        %keeping track of which odor (Hep or IAA) was the foreground odor in this experiment and saving to file. This will be used to alternate the CS+ odor.
+        last_long_od = params_spec2.odours;     %This is the long-pulse odour delivered on olf1
+        save('E:\Turner lab\Bitbucket_repos\general_code\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\reciprocal_expt_logs\pairing_expt_integrator_HepIAA_lastlongod.mat', 'last_long_od');
+
     elseif ovwrite == 0
     end
 else
@@ -56,10 +67,5 @@ end
 
 disp(['saved detailed stim params structure in ', curr_dir]);
 
-%keeping track of which odor (Hep or IAA) was the foreground odor in this
-%experiment and saving to file. This will be used to alternate the CS+
-%odor.
-last_long_od = params_spec2.odours;     %This is the long-pulse odour delivered on olf1
-save('E:\Turner lab\Bitbucket_repos\general_code\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\reciprocal_expt_logs\pairing_expt_integrator_HepIAA_lastlongod.mat', 'last_long_od');
 
 
