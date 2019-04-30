@@ -1,6 +1,7 @@
 function stim_arduino_serial_comm(LED_elec, init_delay_ms, duration_ms, freq_hz, duty_cyc_percent)
 
-stim_ard = serial('COM13');
+close_serial_port(19)
+stim_ard = serial('COM19');
 set(stim_ard,'BaudRate',9600);
 fopen(stim_ard);
 

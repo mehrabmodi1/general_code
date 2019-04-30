@@ -39,11 +39,11 @@ void loop()
     {
           recvWithStartEndMarkers();
           
-          if (newData == true && param_n == 0) {LED_elec = atoi(receivedChars); param_n = param_n + 1; showNewData(); Serial.println(param_n);}
-          if (newData == true && param_n == 1) {init_delay_ms = atof(receivedChars); param_n = param_n + 1; showNewData(); Serial.println(param_n);}
-          if (newData == true && param_n == 2) {duration_ms = atof(receivedChars); param_n = param_n + 1; showNewData(); Serial.println(param_n);}
-          if (newData == true && param_n == 3) {freq_hz = atof(receivedChars); param_n = param_n + 1; showNewData(); Serial.println(param_n);}
-          if (newData == true && param_n == 4) {duty_cycle_pc = atof(receivedChars); param_n = param_n + 1; showNewData(); Serial.println(param_n);}      
+          if (newData == true && param_n == 0) {LED_elec = atoi(receivedChars); param_n = param_n + 1; showNewData(); Serial.print("LED_elec "); Serial.println(LED_elec); Serial.println("init_delay_ms next.");}
+          if (newData == true && param_n == 1) {init_delay_ms = atof(receivedChars); param_n = param_n + 1; showNewData(); Serial.print("init_delay_ms "); Serial.println(init_delay_ms); Serial.println("duration_ms next.");}
+          if (newData == true && param_n == 2) {duration_ms = atof(receivedChars); param_n = param_n + 1; showNewData(); Serial.print("duration_ms "); Serial.println(duration_ms); Serial.println("freq_hz next.");}
+          if (newData == true && param_n == 3) {freq_hz = atof(receivedChars); param_n = param_n + 1; showNewData(); Serial.print("freq_hz "); Serial.println(freq_hz); Serial.println("duty_cycle_pc next.");}
+          if (newData == true && param_n == 4) {duty_cycle_pc = atof(receivedChars); param_n = param_n + 1; showNewData(); Serial.print("dut_cycle_pc "); Serial.println(duty_cycle_pc);}      
 
     }
 
@@ -66,6 +66,7 @@ void loop()
           float off_dur_w = (float) off_dur - (float)led_warning_leadt;
           
           float n_pulses = (float)duration_ms/(float)cyc_dur;
+          n_pulses = ceil(n_pulses);
           Serial.print("n_pulses");
           Serial.println(n_pulses);
 
