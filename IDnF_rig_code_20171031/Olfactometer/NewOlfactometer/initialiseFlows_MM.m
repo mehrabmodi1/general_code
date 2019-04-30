@@ -29,7 +29,7 @@ setFlow(AC,firstDilution(2),'B');
 
 %Set flow through carrier
 try
-    load('E:\Turner lab\Matlab_scripts\Olfactometer\NewOlfactometer\calibration\ADOValvecalib.mat','vCalib');  
+    load('E:\Turner lab\Bitbucket_repos\general_code\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\ADOValvecalib.mat','vCalib');  
     
 catch
     fprintf('Can''t load ADOValvecalib.mat, setting carrier to 0.5\n')
@@ -38,11 +38,11 @@ catch
 end
 
 try
-    a = load('E:\Turner lab\Matlab_scripts\Olfactometer\NewOlfactometer\calibration\sec_dil_calib.mat');
+    a = load('E:\Turner lab\Bitbucket_repos\general_code\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\sec_dil_calib.mat');
     secCalib = a.calib_second_dilution;
     
 catch
-    fprintf('Can''t load sec_dil_calib.mat, setting secondDilution to 4500mLpm\n')
+    fprintf('Can''t load sec_dil_calib.mat, setting secondDilution to 4900mLpm\n')
     secCalib=4900; %flow through needle valve 1
 end
 
