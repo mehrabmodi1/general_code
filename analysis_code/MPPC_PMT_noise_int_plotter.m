@@ -41,41 +41,37 @@ for point_n = 1:n_points
     mean_MPPC_vec(point_n, 1) = mean(curr_pix_MPPC);
     sd_MPPC_vec(point_n, 1) = std(curr_pix_MPPC);
     
-    
+   
 end
+
+%subtracting baseline obtained at lowest, ~ no illumination
+mean_PMT_vec = mean_PMT_vec - repmat(mean_PMT_vec(1), size(mean_PMT_vec, 1), 1);
+mean_MPPC_vec = mean_MPPC_vec - repmat(mean_MPPC_vec(1), size(mean_MPPC_vec, 1), 1);
 
 norm_PMT_vec = mean_PMT_vec./sd_PMT_vec;
 norm_MPPC_vec = mean_MPPC_vec./sd_MPPC_vec;
 
+%computing some multiple of green light intensity to plot on x
+l_power_vec = [0, 0.5, 1, 2, 4, 6, 8, 10];
+Gintensity_vec = l_power_vec.^2;
 
-%plotting
-mean_PMT_vec = mean_PMT_vec;
-val_vecs_PMT = [mean_PMT_vec, var_PMT_vec];
-val_vecs_PMT = sortrows(val_vecs_PMT);
-val_vecs_MPPC = [mean_MPPC_vec, var_MPPC_vec];
-val_vecs_MPPC = sortrows(val_vecs_MPPC);
-val_vecs_PMT = [val_vecs_PMT, val_vecs_PMT(:, 2).^0.5];
-val_vecs_MPPC = [val_vecs_MPPC, val_vecs_MPPC(:, 2).^0.5];
+
+plot(Gintensity_vec, norm_PMT_vec, 'Color', PMT_colour, 'LineWidth', 2)
+hold on
+plot(Gintensity_vec, norm_MPPC_vec, 'Color', MPPC_colour, 'LineWidth', 2)
+ylabel('detector signal (mean/sd)')
+xlabel('light intensity (AU)')
+fig_wrapup(1, '')
+
+figure(2)
+loglog(Gintensity_vec, norm_PMT_vec, 'Color', PMT_colour, 'LineWidth', 2)
+hold on
+loglog(Gintensity_vec, norm_MPPC_vec, 'Color', MPPC_colour, 'LineWidth', 2)
+ylabel('detector signal (mean/sd)')
+xlabel('light intensity (AU)')
+fig_wrapup(2, '')
+
+keyboard
 
 PMT_pkresp_val = (121.3 + 113.5);
 MPPC_pkresp_val = (30.02 + 290.8);
-
-figure(1)
-plot(val_vecs_PMT(:, 1), val_vecs_PMT(:, 2), 'o', 'Color', PMT_colour, 'MarkerSize', 6, 'MarkerFaceColor', PMT_colour);
-hold on
-plot(val_vecs_MPPC(:, 1), val_vecs_MPPC(:, 2), 'o', 'Color', MPPC_colour, 'MarkerSize', 6, 'MarkerFaceColor', MPPC_colour);
-plot(val_vecs_PMT(:, 1), val_vecs_PMT(:, 2), 'Color', PMT_colour);
-plot(val_vecs_MPPC(:, 1), val_vecs_MPPC(:, 2), 'Color', MPPC_colour);
-xlabel('mean F (AU)');
-ylabel('variance F (AU^2)');
-script_name = mfilename;
-fig_wrapup(1, script_name)
-
-figure(2)
-shadedErrorBar([], val_vecs_PMT(:, 1), val_vecs_PMT(:, 3),{'-o', 'Color', PMT_colour, 'MarkerSize', 6, 'MarkerFaceColor', PMT_colour});
-hold on
-shadedErrorBar([], val_vecs_MPPC(:, 1), val_vecs_MPPC(:, 3),{'-o', 'Color', MPPC_colour, 'MarkerSize', 6, 'MarkerFaceColor', MPPC_colour});
-xlabel('illumination intensity');
-ylabel('mean F +/- SD (AU)')
-fig_wrapup_nonums(2, script_name, [1]);
-axis([0, 8, -2000, 10000]);
