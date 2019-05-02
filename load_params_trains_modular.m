@@ -139,8 +139,7 @@ else
     tif_num = 1:1:n_trials_t;
 end
 
-column_heads = 'matched_tif_n, isi, stim_latency, odor_n, duration,  n_odor_pulses, inter_pulse_interval, first_dilution, second_dilution, post_od_scan_dur, led_on, elec_on';
-
+column_heads = 'matched_tif_n, odor_n, duration, isi, n_odor_pulses, inter_pulse_interval, stim_latency, first_dilution, second_dilution, post_od_scan_dur, rand_train_n, multi_pulse_train, led_on, elec_on';
 
 %loop to read param values from params file into stim_mat
 stim_mat_simple = zeros(n_matched_trials, 14) + nan;
@@ -180,9 +179,9 @@ for trial_n = 1:n_matched_trials
     
     
         
-    stim_mat_simple(trial_n, :) = [curr_tr_t, params(curr_tr_p).isi, params(curr_tr_p).odours, params(curr_tr_p).duration, ...
-        params(curr_tr_p).n_od_pulses, params(curr_tr_p).inter_pulse_interval, params(curr_tr_p).stimLatency,...
-        params(curr_tr_p).firstDilution, params(curr_tr_p).secondDilution, params(curr_tr_p).post_od_scan_dur, params(curr_tr_p).led_on, params(curr_tr_p).elec_on];
+    stim_mat_simple(trial_n, :) = [curr_tr_t, params(curr_tr_p).odours, params(curr_tr_p).duration, params(curr_tr_p).isi,...
+    params(curr_tr_p).n_od_pulses, params(curr_tr_p).inter_pulse_interval, params(curr_tr_p).stimLatency,...
+    params(curr_tr_p).firstDilution, params(curr_tr_p).secondDilution, params(curr_tr_p).post_od_scan_dur, params(curr_tr_p).rand_train_n, train_on, params(curr_tr_p).led_on, params(curr_tr_p).elec_on];
 end
 save([direc, '\stim_mat.mat'], 'stim_mat')
 
