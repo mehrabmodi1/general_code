@@ -7,7 +7,8 @@ dataset_list_paths = [...
             
 suppress_plots = 0;
 [del, odor_names1] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList.xls', 1);
-[del, ]
+[del, odor_names2] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList_olf2.xls', 1);
+
 global color_vec;                
 a = colormap('bone');
 global greymap
@@ -19,8 +20,8 @@ for list_n = 1:size(dataset_list_paths, 1)
     curr_dir_list_path = dataset_list_paths{list_n, 1};
     [del, dir_list] = xlsread(curr_dir_list_path, 1);        %list of Suite2P results directories
     n_dirs = size(dir_list, 1);
-    dataset_list_name = findstr(curr_dir_list_path, 'El_');
-    dataset_list_name = curr_dir_list_path((dataset_list_name + 1):(end - 4));
+    dataset_list_name = findstr(curr_dir_list_path, 'list_');
+    dataset_list_name = curr_dir_list_path((dataset_list_name + 5):(end - 4));
     
     dataset_list_name(1) = [];
     flies_resp_size_mat = [];
@@ -40,15 +41,11 @@ for list_n = 1:size(dataset_list_paths, 1)
        odor_colors = [color_vec(3, :); color_vec(3, :).*0.75; color_vec(2, :)];
        
        %Reading in experimental parameters
-        %odor_list = unique(stim_mat_simple(:, 2) );
-        odor_list = [3, 10, 11];
-        n_odors = length(odor_list);
-        odor_dur_list = unique(stim_mat_simple(:, 3) );
-        n_od_durs = length(odor_dur_list);
+        odor_list_olf1 = unique(stim_mat_simple(:, 2) );
+        n_odors_olf1 = length(odor_list_olf1);
+        odor_dur_list_olf1 = unique(stim_mat_simple(:, 3) );
+        n_od_durs_olf1 = length(odor_dur_list_olf1);
         n_trains = max(stim_mat_simple(:, 11));
-        saved_an_results.odor_list = odor_list;
-        saved_an_results.odor_dur_list = odor_dur_list;
-        fly_resp_size_vec = zeros(1, length(odor_list).*2) + nan;
         
         cd(curr_dir);
         tif_name = dir('*.tif');
@@ -69,3 +66,6 @@ for list_n = 1:size(dataset_list_paths, 1)
         del = find(dff_data_mat_f < -1);
         dff_data_mat_f(del) = -1;       %forcing crazy values to sane ones
         
+        keyboard
+    end
+end
