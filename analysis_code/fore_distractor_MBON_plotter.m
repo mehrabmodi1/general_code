@@ -37,7 +37,7 @@ for list_n = 1:size(dataset_list_paths, 1)
        
        tif_times = load([curr_dir, 'tif_time_stamps.mat']);           %reading in time stamps for each tif file recorded by raw_data_extracter
        tif_times = tif_times.time_stamps;
-       [stim_mat, stim_mat_simple, column_heads, color_vec] = load_params_trains(curr_dir, tif_times);    %reading in trial stimulus parameters after matching time stamps to F traces
+       [stim_mat, stim_mat_simple, column_heads, color_vec] = load_params_trains_modular(curr_dir, tif_times);    %reading in trial stimulus parameters after matching time stamps to F traces
        odor_colors = [color_vec(3, :); color_vec(3, :).*0.75; color_vec(2, :)];
        
        %Reading in experimental parameters
