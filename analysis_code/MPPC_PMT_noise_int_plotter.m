@@ -4,7 +4,7 @@ close all
 paths = [{'C:\Data\Data\Raw_data\20190506\MPPC_pollen_grain_power_range\'}, ...
             {'C:\Data\Data\Raw_data\20190506\MPPC_pollen_grain_power_range_detectors_swapped\'}];
 
-path = paths{2};        
+path = paths{1};        
 cd(path);
 MPPC_colour = [0.9, 0.4, 0.6];
 PMT_colour = [0.5, 0.6, 0.8];
@@ -81,7 +81,7 @@ Gintensity_vec = l_power_vec.^2;
 
 plot(Gintensity_vec, norm_PMT_vec, '.', 'markerSize', 20, 'Color', PMT_colour)
 hold on
-plot(Gintensity_vec, norm_MPPC_vec, '.', 'markerSize', 20, 'Color', MPPC_colour)
+plot(Gintensity_vec.*1.32, norm_MPPC_vec, '.', 'markerSize', 20, 'Color', MPPC_colour)      %multiplying x axis by 0.75 to correct for detection arm assymetry
 ylabel('detector signal (mean/sd)')
 xlabel('light intensity (AU)')
 fig_wrapup(1, '')
@@ -89,7 +89,7 @@ fig_wrapup(1, '')
 figure(2)
 loglog(Gintensity_vec, norm_PMT_vec, '.', 'markerSize', 20, 'Color', PMT_colour)
 hold on
-loglog(Gintensity_vec, norm_MPPC_vec, '.', 'markerSize', 20, 'Color', MPPC_colour)
+loglog(Gintensity_vec.*1.32, norm_MPPC_vec, '.', 'markerSize', 20, 'Color', MPPC_colour)          %multiplying x axis by 0.75 to correct for detection arm assymetry
 ylabel('detector signal (mean/sd)')
 xlabel('light intensity (AU)')
 fig_wrapup(2, '')
@@ -130,4 +130,5 @@ ylabel('mean F on PMT, position swapped')
 axis([0, 2500, 0, 2500])
 fig_wrapup(5, [])
 pbaspect([1 1 1])
-PMT_ratio = mean(norm_PMT_vec1(common_l_vals1i)./norm_PMT_vec2(common_l_vals2i));
+PMT_ratio = norm_PMT_vec1(common_l_vals1i)./norm_PMT_vec2(common_l_vals2i);
+PMT_ratio = mean(PMT_ratio(7:end));

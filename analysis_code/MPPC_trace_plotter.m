@@ -14,8 +14,8 @@ global greymap
 greymap = flipud(a);
 fly_n = 0;
 script_name = mfilename;
-resp_sizes_PMT = [];
-resp_sizes_MPPC = [];
+resp_sizes_PMT_all = [];
+resp_sizes_MPPC_all = [];
 MPPC_colour = [0.9, 0.4, 0.6];
 PMT_colour = [0.5, 0.6, 0.8];
 
@@ -40,15 +40,31 @@ for list_n = 1:size(dataset_list_paths, 1)
         tif_times = tif_times.time_stamps;
         [stim_mat, stim_mat_simple, column_heads, color_vec] = load_params_trains_modular(curr_dir, tif_times);    %reading in trial stimulus parameters after matching time stamps to F traces
                
-        stim_frs = compute_stim_frs(stim_mat, 1, frame_time);
-        stim_frs = stim_frs + round(.65./frame_time);
+        [stim_frs_all, bigger_stim_olf] = compute_stim_frs_modular(stim_mat, 1, frame_time);
+        stim_frs = stim_frs_all{bigger_stim_olf};
         
+        stim_frs = stim_frs + round(.65./frame_time);
+                
         %Reading in experimental parameters
-        odor_list = unique(stim_mat_simple(:, 2) );
-        n_odors = length(odor_list);
-        odor_dur_list = unique(stim_mat_simple(:, 3) );
-        n_od_durs = length(odor_dur_list);
-        n_trains = max(stim_mat_simple(:, 11));
+        odor_list_olf1 = unique(stim_mat_simple(:, 1) );
+        n_odors_olf1 = length(odor_list_olf1);
+        odor_dur_list_olf1 = unique(stim_mat_simple(:, 2) );
+        n_od_durs_olf1 = length(odor_dur_list_olf1);
+        n_trains_olf1 = max(stim_mat_simple(:, 8));
+        
+        odor_list_olf2 = unique(stim_mat_simple(:, 9) );
+        n_odors_olf2 = length(odor_list_olf2);
+        odor_dur_list_olf2 = unique(stim_mat_simple(:, 10) );
+        n_od_durs_olf2 = length(odor_dur_list_olf2);
+        n_trains_olf2 = max(stim_mat_simple(:, 17));
+        
+        if bigger_stim_olf == 1
+            odor_list = odor_list_olf1;
+        elseif bigger_stim_olf == 2
+            odor_list = odor_list_olf2;
+        else
+        end
+            
         
         cd(curr_dir);
         tif_name = dir('*.tif');
@@ -60,62 +76,62 @@ for list_n = 1:size(dataset_list_paths, 1)
         raw_data_mat = load([curr_dir 'extracted_raw_data_mat.mat']);
         raw_data_mat = raw_data_mat.raw_data_mat;           %raw F traces extracted from ROIs
         raw_data_mat_orig = raw_data_mat;
-        raw_data_mat = raw_data_mat(:, :, stim_mat_simple(:, 1));       %making sure only time-stamp matched trials are used for further analysis
+        raw_data_mat = raw_data_mat(:, :, stim_mat_simple(:, 25));       %making sure only time-stamp matched trials are used for further analysis
         n_cells = size(raw_data_mat, 2);
+        
+        %separating PMT and MPPC response matrices
+        raw_data_mat_PMT = raw_data_mat(1:2:end, :, :);
+        raw_data_mat_MPPC = raw_data_mat(2:2:end, :, :);
         
         %calculating dF/F traces from raw data
         filt_time = 0.5;            %in s, the time window for boxcar filter for generating filtered traces
-        [dff_data_mat, dff_data_mat_f] = cal_dff_traces_res(raw_data_mat, stim_mat, frame_time, filt_time, curr_dir);
-        del = find(dff_data_mat_f < -1);
-        dff_data_mat_f(del) = -1;       %forcing crazy values to sane ones
+        [dff_data_mat_PMT, dff_data_mat_f_PMT] = cal_dff_traces_res(raw_data_mat_PMT, stim_mat, frame_time, filt_time, curr_dir);
+        [dff_data_mat_MPPC, dff_data_mat_f_MPPC] = cal_dff_traces_res(raw_data_mat_MPPC, stim_mat, frame_time, filt_time, curr_dir);
         
         %identifying significantly responsive cells
-        [resp_sizes, sig_trace_mat, sig_trace_mat_old, sig_cell_mat, resp_areas] = cal_sig_responses_res(dff_data_mat, stim_mat, stim_mat_simple, curr_dir, frame_time);
-        sig_cells = find(sum(sum(sig_cell_mat, 3), 2) > 0);         %list of all cells significant for any odor for any duration
-        
-        %separating PMT and MPPC response matrices
-        n_frs_total = size(dff_data_mat, 1);
-        dff_data_mat_PMT = dff_data_mat(1:2:n_frs_total, :, :);
-        dff_data_mat_MPPC = dff_data_mat(2:2:n_frs_total, :, :);
-        dff_data_mat_PMT_f = dff_data_mat_f(1:2:n_frs_total, :, :);
-        dff_data_mat_MPPC_f = dff_data_mat_f(2:2:n_frs_total, :, :);
-        raw_data_mat_PMT = raw_data_mat(1:2:n_frs_total, :, :);
-        raw_data_mat_MPPC = raw_data_mat(2:2:n_frs_total, :, :);
-        
-        
-        %normalising resp_matrices
-        mean_PMT_sig = mean(raw_data_mat_PMT(1:100, 1, 1));
-        dff_data_mat_PMT = dff_data_mat_PMT./mean_PMT_sig;
-        mean_MPPC_sig = mean(raw_data_mat_MPPC(1:100, 1, 1));
-        dff_data_mat_MPPC = dff_data_mat_MPPC./mean_MPPC_sig;
-        
+        [resp_sizes_PMT, sig_trace_mat_PMT, sig_trace_mat_old, sig_cell_mat_PMT, resp_areas_PMT] = cal_sig_responses_res(dff_data_mat_PMT, stim_mat, stim_mat_simple, curr_dir, frame_time);
+        sig_cells_PMT = find(sum(sum(sig_cell_mat_PMT, 3), 2) > 0);         %list of all cells significant for any odor for any duration
+        [resp_sizes_MPPC, sig_trace_mat_MPPC, sig_trace_mat_old, sig_cell_mat_MPPC, resp_areas_MPPC] = cal_sig_responses_res(dff_data_mat_MPPC, stim_mat, stim_mat_simple, curr_dir, frame_time);
+        sig_cells_MPPC = find(sum(sum(sig_cell_mat_MPPC, 3), 2) > 0);         %list of all cells significant for any odor for any duration
+                
+%         %normalising resp_matrices
+%         mean_PMT_sig = mean(raw_data_mat_PMT(1:100, 1, 1));
+%         dff_data_mat_PMT = dff_data_mat_PMT./mean_PMT_sig;
+%         mean_MPPC_sig = mean(raw_data_mat_MPPC(1:100, 1, 1));
+%         dff_data_mat_MPPC = dff_data_mat_MPPC./mean_MPPC_sig;
+%         
         %plotting response matrix differences
         diff_dff_data_mat = dff_data_mat_PMT - dff_data_mat_MPPC;
         
         %identifying sig responses
         for odor_n = 1:length(odor_list)
             odor_ni = odor_list(odor_n);
-            curr_trs = find(stim_mat_simple(:, 2) == odor_ni);
+            curr_trs = find(stim_mat_simple(:, 9) == odor_ni);
             for cell_n = 1:n_cells
                 ave_tr = mean(dff_data_mat_PMT(:, cell_n, curr_trs), 3, 'omitnan');
                 ave_tr_f = movmean(ave_tr, 15, 'omitnan');
                 max_val = max(ave_tr_f(stim_frs(1):(stim_frs(2) + round(2./frame_time)), 1), [], 1, 'omitnan');
-                sd_baseline = std(ave_tr_f((stim_frs(1) - round(6./frame_time)):(stim_frs(1) - 1)), [], 'omitnan');
+                sd_baseline = std(ave_tr_f((stim_frs(1) - round(2./frame_time)):(stim_frs(1) - 1)), [], 'omitnan');
                 
                 if max_val./sd_baseline > 5
-                    sig_cell_mat(cell_n, odor_ni) = 1;
+                    try
+                        sig_cell_mat(cell_n, odor_ni) = 1;
+                    catch
+                        keyboard
+                    end
                     curr_resp_sizes = squeeze(max(dff_data_mat_PMT((stim_frs(1)):(stim_frs(2) + round(2./frame_time)), cell_n, curr_trs)));
                     curr_resp_sizes_m = mean(curr_resp_sizes);
-                    resp_sizes_PMT = [resp_sizes_PMT; curr_resp_sizes];
-                    resp_sizes_MPPC = [resp_sizes_MPPC; squeeze(max(dff_data_mat_MPPC((stim_frs(1) ):(stim_frs(2) + round(2./frame_time)), cell_n, curr_trs)))];
+                    resp_sizes_PMT_all = [resp_sizes_PMT_all; curr_resp_sizes];
+                    resp_sizes_MPPC_all = [resp_sizes_MPPC_all; squeeze(max(dff_data_mat_MPPC((stim_frs(1) ):(stim_frs(2) + round(2./frame_time)), cell_n, curr_trs)))];
                     
                     if suppress_plots == 0 %&& curr_resp_sizes_m > 1.5
                         figure(1)
                         %plotting traces
-                        plot(squeeze(dff_data_mat_PMT((stim_frs(1) - round(5./frame_time)):(stim_frs(2) + round(5./frame_time)), cell_n, curr_trs(1)))...
+                        
+                        plot(squeeze(dff_data_mat_PMT((stim_frs(1) - round(8./frame_time)):(stim_frs(2) + round(8./frame_time)), cell_n, curr_trs(1)))...
                                                                                                                    , 'Color', PMT_colour, 'LineWidth', 0.5);
                         hold on
-                        plot(squeeze(dff_data_mat_MPPC((stim_frs(1) - round(5./frame_time)):(stim_frs(2) + round(5./frame_time)), cell_n, curr_trs(1)) + 2.5)... 
+                        plot(squeeze(dff_data_mat_MPPC((stim_frs(1) - round(8./frame_time)):(stim_frs(2) + round(8./frame_time)), cell_n, curr_trs(1)) + 2.5)... 
                                                                                                                    , 'Color', MPPC_colour, 'LineWidth', 0.5);
 
                         set_xlabels_time(1, frame_time, 2)
@@ -125,7 +141,7 @@ for list_n = 1:size(dataset_list_paths, 1)
                         axis(ax_vals);                                                                                       
                         hold off                                                                                       
                         fig_wrapup_nonums(1, script_name, 2); 
-                        add_stim_bar(1, (stim_frs - (stim_frs(1) - round(5./frame_time))), [0.7, 0.7, 0.7])
+                        add_stim_bar(1, (stim_frs - (stim_frs(1) - round(8./frame_time))), [0.7, 0.7, 0.7])
 
                         figure(1)
                         keyboard
@@ -141,19 +157,19 @@ for list_n = 1:size(dataset_list_paths, 1)
             
         end
         
-        figure(2)
-        plot(resp_sizes_PMT, resp_sizes_MPPC, '.', 'MarkerSize', 8, 'MarkerFaceColor', 'k', 'MarkerEdgeColor', 'k')
-        hold on
+        
         %fitting line
-        p = polyfit(resp_sizes_PMT, resp_sizes_MPPC, 1);
+        p = polyfit(resp_sizes_PMT_all, resp_sizes_MPPC_all, 1);
         x1 = [0, 5];
         fit_vals = polyval(p, x1);
-        plot(x1, fit_vals, '--', 'Color', [0.7, 0.7, 0.7]);
+        plot(x1, fit_vals, '--', 'Color', [0.7, 0.7, 0.7], 'lineWidth', 2);
+        hold on
+        figure(2)
+        plot(resp_sizes_PMT_all, resp_sizes_MPPC_all, '.', 'MarkerSize', 8, 'MarkerFaceColor', 'k', 'MarkerEdgeColor', 'k')
         hold off
-        
         xlabel('PMT response size (dF/F)');
         ylabel('MPPC response size (dF/F)');
-        axis([0, 5, 0, 5]);
+        axis([0, 3, 0, 3]);
         fig_wrapup(2, script_name);
         
         
