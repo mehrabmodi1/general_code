@@ -1,11 +1,10 @@
 clear all
 close all
 
-paths = [{'C:\Data\Data\Raw_data\20190506\MPPC_pollen_grain_power_range\'}, ;
-            {'C:\Data\Data\Raw_data\20190506\MPPC_pollen_grain_power_range_detectors_swapped\'}, ...
-            ];
+paths = [{'C:\Data\Data\Raw_data\20190506\MPPC_pollen_grain_power_range\'}, ...
+            {'C:\Data\Data\Raw_data\20190506\MPPC_pollen_grain_power_range_detectors_swapped\'}];
 
-path = paths{1};        
+path = paths{2};        
 cd(path);
 MPPC_colour = [0.9, 0.4, 0.6];
 PMT_colour = [0.5, 0.6, 0.8];
@@ -37,20 +36,22 @@ if exist([path, 'data_mat.mat']) ~= 2
         stack_PMT = stack(:, :, 1:2:size(stack, 3));
         stack_MPPC = stack(:, :, 2:2:size(stack, 3));
 
-        %computing mean intensity and sd of intensity
-        %lists of pixel vals
-        curr_fr_PMT = stack_PMT(:, :, 50);
-        curr_pix_PMT = curr_fr_PMT(curr_pix);
+        curr_pix_PMT = [];
+        curr_pix_MPPC = [];
+        for frame_n = 1:size(stack_PMT, 3)
+            %computing mean and sd of intensity of lists of pixel vals
+            curr_fr_PMT = stack_PMT(:, :, frame_n);
+            curr_pix_PMT = [curr_pix_PMT; curr_fr_PMT(curr_pix)];
 
-        curr_fr_MPPC = stack_MPPC(:, :, 50);
-        curr_pix_MPPC = curr_fr_MPPC(curr_pix);
+            curr_fr_MPPC = stack_MPPC(:, :, frame_n);
+            curr_pix_MPPC = curr_fr_MPPC(curr_pix);
 
-        mean_PMT_vec(point_n, 1) = mean(curr_pix_PMT);
-        sd_PMT_vec(point_n, 1) = std(curr_pix_PMT);
+            mean_PMT_vec(point_n, 1) = mean(curr_pix_PMT);
+            sd_PMT_vec(point_n, 1) = std(curr_pix_PMT);
 
-        mean_MPPC_vec(point_n, 1) = mean(curr_pix_MPPC);
-        sd_MPPC_vec(point_n, 1) = std(curr_pix_MPPC);
-
+            mean_MPPC_vec(point_n, 1) = mean(curr_pix_MPPC);
+            sd_MPPC_vec(point_n, 1) = std(curr_pix_MPPC);
+        end
 
     end
     data_mat = [l_power_vec', mean_PMT_vec, sd_PMT_vec, mean_MPPC_vec, sd_MPPC_vec];
@@ -77,17 +78,17 @@ norm_MPPC_vec = mean_MPPC_vec./sd_MPPC_vec;
 Gintensity_vec = l_power_vec.^2;
 
 
-plot(Gintensity_vec, norm_PMT_vec, 'Color', PMT_colour, 'LineWidth', 2)
+plot(Gintensity_vec, norm_PMT_vec, '.', 'markerSize', 20, 'Color', PMT_colour)
 hold on
-plot(Gintensity_vec, norm_MPPC_vec, 'Color', MPPC_colour, 'LineWidth', 2)
+plot(Gintensity_vec, norm_MPPC_vec, '.', 'markerSize', 20, 'Color', MPPC_colour)
 ylabel('detector signal (mean/sd)')
 xlabel('light intensity (AU)')
 fig_wrapup(1, '')
 
 figure(2)
-loglog(Gintensity_vec, norm_PMT_vec, 'Color', PMT_colour, 'LineWidth', 2)
+loglog(Gintensity_vec, norm_PMT_vec, '.', 'markerSize', 20, 'Color', PMT_colour)
 hold on
-loglog(Gintensity_vec, norm_MPPC_vec, 'Color', MPPC_colour, 'LineWidth', 2)
+loglog(Gintensity_vec, norm_MPPC_vec, '.', 'markerSize', 20, 'Color', MPPC_colour)
 ylabel('detector signal (mean/sd)')
 xlabel('light intensity (AU)')
 fig_wrapup(2, '')
@@ -103,7 +104,7 @@ figure(4)
 loglog(norm_PMT_vec, norm_MPPC_vec, '.', 'markerSize', 20, 'Color', 'k')
 xlabel('PMT signal (mean/sd)')
 ylabel('MPPC signal (mean/sd)')
-fig_wrapup(3, [])
+fig_wrapup(4, [])
 
 
 %comparing PMT mean F across detector positions
@@ -128,3 +129,4 @@ ylabel('mean F on PMT, position swapped')
 axis([0, 2500, 0, 2500])
 fig_wrapup(5, [])
 pbaspect([1 1 1])
+PMT_ratio = mean(norm_PMT_vec1(common_l_vals1i)./norm_PMT_vec2(common_l_vals2i));
