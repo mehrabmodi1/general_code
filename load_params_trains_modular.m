@@ -139,19 +139,19 @@ else
     tif_num = 1:1:n_trials_t;
 end
 
-column_heads = [{'odor_n'}, {'duration'}, {'pulse_type'}, {'n_odor_pulses'}, {'inter_pulse_interval'}, {'rand_trains'}, {'mean_rand_pulse_dur'}, {'odour_olf2'}, {'duration_olf2'}, {'rel_stim_latency_olf2'}, {'pulse_type_olf2'}, {'n_od_pulses_olf2'}, {'inter_pulse_interval_olf2'}, {'rand_trains_olf2'}, {'mean_rand_pulse_dur_olf2'}, {'led_on'}, {'elec_on'}, {'isi'}, {'stim_latency'}, {'post_od_scan_dur'}, {'first_dilution'}, {'second_dilution'}];
+column_heads = [{'odor_n'}, {'duration'}, {'pulse_type'}, {'n_odor_pulses'}, {'inter_pulse_interval'}, {'rand_trains'}, {'mean_rand_pulse_dur'}, {'pulse_train_n'}, {'odour_olf2'}, {'duration_olf2'}, {'rel_stim_latency_olf2'}, {'pulse_type_olf2'}, {'n_od_pulses_olf2'}, {'inter_pulse_interval_olf2'}, {'rand_trains_olf2'}, {'mean_rand_pulse_dur_olf2'}, {'pulse_train_n_olf2'}, {'led_on'}, {'elec_on'}, {'isi'}, {'stim_latency'}, {'post_od_scan_dur'}, {'first_dilution'}, {'second_dilution'}, {'matched_tif_n'}];
 
 %loop to read param values from params file into stim_mat
-stim_mat_simple = zeros(n_matched_trials, 22) + nan;
+stim_mat_simple = zeros(n_matched_trials, 25) + nan;
 for trial_n = 1:n_matched_trials
     curr_tr_p = par_num(trial_n);
     curr_tr_t = tif_num(trial_n);
     
     stim_mat(trial_n) = params(curr_tr_p);    
-    
-    stim_mat_simple(trial_n, :) = [params(curr_tr_p).odours, params(curr_tr_p).duration, params(curr_tr_p).pulse_type, params(curr_tr_p).n_od_pulses, params(curr_tr_p).inter_pulse_interval, params(curr_tr_p).rand_trains, params(curr_tr_p).mean_rand_pulse_dur, ...
+   
+    stim_mat_simple(trial_n, :) = [params(curr_tr_p).odours, params(curr_tr_p).duration, params(curr_tr_p).pulse_type, params(curr_tr_p).n_od_pulses, params(curr_tr_p).inter_pulse_interval, params(curr_tr_p).rand_trains, params(curr_tr_p).mean_rand_pulse_dur, params(curr_tr_p).pulse_train_n, ...
     params(curr_tr_p).odours_olf2, params(curr_tr_p).duration_olf2, params(curr_tr_p).rel_stimLatency_olf2, params(curr_tr_p).pulse_type_olf2, params(curr_tr_p).n_od_pulses_olf2, params(curr_tr_p).inter_pulse_interval_olf2, ...
-    params(curr_tr_p).rand_trains_olf2, params(curr_tr_p).mean_rand_pulse_dur_olf2,  params(curr_tr_p).led_on, params(curr_tr_p).elec_on, params(curr_tr_p).isi, params(curr_tr_p).stimLatency, params(curr_tr_p).post_od_scan_dur, params(curr_tr_p).firstDilution, params(curr_tr_p).secondDilution, ];
+    params(curr_tr_p).rand_trains_olf2, params(curr_tr_p).mean_rand_pulse_dur_olf2,  params(curr_tr_p).pulse_train_n_olf2, params(curr_tr_p).led_on, params(curr_tr_p).elec_on, params(curr_tr_p).isi, params(curr_tr_p).stimLatency, params(curr_tr_p).post_od_scan_dur, params(curr_tr_p).firstDilution, params(curr_tr_p).secondDilution, curr_tr_t];
 end
 
 %adding on match tiff_n
