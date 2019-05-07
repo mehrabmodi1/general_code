@@ -183,10 +183,7 @@ for trial_n = 1:n_matched_trials
             params(curr_tr_p).n_od_pulses, params(curr_tr_p).inter_pulse_interval, params(curr_tr_p).stimLatency,...
             params(curr_tr_p).firstDilution, params(curr_tr_p).secondDilution, params(curr_tr_p).post_od_scan_dur, params(curr_tr_p).rand_train_n, train_on, params(curr_tr_p).led_on, params(curr_tr_p).elec_on];
     catch
-        if trial_n == 1
-            stim_mat_simple(:, 13:14) = [];
-        else
-        end
+        
         stim_mat_simple(trial_n, :) = [curr_tr_t, params(curr_tr_p).odours, params(curr_tr_p).duration, params(curr_tr_p).isi,...
             params(curr_tr_p).n_od_pulses, params(curr_tr_p).inter_pulse_interval, params(curr_tr_p).stimLatency,...
             params(curr_tr_p).firstDilution, params(curr_tr_p).secondDilution, params(curr_tr_p).post_od_scan_dur, params(curr_tr_p).rand_train_n, train_on];
@@ -198,6 +195,7 @@ save([direc, '\stim_mat.mat'], 'stim_mat')
 %setting up the standard color vector to use for plotting depending on how
 %many odors there are in this dataset
 n_odors = length(unique(stim_mat_simple(:, 2)));
+keyboard
 color_vec = setup_std_color_vec(n_odors);
 
 
