@@ -3,7 +3,7 @@ close all
 
 dataset_list_paths = [...
                       
-                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MPPC_KC_set.xls'}...
+                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MPPC_KC_set_final.xls'}...
                     ];
             
 suppress_plots = 0;
@@ -38,7 +38,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         
         tif_times = load([curr_dir, 'tif_time_stamps.mat']);           %reading in time stamps for each tif file recorded by raw_data_extracter
         tif_times = tif_times.time_stamps;
-        [stim_mat, stim_mat_simple, column_heads, color_vec] = load_params_trains(curr_dir, tif_times);    %reading in trial stimulus parameters after matching time stamps to F traces
+        [stim_mat, stim_mat_simple, column_heads, color_vec] = load_params_trains_modular(curr_dir, tif_times);    %reading in trial stimulus parameters after matching time stamps to F traces
                
         stim_frs = compute_stim_frs(stim_mat, 1, frame_time);
         stim_frs = stim_frs + round(.65./frame_time);

@@ -1,20 +1,26 @@
 clear all
 close all
 
-path = 'C:\Data\Data\Raw_data\20190327\MPPC_PMT_Fplatic\';
+path = 'C:\Data\Data\Raw_data\20190506\MPPC_pollen_grain_power_range\';
 cd(path);
 tif_list = dir('*.tif');
-ROI = load([path, 'ROI.mat']);
-ROI_mat = ROI.ROI;
+ROI_mat = load([path, 'ROI_mat.mat']);
+ROI_mat = ROI_mat.ROI_mat;
 curr_pix = find(ROI_mat == 1);
 n_points = size(tif_list, 1);
 
 MPPC_colour = [0.9, 0.4, 0.6];
 PMT_colour = [0.5, 0.6, 0.8];
 
+l_power_vec = [];
+
 for point_n = 1:n_points
     curr_name = tif_list(point_n).name;
     
+    %parsing filename to get current laser power
+    dashi = findstr(curr_name, '_');
+    l_power_vec = [l_power_vec, str2num(curr_name(1:(dashi - 1)))];
+        
     %reading in stack object
     im_obj = ScanImageTiffReader([path, curr_name]);
     %obtaining image stack
@@ -52,7 +58,6 @@ norm_PMT_vec = mean_PMT_vec./sd_PMT_vec;
 norm_MPPC_vec = mean_MPPC_vec./sd_MPPC_vec;
 
 %computing some multiple of green light intensity to plot on x
-l_power_vec = [0, 0.5, 1, 2, 4, 6, 8, 10];
 Gintensity_vec = l_power_vec.^2;
 
 
