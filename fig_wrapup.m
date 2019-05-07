@@ -28,7 +28,11 @@ ax_handle.TickLength = [0.005, 0.005];
 ax_handle.Box = 'off';
 ax_handle.TickDir = 'out';
 ax_handle.LineWidth = 1.2;
+
 %adding script name to figure
-add_scriptname(fig_n, script_name);
+if isempty(script_name) == 0
+    add_scriptname(fig_n, script_name);
+else
+end
 
 end
