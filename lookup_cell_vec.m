@@ -5,18 +5,17 @@ function [matched_celln] = lookup_cell_vec(cell_contents, cell_vector)
 matched_celln = [];
 for cell_n = 1:length(cell_vector)
     curr_contents = cell_vector{cell_n};
-    
-    if isa(cell_contents, 'string') == 1
-        if strcmp(col_name, curr_contents) == 1
+    if ischar(cell_contents) == 1
+        if strcmp(cell_contents, curr_contents) == 1
             matched_celln = [matched_celln; cell_n];
         else
         end
-        
-        if col_name == curr_contents
-            matched_celln = [matched_celln; cell_n];
-        else
-        end
-        
     else
+        
+        if cell_contents_contents == curr_contents
+            matched_celln = [matched_celln; cell_n];
+        else
+        end
+        
     end
 end
