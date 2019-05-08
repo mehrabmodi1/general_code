@@ -16,8 +16,8 @@ greymap = flipud(a);
 fly_n = 0;
 script_name = mfilename;
 
-fore_colour = [0.5, 0.4, 1];
-distr_colour = [0.5, 1, 0.4];
+fore_colour = [0.4, 0.3, 0.8];
+distr_colour = [0.4, 0.8, 0.3];
 
 for list_n = 1:size(dataset_list_paths, 1)
     curr_dir_list_path = dataset_list_paths{list_n, 1};
@@ -130,13 +130,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         trace_se = std(curr_traces, [], 3, 'omitnan')./sqrt(length(curr_trs));
         
         figure(1)
-%         plot(trace_mean, 'Color', fore_colour, 'lineWidth', 3)
-%         hold on
-%         plot(squeeze(curr_traces), 'Color', fore_colour, 'lineWidth', 0.2)
-        shadedErrorBar([], trace_mean, trace_se, {'Color', fore_colour})
-        hold on
-        ylabel('foreground odor responses (dF/F)')
-        set_xlabels_time(1, frame_time, 10);
+        plot()
         
         %2. pre, distractor odor resps
         curr_trs = distr_od_trs(distr_od_trs < pairing_tr_n);
@@ -149,15 +143,6 @@ for list_n = 1:size(dataset_list_paths, 1)
         trace_mean = mean(curr_traces, 3, 'omitnan');
         trace_se = std(curr_traces, [], 3, 'omitnan')./sqrt(length(curr_trs));
         
-        figure(2)
-%         plot(trace_mean, 'Color', distr_colour, 'lineWidth', 3)
-%         hold on
-%         plot(squeeze(curr_traces), 'Color', distr_colour, 'lineWidth', 0.2)
-        shadedErrorBar([], trace_mean, trace_se, {'Color', distr_colour})
-        hold on
-        ylabel('distractor odor responses (dF/F)')
-        set_xlabels_time(2, frame_time, 10);
-        
         
         %3. post, foreground odor resps
         curr_trs = fore_od_trs(fore_od_trs > pairing_tr_n);
@@ -169,14 +154,6 @@ for list_n = 1:size(dataset_list_paths, 1)
         trace_mean = mean(curr_traces, 3, 'omitnan');
         trace_se = std(curr_traces, [], 3, 'omitnan')./sqrt(length(curr_trs));
         
-        figure(1)
-%         plot(trace_mean, 'Color', fore_colour.*0.7, 'lineWidth', 3)
-%         hold on
-%         plot(squeeze(curr_traces), 'Color', fore_colour.*0.7, 'lineWidth', 0.2)
-        shadedErrorBar([], trace_mean, trace_se, {'Color', fore_colour.*0.7})
-        fig_wrapup(1, script_name);
-        add_stim_bar(1, stim_frs, [0.75, 0.75, 0.75]);
-        hold off        
         
         %4. post, distractor odor resps
         curr_trs = distr_od_trs(distr_od_trs > pairing_tr_n);
@@ -188,14 +165,6 @@ for list_n = 1:size(dataset_list_paths, 1)
         trace_mean = mean(curr_traces, 3, 'omitnan');
         trace_se = std(curr_traces, [], 3, 'omitnan')./sqrt(length(curr_trs));
         
-        figure(2)
-%         plot(trace_mean, 'Color', distr_colour.*0.7, 'lineWidth', 3)
-%         hold on
-%         plot(squeeze(curr_traces), 'Color', distr_colour.*0.7, 'lineWidth', 0.2)
-        shadedErrorBar([], trace_mean, trace_se, {'Color', distr_colour.*0.7})
-        fig_wrapup(2, script_name);
-        add_stim_bar(2, stim_frs, [0.75, 0.75, 0.75]);
-        hold off
         
         if suppress_plots == 0
             keyboard
@@ -203,6 +172,4 @@ for list_n = 1:size(dataset_list_paths, 1)
         end
         
     end
-    
-    keyboard
 end
