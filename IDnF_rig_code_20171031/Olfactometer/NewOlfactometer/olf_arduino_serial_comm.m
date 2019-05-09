@@ -1,18 +1,12 @@
 function olf_arduino_serial_comm(mid_trial, pulse_train, odor_vec, initial_delay)
 port_number = 13;
-global olf2_ard
 
-%opening stim arduino comm port if this is the last trial
-if mid_trial == 0
-    %making sure port is closed
-    close_serial_port(port_number);
-    
-    port_name = ['COM', num2str(port_number)];
-    olf2_ard = serial(port_name);
-    set(olf2_ard,'BaudRate',9600);
-    fopen(olf2_ard);
-else
-end
+%making sure port is closed
+close_serial_port(port_number);
+port_name = ['COM', num2str(port_number)];
+olf2_ard = serial(port_name);
+set(olf2_ard,'BaudRate',9600);
+fopen(olf2_ard);
 pause(2);       %waiting for matlab to open the serial comm port
 
 %figuring out if this is the first or last trial
@@ -32,7 +26,11 @@ pulse_train = pulse_train.*1000;
 n_pulses = size(pulse_train, 1);
 
 %communicating stimulus parameters to stim arduino
-fprintf(olf2_ard, '%s', ['<', num2str(final_trial), '>']);           %specifying whether the olfactometer should go to sleep after this trial
+try
+    fprintf(olf2_ard, '%s', ['<', num2str(final_trial), '>']);           %specifying whether the olfactometer should go to sleep after this trial
+catch
+    keyboard
+end
 pause(0.05);
 fprintf(olf2_ard, '%s', ['<', num2str(n_pulses), '>']);              %initial delay after scan trigger onset in ms
 pause(0.05);

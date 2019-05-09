@@ -14,17 +14,11 @@ last_long_od = last_long_od.last_long_od;
 params_spec1 = set_ADO_params_HepIAA;
 params_spec1.reps = 5;
 params_spec1.duration = 10;
-params_spec1.isi = 60;
+params_spec1.isi = 52;
 params_spec1.duration_olf2 = 0;
 params_struc1 = setUpStimuli_modular(params_spec1);         %detailed, trial-by-trial parameter specification structure for olf1 odour.
 
-params_spec1.duration_olf2 = 10;
-params_spec1.duration = 0.05;
-params_struc2 = setUpStimuli_modular(params_spec1);         %detailed, trial-by-trial parameter specification structure for olf1 odour.
-params_struc_pre = append_params(params_struc1, params_struc2, 1);
-params = params_struc_pre;           %this is the main parameter structure that will ultimately be saved in curr_aq_direc.
-
-
+params = params_struc1;           %this is the main parameter structure that will ultimately be saved in curr_aq_direc.
 
 %step2: Setting up the pairing trial
 %editing param specification structure for only pairing trial. 
@@ -36,7 +30,7 @@ if last_long_od == 5    %case when last expt was with 2-Hep as foreground odour
     params_spec2.odours_olf2 = 3;
 else
 end
-keyboard
+
 params_struc_pairing = setUpStimuli_modular(params_spec2);         %detailed, trial-by-trial parameter specification structure.
 
 
@@ -46,7 +40,7 @@ params = append_params(params, params_struc_pairing, 0);
 
 
 %step3: Adding on the post trials
-params = append_params(params, params_struc_pre, 0);
+params = append_params(params, params_struc1, 0);
 params_mat = params;
 
 %saving params to current acquisition directory
@@ -66,6 +60,4 @@ else
 end
 
 disp(['saved detailed stim params structure in ', curr_dir]);
-
-
 

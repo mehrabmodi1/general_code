@@ -20,7 +20,7 @@ if exist([save_dir 'params.mat']) == 2
         %identifying last tr completed
         for d_tr_n = 1:n_trials
             done_tr = params_mat(d_tr_n).trs_done;
-            if done_tr == 0b  
+            if done_tr == 0
                 break
             else
             end
