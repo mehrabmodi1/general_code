@@ -20,7 +20,12 @@ del = find(isnan(odor_dur_list) == 1);
 odor_dur_list(del) = [];
 n_odor_durs = length(odor_dur_list);
 
-stim_time = stim_mat_struc(1).stim_latency;              %stimulus onset time in ms
+try
+    stim_time = stim_mat_struc(1).stim_latency;              %stimulus onset time in s
+catch
+    stim_time = stim_mat_struc(1).stimLatency;              %stimulus onset time in s
+end
+
 stim_time = stim_time + 0.2;                                %added delay from valve opening to odor at pipe outlet can programmatically find this out - add feature later.
 stim_frame = floor(stim_time./frame_time);                  %frame no at which odor reached fly
 %pre_stim_frame = floor((stim_time - 4000)./frame_time);     %frame no 4 s prior to odor - to identify a 4s baseline

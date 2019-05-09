@@ -42,11 +42,14 @@ dff_data_mat_f = zeros(n_frames, n_cells, n_trials) + nan; %dff_data_mat can acc
 
 
 for trial_n = 1:n_trials
-    stim_time = stim_mat(trial_n).stim_latency;
+    try
+        stim_time = stim_mat(trial_n).stim_latency;
+    catch
+        stim_time = stim_mat(trial_n).stimLatency;
+    end
     
     stim_frame = floor(stim_time./frame_time) + PID_latency;
-    odor_duration = stim_mat(trial_n).odor_duration;
-    
+        
     %calculating dF/F for all cells, for current trial
     raw_mat = squeeze(raw_data_mat(:, :, trial_n) );
     
