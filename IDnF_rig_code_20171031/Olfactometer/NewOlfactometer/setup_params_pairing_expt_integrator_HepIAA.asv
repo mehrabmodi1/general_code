@@ -10,7 +10,6 @@ last_long_od = load('E:\Turner lab\Bitbucket_repos\general_code\IDnF_rig_code_20
 last_long_od = last_long_od.last_long_od;
 
 %step1:Setting up the pre trials
-%step1.1 setting up pre-post odours to be delivered with olf1
 %creating param specification structure for std KC recording expt. This is for pre-pairing characterisation. 
 if last_long_od == 9
     params_spec1.odours = [5, 11];
@@ -18,7 +17,7 @@ elseif last_long_od == 5
     params_spec1.odours = [9, 11];
 else
 end
-
+%step1.1 setting up pre-post odours to be delivered with olf1
 params_spec1 = set_ADO_params_HepIAA;
 params_spec1.reps = 5;
 params_spec1.duration = 10;
@@ -27,20 +26,12 @@ params_spec1.duration_olf2 = 0;
 params_struc1 = setUpStimuli_modular(params_spec1);         %detailed, trial-by-trial parameter specification structure for olf1 odour.
 
 %step1.2 setting up pre-post odor to be delivered with olf2 (the distr odor)
-if last_long_od == 5
-    params_spec1.odours_olf2 = 3;
-elseif last_long_od == 9
-    params_spec1.odours_olf2 = 2;
-else
-end
-params_spec1.odours = last_long_od;
 params_spec1.duration_olf2 = 10;
 params_spec1.duration = 0.05;
 params_struc2 = setUpStimuli_modular(params_spec1);         %detailed, trial-by-trial parameter specification structure for olf1 odour.
-
-%combining thre results of steps 1.1 and 1.2
 params_struc_pre = append_params(params_struc1, params_struc2, 1);
 params = params_struc_pre;           %this is the main parameter structure that will ultimately be saved in curr_aq_direc.
+
 
 
 %step2: Setting up the pairing trial
