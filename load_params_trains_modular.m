@@ -164,9 +164,7 @@ save([direc, '\stim_mat.mat'], 'stim_mat')
 
 %setting up the standard color vector to use for plotting depending on how
 %many odors there are in this dataset
-n_odors = length(unique(stim_mat_simple(:, 2))); 
-color_vec = setup_std_color_vec(n_odors);
-
-
+n_odors = length(unique(stim_mat_simple(:, 1))); 
+color_vec = cbrewer('qual', 'Pastel1' ,n_odors, 'cubic');
 
 end
