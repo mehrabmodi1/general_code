@@ -5,7 +5,7 @@ dataset_list_paths = [...
                       {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_fore_distr_MBONAlpha1.xls'};...
                     ];
             
-suppress_plots = 0;
+suppress_plots = 1;
 [del, odor_names1] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList.xls', 1);
 [del, odor_names2] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList_olf2.xls', 1);
 
@@ -15,9 +15,6 @@ global greymap
 greymap = flipud(a);
 fly_n = 0;
 script_name = mfilename;
-
-fore_colour = [0.5, 0.4, 1];
-distr_colour = [0.5, 1, 0.4];
 
 for list_n = 1:size(dataset_list_paths, 1)
     curr_dir_list_path = dataset_list_paths{list_n, 1};
@@ -39,9 +36,9 @@ for list_n = 1:size(dataset_list_paths, 1)
         tif_times = load([curr_dir, 'tif_time_stamps.mat']);           %reading in time stamps for each tif file recorded by raw_data_extracter
         tif_times = tif_times.time_stamps;
         [stim_mat, stim_mat_simple, column_heads, color_vec] = load_params_trains_modular(curr_dir, tif_times);    %reading in trial stimulus parameters after matching time stamps to F traces
-        odor_colors = [color_vec(3, :); color_vec(3, :).*0.75; color_vec(2, :)];
-       
-        %Reading in experimental parameters
+        fore_colour = color_vec(1, :);
+        distr_colour = color_vec(2, :);
+        
         %Reading in experimental parameters
         odor_list_olf1 = unique(stim_mat_simple(:, 1) );
         n_odors_olf1 = length(odor_list_olf1);
@@ -75,7 +72,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         del = find(dff_data_mat_f < -1);
         dff_data_mat_f(del) = -1;       %forcing crazy values to sane ones
         
-        %identifying lists of trial numbers
+        %identifying stim_mat_simple col numbers
         led_on_col_n = find_stim_mat_simple_col('led_on', column_heads);            %identifying relevant column number in stim_mat_simple
         od_olf1_col_n = find_stim_mat_simple_col('odor_n', column_heads);           %identifying relevant column number in stim_mat_simple
         od_olf2_col_n = find_stim_mat_simple_col('odour_olf2', column_heads);       %identifying relevant column number in stim_mat_simple
@@ -85,34 +82,41 @@ for list_n = 1:size(dataset_list_paths, 1)
         dur_col_ns = [dur_olf1_col_n, dur_olf2_col_n];
         
         pairing_tr_n = find(stim_mat_simple(:, led_on_col_n) == 1);
-        [stim_frs_pairing_tr, fore_olf_n] = compute_stim_frs_modular(stim_mat, pairing_tr_n, frame_time);        %olfactometer number used to deliver foreground odor in pairing trial
-        distr_olf_n = [1, 2];
-        distr_olf_n(distr_olf_n == fore_olf_n) = [];                 %olfactometer number used to deliver distractor odor in pairing trial
-        saved_resps(dir_n, 5) = fore_olf_n;
+        fore_od_n_olf1 = stim_mat_simple(pairing_tr_n, od_olf1_col_n);
+        saved_resps(dir_n, 5) = fore_od_n_olf1;
         
-        %assigning column numbers in stim_mat_simple depedning on the
-        %olfactometer used to delvier the foreground odour in the pairing
-        %trial.
-        if fore_olf_n == 1
+        %identifying matching odor_ns for olf1 and olf2 based on odorNames
+        %for the two olfactometers
+        fore_od_name = odor_names1{fore_od_n_olf1};
+        fore_od_n_olf2 = lookup_cell_vec(fore_od_name, odor_names2);
+        
+        %checking which olfactometer was used to deliver the foreground
+        %odor in the pre-post trials.
+        fore_trs_olf2 = find(stim_mat_simple(1:(pairing_tr_n - 1), od_olf2_col_n) == fore_od_n_olf2);
+        if isempty(fore_trs_olf2) ==  1
+            fore_olf_n = 1;                 %olfactometer1 used for foreground odor delivery in pre-post trials
+            distr_olf_n = 2;                %olfactometer2 used for distractor odor delivery in pre-post trials
             fore_od_col_n = od_olf1_col_n;
             fore_dur_col_n = dur_olf1_col_n;
             distr_od_col_n = od_olf2_col_n;
-            distr_dur_col_n = dur_olf2_col_n;
-        elseif fore_olf_n == 2
+            distr_dur_col_n = dur_olf2_col_n;            
+        else
+            fore_olf_n = 2;                 %olfactometer2 used for foreground odor delivery in pre-post trials
+            distr_olf_n = 1;                %olfactometer1 used for distractor odor delivery in pre-post trials
             fore_od_col_n = od_olf2_col_n;
             fore_dur_col_n = dur_olf2_col_n;
             distr_od_col_n = od_olf1_col_n;
-            distr_dur_col_n = dur_olf1_col_n;            
-        else
+            distr_dur_col_n = dur_olf1_col_n;
+            
         end
         
-        fore_od_n = stim_mat_simple(pairing_tr_n, od_col_ns(fore_olf_n) );
-        distr_od_n = stim_mat_simple(pairing_tr_n, od_col_ns(distr_olf_n) );
-                
-        fore_od_trs_temp = find(stim_mat_simple(:, fore_od_col_n) == fore_od_n);        %preliminary list of foreground odor presentation trials
-        fore_od_trs_temp = fore_od_trs_temp(fore_od_trs_temp < pairing_tr_n);
-        pre_post_dur = stim_mat_simple(fore_od_trs_temp, fore_dur_col_n);               %list of durations that foreground odor was delivered on
-        pre_post_dur = max(pre_post_dur, [], 'omitnan');                                    %getting rid of very small durations used as dummies for olfactometer1.
+        fore_od_n = unique(stim_mat_simple(1:(pairing_tr_n - 1), fore_od_col_n));
+        fore_od_n = fore_od_n(not(isnan(fore_od_n)));
+        distr_od_n = unique(stim_mat_simple(1:(pairing_tr_n - 1), distr_od_col_n));
+        distr_od_n = distr_od_n(not(isnan(distr_od_n)));
+        
+        pre_post_dur = stim_mat_simple(1:(pairing_tr_n - 1), fore_dur_col_n);               %list of durations that foreground odor was delivered on
+        pre_post_dur = max(pre_post_dur, [], 'omitnan');                
         
         fore_od_trs = find(stim_mat_simple(:, fore_od_col_n) == fore_od_n & stim_mat_simple(:, fore_dur_col_n) == pre_post_dur);             %list of foreground odor presentation trials
         distr_od_trs = find(stim_mat_simple(:, distr_od_col_n) == distr_od_n & stim_mat_simple(:, distr_dur_col_n) == pre_post_dur);         %list of foreground odor presentation trials
@@ -144,8 +148,9 @@ for list_n = 1:size(dataset_list_paths, 1)
         curr_trs(1) = [];             %getting rid of first preesntation of foreground odour     
         curr_traces = dff_data_mat(:, :, curr_trs);
         stim_frs = compute_stim_frs_modular(stim_mat, curr_trs(1), frame_time);
-        stim_frs = stim_frs{fore_olf_n};
-        saved_resps(dir_n, 2) = mean(mean(squeeze(curr_traces(stim_frs(1):(stim_frs(2) + round(4./frame_time)), :, :)), 1, 'omitnan'));
+        stim_frs = stim_frs{distr_olf_n};
+        saved_resps(dir_n, 3) = mean(mean(squeeze(curr_traces(stim_frs(1):(stim_frs(2) + round(4./frame_time)), :, :)), 1, 'omitnan'));
+        
         trace_mean = mean(curr_traces, 3, 'omitnan');
         trace_se = std(curr_traces, [], 3, 'omitnan')./sqrt(length(curr_trs));
         
@@ -165,7 +170,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         curr_traces = dff_data_mat(:, :, curr_trs);
         stim_frs = compute_stim_frs_modular(stim_mat, curr_trs(1), frame_time);
         stim_frs = stim_frs{fore_olf_n};
-        saved_resps(dir_n, 3) = mean(mean(squeeze(curr_traces(stim_frs(1):(stim_frs(2) + round(4./frame_time)), :, :)), 1, 'omitnan'));
+        saved_resps(dir_n, 2) = mean(mean(squeeze(curr_traces(stim_frs(1):(stim_frs(2) + round(4./frame_time)), :, :)), 1, 'omitnan'));
         trace_mean = mean(curr_traces, 3, 'omitnan');
         trace_se = std(curr_traces, [], 3, 'omitnan')./sqrt(length(curr_trs));
         
@@ -183,7 +188,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         curr_trs = sort(curr_trs);
         curr_traces = dff_data_mat(:, :, curr_trs);
         stim_frs = compute_stim_frs_modular(stim_mat, curr_trs(1), frame_time);
-        stim_frs = stim_frs{fore_olf_n};
+        stim_frs = stim_frs{distr_olf_n};
         saved_resps(dir_n, 4) = mean(mean(squeeze(curr_traces(stim_frs(1):(stim_frs(2) + round(4./frame_time)), :, :)), 1, 'omitnan'));
         trace_mean = mean(curr_traces, 3, 'omitnan');
         trace_se = std(curr_traces, [], 3, 'omitnan')./sqrt(length(curr_trs));
@@ -199,10 +204,18 @@ for list_n = 1:size(dataset_list_paths, 1)
         
         if suppress_plots == 0
             keyboard
+            
         else
         end
+        close figure 1
+        close figure 2
         
     end
+    marker_colors = [fore_colour; fore_colour; distr_colour; distr_colour];
+    col_pairs = [1, 2; 3, 4];
+    scattered_dot_plot(saved_resps(:, 1:4), 5, 1, 4, 8, marker_colors, 1, col_pairs, [0.75, 0.75, 0.75],...
+                            [{'fore pre'}, {'fore post'}, {'distr pre'}, {'distr post'}], 1, [0.35, 0.35, 0.35]);
     
+    fig_wrapup(5, script_name);
     keyboard
 end
