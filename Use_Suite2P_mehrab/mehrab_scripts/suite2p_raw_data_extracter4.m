@@ -6,9 +6,10 @@ results_direc_manual_ROIs = 'E:\Data\Analysed_data\Manual_ROIs\';
 reg_tif_direc = 'E:\Data\Analysed_data\Suite2p\Reg_Tiff\';
 raw_direc_base = 'E:\Data\Raw_Data_Current\Resonant\';
 
+extract_both_channels = 0;
 
 %% Reading in manually created direc list
-direc_list = 'E:\Data\Raw_Data_Current\dataset_lists\KC_Ca_alpha1T_longod_train_charac.xls';
+direc_list = 'E:\Data\Raw_Data_Current\dataset_lists\KC_Ca_alpha1T_set2.xls';
 [del, raw_direc_list] = xlsread(direc_list, 1);
 raw_direc_list_copy = raw_direc_list;
 
@@ -82,6 +83,7 @@ end
 %% Loop to repeatedly call ROI_prune to manually curate ROIs identified by Suite2P
 for raw_direc_n = 1:size(raw_direc_list, 1)
     raw_direc = raw_direc_list{raw_direc_n, 1};
+    raw_direc = raw_direc_with_1(raw_direc_base, raw_direc);
     disp(raw_direc);
 
     %% Loading in Suite2P analysis results file
@@ -124,9 +126,12 @@ for do_over = 1:2
         prev_direc = pwd;
         cd([raw_direc]);
         dataset_namei = findstr(raw_direc, '\20');
-        dataset_name = raw_direc((dataset_namei + 1):end);
-        save_path = [results_direc, dataset_name, '\' ];
-
+        dataset_name = raw_direc((dataset_namei + 9):end);
+        raw_direc = raw_direc((dataset_namei + 1):end);
+        raw_direc = raw_direc_with_1(raw_direc_base, raw_direc);
+        raw_direc = [raw_direc, '\'];
+        save_path = [results_direc, raw_direc, '\' ];
+        
         %checking if dataset has already been analysed
         old_dir = pwd;
         if isdir(save_path) == 1
@@ -148,13 +153,7 @@ for do_over = 1:2
         disp(['Reading in avg stack for ', raw_direc])
 
         if do_over == 1
-            %checking for \1 direc
-            if isfolder([raw_direc, '1']) == 1
-                raw_direc = [raw_direc, '1'];
-            else
-            end
-            
-            cd([raw_direc, '\']);
+            cd([raw_direc_base, raw_direc, '\']);
             tif_list = dir('*.tif');
             
             if exist([save_path, '\tr_avg_stack.mat']) == 2
@@ -171,7 +170,7 @@ for do_over = 1:2
                 tif_start_n = 1;
             end
             for tif_n = tif_start_n:length(tif_list)
-                stack_obj = ScanImageTiffReader([raw_direc, '\', tif_list(tif_n).name]);
+                stack_obj = ScanImageTiffReader([raw_direc_base, raw_direc, '\', tif_list(tif_n).name]);
                 curr_stack = stack_obj.data();
                 curr_stack = permute(curr_stack,[2 1 3]);
                 curr_stack = double(curr_stack);
@@ -195,6 +194,30 @@ for do_over = 1:2
             clear ave_stack
 
         elseif do_over == 2
+            
+            %reading in most recent Suite2P results file to get Suite2P ROIs
+            newest_results_file = find_newest_file([results_direc, raw_direc], '_proc');
+            if isempty(newest_results_file) == 1
+                continue
+            else
+            end
+            disp(['Loading Suite2P results file ' newest_results_file])
+            data_mat = load([results_direc, raw_direc, newest_results_file]);
+
+            try
+                data_mat = data_mat.dat;
+                disp('Done loading.')
+            catch
+                del = [];
+                save([raw_direc_base, raw_direc, 'skip_direc.txt'], 'del');
+                disp(['no data in ' results_direc, raw_direc, dir_contents(max_datenum(2)).name, '... skipping.']);
+                continue
+            end
+            cd(prev_direc);
+            
+            %Creating ROI matrix that includes only ROIs manually classified as real cells
+            [ROI_mat] = setup_Suite2P_ROIs(data_mat);
+            clear data_mat
 
             dataset_stack = load([save_path, '\tr_avg_stack.mat']);
             dataset_stack = dataset_stack.ave_stack;
@@ -208,9 +231,10 @@ for do_over = 1:2
             end
 
             done_marking = 0;
-            keyboard
+            ROI_mat_s = sum(ROI_mat, 3);
+            ROI_mat_s(ROI_mat_s > 0) = 1;
             while done_marking == 0
-                [lag_mat, bad_trs, done_marking, bk_ROI] = manual_xylags_zbad2(dataset_stack, ROI_mat);
+                [lag_mat, bad_trs, done_marking, bk_ROI] = manual_xylags_zbad2(dataset_stack, ROI_mat_s);
             end
 
             bad_tr_list = 1:1:size(dataset_stack, 3);
@@ -218,9 +242,10 @@ for do_over = 1:2
             save([save_path, '\xy_lags.mat'], 'lag_mat');
             save([save_path, '\bad_trial_list.mat'], 'bad_tr_list');        %bad_tr_list is actually the list of good trials.
             save([save_path, '\bk_ROI.mat'], 'bk_ROI'); 
+            save([save_path, '\ROI_mat.mat'], 'ROI_mat');
             clear lag_mat
             clear bad_trs
-
+            
         end
 
     
@@ -228,139 +253,51 @@ for do_over = 1:2
 end
 
 
-
-
 log_m = [];
 
-%% Re-formatting and manually aligning ROI matrix with trial1 image
-for raw_direc_n = 1:size(raw_direc_list, 1)
-    raw_direc = raw_direc_list{raw_direc_n, 1};
-    raw_direc_full = [raw_direc_base, raw_direc, '\'];
-    prev_direc = pwd;
-    cd([raw_direc_full]);
-    dataset_namei = findstr(raw_direc_full, '\20');
-    dataset_name = raw_direc_full((dataset_namei + 1):end);
-    save_path = [results_direc, dataset_name, '\' ];
-    
-    disp(raw_direc);
-    cd([results_direc, raw_direc])
-    
-    %checking if ROIs have already been aligned
-    if exist([results_direc, raw_direc, 'ROI_mat_aligned.mat']) == 2
-       
-       continue
-       
-    else
-        
-    end
-    
-    if exist([results_direc, raw_direc, 'trace_extraction_complete.mat']) == 2
-       
-       continue
-       
-    else
-        
-    end
-    
-    %reading in most recent Suite2P results file to get Suite2P ROIs
-    newest_results_file = find_newest_file([results_direc, raw_direc], '_proc');
-    if isempty(newest_results_file) == 1
-        continue
-    else
-    end
-    disp(['Loading Suite2P results file ' newest_results_file])
-    data_mat = load([results_direc, raw_direc, newest_results_file]);
-    
-    try
-        data_mat = data_mat.dat;
-        disp('Done loading.')
-    catch
-        del = [];
-        save([raw_direc_base, raw_direc, 'skip_direc.txt'], 'del');
-        disp(['no data in ' results_direc, raw_direc, dir_contents(max_datenum(2)).name, '... skipping.']);
-        continue
-    end
-    cd(prev_direc);
-
-    %Creating ROI matrix that includes only ROIs manually classified as real cells
-    [ROI_mat] = setup_Suite2P_ROIs(data_mat);
-    clear data_mat
-
-    %aligning ROI matrix to trial1, the reference for all motion correction
-    
-    dataset_stack = load([save_path, '\tr_avg_stack.mat']);
-    dataset_stack = dataset_stack.ave_stack;
-    
-    done_marking = 0;
-    while done_marking == 0
-        [lag_mat, del, done_marking]= manual_xylags_zbad_ROI(dataset_stack, ROI_mat);
-    end
-    
-    row_lag = lag_mat(2, 1);
-    col_lag = lag_mat(2, 2);
-    ROI_mat = translate_stack(ROI_mat, [row_lag; col_lag], nan);
-    
-    save([save_path, 'ROI_mat_aligned.mat'], 'ROI_mat');
-    
-%     %testing
-%     
-    
-end
-
-%temporary code to handle bk_ROI saving bug.
-for raw_direc_n = 1:size(raw_direc_list, 1)
-    raw_direc = raw_direc_list{raw_direc_n, 1};
-    if exist([results_direc, raw_direc, '\trace_extraction_complete.mat']) == 2
-        continue
-    else
-    end
-    
-    if exist([results_direc, raw_direc, '\bk_ROI.mat']) == 2
-        continue
-        
-    else
-        stack = load([results_direc, raw_direc, '\tr_avg_stack.mat']);
-        stack = stack.ave_stack;
-        imagesc(stack(:, :, 1))
-        disp('need to re-draw bk_ROI')
-        bk_ROI = roipoly();
-        save([save_path, '\bk_ROI.mat'], 'bk_ROI');
-        
-        disp(raw_direc)
-        keyboard
-    end
-end
-
-
-
+%PICK UP THREAD HERE
+%fix raw_direc path issue here. figure out why program is moving directly
+%to fly3.
 
 %% Extracting raw fluorescence traces after doing a slow xy-correction, and copying over files needed for further analysis
 for raw_direc_n = 1:size(raw_direc_list, 1)
     raw_direc = raw_direc_list{raw_direc_n, 1};
-    disp(raw_direc);
+    raw_direc = [raw_direc_base, raw_direc];
+    remove_small_tifs(raw_direc);
     prev_direc = pwd;
+    cd([raw_direc]);
+    dataset_namei = findstr(raw_direc, '\20');
+    dataset_name = raw_direc((dataset_namei + 1):end);
+    raw_direc = raw_direc((dataset_namei + 1):end);
+    raw_direc = raw_direc_with_1(raw_direc_base, raw_direc);
+    raw_direc = [raw_direc, '\'];
+    save_path = [results_direc, raw_direc, '\' ];
+    direc = [raw_direc_base, raw_direc];
     
-    if exist([results_direc, raw_direc, 'trace_extraction_complete.mat']) == 2
-       disp(['done extracting traces from ' reg_tif_direc, raw_direc]);
-    
+    prev_direc = pwd;
+    cd([direc]);
+    tif_list = dir('*.tif');
+
+    if exist([results_direc, raw_direc, '\trace_extraction_complete.mat']) == 2
        continue
-       
+
     else
-        
     end
 
-    try
-        ROI_mat = load([results_direc, raw_direc, '\ROI_mat_aligned.mat']);
-    catch
-        continue
-    end
+    disp(['Extracting traces from ' direc]);
     
+    %loading in previously saved ROI_mat
+    ROI_mat = load([results_direc, raw_direc, '\ROI_mat.mat']);
     ROI_mat = ROI_mat.ROI_mat;
-    
-    [raw_data_mat] = extract_raw_traces_par([raw_direc_base, raw_direc], ROI_mat, [results_direc, raw_direc, '\'], 2);
-    
-    
-    
+
+
+    %extracting raw traces
+    dataset_namei = findstr(direc, '\20');
+    dataset_name = direc((dataset_namei + 1):end);
+    save_path = [results_direc, raw_direc, '\' ];
+  
+
+    [raw_data_mat] = extract_raw_traces_par(direc, ROI_mat, save_path, 1, extract_both_channels);
     
     %copying over stimulus param files
     cd([raw_direc_base, raw_direc]);
