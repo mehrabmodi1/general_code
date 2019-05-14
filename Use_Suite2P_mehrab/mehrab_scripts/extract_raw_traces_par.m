@@ -6,7 +6,11 @@ function [raw_data_mat] = extract_raw_traces(direc, ROI_mat, save_path, do_regis
 
 prev_direc = pwd;
 cd(direc)
-dir_contents = dir_date_sorted(direc, '*.tif');
+try
+    dir_contents = dir_date_sorted(direc, '*.tif');
+catch
+    keyboard
+end
 n_trials = length(dir_contents);
 remove_small_tifs(direc);
 n_cells = size(ROI_mat, 3);
