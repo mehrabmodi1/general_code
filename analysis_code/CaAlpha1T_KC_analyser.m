@@ -30,10 +30,10 @@ for list_n = 1:size(dataset_list_paths, 1)
         fly_n = fly_n + 1;
               
         saved_an_results.scriptname = mfilename('fullpath');
-        curr_dir = [dir_list{dir_n, 1}, '\'];
-        curr_dir = manage_base_paths(curr_dir, 2);
-        
-        
+        curr_dir = [dir_list{dir_n, 1}];
+        curr_dir = manage_base_paths(curr_dir, 3);
+        curr_dir = raw_direc_with_1(curr_dir);
+        curr_dir = [curr_dir, '\'];
         tif_times = load([curr_dir, 'tif_time_stamps.mat']);           %reading in time stamps for each tif file recorded by raw_data_extracter
         tif_times = tif_times.time_stamps;
         [stim_mat, stim_mat_simple, column_heads, color_vec] = load_params_trains_modular(curr_dir, tif_times);    %reading in trial stimulus parameters after matching time stamps to F traces
@@ -82,6 +82,13 @@ for list_n = 1:size(dataset_list_paths, 1)
         dur_olf2_col_n = find_stim_mat_simple_col('duration_olf2', column_heads);   %identifying relevant column number in stim_mat_simple
         od_col_ns = [od_olf1_col_n, od_olf2_col_n];
         dur_col_ns = [dur_olf1_col_n, dur_olf2_col_n];
-        keyboard
+        
+        
+        %computing over-all mean trace
+        curr_mean_trace = mean(mean(dff_data_mat_f, 3, 'omitnan'), 2, 'omitnan');
+        mean_trace_all = (mean_trace_all + curr_mean_trace);
+        
+        
+        
     end
 end

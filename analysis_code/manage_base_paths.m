@@ -6,13 +6,16 @@ function [path_out] = manage_base_paths(path_in, out_type)
 
 %reading in base_paths specific to this computer (convention, raw data in row1col1 and an data in row2col1)
 saved_local_paths = [{'C:\Data\Data\Raw_data'};...
-                     {'C:\Data\Data\Analysed_data\Manual_ROI_results'}];
+                     {'C:\Data\Data\Analysed_data\Manual_ROI_results'};...
+                     {'C:\Data\Data\Analysed_data\Suite2P_results'}...
+                     ];
 
 if out_type == 1
     base_path = saved_local_paths{1, 1};
 elseif out_type == 2
     base_path = saved_local_paths{2, 1};
-else 
+elseif out_type == 3
+    base_path = saved_local_paths{3, 1};
 end
 
 %parsing path_in to remove base region
