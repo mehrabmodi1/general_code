@@ -53,6 +53,7 @@ for trial_n = 1:n_trials
     %calculating dF/F for all cells, for current trial
     raw_mat = squeeze(raw_data_mat(:, :, trial_n) );
     
+    warning('off', 'MATLAB:colon:nonIntegerIndex');
     baseline_vec = mean(raw_mat((stim_frame - round(5./frame_time)):(stim_frame - 2), :), 1, 'omitnan');          %vector of F baselines for all cells
     baseline_mat = repmat(baseline_vec, n_frames, 1);
     dff_mat = (raw_mat - baseline_mat)./baseline_mat;

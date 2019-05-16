@@ -84,12 +84,20 @@ for list_n = 1:size(dataset_list_paths, 1)
         
         pairing_tr_n = find(stim_mat_simple(:, led_on_col_n) == 1);
         fore_od_n_olf1 = stim_mat_simple(pairing_tr_n, od_olf1_col_n);          %This assumes the foreground odor is always delivered on olf1
+        distr_od_n_olf2 = stim_mat_simple(pairing_tr_n, od_olf2_col_n);
         saved_resps(dir_n, 5) = fore_od_n_olf1;                                 %keeping track of the foreground odor number for current dataset
         
         %identifying matching odor_ns for olf1 and olf2 based on odorNames
         %for the two olfactometers
         fore_od_name = odor_names1{fore_od_n_olf1};
         fore_od_n_olf2 = lookup_cell_vec(fore_od_name, odor_names2);
+        distr_od_name = odor_names2{distr_od_n_olf2};
+        distr_od_n_olf1 = lookup_cell_vec(distr_od_name, odor_names2);
+        fore_od_n = fore_od_n_olf1;         %olf1 is always used to deliver the foreground odor
+        distr_od_n = distr_od_n_olf2;        
+        od_list = unique(stim_mat_simple(:, od_olf1_col_n));                    %all odors delivered on olf1
+        ctrl_od_ni = find(od_list ~= fore_od_n & od_list ~= distr_od_n_olf1);
+        ctrl_od_n_olf1 = 
         
         %checking which olfactometer was used to deliver the foreground
         %odor in the pre-post trials.
@@ -112,17 +120,13 @@ for list_n = 1:size(dataset_list_paths, 1)
         end
         keyboard
         
-        fore_od_n = unique(stim_mat_simple(1:(pairing_tr_n - 1), fore_od_col_n));
-        fore_od_n = fore_od_n(not(isnan(fore_od_n)));
-        distr_od_n = unique(stim_mat_simple(1:(pairing_tr_n - 1), distr_od_col_n));
-        distr_od_n = distr_od_n(not(isnan(distr_od_n)));
         
-        pre_post_dur = stim_mat_simple(1:(pairing_tr_n - 1), fore_dur_col_n);               %list of durations that foreground odor was delivered on
-        pre_post_dur = max(pre_post_dur, [], 'omitnan');                
+        pre_post_dur = stim_mat_simple(1:(pairing_tr_n - 1), fore_dur_col_n);               
+        pre_post_dur = max(pre_post_dur, [], 'omitnan');                        %duration that pre-post odors were delivered for
         
         fore_od_trs = find(stim_mat_simple(:, fore_od_col_n) == fore_od_n & stim_mat_simple(:, fore_dur_col_n) == pre_post_dur);             %list of foreground odor presentation trials
         distr_od_trs = find(stim_mat_simple(:, distr_od_col_n) == distr_od_n & stim_mat_simple(:, distr_dur_col_n) == pre_post_dur);         %list of foreground odor presentation trials
-        
+        ctrl_od_trs = find()
         
         %1. pre, foreground odor resps
         curr_trs = fore_od_trs(fore_od_trs < pairing_tr_n);
