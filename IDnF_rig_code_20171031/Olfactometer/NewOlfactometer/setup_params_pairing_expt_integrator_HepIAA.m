@@ -12,6 +12,7 @@ last_long_od = last_long_od.last_long_od;
 %step1:Setting up the pre trials
 %step1.1 setting up pre-post odours to be delivered with olf1
 %creating param specification structure for std KC recording expt. This is for pre-pairing characterisation. 
+params_spec1 = set_ADO_params_HepIAA;
 if last_long_od == 9
     params_spec1.odours = [5, 11];
 elseif last_long_od == 5
@@ -19,7 +20,6 @@ elseif last_long_od == 5
 else
 end
 
-params_spec1 = set_ADO_params_HepIAA;
 params_spec1.reps = 5;
 params_spec1.duration = 10;
 params_spec1.isi = 52;
@@ -56,10 +56,8 @@ end
 
 params_struc_pairing = setUpStimuli_modular(params_spec2);         %detailed, trial-by-trial parameter specification structure.
 
-
 %concatenating pairing trial to params
 params = append_params(params, params_struc_pairing, 0);
-
 
 
 %step3: Adding on the post trials
