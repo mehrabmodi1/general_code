@@ -74,6 +74,9 @@ for list_n = 1:size(dataset_list_paths, 1)
         del = find(dff_data_mat_f < -1);
         dff_data_mat_f(del) = -1;       %forcing crazy values to sane ones
         
+        %identifying significantly responsive cells
+        [resp_areas, sig_trace_mat, sig_trace_mat_old, sig_cell_mat] = cal_sig_responses_modular(dff_data_mat, stim_mat, stim_mat_simple, curr_dir, frame_time);
+        
         %identifying stim_mat_simple col numbers
         led_on_col_n = find_stim_mat_simple_col('led_on', column_heads);            %identifying relevant column number in stim_mat_simple
         od_olf1_col_n = find_stim_mat_simple_col('odor_n', column_heads);           %identifying relevant column number in stim_mat_simple
@@ -83,12 +86,16 @@ for list_n = 1:size(dataset_list_paths, 1)
         od_col_ns = [od_olf1_col_n, od_olf2_col_n];
         dur_col_ns = [dur_olf1_col_n, dur_olf2_col_n];
         
-        
-        %computing over-all mean trace
-        curr_mean_trace = mean(mean(dff_data_mat_f, 3, 'omitnan'), 2, 'omitnan');
-        mean_trace_all = (mean_trace_all + curr_mean_trace);
-        
-        
+        %computing mean trace for each cell
+        for od_n = 1:n_odors_olf1
+            curr_od_ni = odor_list_olf1(od_n);
+            curr_trs = find(stim_mat_simple(:, 1 ) == curr_od_ni);
+            curr_sig_cells = find(sig_cell_mat(:, curr_od_ni) == 1);
+            curr_mean_traces = mean(dff_data_mat_f(:, curr_sig_cells, curr_trs), 3, 'omitnan');
+            norm_mat = repmat(max(curr_mean_traces, [], 1), size(curr_mean_traces, 1), 1);
+            curr_mean_traces_n = curr_mean_traces./norm_mat;
+            keyboard
+        end
         
     end
 end
