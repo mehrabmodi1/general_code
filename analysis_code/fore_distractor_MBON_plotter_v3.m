@@ -3,10 +3,12 @@ close all
 
 dataset_list_paths = [...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_fore_distr_MBONAlpha1.xls'};...
-                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_fore_distr_MBONAlpha1_set2.xls'};...
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_fore_distr_MBONAlpha1_set2.xls'};...
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_fore_distr_MBONAlpha1_set3_highLED.xls'};...
+                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_fore_distr_MBONGamma2.xls'};...
                     ];
             
-suppress_plots = 0;
+suppress_plots = 1;
 [del, odor_names1] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList.xls', 1);
 [del, odor_names2] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList_olf2.xls', 1);
 
@@ -127,12 +129,11 @@ for list_n = 1:size(dataset_list_paths, 1)
         distr_od_trs = find(stim_mat_simple(:, distr_od_col_n) == distr_od_n & stim_mat_simple(:, distr_dur_col_n) == pre_post_dur);         %list of foreground odor presentation trials
         ctrl_od_trs = find(stim_mat_simple(:, od_olf1_col_n) == ctrl_od_n_olf1);
         
-        
         %1. pre, foreground odor resps
         curr_trs = fore_od_trs(fore_od_trs < pairing_tr_n);
         curr_trs = sort(curr_trs);
         curr_trs(1) = [];             %getting rid of first preesntation of foreground odour     
-        curr_traces = dff_data_mat(:, :, curr_trs);
+        curr_traces = dff_data_mat_f(:, :, curr_trs);
         stim_frs = compute_stim_frs_modular(stim_mat, curr_trs(1), frame_time);
         stim_frs = stim_frs{fore_olf_n};
         saved_resps(dir_n, 1) = mean(mean(squeeze(curr_traces(stim_frs(1):(stim_frs(2) + round(4./frame_time)), :, :)), 1, 'omitnan'));
@@ -145,14 +146,14 @@ for list_n = 1:size(dataset_list_paths, 1)
 %         plot(squeeze(curr_traces), 'Color', fore_colour, 'lineWidth', 0.2)
         shadedErrorBar([], trace_mean, trace_se, {'Color', fore_colour})
         hold on
-        ylabel('foreground odor responses (dF/F)')
+        ylabel('fore. responses (dF/F)')
         set_xlabels_time(1, frame_time, 10);
         
         %2. pre, distractor odor resps
         curr_trs = distr_od_trs(distr_od_trs < pairing_tr_n);
         curr_trs = sort(curr_trs);
         curr_trs(1) = [];             %getting rid of first preesntation of foreground odour     
-        curr_traces = dff_data_mat(:, :, curr_trs);
+        curr_traces = dff_data_mat_f(:, :, curr_trs);
         stim_frs = compute_stim_frs_modular(stim_mat, curr_trs(1), frame_time);
         stim_frs = stim_frs{distr_olf_n};
         saved_resps(dir_n, 3) = mean(mean(squeeze(curr_traces(stim_frs(1):(stim_frs(2) + round(4./frame_time)), :, :)), 1, 'omitnan'));
@@ -166,14 +167,14 @@ for list_n = 1:size(dataset_list_paths, 1)
 %         plot(squeeze(curr_traces), 'Color', distr_colour, 'lineWidth', 0.2)
         shadedErrorBar([], trace_mean, trace_se, {'Color', distr_colour})
         hold on
-        ylabel('distractor odor responses (dF/F)')
+        ylabel('distr. responses (dF/F)')
         set_xlabels_time(2, frame_time, 10);
         
         
         %3. post, foreground odor resps
         curr_trs = fore_od_trs(fore_od_trs > pairing_tr_n);
         curr_trs = sort(curr_trs);
-        curr_traces = dff_data_mat(:, :, curr_trs);
+        curr_traces = dff_data_mat_f(:, :, curr_trs);
         stim_frs = compute_stim_frs_modular(stim_mat, curr_trs(1), frame_time);
         stim_frs = stim_frs{fore_olf_n};
         saved_resps(dir_n, 2) = mean(mean(squeeze(curr_traces(stim_frs(1):(stim_frs(2) + round(4./frame_time)), :, :)), 1, 'omitnan'));
@@ -185,6 +186,12 @@ for list_n = 1:size(dataset_list_paths, 1)
 %         hold on
 %         plot(squeeze(curr_traces), 'Color', fore_colour.*0.7, 'lineWidth', 0.2)
         shadedErrorBar([], trace_mean, trace_se, {'Color', fore_colour.*0.7})
+        ax = axis();
+        ax(2) = 300;
+        ax(3) = -0.2;
+        ax(4) = 1.5;
+        axis(ax);
+        set_xlabels_time(1, frame_time, 10);
         fig_wrapup(1, script_name);
         add_stim_bar(1, stim_frs, [0.75, 0.75, 0.75]);
         hold off        
@@ -192,7 +199,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         %4. post, distractor odor resps
         curr_trs = distr_od_trs(distr_od_trs > pairing_tr_n);
         curr_trs = sort(curr_trs);
-        curr_traces = dff_data_mat(:, :, curr_trs);
+        curr_traces = dff_data_mat_f(:, :, curr_trs);
         stim_frs = compute_stim_frs_modular(stim_mat, curr_trs(1), frame_time);
         stim_frs = stim_frs{distr_olf_n};
         saved_resps(dir_n, 4) = mean(mean(squeeze(curr_traces(stim_frs(1):(stim_frs(2) + round(4./frame_time)), :, :)), 1, 'omitnan'));
@@ -204,9 +211,76 @@ for list_n = 1:size(dataset_list_paths, 1)
 %         hold on
 %         plot(squeeze(curr_traces), 'Color', distr_colour.*0.7, 'lineWidth', 0.2)
         shadedErrorBar([], trace_mean, trace_se, {'Color', distr_colour.*0.7})
+        ax = axis();
+        ax(2) = 300;
+        ax(3) = -0.2;
+        ax(4) = 1.5;
+        axis(ax);
+        set_xlabels_time(2, frame_time, 10);
         fig_wrapup(2, script_name);
         add_stim_bar(2, stim_frs, [0.75, 0.75, 0.75]);
+        hold off       
+        
+        
+        %5 Ctrl odor pre responses
+        curr_trs = ctrl_od_trs(ctrl_od_trs < pairing_tr_n);
+        curr_trs = sort(curr_trs);
+        curr_traces = dff_data_mat_f(:, :, curr_trs);
+        stim_frs = compute_stim_frs_modular(stim_mat, curr_trs(1), frame_time);
+        stim_frs = stim_frs{fore_olf_n};
+        saved_resps(dir_n, 5) = mean(mean(squeeze(curr_traces(stim_frs(1):(stim_frs(2) + round(4./frame_time)), :, :)), 1, 'omitnan'));
+        
+        trace_mean = mean(curr_traces, 3, 'omitnan');
+        trace_se = std(curr_traces, [], 3, 'omitnan')./sqrt(length(curr_trs));
+        figure(3)
+%         plot(trace_mean, 'Color', distr_colour.*0.7, 'lineWidth', 3)
+%         hold on
+%         plot(squeeze(curr_traces), 'Color', distr_colour.*0.7, 'lineWidth', 0.2)
+        shadedErrorBar([], trace_mean, trace_se, {'Color', ctrl_colour})
+        ylabel('ctrl. responses (dF/F)')
+        hold on
+        
+        
+        %6 Ctrl odor post responses
+        curr_trs = ctrl_od_trs(ctrl_od_trs > pairing_tr_n);
+        curr_trs = sort(curr_trs);
+        curr_traces = dff_data_mat_f(:, :, curr_trs);
+        stim_frs = compute_stim_frs_modular(stim_mat, curr_trs(1), frame_time);
+        stim_frs = stim_frs{fore_olf_n};
+        saved_resps(dir_n, 6) = mean(mean(squeeze(curr_traces(stim_frs(1):(stim_frs(2) + round(4./frame_time)), :, :)), 1, 'omitnan'));
+        
+        trace_mean = mean(curr_traces, 3, 'omitnan');
+        trace_se = std(curr_traces, [], 3, 'omitnan')./sqrt(length(curr_trs));
+        figure(3)
+%         plot(trace_mean, 'Color', distr_colour.*0.7, 'lineWidth', 3)
+%         hold on
+%         plot(squeeze(curr_traces), 'Color', distr_colour.*0.7, 'lineWidth', 0.2)
+        shadedErrorBar([], trace_mean, trace_se, {'Color', ctrl_colour.*0.7})
+        ax = axis();
+        ax(2) = 300;
+        ax(3) = -0.2;
+        ax(4) = 1.5;
+        axis(ax);
+        set_xlabels_time(3, frame_time, 10);
+        fig_wrapup(3, script_name);
+        add_stim_bar(3, stim_frs, [0.75, 0.75, 0.75]);
         hold off
+        
+        
+        %plotting pairing trial PID traces
+        figure(4)
+        [PID_traces, traces_orig] = get_PID_traces(curr_dir, 16, frame_time);
+        plot(PID_traces(:, 1), 'lineWidth', 2)
+        hold on
+        plot(PID_traces(:, 2), 'r')
+        hold off
+        ax = axis;
+        ax(3) = -0.002;
+        ax(4) = 0.008;
+        axis(ax);
+        ylabel('PID signal (V)')
+        set_xlabels_time(4, frame_time, 10);
+        fig_wrapup(4, script_name);
         
         if suppress_plots == 0
             keyboard
@@ -215,30 +289,26 @@ for list_n = 1:size(dataset_list_paths, 1)
         end
         close figure 1
         close figure 2
-        
-        %5 Ctrl odor pre responses
-        curr_trs = ctrl_od_trs(ctrl_od_trs < pairing_tr_n);
-        curr_trs = sort(curr_trs);
-        curr_traces = dff_data_mat(:, :, curr_trs);
-        stim_frs = compute_stim_frs_modular(stim_mat, curr_trs(1), frame_time);
-        stim_frs = stim_frs{fore_olf_n};
-        saved_resps(dir_n, 5) = mean(mean(squeeze(curr_traces(stim_frs(1):(stim_frs(2) + round(4./frame_time)), :, :)), 1, 'omitnan'));
-        
-        %6 Ctrl odor post responses
-        curr_trs = ctrl_od_trs_od_trs(ctrl_od_trs > pairing_tr_n);
-        curr_trs = sort(curr_trs);
-        curr_traces = dff_data_mat(:, :, curr_trs);
-        stim_frs = compute_stim_frs_modular(stim_mat, curr_trs(1), frame_time);
-        stim_frs = stim_frs{fore_olf_n};
-        saved_resps(dir_n, 6) = mean(mean(squeeze(curr_traces(stim_frs(1):(stim_frs(2) + round(4./frame_time)), :, :)), 1, 'omitnan'));
-        
-        
+        close figure 3
+        close figure 4
+                
     end
     marker_colors = [fore_colour; fore_colour; distr_colour; distr_colour; ctrl_colour; ctrl_colour];
     col_pairs = [1, 2; 3, 4; 5, 6];
     scattered_dot_plot(saved_resps(:, 1:6), 5, 1, 4, 8, marker_colors, 1, col_pairs, [0.75, 0.75, 0.75],...
-                            [{'fore pre'}, {'fore post'}, {'distr pre'}, {'distr post'}, {'ctrl_pre'}, {'ctrl_post'}], 1, [0.35, 0.35, 0.35]);
+                            [{'fore_p_r_e'}, {'fore_p_o_s_t'}, {'distr_p_r_e'}, {'distr_p_o_s_t'}, {'ctrl_p_r_e'}, {'ctrl_p_o_s_t'}], 1, [0.35, 0.35, 0.35]);
     
+    ylabel('response size (mean dF/F)')
     fig_wrapup(5, script_name);
+    
+    %statistical testing
+    [h_fore, p_fore] = ttest(saved_resps(:, 1), saved_resps(:, 2));
+    [h_distr, p_distr] = ttest(saved_resps(:, 3), saved_resps(:, 4));
+    [h_ctrl, p_ctrl] = ttest(saved_resps(:, 5), saved_resps(:, 6));
+    
+    [p_corr, h] = bonf_holm([p_fore, p_distr, p_ctrl], 0.05)
     keyboard
+    
+    
+
 end
