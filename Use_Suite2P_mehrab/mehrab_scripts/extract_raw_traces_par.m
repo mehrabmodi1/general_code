@@ -215,22 +215,7 @@ for trial_n = start_trial:n_trials
     %% reading in raw fluorescence data for each ROI into a single matrix (dim1 - frame_n, dim2 - ROI_n)
     n_frames = size(stack, 3);
    
-    %checking for line noise and subtracting it away.
-    if isa(stack_reg, 'int16') == 1
-        stack_reg = double(stack_reg);
-    else
-    end   
-        
-    for frame_n = 1:n_frames
-        curr_fr = stack_reg(:, :, frame_n);
-        bk_fr = check_sig_noise(curr_fr);
-        if median(median(bk_fr)) < median(median(curr_fr)).*0.05
-            curr_fr_a = curr_fr - bk_fr;
-            stack_reg(:, :, frame_n) = curr_fr_a;
-        else
-        end
-
-    end
+    
    
     %registration testing lines of code
 %     if trial_n > 1 && rem(trial_n, 5) == 0
@@ -288,7 +273,19 @@ for trial_n = start_trial:n_trials
         else
             bk_val = 0;
         end
-       
+        
+        
+        %checking for line noise and subtracting it away.
+        if isa(curr_frame, 'int16') == 1
+            curr_frame = double(curr_frame);
+        else
+        end   
+        bk_fr = check_sig_noise(curr_frame, bk_val);
+        curr_frame = curr_frame - bk_fr;
+        stack_reg(:, :, frame_n) = curr_frame;
+        
+
+        %PMT background subtraction       
         curr_frame = curr_frame - bk_val;
                 
         raw_vec = zeros(1, n_cells);
