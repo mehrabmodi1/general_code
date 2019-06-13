@@ -1,25 +1,17 @@
-clear all
 close all
+clear all
 
-path = 'C:\Data\Data\Analysed_data\Manual_ROI_results\20190312\MPPC_PMT_13F02LexA_opGC6f_short_dur - Copy\';
-%reading in stack object
-im_obj = ScanImageTiffReader([path, 'odor_trs_00001.tif']);
-%obtaining image stack
-stack = im_obj.data();
-%stack_orig = stack;
-stack = permute(stack,[2 1 3]);
-stack = double(stack);
+%stack_obj = ScanImageTiffReader('C:\Users\Mehrab\Dropbox (HHMI)\Kaspar-Mehrab\Fseries_images_code\MPPC_pollen_grain_power_range\22_percent_00001.tif');
+stack_obj = ScanImageTiffReader('C:\Users\Mehrab\Dropbox (HHMI)\Kaspar-Mehrab\Fseries_images_code\MPPC_pollen_grain_power_range\04_percent_00001.tif');
+stack = stack_obj.data();
 
-%separating channels
-stack_PMT = stack(:, :, 1:2:size(stack, 3));
-stack_MPPC = stack(:, :, 2:2:size(stack, 3));
+PMT_stack = double(stack(:, :, 1:2:end));
+MPPC_stack = double(stack(:, :, 2:2:end));
 
-bk_ROI = load([path, 'bk_ROI.mat']);
-bk_ROI = bk_ROI.bk_ROI;
-curr_pix = find(bk_ROI == 1);
 
-curr_fr_PMT = stack_PMT(:, :, 792);
-bk_val = mean(curr_fr_PMT(curr_pix))
+[PMT_hist, PMT_bins] = hist(reshape(PMT_stack, 1, []), 100);
+[MPPC_hist, MPPC_bins] = hist(reshape(MPPC_stack, 1, []), 100);
 
-curr_fr_MPPC = stack_MPPC(:, :, 792);
-bk_val = mean(curr_fr_MPPC(curr_pix))
+
+a = double(PMT_stack < 0);
+playStack(a, 0.03, 1)
