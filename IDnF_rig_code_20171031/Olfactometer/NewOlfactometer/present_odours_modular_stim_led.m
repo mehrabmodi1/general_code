@@ -350,6 +350,8 @@ for trial_n = start_tr:n_trials
     end
     recovering_session = 0;
 end
+sleep_olf2
+pause(4)
 release(s)
 close_serial_port(19);   %LED_arduino
 close_serial_port(13);   %olf2_arduino
