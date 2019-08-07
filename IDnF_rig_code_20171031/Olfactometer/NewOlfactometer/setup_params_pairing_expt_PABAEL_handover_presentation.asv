@@ -10,7 +10,8 @@ log_file_path = 'E:\Turner lab\Bitbucket_repos\general_code\IDnF_rig_code_201710
 last_paired_od = load(log_file_path);
 last_paired_od = last_paired_od.last_paired_od;
 odors_to_switch = [3, 10];     %PA and BA on olf1
-od_remi = find(odors_to_switch == intersect(last_paired_od, odors_to_switch));
+od_remi = find(intersect(last_paired_od, odors_to_switch);
+keyboard
 odors_to_switch(od_remi) = [];
 od_to_pair = odors_to_switch;
 last_paired_od = od_to_pair;
@@ -24,10 +25,6 @@ params_spec1 = set_ADO_params_default;
 del = input('WARNING, PABAEL experiment - swap in BA as odor 3 on olfactometer 2!; Press Enter to conitnue.');
 [del, odourNames_olf2]=xlsread('E:\Turner lab\Bitbucket_repos\general_code\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList_olf2 _PABAEL.xls');
 params_spec1.odourNames_olf2 = odourNames_olf2;
-
-
-%PICK UP THREAD HERE: ensure od_to_pair is the paired odor, fix all the
-%other protocol parameter specifications.
 
 keyboard
 params_spec1.odours = [3];%PA
