@@ -19,7 +19,7 @@
 
 % check out the README file for detailed instructions
 % **** and for more options available ****
-addpath('E:\Code\general_code_repo\Use_Suite2P_mehrab\mehrab_scripts') % add the path to your make_db file
+addpath('E:\Code\general_code_repo2\Use_Suite2P_mehrab\mehrab_scripts') % add the path to your make_db file
 
 % overwrite any of these default options in your make_db file for individual experiments
 make_db; % RUN YOUR OWN MAKE_DB SCRIPT TO RUN HERE
