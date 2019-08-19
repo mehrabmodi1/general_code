@@ -37,7 +37,6 @@ for list_n = 1:size(dataset_list_paths, 1)
         tif_name = dir('*.tif');
         stack_obj = ScanImageTiffReader([curr_dir, tif_name(1).name]);
         [frame_time, zoom, n_chans, PMT_offsets] = SI_tif_info(stack_obj);
-        frame_time = frame_time;
         
         tif_times = load([curr_dir, 'tif_time_stamps.mat']);           %reading in time stamps for each tif file recorded by raw_data_extracter
         tif_times = tif_times.time_stamps;

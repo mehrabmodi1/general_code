@@ -14,7 +14,7 @@ PMT_stack = align_image_rows(PMT_stack, []);
 MPPC_stack = align_image_rows(MPPC_stack, 1);
 
 %manually measured background values
-PMT_bk = 110;
+PMT_bk = 150;
 MPPC_bk = -650;
 
 
@@ -48,18 +48,22 @@ MPPC_stack_orig = MPPC_stack;
 %norm_PMT = median(median(median(PMT_stack(PMT_stack > PMT_bk))));
 %norm_MPPC = median(median(median(MPPC_stack(MPPC_stack > MPPC_bk))));
 
-norm_PMT = 6000;
-norm_MPPC = 600;
+norm_PMT = quantile(reshape(PMT_stack_orig, [], 1), 0.95);
+norm_MPPC = quantile(reshape(MPPC_stack_orig, [], 1), 0.9);
 
-PMT_stack(PMT_stack < 0) = 0;
-MPPC_stack(MPPC_stack < 0) = 0;
+% PMT_stack(PMT_stack < 0) = 0;
+% MPPC_stack(MPPC_stack < 0) = 0;
 
 PMT_stack = PMT_stack_orig./(norm_PMT);
 MPPC_stack = MPPC_stack_orig./(norm_MPPC);
 
-PMT_stack = PMT_stack.*256;
-MPPC_stack = MPPC_stack.*256;
+PMT_stack = PMT_stack.*50.*0.58;
+MPPC_stack = MPPC_stack.*50;
 
+PMT_stack = PMT_stack + 38;
+
+PMT_stack = (PMT_stack.^0.5).*10;
+MPPC_stack = (MPPC_stack.^0.5).*10;
 pad = zeros( size(PMT_stack, 1), round((size(PMT_stack, 2).*0.05)), size(PMT_stack, 3)) + 1;
 
 clear stk
@@ -68,8 +72,8 @@ stk = [PMT_stack, pad, MPPC_stack];
 max_val = max(max(max(PMT_stack)));
 
 %stk = stk./max_val;   %normlising frame values
-moving_ave_window = 20;
-stim_frames = [203, 248] - moving_ave_window;       %pairs of onset frame, off frame
+moving_ave_window = 1;
+stim_frames = [280, 380] - moving_ave_window;       %pairs of onset frame, off frame
 
 tif_size = [size(stk, 1), size(stk, 2)];
 n_frames = size(stk, 3);
@@ -96,12 +100,12 @@ for frame_n = 1:n_frames
         %checking if current fr is a stimulus fr and adding stimulus marker
         if frame_n >= curr_stim_frames(1) && frame_n <= curr_stim_frames(2)
             curr_frame(stim_sq_ROI_i) = max_val.*1.2;                   %stim indicator is 20% brighter than brightest pixel in stack
-            curr_frame_diff(stim_sq_ROI_i) = max_val.*1.2;
+            %curr_frame_diff(stim_sq_ROI_i) = max_val.*1.2;
         else
         end
     end
-    
-        %loop to implement moving window averaging of frames
+     
+    %loop to implement moving window averaging of frames
     if frame_n <= moving_ave_window
         ave_fr_mat(:, :, frame_n) = curr_frame;
         ave_fr_mat_diff(:, :, frame_n) = curr_frame_diff;
@@ -127,13 +131,13 @@ for frame_n = 1:n_frames
         
         if first_frame == 1
             imwrite(uint8(ave_fr), [direc, 'annotated_stk.tif']);
-            imwrite(uint8(ave_fr_diff)', [direc, 'annotated_diff_stk.tif']);
-            imwrite(uint8(ave_fr_combined)', [direc, 'annotated_combined_stk.tif']);
+            imwrite(uint8(ave_fr_diff), [direc, 'annotated_diff_stk.tif']);
+            imwrite(uint8(ave_fr_combined), [direc, 'annotated_combined_stk.tif']);
             first_frame = 0;
         elseif first_frame == 0
             imwrite(uint8(ave_fr), [direc, 'annotated_stk.tif'], 'WriteMode', 'append');
-            imwrite(uint8(ave_fr_diff), [direc, 'annotated_diff_stk.tif'], 'WriteMode', 'append');
-            imwrite(uint8(ave_fr_combined), [direc, 'annotated_combined_stk.tif'], 'WriteMode', 'append');
+            imwrite(uint8(ave_fr_diff), [direc, 'annotated_diff_stk_noave2.tif'], 'WriteMode', 'append');
+            imwrite(uint8(ave_fr_combined), [direc, 'annotated_combined_stk_noave2.tif'], 'WriteMode', 'append');
         end
         
         
