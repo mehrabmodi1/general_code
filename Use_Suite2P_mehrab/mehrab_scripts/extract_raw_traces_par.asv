@@ -280,17 +280,14 @@ for trial_n = start_trial:n_trials
     %computing a moving-window averaged bk_val for each frame.
     if isemtpy(bk_pixi) == 0
         
-        bk_val_vec = zeros(size(stack_reg, 3), 1) + nan;
         for frame_n = 1:size(stack_reg, 3)
             curr_frame = stack_reg(:, :, frame_n);
             curr_frame = double(curr_frame);
 
-            bk_val_vec(frame_n, 1) = mean(mean(curr_frame(bk_pixi)));
+            bk_val = mean(mean(curr_frame(bk_pixi)));
             
+
         end
-        %computing moving-window average of bk_vals
-        bk_val_vec = movmean(bk_val_vec, 101);
-        
     else
     end
     
@@ -300,11 +297,9 @@ for trial_n = start_trial:n_trials
         curr_frame = double(curr_frame);
         
         %doing a background subtraction to subtract away the PMT offset, if any
+        %insert lines here to assign bk_val
         if isempty(bk_pixi) == 1
-            bk_val = 0;
-        else
-            bk_val = bk_val_vec(frame_n, 1);
-        end
+            bk_val = 
         
         curr_frame = curr_frame - bk_val;
                 
