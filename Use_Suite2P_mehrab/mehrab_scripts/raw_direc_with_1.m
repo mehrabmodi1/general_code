@@ -9,7 +9,6 @@ elseif size(varargin, 2) == 2
     raw_direc = varargin{1, 2};
 else
 end
-
 is1i = findstr(raw_direc, '\1');
 
 if isempty(is1i) == 1
