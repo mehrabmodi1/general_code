@@ -278,7 +278,7 @@ for trial_n = start_trial:n_trials
     
     
     %computing a moving-window averaged bk_val for each frame.
-    if isemtpy(bk_pixi) == 0
+    if isempty(bk_pixi) == 0
         
         bk_val_vec = zeros(size(stack_reg, 3), 1) + nan;
         for frame_n = 1:size(stack_reg, 3)
