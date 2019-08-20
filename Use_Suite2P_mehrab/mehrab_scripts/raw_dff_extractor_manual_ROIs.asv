@@ -32,8 +32,8 @@ n_direc_lists = size(direc_lists_mat, 1);
 
 save_path_base = 'E:\Data\Analysed_data\Manual_ROIs\';
 fuse_ROIs = 1;          %0-no, 1-yes. This flattens dim3 of ROI_mat in case there is a multi-patch neuron that needs to be considered as a single object.
-dilate_ROIs = 0; %15;        %This is the number of pixels by which the manually drawn ROIs are dilated before data extraction.
-extract_both_channels = 1;  
+dilate_ROIs = 15;        %This is the number of pixels by which the manually drawn ROIs are dilated before data extraction.
+extract_both_channels = 0;  
 extract_traces_only = 1; %Enabling this switch makes the program only extract traces from a .tif file using given ROIs. It doesn't look for stim params/PID files of any sort. useful for data acquired on other rigs. 
 
 
@@ -58,8 +58,8 @@ for do_over = 1:2
             remove_small_tifs(direc);
             prev_direc = pwd;
             cd([direc]);
-            dataset_namei = findstr(direc, '20');
-            dataset_name = direc((dataset_namei):end);
+            dataset_namei = findstr(direc, '\20');
+            dataset_name = direc((dataset_namei + 1):end);
             save_path = [save_path_base, dataset_name, '\' ];
            
             %checking if dataset has already been analysed
@@ -221,8 +221,8 @@ for direc_list_n = 1:n_direc_lists
         %% House-keeping
         direc = curr_direc_list{direc_counter, 1};
         direc = [direc, '\'];
-        dataset_namei = findstr(direc, '20');
-        dataset_name = direc((dataset_namei):end);
+        dataset_namei = findstr(direc, '\20');
+        dataset_name = direc((dataset_namei + 1):end);
         
         remove_small_tifs(direc);
         prev_direc = pwd;
@@ -250,8 +250,8 @@ for direc_list_n = 1:n_direc_lists
         
         
         %extracting raw traces
-        dataset_namei = findstr(direc, '20');
-        dataset_name = direc((dataset_namei):end);
+        dataset_namei = findstr(direc, '\20');
+        dataset_name = direc((dataset_namei + 1):end);
         save_path = [save_path_base, dataset_name, '\' ];
         
         [raw_data_mat] = extract_raw_traces_par(direc, ROI_mat, save_path, 1, extract_both_channels);
