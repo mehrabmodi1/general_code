@@ -25,13 +25,17 @@ direc_lists_mat = [...
                     %{'E:\Data\Raw_Data_Current\dataset_lists\fore_distr_MBONAlpha1_set3_highLED.xls'}...                    
                     %{'E:\Data\Raw_Data_Current\dataset_lists\fore_distr_MBONGamma2.xls'}...
                     %{'E:\Data\Raw_Data_Current\dataset_lists\MBON_DAN_alpha1_eligibility_trace_Yoshi.xls'}
-                    {'E:\Data\Raw_Data_Current\dataset_lists\MPPC_mouse_set.xls'}...
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\MPPC_mouse_set.xls'}...
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\KC_d5HT1b_PABAEL_201908set.xls'}...
+                    {'E:\Data\Raw_Data_Current\dataset_lists\KC_d5HT1b_PABAEL_201908test.xls'}...
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\KC_c739_PABAEL_201908set.xls'}...
                     ];
                 
 n_direc_lists = size(direc_lists_mat, 1);
 
-save_path_base = 'E:\Data\Analysed_data\Manual_ROIs\';
-fuse_ROIs = 1;          %0-no, 1-yes. This flattens dim3 of ROI_mat in case there is a multi-patch neuron that needs to be considered as a single object.
+save_path_base_manual = 'E:\Data\Analysed_data\Manual_ROIs\';
+save_path_base_Suite2P = 'E:\Data\Analysed_data\Suite2p\Results\';
+fuse_ROIs = 0;          %0-no, 1-yes. This flattens dim3 of ROI_mat in case there is a multi-patch neuron that needs to be considered as a single object.
 dilate_ROIs = 0; %15;        %This is the number of pixels by which the manually drawn ROIs are dilated before data extraction.
 extract_both_channels = 1;  
 extract_traces_only = 1; %Enabling this switch makes the program only extract traces from a .tif file using given ROIs. It doesn't look for stim params/PID files of any sort. useful for data acquired on other rigs. 
@@ -55,19 +59,37 @@ for do_over = 1:2
             %% House-keeping
             direc = curr_direc_list{direc_counter, 1};
             direc = [direc, '\'];
+            direc1 = get_path_1_direc(direc);       %in case raw direc has \1 folders created by the Suite2P program
+            %checking if ROI_type is manualROIs (0) or Suite2P (1)
+            if length(direc) == length(direc1)
+                ROI_type = 0 ;
+            elseif length(direc) < length(direc1)
+                ROI_type = 1;
+                direc = direc1;
+            else
+            end
+                        
             remove_small_tifs(direc);
             prev_direc = pwd;
             cd([direc]);
             dataset_namei = findstr(direc, '20');
             dataset_name = direc((dataset_namei):end);
+            if ROI_type == 0
+                save_path_base = save_path_base_manual;
+            elseif ROI_type == 1
+                save_path_base = save_path_base_Suite2P;
+            else
+            end
+                
             save_path = [save_path_base, dataset_name, '\' ];
+            save_path = get_path_1_direc(save_path);
            
             %checking if dataset has already been analysed
             old_dir = pwd;
             if isdir(save_path) == 1
                 cd(save_path);
 
-                tif_list = dir('*.tif');
+                tif_list = dir('*.tif');        %checking if trial 1 tif has been copied over to results folder
                 if isempty(tif_list) == 0
                     disp([dataset_name, 'already analysed. skipping...'])
                     continue
@@ -120,10 +142,17 @@ for do_over = 1:2
                     curr_stack = double(curr_stack);
                     ave_stack(:, :, tif_n) = std(curr_stack, 0, 3, 'omitnan');
                     disp(['Saving avg stack, tr ', int2str(tif_n), ' done.'])
+                    
+                    if isdir(save_path) == 0
+                        mkdir(save_path);
+                    else
+                    end
+                    
+                    save([save_path, '\tr_avg_stack.mat'], 'ave_stack');
                 end
                 
-                mkdir(save_path);
-                save([save_path, '\tr_avg_stack.mat'], 'ave_stack');
+                
+                
                 clear ave_stack
                 
             elseif do_over == 2
@@ -133,25 +162,38 @@ for do_over = 1:2
                 
                 ref_im = dataset_stack(:, :, 1);
                 
-                %checking if multiple ROIs have been drawn and unzipping them all
-                if exist([direc, 'ROIs\RoiSet.zip']) == 2
-                    unzip([direc, 'ROIs\RoiSet.zip'], [direc, 'ROIs\']);
+                if ROI_type == 0
+                
+                    %checking if multiple ROIs have been drawn and unzipping them all
+                    if exist([direc, 'ROIs\RoiSet.zip']) == 2
+                        unzip([direc, 'ROIs\RoiSet.zip'], [direc, 'ROIs\']);
+                    else
+                    end
+
+                    %loading in manually drawn, FIJI ROIs
+                    prev_direc = pwd;
+                    cd([direc, 'ROIs\']);
+                    ROI_list = dir('*.roi');
+                    cd(prev_direc);
+                    n_ROIs = size(ROI_list, 1);
+
+
+                    ROI_mat = zeros(size(ref_im, 1), size(ref_im, 2), n_ROIs);
+                    for ROI_n = 1:n_ROIs
+                        curr_name = ROI_list(ROI_n).name;
+                        curr_ROI = ReadImageJROI([direc, 'ROIs\', curr_name]);
+                        ROI_mat(:, :, ROI_n) = poly2mask(curr_ROI.mnCoordinates(:, 1), curr_ROI.mnCoordinates(:, 2), size(ref_im, 1), size(ref_im, 2));
+                    end
+                    
+                    %re-saving ROIs in easy to load form
+                    save([save_path_base, dataset_name, '\ROI_mat.mat'], 'ROI_mat');
+                    
+                elseif ROI_type == 1
+                    ROI_mat = load([save_path, 'ROI_mat.mat']);
+                    ROI_mat = ROI_mat.ROI_mat;
+                    n_ROIs = size(ROI_mat, 3);
+                    
                 else
-                end
-
-                %loading in manually drawn, FIJI ROIs
-                prev_direc = pwd;
-                cd([direc, 'ROIs\']);
-                ROI_list = dir('*.roi');
-                cd(prev_direc);
-                n_ROIs = size(ROI_list, 1);
-
-              
-                ROI_mat = zeros(size(ref_im, 1), size(ref_im, 2), n_ROIs);
-                for ROI_n = 1:n_ROIs
-                    curr_name = ROI_list(ROI_n).name;
-                    curr_ROI = ReadImageJROI([direc, 'ROIs\', curr_name]);
-                    ROI_mat(:, :, ROI_n) = poly2mask(curr_ROI.mnCoordinates(:, 1), curr_ROI.mnCoordinates(:, 2), size(ref_im, 1), size(ref_im, 2));
                 end
 
                 if fuse_ROIs == 1
@@ -166,9 +208,6 @@ for do_over = 1:2
 
                 else
                 end
-                
-                %re-saving ROIs in easy to load form
-                save([save_path_base, dataset_name, '\ROI_mat.mat'], 'ROI_mat');
                 
                 %looping through an ave frame for each trial in the
                 %dataset, for the user to click on a fixed landmark in each frame
@@ -221,6 +260,15 @@ for direc_list_n = 1:n_direc_lists
         %% House-keeping
         direc = curr_direc_list{direc_counter, 1};
         direc = [direc, '\'];
+        direc1 = get_path_1_direc(direc);       %in case raw direc has \1 folders created by the Suite2P program
+        %checking if ROI_type is manualROIs (0) or Suite2P (1)
+        if length(direc) == length(direc1)
+            ROI_type = 0 ;
+        elseif length(direc) < length(direc1)
+            ROI_type = 1;
+            direc = direc1;
+        else
+        end
         dataset_namei = findstr(direc, '20');
         dataset_name = direc((dataset_namei):end);
         
@@ -252,6 +300,13 @@ for direc_list_n = 1:n_direc_lists
         %extracting raw traces
         dataset_namei = findstr(direc, '20');
         dataset_name = direc((dataset_namei):end);
+        
+        if ROI_type == 0
+            save_path_base = save_path_base_manual;
+        elseif ROI_type == 1
+            save_path_base = save_path_base_Suite2P;
+        else
+        end
         save_path = [save_path_base, dataset_name, '\' ];
         
         [raw_data_mat] = extract_raw_traces_par(direc, ROI_mat, save_path, 1, extract_both_channels);
