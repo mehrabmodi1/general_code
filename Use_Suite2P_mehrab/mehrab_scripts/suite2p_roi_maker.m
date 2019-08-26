@@ -106,7 +106,7 @@ for raw_direc_n = 1:size(raw_direc_list, 1)
     else
     end
     disp(['Loading Suite2P results file ' newest_results_file])
-    data_mat = load([results_direc, raw_direc, newest_results_file]);
+    data_mat = load([results_direc, raw_direc, '\', newest_results_file]);
 
     try
         data_mat = data_mat.dat;
