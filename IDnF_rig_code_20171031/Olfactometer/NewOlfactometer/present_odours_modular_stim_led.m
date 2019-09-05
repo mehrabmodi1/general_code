@@ -89,6 +89,8 @@ olf1_olf2_delay = olf1_olf2_delay.olf1_olf2_delay;
 LED_olf1_delay = load('E:\Turner lab\Bitbucket_repos\general_code\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\LED_olf1_delay.mat');
 LED_olf1_delay = LED_olf1_delay.LED_olf1_delay;
 
+turn_off_olf2 = 0;
+
 for trial_n = start_tr:n_trials
     %reading in stimulus parameters for current trial
     %olfactometer1 params
@@ -355,7 +357,7 @@ pause(4)
 release(s)
 close_serial_port(19);   %LED_arduino
 close_serial_port(13);   %olf2_arduino
-
+turn_off_olf2 = input('turn off olf2, 0 - no, 1 - yes');
 
 
 %defining clean up function
@@ -365,8 +367,11 @@ trigger_scan(0);
 close_serial_port(19)
 
 if no_olf2 == 0
-    sleep_olf2              %opens NO valve and closes empty vial valves.
-    pause(3);
+    if turn_off_olf2 == 1
+        sleep_olf2              %opens NO valve and closes empty vial valves.
+        pause(3);
+    else
+    end
 else
 end
     

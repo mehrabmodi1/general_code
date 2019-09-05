@@ -14,6 +14,9 @@ for pair_n = 1:size(olf1_od, 1)
     params_spec.reps = 2;
     params_spec.odours = olf1_od(pair_n);
     params_spec.odours_olf2 = olf2_od(pair_n);
+    params.duration = 5;
+    params.duration_olf2 = 5;
+    params.isi = 50;
     
     keyboard
     
