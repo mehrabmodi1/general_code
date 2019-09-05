@@ -307,7 +307,7 @@ for trial_n = start_tr:n_trials
         FlipValve_EP('Final',1)
         
     end
-   
+   keyboard
     %pausing for olf2 train to end, if necessary
     pause(olf2_train_pause);
     
