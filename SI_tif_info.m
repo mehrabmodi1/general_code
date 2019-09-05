@@ -11,6 +11,7 @@ metadata = stack_obj.metadata;
 newlinesi = regexp(metadata, '[\n]');
 
 zoomi = findstr(metadata, 'ZoomFactor');
+zoomi = zoomi(1);
 zoom_newlinei = newlinesi - zoomi;
 zoom_newlinei(zoom_newlinei < 0) = nan;
 [del, zoom_newlinei] = nanmin(zoom_newlinei);

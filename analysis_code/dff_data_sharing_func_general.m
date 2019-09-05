@@ -8,7 +8,8 @@ dataset_list_paths = [%{'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Y
                       %{'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Yoshi_PaBaEl_c305a_AlphapBetap_low_conc.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_Yoshi_PaBaEl_d5HT1b_Gamma_set2.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_Yoshi_PaBaEl_c739_AlphaBeta_set2.xls'}...
-                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_rand_trains.xls'}...
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_rand_trains.xls'}...
+                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_KC_Ca_alpha1T_set2.xls'}
                       ];
 
 suppress_plots = 1;
@@ -22,18 +23,22 @@ for list_n = 1:size(dataset_list_paths, 1)
     curr_dir_list_path = dataset_list_paths{list_n, 1};
     [del, dir_list] = xlsread(curr_dir_list_path, 1);        %list of Suite2P results directories
     n_dirs = size(dir_list, 1);
-    dataset_list_name = findstr(curr_dir_list_path, 'El_');
-    dataset_list_name = curr_dir_list_path((dataset_list_name + 1):(end - 4));
+    dataset_list_name = findstr(curr_dir_list_path, 'dataset_list');
+    dataset_list_name = curr_dir_list_path((dataset_list_name + 13):(end - 4));
    
     
     
     for dir_n = 1:n_dirs
         saved_an_results.scriptname = mfilename('fullpath');
         curr_dir = [dir_list{dir_n, 1}, '\'];
+        curr_dir = manage_base_paths(curr_dir, 3);
+        curr_dir = raw_direc_with_1(curr_dir);
+        curr_dir = [curr_dir, '\'];
         tif_times = load([curr_dir, 'tif_time_stamps.mat']);           %reading in time stamps for each tif file recorded by raw_data_extracter
         tif_times = tif_times.time_stamps;
-        [stim_mat, stim_mat_simple, column_heads, color_vec, g_tr_list] = load_params_trains(curr_dir, tif_times);    %reading in trial stimulus parameters after matching time stamps to F traces
-                
+        [stim_mat, stim_mat_simple, column_heads, color_vec, g_tr_list] = load_params_trains_modular(curr_dir, tif_times);    %reading in trial stimulus parameters after matching time stamps to F traces
+        %[stim_mat, stim_mat_simple, column_heads, color_vec, g_tr_list] = load_params_trains(curr_dir, tif_times);    %reading in trial stimulus parameters after matching time stamps to F traces
+        
         %Reading in experimental parameters
         odor_list = unique(stim_mat_simple(:, 2) );
         n_odors = length(odor_list);
@@ -78,12 +83,12 @@ for list_n = 1:size(dataset_list_paths, 1)
         %saving stuff for sharing data
         share_path_base = 'C:\Data\Data\Analysed_data\data_sharing\';
         
-        share_path = [share_path_base, date, '\fly', num2str(dir_n)];
-        
+        share_path = [share_path_base, dataset_list_name, '\fly', num2str(dir_n)];
         mkdir(share_path);
         save([share_path, '\dFF_data.mat'], 'dff_data_mat_f');
         save([share_path, '\sig_cells.mat'], 'sig_cell_mat');
-        save([share_path, '\stim_mat.mat'], 'stim_mat')
+        save([share_path, '\stim_mat.mat'], 'stim_mat');
+        save([share_path, '\path_orig.mat'], 'curr_dir');
         
     end
     keyboard

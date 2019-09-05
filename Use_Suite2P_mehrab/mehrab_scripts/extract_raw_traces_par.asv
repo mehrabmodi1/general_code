@@ -226,9 +226,7 @@ for trial_n = start_trial:n_trials
         if subtraction_spec_vec(1, 2) == 1
             bk_fr = check_sig_noise(curr_fr);
         elseif subtraction_spec_vec(1, 2) == 0
-            bk_fr = zeros(size(curr_fr, 1), size(curr_fr, 2));
-        else
-        end
+            bk_fr = zeros()
         
         if median(median(bk_fr)) < median(median(curr_fr)).*0.05
             curr_fr_a = curr_fr - bk_fr;
