@@ -6,8 +6,8 @@ function [params_spec1] = setup_params_pairing_expt_PABA_EL_AR()
 %if led_elec is 0, led is paired, if led_elec is 1, elec is paired.
 
 % %Reading in last foreground odour to ensure alternate long-pulse odours in each session for reciprocal analysis.
-last_long_od = load('E:\Turner lab\Bitbucket_repos\general_code\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\reciprocal_expt_logs\pairing_expt_PABA_EL_lastlongod.mat');
-last_long_od = last_long_od.last_long_od;
+% last_long_od = load('E:\Turner lab\Bitbucket_repos\general_code\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\reciprocal_expt_logs\pairing_expt_PABA_EL_lastlongod.mat');
+% last_long_od = last_long_od.last_long_od;
 
 %step1:Setting up the pre trials
 %step1.1 setting up PABA together
@@ -22,6 +22,7 @@ params_spec1.isi = 60;
 params_spec1.duration_olf2 = 10;
 params_spec1.rel_stimLatency_olf2 = 10;
 params_struc1 = setUpStimuli_modular(params_spec1);         %detailed, trial-by-trial parameter specification structure for olf1 odour.
+keyboard
 
 %step1.2 setting up PA alone (olf1)
 params_spec1 = set_ADO_params_default;
