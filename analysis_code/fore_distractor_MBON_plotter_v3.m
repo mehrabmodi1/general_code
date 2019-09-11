@@ -5,10 +5,13 @@ dataset_list_paths = [...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_fore_distr_MBONAlpha1.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_fore_distr_MBONAlpha1_set2.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_fore_distr_MBONAlpha1_set3_highLED.xls'};...
-                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_fore_distr_MBONGamma2.xls'};...
-                    ];
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_fore_distr_MBONGamma2.xls'};...
+                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_fore_distr_MBONGamma2_set1.xls'};...
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_fore_distr_MBONGamma2_set2.xls'};...
+
+                      ];
             
-suppress_plots = 1;
+suppress_plots = 0;
 [del, odor_names1] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList.xls', 1);
 [del, odor_names2] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList_olf2.xls', 1);
 
@@ -73,6 +76,11 @@ for list_n = 1:size(dataset_list_paths, 1)
         %calculating dF/F traces from raw data
         filt_time = 0.5;            %in s, the time window for boxcar filter for generating filtered traces
         [dff_data_mat, dff_data_mat_f] = cal_dff_traces_res(raw_data_mat, stim_mat, frame_time, filt_time, curr_dir);
+        if size(dff_data_mat, 2) > 1
+            dff_data_mat = mean(dff_data_mat, 2, 'omitnan');
+            dff_data_mat_f = mean(dff_data_mat_f, 2, 'omitnan');
+        else
+        end
         del = find(dff_data_mat_f < -1);
         dff_data_mat_f(del) = -1;       %forcing crazy values to sane ones
         
@@ -189,7 +197,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         ax = axis();
         ax(2) = 300;
         ax(3) = -0.2;
-        ax(4) = 1.5;
+        ax(4) = 0.5;
         axis(ax);
         set_xlabels_time(1, frame_time, 10);
         fig_wrapup(1, script_name);
@@ -214,7 +222,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         ax = axis();
         ax(2) = 300;
         ax(3) = -0.2;
-        ax(4) = 1.5;
+        ax(4) = 0.5;
         axis(ax);
         set_xlabels_time(2, frame_time, 10);
         fig_wrapup(2, script_name);
@@ -259,7 +267,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         ax = axis();
         ax(2) = 300;
         ax(3) = -0.2;
-        ax(4) = 1.5;
+        ax(4) = 0.5;
         axis(ax);
         set_xlabels_time(3, frame_time, 10);
         fig_wrapup(3, script_name);
