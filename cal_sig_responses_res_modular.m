@@ -1,4 +1,4 @@
-function [resp_sizes, sig_trace_mat, sig_trace_mat_old, sig_cell_mat, resp_areaundercurves] = cal_sig_responses_res(dff_data_mat, stim_mat_struc, stim_mat_simple, direc, frame_time)
+function [resp_sizes, sig_trace_mat, sig_trace_mat_old, sig_cell_mat, resp_areaundercurves] = cal_sig_responses_res_modular(dff_data_mat, stim_mat_struc, stim_mat_simple, direc, frame_time)
 %This function takes as inputs, the 3-D dff_data_mat that contains dF/F traces stored
 %by frame_n, cell_n, trial_n and odor_n; and stim_mat which contains
 %stimulus delivery information for each trial. The outputs are three 2D
@@ -11,9 +11,9 @@ function [resp_sizes, sig_trace_mat, sig_trace_mat_old, sig_cell_mat, resp_areau
 n_frames = size(dff_data_mat, 1);
 n_cells = size(dff_data_mat, 2);
 n_trials = size(dff_data_mat, 3);
-odor_list = unique(stim_mat_simple(:, 2));
+odor_list = unique(stim_mat_simple(:, 1));
 n_odors = length(odor_list);
-odor_dur_list = unique(stim_mat_simple(:, 3));
+odor_dur_list = unique(stim_mat_simple(:, 2));
 del = find(odor_dur_list == 0);
 odor_dur_list(del) = [];
 del = find(isnan(odor_dur_list) == 1);
@@ -63,7 +63,7 @@ for rep_gp = 1:n_rep_gps                %a rep_gp is a group of repeats of the s
     else
     end
     stim_end_fr = ceil(stim_frame + ((stim_duration.*1)./frame_time) );
-    rep_tr_list = find(stim_mat_simple(:, 2) == odor_ni & stim_mat_simple(:, 3) == stim_duration);    %list of repeat tr numbers
+    rep_tr_list = find(stim_mat_simple(:, 1) == odor_ni & stim_mat_simple(:, 2) == stim_duration);    %list of repeat tr numbers
     
     
     for cell_n = 1:n_cells
