@@ -149,11 +149,9 @@ else
 	% Plot erros
 	for i = 1:numbars
 		x =get(get(handles.bars(i),'children'), 'xdata');
-		try
-            x = mean(x([1 3],:));
-        catch
-            keyboard
-        end
+		
+        x = mean(x([1 3],:));
+        
         handles.errors(i) = errorbar(x, barvalues(:,i), errors(:,i), 'k', 'linestyle', 'none', 'linewidth', 2);
 		ymax = max([ymax; barvalues(:,i)+errors(:,i)]);
 	end

@@ -6,7 +6,7 @@ dataset_list_paths = [...
                       {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MPPC_KC_set_final.xls'}...
                     ];
             
-suppress_plots = 1;
+suppress_plots = 0;
 [del, odor_names] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList.xls', 1);
 global color_vec;                
 a = colormap('bone');
@@ -115,7 +115,7 @@ for list_n = 1:size(dataset_list_paths, 1)
                 max_val = max(ave_tr_f(stim_frs(1):(stim_frs(2) + round(2./frame_time)), 1), [], 1, 'omitnan');
                 sd_baseline = std(ave_tr_f((stim_frs(1) - round(2./frame_time)):(stim_frs(1) - 1)), [], 'omitnan');
                 
-                if max_val./sd_baseline > 5
+                if max_val./sd_baseline > 2.3
                     try
                         sig_cell_mat(cell_n, odor_ni) = 1;
                     catch
@@ -135,10 +135,10 @@ for list_n = 1:size(dataset_list_paths, 1)
                         figure(1)
                         %plotting traces
                         
-                        plot(squeeze(dff_data_mat_PMT((stim_frs(1) - round(8./frame_time)):(stim_frs(2) + round(8./frame_time)), cell_n, curr_trs(1)))...
+                        plot(squeeze(dff_data_mat_PMT((stim_frs(1) - round(4./frame_time)):(stim_frs(2) + round(8./frame_time)), cell_n, curr_trs(1)))...
                                                                                                                    , 'Color', PMT_colour, 'LineWidth', 0.5);
                         hold on
-                        plot(squeeze(dff_data_mat_MPPC((stim_frs(1) - round(8./frame_time)):(stim_frs(2) + round(8./frame_time)), cell_n, curr_trs(1)) + 2.5)... 
+                        plot(squeeze(dff_data_mat_MPPC((stim_frs(1) - round(4./frame_time)):(stim_frs(2) + round(8./frame_time)), cell_n, curr_trs(1)) + 2.5)... 
                                                                                                                    , 'Color', MPPC_colour, 'LineWidth', 0.5);
 
                         set_xlabels_time(1, frame_time, 2)

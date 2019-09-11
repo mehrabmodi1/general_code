@@ -66,14 +66,14 @@ for frame_n = 1:n_frames
         ave_fr_combined((width + col_width + 1):size(ave_fr_combined, 1), 1:height) = ave_fr_diff;
         
         if first_frame == 1
-            imwrite(uint8(ave_fr)', [direc, 'annotated_stk.tif']);
-            imwrite(uint8(ave_fr_diff)', [direc, 'annotated_diff_stk.tif']);
-            imwrite(uint8(ave_fr_combined)', [direc, 'annotated_combined_stk.tif']);
+            imwrite(im2uint16(ave_fr)', [direc, 'annotated_stk.tif']);
+            imwrite(im2uint16(ave_fr_diff)', [direc, 'annotated_diff_stk.tif']);
+            imwrite(im2uint16(ave_fr_combined)', [direc, 'annotated_combined_stk.tif']);
             first_frame = 0;
         elseif first_frame == 0
-            imwrite(uint8(ave_fr)', [direc, 'annotated_stk.tif'], 'WriteMode', 'append');
-            imwrite(uint8(ave_fr_diff)', [direc, 'annotated_diff_stk.tif'], 'WriteMode', 'append');
-            imwrite(uint8(ave_fr_combined)', [direc, 'annotated_combined_stk.tif'], 'WriteMode', 'append');
+            imwrite(im2uint16(ave_fr)', [direc, 'annotated_stk.tif'], 'WriteMode', 'append');
+            imwrite(im2uint16(ave_fr_diff)', [direc, 'annotated_diff_stk.tif'], 'WriteMode', 'append');
+            imwrite(im2uint16(ave_fr_combined)', [direc, 'annotated_combined_stk.tif'], 'WriteMode', 'append');
         end
         
         
