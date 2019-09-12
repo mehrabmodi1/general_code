@@ -99,9 +99,17 @@ for list_n = 1:size(dataset_list_paths, 1)
         stim_frs = compute_stim_frs_modular(stim_mat, 1, frame_time);
         xlabel('trial n')
         set_xlabels_time(1, frame_time, 10)
-        keyboard
         fig_wrapup(1, script_name);
+        
+        %testing new add_stim_bar
+        stim_frs{1, 2} = stim_frs{1, 1} + 10;
+        
+        %PICK UP THREAD HERE
+        %fix add_stim_bar by reverting to the single olfactometer version
+        %or correctly implement the two olfactometer version.
+        
         add_stim_bar(1, stim_frs, [0.5, 0.5, 0.5])
+        keyboard
         colormap(greymap)
         
         %identifying pre and post pairing trial sets
@@ -110,7 +118,7 @@ for list_n = 1:size(dataset_list_paths, 1)
             pairing_tr = 15;
         else
         end
-        keyboard
+       
         %last_csminus_tr = pairing_tr + length(odor_list) - 1;
         last_csminus_tr = pairing_tr + 1;
         share_path = 'C:\Data\Data\Analysed_data\data_sharing\Glenn_talk_20181121\';
