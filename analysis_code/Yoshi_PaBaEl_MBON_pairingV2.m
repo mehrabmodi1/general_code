@@ -17,8 +17,9 @@ dataset_list_paths = [...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\PaBaEl_MBON_DAN_gamma1_lowUS_MB085C_epoxy_short_session_low_LED_0.1Hz.xls'}... 
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\PaBaEl_MBON_DAN_gamma1_lowUS_MB085C_epoxy_short_session_low_LED_1Hz.xls'}...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\PaBaEl_MBON_DAN_gamma1_lowUS_MB085C_epoxy_short_session_low_LED_0.5Hz.xls'}...
-                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_PaBaEl_MBONGamma2_set1.xls'}...
-                    ];
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_PaBaEl_MBONGamma2_set1.xls'};...
+                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_PABAEL_MBONGamma2_set2_0.1Hz.xls'};...
+                      ];
             
 suppress_plots = 0;
 [del, odor_names] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList.xls', 1);
@@ -33,7 +34,7 @@ for list_n = 1:size(dataset_list_paths, 1)
     curr_dir_list_path = dataset_list_paths{list_n, 1};
     [del, dir_list] = xlsread(curr_dir_list_path, 1);        %list of Suite2P results directories
     n_dirs = size(dir_list, 1);
-    dataset_list_name = findstr(curr_dir_list_path, 'El_');
+    dataset_list_name = findstr(curr_dir_list_path, 'EL_');
     dataset_list_name = curr_dir_list_path((dataset_list_name + 1):(end - 4));
     
     dataset_list_name(1) = [];
@@ -57,9 +58,8 @@ for list_n = 1:size(dataset_list_paths, 1)
         %odor_list = unique(stim_mat_simple(:, 2) );
         odor_list = [3, 10, 11];
         n_odors = length(odor_list);
-        odor_dur_list = unique(stim_mat_simple(:, 3) );
+        odor_dur_list = unique(stim_mat_simple(:, 2) );
         n_od_durs = length(odor_dur_list);
-        n_trains = max(stim_mat_simple(:, 11));
         saved_an_results.odor_list = odor_list;
         saved_an_results.odor_dur_list = odor_dur_list;
         fly_resp_size_vec = zeros(1, length(odor_list).*2) + nan;
@@ -74,7 +74,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         raw_data_mat = load([curr_dir 'extracted_raw_data_mat.mat']);
         raw_data_mat = raw_data_mat.raw_data_mat;           %raw F traces extracted from ROIs
         raw_data_mat_orig = raw_data_mat;
-        raw_data_mat = raw_data_mat(:, :, stim_mat_simple(:, 1));       %making sure only time-stamp matched trials are used for further analysis
+        raw_data_mat = raw_data_mat(:, :, stim_mat_simple(:, 25));       %making sure only time-stamp matched trials are used for further analysis
         n_cells = size(raw_data_mat, 2);
         
         %calculating dF/F traces from raw data
@@ -99,17 +99,9 @@ for list_n = 1:size(dataset_list_paths, 1)
         stim_frs = compute_stim_frs_modular(stim_mat, 1, frame_time);
         xlabel('trial n')
         set_xlabels_time(1, frame_time, 10)
-        fig_wrapup(1, script_name);
+        fig_wrapup(1, []);
         
-        %testing new add_stim_bar
-        stim_frs{1, 2} = stim_frs{1, 1} + 10;
-        
-        %PICK UP THREAD HERE
-        %fix add_stim_bar by reverting to the single olfactometer version
-        %or correctly implement the two olfactometer version.
-        
-        add_stim_bar(1, stim_frs, [0.5, 0.5, 0.5])
-        keyboard
+        add_stim_bar_modular(1, stim_frs, [0.5, 0.5, 0.5])
         colormap(greymap)
         
         %identifying pre and post pairing trial sets
@@ -125,7 +117,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         saved_resp_sizes = [];
         for odor_n = 1:n_odors
             odor_ni = odor_list(odor_n);
-            curr_trs = find(stim_mat_simple(:, 2) == odor_ni);
+            curr_trs = find(stim_mat_simple(:, 1) == odor_ni);
             
             %skipping first trial of each odor for datasets with 3 pre
             %trials
@@ -153,7 +145,8 @@ for list_n = 1:size(dataset_list_paths, 1)
             
             trace_lengths = size(traces_pre, 1) - sum(isnan(traces_pre(:, 1)));
             trace_lengths = max([trace_lengths, 1]);
-            stim_frs = compute_stim_frs(stim_mat, 1, frame_time);
+            stim_frs = compute_stim_frs_modular(stim_mat, 1, frame_time);
+            stim_frs = stim_frs{1, 1};                    %only used olf1 in this expt.
             mean_trace = mean(traces_pre, 2, 'omitnan');
             tr_size = max(mean_trace(stim_frs(1, 1):(stim_frs(1,2))), [], 1);
             fly_resp_size_vec((odor_n - 1).*2 + 1) = tr_size;
@@ -161,7 +154,6 @@ for list_n = 1:size(dataset_list_paths, 1)
             plot(traces_pre, 'Color', [0.3, 0.45, 0.6], 'lineWidth', 3);
             %shadedErrorBar([], mean_trace, ses, {'Color', [166, 156, 204]./256}, 1)
             %shadedErrorBar([], mean_trace, ses, {':', 'Color', curr_colour, 'lineWidth', 1}, 1);
-            axis([0, trace_lengths, -0.25, 1])
             odor_name = odor_names{odor_ni, 1};
             ylabel([odor_name, ' dF/F'])
             hold on           
@@ -169,7 +161,8 @@ for list_n = 1:size(dataset_list_paths, 1)
             %plotting post-trials' traces
             traces_post = squeeze(dff_data_mat_f(:, 1, curr_trs(curr_trs > last_csminus_tr)));
             plot(traces_post, 'Color', [0.8, 0.4, 0.5], 'lineWidth', 3);
-            stim_frs = compute_stim_frs(stim_mat, 1, frame_time);
+            stim_frs = compute_stim_frs_modular(stim_mat, 1, frame_time);
+            stim_frs = stim_frs{1, 1};              %only used olf1 in this expt
             mean_trace = mean(traces_post, 2, 'omitnan');
             tr_size = max(mean_trace(stim_frs(1, 1):(stim_frs(1,2))), [], 1);
             fly_resp_size_vec((odor_n - 1).*2 + 2) = tr_size;
@@ -177,12 +170,12 @@ for list_n = 1:size(dataset_list_paths, 1)
             %shadedErrorBar([], mean_trace, ses, {'Color', [247, 148, 29]./256}, 1)
             %shadedErrorBar([], mean_trace, ses, {'Color', curr_colour.*0.75, 'lineWidth', 1}, 1);
             %plot(mean_trace', 'Color', 'k', 'LineWidth', 3);
-            axis([0, trace_lengths, -0.25, 4])
+            axis([0, trace_lengths, -0.25, 0.5])
             odor_name = odor_names{odor_ni, 1};
             set_xlabels_time(2, frame_time, 10)
             script_name = mfilename;
             fig_wrapup(2, script_name);
-            add_stim_bar(2, stim_frs, [0.5, 0.5, 0.5])
+            add_stim_bar_modular(2, stim_frs, [0.5, 0.5, 0.5])
             
             %saving data to file for sharing
             metadata.stim_frs = stim_frs;
@@ -196,7 +189,7 @@ for list_n = 1:size(dataset_list_paths, 1)
             
             %plotting odor response sizes across trials for each fly
             odor_ni = odor_list(odor_n);
-            curr_trs = find(stim_mat_simple(:, 2) == odor_ni);
+            curr_trs = find(stim_mat_simple(:, 1) == odor_ni);
             curr_resps = resp_areas(1, curr_trs);
             
             try
@@ -243,7 +236,7 @@ for list_n = 1:size(dataset_list_paths, 1)
     fig_h4 = scattered_dot_plot(flies_resp_size_mat, 4, 1, 4, 8, marker_colors, 1, col_pairs, [0.75, 0.75, 0.75],...
                             [{'PA pre'}, {'PA post'}, {'BA pre'}, {'BA post'}, {'EL pre'}, {'EL post'}], 1, [0.35, 0.35, 0.35]);
     hold on
-    axis([0, 30, 0, 3]);
+    axis([0, 30, 0, 1]);
     ax_vals = axis;
     plot([ax_vals(1, 1), ax_vals(1, 2)], [0, 0], '--', 'Color', [0.7, 0.7, 0.7]);
     fig_wrapup(4, script_name)
