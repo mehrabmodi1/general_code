@@ -145,7 +145,7 @@ for rep_gp = 1:n_rep_gps                %a rep_gp is a group of repeats of the s
             if pk_resps_indiv(rep_n) > threshes(rep_n)
                 sig_trace_mat_old(cell_n, rep_tr_list(rep_n)) = 1;
             else
-                keyboard
+                
             end
                 
         end

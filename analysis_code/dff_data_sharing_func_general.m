@@ -60,12 +60,11 @@ for list_n = 1:size(dataset_list_paths, 1)
         raw_data_mat = load([curr_dir 'extracted_raw_data_mat.mat']);
         raw_data_mat = raw_data_mat.raw_data_mat;           %raw F traces extracted from ROIs
         raw_data_mat_orig = raw_data_mat;
-        raw_data_mat = raw_data_mat(:, :, stim_mat_simple(:, 1));       %making sure only time-stamp matched trials are used for further analysis
+        raw_data_mat = raw_data_mat(:, :, stim_mat_simple(:, 25));       %making sure only time-stamp matched trials are used for further analysis
         bad_tr_list = 1:1:size(raw_data_mat, 3);
         bad_tr_list(g_tr_list) = [];
         raw_data_mat(:, :, bad_tr_list) = nan;
         n_cells = size(raw_data_mat, 2);
-        
         
         %calculating dF/F traces from raw data
         filt_time = 1;            %in s, the time window for boxcar filter for generating filtered traces

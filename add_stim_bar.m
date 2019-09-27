@@ -1,4 +1,4 @@
- function [] = add_stim_bar(fig_n, stim_frames, stim_colors)
+function [] = add_stim_bar(fig_n, stim_frames, stim_colors)
 %Syntax: [] = add_stim_bar(fig_n, stim_frames, stim_colors)
 %this function creates a fake, second pair of axes that is invisible, under
 %the first one, and creates a patch colored stim_color in it to denote the stimulus duration.
@@ -14,6 +14,18 @@
 % fig_n = 1;
 % figure(1);
 % plot(test_vec);
+
+if iscell(stim_frames) == 1
+    if max(isnan(stim_frames{1, 2})) == 0
+        n_olfs = 2;
+    else
+        n_olfs = 1;
+        stim_frames = stim_frames{1, 1};
+    end
+else
+    n_olfs = 1;
+end
+
 
 disp('Run this function only AFTER fig_wrapup or the time-scale is distorted.');
 figure(fig_n);
