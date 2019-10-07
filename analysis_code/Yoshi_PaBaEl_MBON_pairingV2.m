@@ -21,7 +21,7 @@ dataset_list_paths = [...
                       {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_PABAEL_MBONGamma2_set2_0.1Hz.xls'};...
                       ];
             
-suppress_plots = 0;
+suppress_plots = 1;
 [del, odor_names] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList.xls', 1);
 global color_vec;                
 a = colormap('bone');
@@ -40,6 +40,7 @@ for list_n = 1:size(dataset_list_paths, 1)
     dataset_list_name(1) = [];
     flies_resp_size_mat = [];
     saved_resp_sizes_all = [];
+    paired_odor_vec = zeros(n_dirs, 1) + nan;
     
     %loop to go through all experiment datasets listed in list file
     for dir_n = 1:n_dirs
@@ -53,7 +54,7 @@ for list_n = 1:size(dataset_list_paths, 1)
        tif_times = tif_times.time_stamps;
        [stim_mat, stim_mat_simple, column_heads, color_vec] = load_params_trains_modular(curr_dir, tif_times);    %reading in trial stimulus parameters after matching time stamps to F traces
        odor_colors = [color_vec(3, :); color_vec(3, :).*0.75; color_vec(2, :)];
-       
+              
        %Reading in experimental parameters
         %odor_list = unique(stim_mat_simple(:, 2) );
         odor_list = [3, 10, 11];
@@ -106,6 +107,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         
         %identifying pre and post pairing trial sets
         pairing_tr = find(stim_mat_simple(:, 18) == 1);
+        paired_odor_vec(dir_n, 1) = stim_mat(pairing_tr).odours;     %keeping track of which odor was the paired one
         if isempty(pairing_tr) == 1
             pairing_tr = 15;
         else
@@ -264,6 +266,26 @@ for list_n = 1:size(dataset_list_paths, 1)
     %PApost BApost
     [hPaBa pPaBa] = ttest(flies_resp_size_mat(:, 2), flies_resp_size_mat(:, 4))
     
+    
+    %plotting resp sizes grouped into paired, un-paired and control odors
+    figure(6)
+    %re-organising matrix to list paired odor in cols 1, 2; unpaired in 3, 4 and EL in 5, 6 
+    flies_resp_size_mat_copy = flies_resp_size_mat;
+    for fly_n = 1:n_dirs
+        if paired_odor_vec(fly_n, 1) == 10
+            flies_resp_size_mat_copy(fly_n, 1:2) = flies_resp_size_mat(fly_n, 3:4);
+            flies_resp_size_mat_copy(fly_n, 3:4) = flies_resp_size_mat(fly_n, 1:2);
+        else
+            %in this case, PA was the paired odor and existing arrangement is correct
+        end
+    end
+    %plotting
+    fig_h6 = bar_line_plot(6, flies_resp_size_mat_copy, line_color, pre_color, post_color, bar_width, bar_space);
+    ylabel('peak dF/F')
+    xticklabels({'paired', 'unpaired', 'EL'})
+    fig_wrapup(6, script_name)
+    
+    
     %plotting response sizes across repeats for each odor, for all flies.
     figure(7)
     mean_resp_sizes = mean(saved_resp_sizes_all, 3, 'omitnan');
@@ -279,7 +301,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         plot( squeeze(saved_resp_sizes_all(odor_n, :, :)), 'Color', odor_colors(odor_n, :));
         hold on
     end
-    
+   keyboard 
 end
 %save_path = 'C:\Users\Mehrab\Dropbox (HHMI)\data_sharing\Glenn_talk_2018\slide_30\';
 %save([save_path, 'resp_size_mat.mat'], 'flies_resp_size_mat');
