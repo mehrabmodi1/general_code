@@ -9,7 +9,8 @@ raw_direc_base = 'E:\Data\Raw_Data_Current\Resonant\';
 extract_both_channels = 0;
 
 %% Reading in manually created direc list
-direc_list = 'E:\Data\Raw_Data_Current\dataset_lists\KC_d5HT1b_PABAEL_201908set.xls';
+%direc_list = 'E:\Data\Raw_Data_Current\dataset_lists\KC_d5HT1b_PABAEL_201908set.xls';
+direc_list = 'E:\Data\Raw_Data_Current\dataset_lists\KC_c739_PABAEL_201908set.xls';
 [del, raw_direc_list] = xlsread(direc_list, 1);
 raw_direc_list_copy = raw_direc_list;
 
@@ -32,7 +33,7 @@ for raw_direc_n = 1:size(raw_direc_list, 1)
     
     %Checking if this directory has already been analysed with Suite2P or ManualROIextracter
 
-    if isdir([results_direc_manual_ROIs, raw_direc]) == 1
+    if isdir([results_direc, raw_direc]) == 1
         %raw_direc_list(raw_direc_n) = [];
         continue
     else
@@ -82,7 +83,7 @@ end
 
 %% Loop to repeatedly call ROI_prune to manually curate ROIs identified by Suite2P
 for raw_direc_n = 1:size(raw_direc_list, 1)
-    raw_direc = raw_direc_list{raw_direc_n, 1};
+        raw_direc = raw_direc_list{raw_direc_n, 1};
     raw_direc = raw_direc_with_1(raw_direc_base, raw_direc);
     disp(raw_direc);
 
