@@ -149,10 +149,11 @@ for list_n = 1:size(dataset_list_paths, 1)
         trace_se = std(curr_traces, [], 3, 'omitnan')./sqrt(length(curr_trs));
         
         figure(1)
-%         plot(trace_mean, 'Color', fore_colour, 'lineWidth', 3)
-%         hold on
-%         plot(squeeze(curr_traces), 'Color', fore_colour, 'lineWidth', 0.2)
-        shadedErrorBar([], trace_mean, trace_se, {'Color', fore_colour})
+        %plot(trace_mean, 'Color', fore_colour, 'lineWidth', 3)
+        hold on
+        plot(squeeze(curr_traces), 'Color', fore_colour, 'lineWidth', 3)
+        %shadedErrorBar([], trace_mean, trace_se, {'Color', fore_colour})
+        
         hold on
         ylabel('fore. responses (dF/F)')
         set_xlabels_time(1, frame_time, 10);
@@ -172,8 +173,8 @@ for list_n = 1:size(dataset_list_paths, 1)
         figure(2)
 %         plot(trace_mean, 'Color', distr_colour, 'lineWidth', 3)
 %         hold on
-%         plot(squeeze(curr_traces), 'Color', distr_colour, 'lineWidth', 0.2)
-        shadedErrorBar([], trace_mean, trace_se, {'Color', distr_colour})
+        plot(squeeze(curr_traces), 'Color', distr_colour, 'lineWidth', 3)
+        %shadedErrorBar([], trace_mean, trace_se, {'Color', distr_colour})
         hold on
         ylabel('distr. responses (dF/F)')
         set_xlabels_time(2, frame_time, 10);
@@ -192,8 +193,8 @@ for list_n = 1:size(dataset_list_paths, 1)
         figure(1)
 %         plot(trace_mean, 'Color', fore_colour.*0.7, 'lineWidth', 3)
 %         hold on
-%         plot(squeeze(curr_traces), 'Color', fore_colour.*0.7, 'lineWidth', 0.2)
-        shadedErrorBar([], trace_mean, trace_se, {'Color', fore_colour.*0.7})
+        plot(squeeze(curr_traces), 'Color', fore_colour.*0.55, 'lineWidth', 3)
+        %shadedErrorBar([], trace_mean, trace_se, {'Color', fore_colour.*0.7})
         ax = axis();
         ax(2) = 300;
         ax(3) = -0.2;
@@ -217,8 +218,8 @@ for list_n = 1:size(dataset_list_paths, 1)
         figure(2)
 %         plot(trace_mean, 'Color', distr_colour.*0.7, 'lineWidth', 3)
 %         hold on
-%         plot(squeeze(curr_traces), 'Color', distr_colour.*0.7, 'lineWidth', 0.2)
-        shadedErrorBar([], trace_mean, trace_se, {'Color', distr_colour.*0.7})
+        plot(squeeze(curr_traces), 'Color', distr_colour.*0.55, 'lineWidth', 3)
+        %shadedErrorBar([], trace_mean, trace_se, {'Color', distr_colour.*0.7})
         ax = axis();
         ax(2) = 300;
         ax(3) = -0.2;
@@ -242,9 +243,9 @@ for list_n = 1:size(dataset_list_paths, 1)
         trace_se = std(curr_traces, [], 3, 'omitnan')./sqrt(length(curr_trs));
         figure(3)
 %         plot(trace_mean, 'Color', distr_colour.*0.7, 'lineWidth', 3)
-%         hold on
-%         plot(squeeze(curr_traces), 'Color', distr_colour.*0.7, 'lineWidth', 0.2)
-        shadedErrorBar([], trace_mean, trace_se, {'Color', ctrl_colour})
+        hold on
+        plot(squeeze(curr_traces), 'Color', ctrl_colour, 'lineWidth', 3)
+        %shadedErrorBar([], trace_mean, trace_se, {'Color', ctrl_colour})
         ylabel('ctrl. responses (dF/F)')
         hold on
         
@@ -261,9 +262,9 @@ for list_n = 1:size(dataset_list_paths, 1)
         trace_se = std(curr_traces, [], 3, 'omitnan')./sqrt(length(curr_trs));
         figure(3)
 %         plot(trace_mean, 'Color', distr_colour.*0.7, 'lineWidth', 3)
-%         hold on
-%         plot(squeeze(curr_traces), 'Color', distr_colour.*0.7, 'lineWidth', 0.2)
-        shadedErrorBar([], trace_mean, trace_se, {'Color', ctrl_colour.*0.7})
+        hold on
+        plot(squeeze(curr_traces), 'Color', ctrl_colour.*0.55, 'lineWidth', 3)
+        %shadedErrorBar([], trace_mean, trace_se, {'Color', ctrl_colour.*0.7})
         ax = axis();
         ax(2) = 300;
         ax(3) = -0.2;
