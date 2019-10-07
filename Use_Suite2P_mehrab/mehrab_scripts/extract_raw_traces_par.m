@@ -107,11 +107,11 @@ for trial_n = start_trial:n_trials
         continue            %skipping trace extraction from unreadable trials - this doesn't matter because time-stamps will be matched up later with the stim param file anyway.
     end
     
-    p = gcp('nocreate');
-    if isempty(p) == 1
-        parpool(7)
-    else
-    end
+%     p = gcp('nocreate');
+%     if isempty(p) == 1
+%         parpool(7)
+%     else
+%     end
     
     %applying a slow x-y motion correction assuming negligible motion
     %within a trial, unless otherwise specified by user
