@@ -6,7 +6,7 @@ function [lag_mat, bad_trs, done_marking, bk_ROI] = manual_xylags_zbad(dataset_s
 lag_mat = zeros(size(dataset_stack, 3), 3);
 bad_trs = zeros(size(dataset_stack, 3), 1);
 reg_stack = zeros(size(dataset_stack, 1), size(dataset_stack, 2), size(dataset_stack, 3));
-curr_threshm = 2;
+curr_threshm = 4.5;
 curr_threshm_tr1 = curr_threshm;
 int_ranges = zeros(size(dataset_stack, 3), 2);
 trial_n = 0;
@@ -40,7 +40,7 @@ while trial_n < size(dataset_stack, 3)
         done = 0;
         
         while done == 0
-            [x1, y1] = ginputc(1, 'Color', [1, 0, 0]);
+            [x1, y1] = ginput(1);
             %allowing user to ask for brighter or dimmer colormapping
             if x1 < 0 || x1 > size(frame1, 2) || y1 < 0 || y1 > size(frame1, 1)
                 %pulling up options box to re-do last landmark or mark current
@@ -86,7 +86,7 @@ while trial_n < size(dataset_stack, 3)
             draggable(ROI_obj, 'none', [-inf inf -inf inf], 'endfcn', @end_drag_func); 
             uiwait(gcf)
             title(['Trial ', int2str(trial_n), ' click on image to continue or outside for more options.'  ])
-            [x, y] = ginputc(1, 'Color', [1, 0, 0]);
+            [x, y] = ginput(1);
             
             %checking if click was outside image
             if x < 0 || x > size(frame1, 2) || y < 0 || y > size(frame1, 1)
@@ -140,7 +140,7 @@ while trial_n < size(dataset_stack, 3)
         elseif z_drifted == 1
             lag_mat(trial_n, 3) = 1;
             bad_trs(trial_n, 1) = 1;
-            int_ranges(trial_n, :) = [];
+            %int_ranges(trial_n, :) = [];
         end
         
     end
