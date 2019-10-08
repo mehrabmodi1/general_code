@@ -23,7 +23,8 @@ hold on
 h = imshow(cyan_im);
 hold off
 set(h, 'AlphaData', ROI_mat_summed.*0.4) 
-set(1, 'Position', [200, 50, 100 + 800, 100 + 800]);
+%set(1, 'Position', [200, 50, 100 + 800, 100 + 800]);
+plot_big_fig(1)
 
 group_n = 1;
 prev_gp_n = 1;
@@ -45,7 +46,7 @@ while 1
     
     ROI_set = 1:1:size(ROI_mat, 3);
     ROI_set(ignore_ROIs) = [];
-   for ROI_ni = 1:size(ROI_mat, 3)
+   for ROI_ni = 1:size(ROI_set, 1)
        ROI_n = ROI_set(ROI_ni);
         if ROI_mat(curr_pos(2), curr_pos(1), ROI_n) == 1
             %removing ROI from any groups it has already been assigned to
@@ -85,19 +86,24 @@ while 1
     h = imshow(cyan_im);
     hold off
     set(h, 'AlphaData', ROI_mat_summed_bk.*0.4) 
-    set(1, 'Position', [200, 50, 100 + 800, 100 + 800]);
+    %set(1, 'Position', [200, 50, 100 + 800, 100 + 800]);
+    plot_big_fig(1)
+
     hold on
     red_im = cat(3, (zeros(size(ave_im)) + 1), zeros(size(ave_im)), (zeros(size(ave_im)) + 0.5));
     h = imshow(red_im);
     hold off
     set(h, 'AlphaData', ROI_mat_summed_curr.*0.4) 
-    set(1, 'Position', [200, 50, 100 + 800, 100 + 800]);
+    %set(1, 'Position', [200, 50, 100 + 800, 100 + 800]);
+    plot_big_fig(1)
+
     hold on
     yellow_im = cat(3, (zeros(size(ave_im)) + 1), (zeros(size(ave_im)) + 0.7), (zeros(size(ave_im)) ));
     h = imshow(yellow_im);
     hold off
     set(h, 'AlphaData', ROI_mat_summed_assigned.*0.4) 
-    set(1, 'Position', [200, 50, 100 + 800, 100 + 800]);
+    %set(1, 'Position', [200, 50, 100 + 800, 100 + 800]);
+    plot_big_fig(1)
     
     %ending loop if all ROIs have been assigned to groups.
     if length(assigned_ROIs) == size(ROI_mat, 3)
@@ -117,5 +123,5 @@ while 1
     end
     
 end
- 
+close figure 1 
 %end
