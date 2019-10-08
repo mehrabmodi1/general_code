@@ -1,4 +1,4 @@
-function [ROI_groups] = define_roi_groups(ROI_mat, ave_im)
+function [ROI_groups] = define_roi_groups(ROI_mat, ave_im, ignore_ROIs)
 %This function pops up a figure showing all the ROIs in ROI_mat, and asks
 %the user to click on and define ROIs that belong in a group together. The
 %user decides how many ROIs go in each group, and how many groups there
@@ -43,7 +43,10 @@ while 1
     end
     prev_gp_n = group_n;
     
-    for ROI_n = 1:size(ROI_mat, 3)
+    ROI_set = 1:1:size(ROI_mat, 3);
+    ROI_set(ignore_ROIs) = [];
+   for ROI_ni = 1:size(ROI_mat, 3)
+       ROI_n = ROI_set(ROI_ni);
         if ROI_mat(curr_pos(2), curr_pos(1), ROI_n) == 1
             %removing ROI from any groups it has already been assigned to
             for group_n_temp = 1:size(ROI_groups, 1)
