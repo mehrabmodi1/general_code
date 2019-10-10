@@ -44,10 +44,9 @@ while 1
     end
     prev_gp_n = group_n;
     
-    ROI_set = 1:1:size(ROI_mat, 3);
-    ROI_set(ignore_ROIs) = [];
-   for ROI_ni = 1:size(ROI_set, 1)
-       ROI_n = ROI_set(ROI_ni);
+    
+   for ROI_n = 1:size(ROI_mat, 3)
+       
         if ROI_mat(curr_pos(2), curr_pos(1), ROI_n) == 1
             %removing ROI from any groups it has already been assigned to
             for group_n_temp = 1:size(ROI_groups, 1)
@@ -123,5 +122,14 @@ while 1
     end
     
 end
+
+%getting rid of ROIs in the ignore_ROIs list
+for group_n = 1:size(ROI_groups, 1)
+    curr_gp = ROI_groups{group_n, 1};
+    del = intersect(curr_gp, ignore_ROIs);
+    curr_gp(curr_gp == ignore_ROIs) = [];
+    ROI_groups{group_n, 1} = curr_gp;    
+end
+
 close figure 1 
 %end

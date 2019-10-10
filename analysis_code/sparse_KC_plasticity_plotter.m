@@ -25,7 +25,8 @@ for list_n = 1:size(dataset_list_paths, 1)
     dataset_list_name = findstr(curr_dir_list_path, 'list_');
     dataset_list_name = curr_dir_list_path((dataset_list_name + 5):(end - 4));
     
-    saved_responses = zeros(8, n_dirs) + nan;     %2 odours, 2 ROIs, 2 conditions - pre and post
+    saved_responses = [];           %8 cols per row, one row per axon; 
+    saved_responses_mean = [];
     
     %loop to go through all experiment datasets listed in list file
     for dir_n = 1:n_dirs
@@ -38,10 +39,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         tif_times = load([curr_dir, 'tif_time_stamps.mat']);           %reading in time stamps for each tif file recorded by raw_data_extracter
         tif_times = tif_times.time_stamps;
         [stim_mat, stim_mat_simple, column_heads, color_vec] = load_params_trains_modular(curr_dir, tif_times);    %reading in trial stimulus parameters after matching time stamps to F traces
-        fore_colour = color_vec(1, :);
-        distr_colour = color_vec(2, :);
-        ctrl_colour = color_vec(3, :);
-        
+                
         %identifying stim_mat_simple col numbers
         led_on_col_n = find_stim_mat_simple_col('led_on', column_heads);            %identifying relevant column number in stim_mat_simple
         od_olf1_col_n = find_stim_mat_simple_col('odor_n', column_heads);           %identifying relevant column number in stim_mat_simple
@@ -74,7 +72,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         n_cells = size(raw_data_mat, 2);
         
         %calculating dF/F traces from raw data
-        filt_time = 0.5;            %in s, the time window for boxcar filter for generating filtered traces
+        filt_time = 5;            %in s, the time window for boxcar filter for generating filtered traces
         [dff_data_mat, dff_data_mat_f] = cal_dff_traces_res(raw_data_mat, stim_mat, frame_time, filt_time, curr_dir);
         del = find(dff_data_mat_f < -1);
         dff_data_mat_f(del) = -1;       %forcing crazy values to sane ones
@@ -83,9 +81,6 @@ for list_n = 1:size(dataset_list_paths, 1)
         paired_odor_n = stim_mat_simple(pairing_tr_n, od_olf1_col_n);
         unpaired_odor_n = odor_list_olf1(odor_list_olf1~=paired_odor_n);
         
-        %identifying pre and post pairing trial sets
-        pairing_tr = find(stim_mat_simple(:, 18) == 1);
-        paired_odor_vec(dir_n, 1) = stim_mat(pairing_tr).odours;     %keeping track of which odor was the paired one        
         
         %identifying the ROI that marks out the region of DAN innervation
         n_ROIs = size(ROI_mat, 3);
@@ -103,46 +98,158 @@ for list_n = 1:size(dataset_list_paths, 1)
         
                 
         %identifying ROIs within DAN innervation zone
-        ROI_reinforced_vec = zeros(n_ROIs, 1);
-        for ROI_n = 2:n_ROIs
+        ROI_reinforced_vec = [];
+        for ROI_n = 2:size(ROI_mat, 3)
             sum_mat = ROI_mat(:, :, ROI_n) + ROI_mat(:, :, 1);
-            if max(max(sum_mat)) < 2
-                ROI_reinforced_vec(ROI_n, 1) = 0;           %ROIs that did not receive DAN reinforcement
-            elseif max(max(sum_mat)) == 2           
-                ROI_reinforced_vec(ROI_n, 1) = 1;           %ROIs that received DAN reinforcement
+            if max(max(sum_mat)) == 2
+                ROI_reinforced_vec = [ROI_reinforced_vec; ROI_n];           %ROIs that received DAN reinforcement
             else
             end
                 
         end
-                
+           
         
         %manually defining sets of ROIs (to label ROI sets that lie along an axon)
         %[ROI_sets, marked_coords] = define_ROI_sets(ROI_mat, 1);
-        [ROI_sets] = define_roi_groups(ROI_mat, ROI_mat(:, :, 1));
-        keyboard
+        if exist([curr_dir, 'ROI_sets.mat']) == 2
+            ROI_sets = load([curr_dir, 'ROI_sets.mat']);
+            ROI_sets = ROI_sets.ROI_sets;
+        else
+            [ROI_sets] = define_roi_groups(ROI_mat, ROI_mat(:, :, 1), 1);
+            save([curr_dir, 'ROI_sets.mat'], 'ROI_sets');
+        end
         
+        %plotting traces and building matrix of response sizes
         n_axons = size(ROI_sets, 1);
-        curr_odor = odor_list_olf1();
-            for axon_n = 0:(n_axons - 1)
-                curr_ROIs = ROI_sets{axon_n, 1};
+        curr_od_list = odor_list_olf1;
+        curr_od_list(curr_od_list == paired_odor_n) = [];
+        curr_od_list = [paired_odor_n; curr_od_list];         %making sure the paired odor is always the first one on the list
+        
+        
+        for axon_n = 0:(n_axons - 1)
+            resp_vec = [];
+            resp_vec_mean = [];
+            
+            curr_ROIs = ROI_sets{(axon_n + 1), 1};
+            %making sure paired ROI (ROI in DAN axons) is first
+            paired_ROI = intersect(curr_ROIs, ROI_reinforced_vec);
+            curr_ROIs(curr_ROIs == paired_ROI) = [];
+            curr_ROIs = [paired_ROI, curr_ROIs];
 
-                for ROI_ni = 1:size(curr_ROIs)
-                    ROI_n = curr_ROIs(ROI_ni);
-
-                    %curr_traces = dff_data_mat_f(:, );
-
+            for ROI_ni = 1:min([length(curr_ROIs), 2])
+                ROI_n = curr_ROIs(ROI_ni);
+                for odor_ni = 1:size(curr_od_list, 1)
+                    odor_n = curr_od_list(odor_ni);
+                    curr_trs = find(stim_mat_simple(:, od_olf1_col_n) == odor_n);
+                    curr_trs_pre = curr_trs(curr_trs < pairing_tr_n);
+                    curr_trs_post = curr_trs(curr_trs > pairing_tr_n);
+                    stim_frs = compute_stim_frs_modular(stim_mat, curr_trs(1), frame_time);
+                    stim_frs = stim_frs{1};
+                    
+                    pre_traces = squeeze(dff_data_mat_f(:, ROI_n, curr_trs_pre));
+                    mean_trace_pre = mean(pre_traces, 2, 'omitnan');
+                    se_trace_pre = std(pre_traces, [], 2, 'omitnan')./sqrt(size(pre_traces, 2));
+                    max_resp_pre = max(mean_trace_pre(stim_frs(1):(stim_frs(2) + round(7./frame_time))) );     %taking the max in an extended window allows for on/sus/off responses to be captured. trace is filtered.
+                    mean_resp_pre = mean(mean_trace_pre(stim_frs(1):(stim_frs(2) + round(7./frame_time))) );     %taking the max in an extended window allows for on/sus/off responses to be captured. trace is filtered.
+                                        
+                    post_traces = squeeze(dff_data_mat_f(:, ROI_n, curr_trs_post));
+                    mean_trace_post = mean(post_traces, 2, 'omitnan');
+                    se_trace_post = std(post_traces, [], 2, 'omitnan')./sqrt(size(pre_traces, 2));
+                    max_resp_post = max(mean_trace_post(stim_frs(1):(stim_frs(2) + round(7./frame_time))) );
+                    mean_resp_post = mean(mean_trace_post(stim_frs(1):(stim_frs(2) + round(7./frame_time))) );
+                    
+                    resp_vec = [resp_vec, max_resp_pre, max_resp_post];
+                    resp_vec_mean = [resp_vec_mean, mean_resp_pre, mean_resp_post];
+                    
+                    
+                    if suppress_plots == 0
+                        %plotting traces
+                        fig_n = 1;
+                        figure(fig_n)
+                        plot(pre_traces, 'lineWidth', 2, 'Color', color_vec(odor_ni, :))
+                        hold on
+                        plot(post_traces, 'lineWidth', 2, 'Color', color_vec(odor_ni, :).*0.65)
+                        set_xlabels_time(fig_n, frame_time, 25);
+                        if isempty(intersect(ROI_n, ROI_reinforced_vec)) == 0 && odor_n == paired_odor_n
+                            ylabel(['paired ROI-odor (', int2str(ROI_n), ') dF/F'])
+                        else
+                            ylabel(['unpaired ROI-odor (', int2str(ROI_n), ') dF/F'])
+                        end
+                        fig_wrapup(fig_n, script_name);
+                        add_stim_bar(fig_n, stim_frs, [0.75, 0.75, 0.75]);
+                        
+                        fig_n = fig_n + 1;
+                        figure(fig_n)
+                        shadedErrorBar([], mean_trace_pre, se_trace_pre, {'Color', color_vec(odor_ni, :)}, 1);
+                        hold on
+                        shadedErrorBar([], mean_trace_post, se_trace_post, {'Color', color_vec(odor_ni, :).*0.4}, 1);
+                        hold off
+                        set_xlabels_time(fig_n, frame_time, 25);
+                        if isempty(intersect(ROI_n, ROI_reinforced_vec)) == 0 && odor_n == paired_odor_n
+                            ylabel(['paired ROI-odor (', int2str(ROI_n), ') dF/F'])
+                        else
+                            ylabel(['unpaired ROI-odor (', int2str(ROI_n), ') dF/F'])
+                        end
+                        fig_wrapup(fig_n, script_name);
+                        keyboard
+                        add_stim_bar(fig_n, stim_frs, [0.75, 0.75, 0.75]);
+                        
+                        keyboard
+                        
+                    else
+                    end
+                    
+                    close figure 1
+                    close figure 2
                 end
 
+                
 
-
-                fig_n = (axon_n + 1)*3 + 1;
-                figure(fig_n)
-
+                
+                
 
             end
+            resp_vec_pad = nan(1, 8);
+            resp_vec_pad(1, 1:length(resp_vec)) = resp_vec;
+            resp_vec = resp_vec_pad;
+            resp_vec_pad = nan(1, 8);
+            resp_vec_pad(1, 1:length(resp_vec_mean)) = resp_vec_mean;
+            resp_vec_mean = resp_vec_pad;
+            saved_responses = [saved_responses; resp_vec];
+            saved_responses_mean = [saved_responses_mean; resp_vec_mean];
+        end
         
-   
+    end
+    yel = [0.8, 0.8, 0.2];
+    grn = [0.3, 0.8, 0.3];
+    if exist('fig_n') == 1
+        fig_n = (fig_n + 1);
+    else
+        fig_n = 1;
     end
     
+    marker_colors = [yel; yel.*0.6;  yel; yel.*0.6; grn; grn.*0.6; grn; grn.*0.6];
+    col_pairs = [1, 2; 3, 4; 5, 6; 7, 8];
+    scattered_dot_plot(saved_responses, fig_n, 1, 4, 8, marker_colors, 1, col_pairs, [0.75, 0.75, 0.75],...
+                            [{'paired od_p_r_e'}, {'paired od_p_s_t'}, {'ctrl od_p_r_e'}, {'ctrl od_p_s_t'},...
+                                {'paired od_p_r_e'}, {'paired od_p_s_t'}, {'ctrl od_p_r_e'}, {'ctrl od_p_s_t'}], 1, [0.35, 0.35, 0.35]);
+    ylabel('max response (dF/F)')
+    fig_wrapup(fig_n, [])
+    
+    if exist('fig_n') == 1
+        fig_n = (fig_n + 1);
+    else
+        fig_n = 2;
+    end
+    
+    marker_colors = [yel; yel.*0.6;  yel; yel.*0.6; grn; grn.*0.6; grn; grn.*0.6];
+    col_pairs = [1, 2; 3, 4; 5, 6; 7, 8];
+    scattered_dot_plot(saved_responses_mean, fig_n, 1, 4, 8, marker_colors, 1, col_pairs, [0.75, 0.75, 0.75],...
+                            [{'paired od_p_r_e'}, {'paired od_p_s_t'}, {'ctrl od_p_r_e'}, {'ctrl od_p_s_t'},...
+                                {'paired od_p_r_e'}, {'paired od_p_s_t'}, {'ctrl od_p_r_e'}, {'ctrl od_p_s_t'}], 1, [0.35, 0.35, 0.35]);
+    ylabel('mean response (dF/F)')
+    fig_wrapup(fig_n, [])
+    
+    keyboard
    
 end
