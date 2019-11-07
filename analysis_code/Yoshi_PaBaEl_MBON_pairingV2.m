@@ -18,10 +18,10 @@ dataset_list_paths = [...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\PaBaEl_MBON_DAN_gamma1_lowUS_MB085C_epoxy_short_session_low_LED_1Hz.xls'}...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\PaBaEl_MBON_DAN_gamma1_lowUS_MB085C_epoxy_short_session_low_LED_0.5Hz.xls'}...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_PaBaEl_MBONGamma2_set1.xls'};...
-                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_PABAEL_MBONGamma2_set2_0.1Hz.xls'};...
+                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_PABAEL_MBONG2_starved_Ara_PaBaEl.xls'};...
                       ];
             
-suppress_plots = 1;
+suppress_plots = 0;
 [del, odor_names] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList.xls', 1);
 global color_vec;                
 a = colormap('bone');
@@ -172,7 +172,7 @@ for list_n = 1:size(dataset_list_paths, 1)
             %shadedErrorBar([], mean_trace, ses, {'Color', [247, 148, 29]./256}, 1)
             %shadedErrorBar([], mean_trace, ses, {'Color', curr_colour.*0.75, 'lineWidth', 1}, 1);
             %plot(mean_trace', 'Color', 'k', 'LineWidth', 3);
-            axis([0, trace_lengths, -0.25, 0.5])
+            axis([0, trace_lengths, -0.1, 0.1])
             odor_name = odor_names{odor_ni, 1};
             set_xlabels_time(2, frame_time, 10)
             script_name = mfilename;

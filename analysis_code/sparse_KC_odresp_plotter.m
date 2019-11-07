@@ -3,7 +3,7 @@ close all
 
 dataset_list_paths = [...
                       
-                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_KC_sparse_plasticity_set1.xls'};...
+                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\KC_sparse_odor_resps_set1.xls'};...
 
                       ];
             
@@ -77,10 +77,7 @@ for list_n = 1:size(dataset_list_paths, 1)
 %         del = find(dff_data_mat_f < -1);
 %         dff_data_mat_f(del) = -1;       %forcing crazy values to sane ones
                 
-        pairing_tr_n = find(stim_mat_simple(:, led_on_col_n) == 1);
-        paired_odor_n = stim_mat_simple(pairing_tr_n, od_olf1_col_n);
-        unpaired_odor_n = odor_list_olf1(odor_list_olf1~=paired_odor_n);
-        
+       
         
         %identifying the ROI that marks out the region of DAN innervation
         n_ROIs = size(ROI_mat, 3);
@@ -122,8 +119,6 @@ for list_n = 1:size(dataset_list_paths, 1)
         %plotting traces and building matrix of response sizes
         n_axons = size(ROI_sets, 1);
         curr_od_list = odor_list_olf1;
-        curr_od_list(curr_od_list == paired_odor_n) = [];
-        curr_od_list = [paired_odor_n; curr_od_list];         %making sure the paired odor is always the first one on the list
         
         
         for axon_n = 0:(n_axons - 1)
@@ -140,58 +135,38 @@ for list_n = 1:size(dataset_list_paths, 1)
                 ROI_n = curr_ROIs(ROI_ni);
                 for odor_ni = 1:size(curr_od_list, 1)
                     odor_n = curr_od_list(odor_ni);
+                    od_name = odor_names1{odor_n, 1};
                     curr_trs = find(stim_mat_simple(:, od_olf1_col_n) == odor_n);
-                    curr_trs_pre = curr_trs(curr_trs < pairing_tr_n);
-                    curr_trs_post = curr_trs(curr_trs > pairing_tr_n);
                     stim_frs = compute_stim_frs_modular(stim_mat, curr_trs(1), frame_time);
                     stim_frs = stim_frs{1};
                     
-                    pre_traces = squeeze(dff_data_mat_f(:, ROI_n, curr_trs_pre));
-                    mean_trace_pre = mean(pre_traces, 2, 'omitnan');
-                    se_trace_pre = std(pre_traces, [], 2, 'omitnan')./sqrt(size(pre_traces, 2));
-                    max_resp_pre = max(mean_trace_pre(stim_frs(1):(stim_frs(2) + round(7./frame_time))) );     %taking the max in an extended window allows for on/sus/off responses to be captured. trace is filtered.
-                    mean_resp_pre = mean(mean_trace_pre(stim_frs(1):(stim_frs(2) + round(7./frame_time))) );     %taking the max in an extended window allows for on/sus/off responses to be captured. trace is filtered.
-                                        
-                    post_traces = squeeze(dff_data_mat_f(:, ROI_n, curr_trs_post));
-                    mean_trace_post = mean(post_traces, 2, 'omitnan');
-                    se_trace_post = std(post_traces, [], 2, 'omitnan')./sqrt(size(pre_traces, 2));
-                    max_resp_post = max(mean_trace_post(stim_frs(1):(stim_frs(2) + round(7./frame_time))) );
-                    mean_resp_post = mean(mean_trace_post(stim_frs(1):(stim_frs(2) + round(7./frame_time))) );
-                    
-                    resp_vec = [resp_vec, max_resp_pre, max_resp_post];
-                    resp_vec_mean = [resp_vec_mean, mean_resp_pre, mean_resp_post];
+                    curr_traces = squeeze(dff_data_mat_f(:, ROI_n, curr_trs));
+                    mean_trace = mean(curr_traces, 2, 'omitnan');
+                    se_trace = std(curr_traces, [], 2, 'omitnan')./sqrt(size(curr_traces, 2));
+                    max_resp = max(mean_trace(stim_frs(1):(stim_frs(2) + round(7./frame_time))) );     %taking the max in an extended window allows for on/sus/off responses to be captured. trace is filtered.
+                    mean_resp = mean(mean_trace(stim_frs(1):(stim_frs(2) + round(7./frame_time))) );     %taking the max in an extended window allows for on/sus/off responses to be captured. trace is filtered.
+                             
+                    resp_vec = [resp_vec, max_resp];
+                    resp_vec_mean = [resp_vec_mean, mean_resp];
                     
                     
                     if suppress_plots == 0
                         %plotting traces
                         fig_n = 1;
                         figure(fig_n)
-                        plot(pre_traces, 'lineWidth', 2, 'Color', color_vec(odor_ni, :))
-                        hold on
-                        plot(post_traces, 'lineWidth', 2, 'Color', color_vec(odor_ni, :).*0.65)
+                        plot(curr_traces, 'lineWidth', 2, 'Color', color_vec(odor_ni, :))
+                        
                         set_xlabels_time(fig_n, frame_time, 25);
-                        if isempty(intersect(ROI_n, ROI_reinforced_vec)) == 0 && odor_n == paired_odor_n
-                            ylabel(['paired ROI-odor (', int2str(ROI_n), ') dF/F'])
-                        else
-                            ylabel(['unpaired ROI-odor (', int2str(ROI_n), ') dF/F'])
-                        end
+                        ylabel(['ROI ', int2str(ROI_n), ' ', od_name, ' resp. (dF/F)']);
                         fig_wrapup(fig_n, script_name);
                         add_stim_bar(fig_n, stim_frs, [0.75, 0.75, 0.75]);
                         
                         fig_n = fig_n + 1;
                         figure(fig_n)
-                        shadedErrorBar([], mean_trace_pre, se_trace_pre, {'Color', color_vec(odor_ni, :)}, 1);
-                        hold on
-                        shadedErrorBar([], mean_trace_post, se_trace_post, {'Color', color_vec(odor_ni, :).*0.4}, 1);
-                        hold off
+                        shadedErrorBar([], mean_trace, se_trace, {'Color', color_vec(odor_ni, :)}, 1);
+                        ylabel(['ROI ', int2str(ROI_n), ' ', od_name, ' resp. (dF/F)']);
                         set_xlabels_time(fig_n, frame_time, 25);
-                        if isempty(intersect(ROI_n, ROI_reinforced_vec)) == 0 && odor_n == paired_odor_n
-                            ylabel(['paired ROI-odor (', int2str(ROI_n), ') dF/F'])
-                        else
-                            ylabel(['unpaired ROI-odor (', int2str(ROI_n), ') dF/F'])
-                        end
                         fig_wrapup(fig_n, script_name);
-                        %keyboard
                         add_stim_bar(fig_n, stim_frs, [0.75, 0.75, 0.75]);
                         
                         keyboard
@@ -220,36 +195,5 @@ for list_n = 1:size(dataset_list_paths, 1)
         end
         
     end
-    yel = [0.8, 0.8, 0.2];
-    grn = [0.3, 0.8, 0.3];
-    if exist('fig_n') == 1
-        fig_n = (fig_n + 1);
-    else
-        fig_n = 1;
-    end
-    
-    marker_colors = [yel; yel.*0.6;  yel; yel.*0.6; grn; grn.*0.6; grn; grn.*0.6];
-    col_pairs = [1, 2; 3, 4; 5, 6; 7, 8];
-    scattered_dot_plot(saved_responses, fig_n, 1, 4, 8, marker_colors, 1, col_pairs, [0.75, 0.75, 0.75],...
-                            [{'paired od_p_r_e'}, {'paired od_p_s_t'}, {'ctrl od_p_r_e'}, {'ctrl od_p_s_t'},...
-                                {'paired od_p_r_e'}, {'paired od_p_s_t'}, {'ctrl od_p_r_e'}, {'ctrl od_p_s_t'}], 1, [0.35, 0.35, 0.35]);
-    ylabel('max response (dF/F)')
-    fig_wrapup(fig_n, [])
-    
-    if exist('fig_n') == 1
-        fig_n = (fig_n + 1);
-    else
-        fig_n = 2;
-    end
-    
-    marker_colors = [yel; yel.*0.6;  yel; yel.*0.6; grn; grn.*0.6; grn; grn.*0.6];
-    col_pairs = [1, 2; 3, 4; 5, 6; 7, 8];
-    scattered_dot_plot(saved_responses_mean, fig_n, 1, 4, 8, marker_colors, 1, col_pairs, [0.75, 0.75, 0.75],...
-                            [{'paired od_p_r_e'}, {'paired od_p_s_t'}, {'ctrl od_p_r_e'}, {'ctrl od_p_s_t'},...
-                                {'paired od_p_r_e'}, {'paired od_p_s_t'}, {'ctrl od_p_r_e'}, {'ctrl od_p_s_t'}], 1, [0.35, 0.35, 0.35]);
-    ylabel('mean response (dF/F)')
-    fig_wrapup(fig_n, [])
-    
     keyboard
-   
 end
