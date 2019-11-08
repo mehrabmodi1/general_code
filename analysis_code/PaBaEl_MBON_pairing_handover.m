@@ -15,6 +15,7 @@ dataset_list_paths = [...
 suppress_plots = 0;
 [del, odor_names1] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList.xls', 1);
 [del, odor_names2] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList_olf2.xls', 1);
+odor_names2{3} = 'Butyl acetate';
 
 global color_vec;                
 a = colormap('bone');
@@ -113,166 +114,176 @@ for list_n = 1:size(dataset_list_paths, 1)
         handover_trs = find(stim_mat_simple(:, dur_col_ns(1)) == od_durs(1) & stim_mat_simple(:, dur_col_ns(2)) == od_durs(1));
         
         %building tr lists
-        all_trs_paired_od = find(stim_mat_simple(:, od_col_ns(2)) == paired_od_n_olf2 & stim_mat_simple(:, dur_col_ns(2)) == od_durs(1));   %this includes post-pairing and handover trials
-        all_trs_unpaired_od = find(stim_mat_simple(:, od_col_ns(1)) == paired_od_n_olf2 & stim_mat_simple(:, dur_col_ns(2)) == od_durs(1));   %this includes post-pairing and handover trials
+        all_trs_paired_od_olf2 = find(stim_mat_simple(:, od_col_ns(2)) == paired_od_n_olf2 & stim_mat_simple(:, dur_col_ns(2)) == od_durs(1));   %this includes post-pairing and handover trials
+        all_trs_unpaired_od_olf1 = find(stim_mat_simple(:, od_col_ns(1)) == unpaired_od_n_olf1 & stim_mat_simple(:, dur_col_ns(1)) == od_durs(1));   %this includes post-pairing and handover trials
         
-        curr_trs = all_trs < pairing_tr_n;
-        
-        curr_traces = dff_data_mat_f(:, :, curr_trs);
-        stim_frs = compute_stim_frs_modular(stim_mat, curr_trs(1), frame_time);
-        stim_frs = stim_frs{fore_olf_n};
-        saved_resps(dir_n, 1) = mean(mean(squeeze(curr_traces(stim_frs(1):(stim_frs(2) + round(4./frame_time)), :, :)), 1, 'omitnan'));
-        trace_mean = mean(curr_traces, 3, 'omitnan');
-        trace_se = std(curr_traces, [], 3, 'omitnan')./sqrt(length(curr_trs));
+        %1. non-handover, paired odor
+        curr_trs = all_trs_paired_od_olf2;
+        [del, del2] = intersect(curr_trs, handover_trs);
+        curr_trs(del2) = [];            %excluded handover trs
+        curr_trs_pre = curr_trs(curr_trs < pairing_tr_n);   %only pre trs 
+        curr_trs_post = curr_trs(curr_trs > pairing_tr_n);   %only post trs 
+                
+        curr_traces_pre = dff_data_mat_f(:, :, curr_trs_pre);
+        curr_traces_post = dff_data_mat_f(:, :, curr_trs_post);
+        paired_pre_mean = median(squeeze(curr_traces_pre), 2, 'omitnan');
+        paired_post_mean = median(squeeze(curr_traces_post), 2, 'omitnan');
+        length_data_paired = length(paired_post_mean) - sum(isnan(paired_post_mean));
+        stim_frs = compute_stim_frs_modular(stim_mat, curr_trs_pre(1), frame_time);
+        stim_frs = stim_frs{2};                   %because olf2 is used for paired odor
+        %saved_resps(dir_n, 1) = mean(mean(squeeze(curr_traces(stim_frs(1):(stim_frs(2) + round(4./frame_time)), :, :)), 1, 'omitnan'));
+        %trace_mean = mean(curr_traces, 3, 'omitnan');
+        %trace_se = std(curr_traces, [], 3, 'omitnan')./sqrt(length(curr_trs));
         
         figure(1)
-        %plot(trace_mean, 'Color', fore_colour, 'lineWidth', 3)
+        plot(squeeze(curr_traces_pre), 'Color', [0.6, 0.6, 0.6], 'lineWidth', 3);
         hold on
-        plot(squeeze(curr_traces), 'Color', fore_colour, 'lineWidth', 3)
+        plot(squeeze(curr_traces_post), 'Color', [0.1, 0.1, 0.1], 'lineWidth', 3);
         %shadedErrorBar([], trace_mean, trace_se, {'Color', fore_colour})
-        
-        hold on
-        ylabel('fore. responses (dF/F)')
-        set_xlabels_time(1, frame_time, 10);
-        
-        %2. pre, distractor odor resps
-        curr_trs = distr_od_trs(distr_od_trs < pairing_tr_n);
-        curr_trs = sort(curr_trs);
-        curr_trs(1) = [];             %getting rid of first preesntation of foreground odour     
-        curr_traces = dff_data_mat_f(:, :, curr_trs);
-        stim_frs = compute_stim_frs_modular(stim_mat, curr_trs(1), frame_time);
-        stim_frs = stim_frs{distr_olf_n};
-        saved_resps(dir_n, 3) = mean(mean(squeeze(curr_traces(stim_frs(1):(stim_frs(2) + round(4./frame_time)), :, :)), 1, 'omitnan'));
-        
-        trace_mean = mean(curr_traces, 3, 'omitnan');
-        trace_se = std(curr_traces, [], 3, 'omitnan')./sqrt(length(curr_trs));
-        
-        figure(2)
-%         plot(trace_mean, 'Color', distr_colour, 'lineWidth', 3)
-%         hold on
-        plot(squeeze(curr_traces), 'Color', distr_colour, 'lineWidth', 3)
-        %shadedErrorBar([], trace_mean, trace_se, {'Color', distr_colour})
-        hold on
-        ylabel('distr. responses (dF/F)')
-        set_xlabels_time(2, frame_time, 10);
-        
-        
-        %3. post, foreground odor resps
-        curr_trs = fore_od_trs(fore_od_trs > pairing_tr_n);
-        curr_trs = sort(curr_trs);
-        curr_traces = dff_data_mat_f(:, :, curr_trs);
-        stim_frs = compute_stim_frs_modular(stim_mat, curr_trs(1), frame_time);
-        stim_frs = stim_frs{fore_olf_n};
-        saved_resps(dir_n, 2) = mean(mean(squeeze(curr_traces(stim_frs(1):(stim_frs(2) + round(4./frame_time)), :, :)), 1, 'omitnan'));
-        trace_mean = mean(curr_traces, 3, 'omitnan');
-        trace_se = std(curr_traces, [], 3, 'omitnan')./sqrt(length(curr_trs));
-        
-        figure(1)
-%         plot(trace_mean, 'Color', fore_colour.*0.7, 'lineWidth', 3)
-%         hold on
-        plot(squeeze(curr_traces), 'Color', fore_colour.*0.55, 'lineWidth', 3)
-        %shadedErrorBar([], trace_mean, trace_se, {'Color', fore_colour.*0.7})
-        ax = axis();
-        ax(2) = 300;
-        ax(3) = -0.2;
-        ax(4) = 0.5;
-        axis(ax);
+        ylabel('paired odor, simple (dF/F)')
+        ax_vals = axis;
+        ax_vals(1, 4) = 0.1;
+        axis(ax_vals);
         set_xlabels_time(1, frame_time, 10);
         fig_wrapup(1, script_name);
-        add_stim_bar(1, stim_frs, [0.75, 0.75, 0.75]);
-        hold off        
-        
-        %4. post, distractor odor resps
-        curr_trs = distr_od_trs(distr_od_trs > pairing_tr_n);
-        curr_trs = sort(curr_trs);
-        curr_traces = dff_data_mat_f(:, :, curr_trs);
-        stim_frs = compute_stim_frs_modular(stim_mat, curr_trs(1), frame_time);
-        stim_frs = stim_frs{distr_olf_n};
-        saved_resps(dir_n, 4) = mean(mean(squeeze(curr_traces(stim_frs(1):(stim_frs(2) + round(4./frame_time)), :, :)), 1, 'omitnan'));
-        trace_mean = mean(curr_traces, 3, 'omitnan');
-        trace_se = std(curr_traces, [], 3, 'omitnan')./sqrt(length(curr_trs));
-        
-        figure(2)
-%         plot(trace_mean, 'Color', distr_colour.*0.7, 'lineWidth', 3)
-%         hold on
-        plot(squeeze(curr_traces), 'Color', distr_colour.*0.55, 'lineWidth', 3)
-        %shadedErrorBar([], trace_mean, trace_se, {'Color', distr_colour.*0.7})
-        ax = axis();
-        ax(2) = 300;
-        ax(3) = -0.2;
-        ax(4) = 0.5;
-        axis(ax);
-        set_xlabels_time(2, frame_time, 10);
-        fig_wrapup(2, script_name);
-        add_stim_bar(2, stim_frs, [0.75, 0.75, 0.75]);
-        hold off       
+        add_stim_bar(1, stim_frs, color_vec(1, :));
+        hold off
         
         
-        %5 Ctrl odor pre responses
-        curr_trs = ctrl_od_trs(ctrl_od_trs < pairing_tr_n);
-        curr_trs = sort(curr_trs);
-        curr_traces = dff_data_mat_f(:, :, curr_trs);
-        stim_frs = compute_stim_frs_modular(stim_mat, curr_trs(1), frame_time);
-        stim_frs = stim_frs{fore_olf_n};
-        saved_resps(dir_n, 5) = mean(mean(squeeze(curr_traces(stim_frs(1):(stim_frs(2) + round(4./frame_time)), :, :)), 1, 'omitnan'));
+        %3. non-handover, unpaired odor
+        curr_trs = all_trs_unpaired_od_olf1;
+        [del, del2] = intersect(curr_trs, handover_trs);
+        curr_trs(del2) = [];            %excluded handover trs
+        curr_trs_pre = curr_trs(curr_trs < pairing_tr_n);   %only pre trs 
+        curr_trs_post = curr_trs(curr_trs > pairing_tr_n);   %only post trs 
+                
+        curr_traces_pre = dff_data_mat_f(:, :, curr_trs_pre);
+        curr_traces_post = dff_data_mat_f(:, :, curr_trs_post);
+        unpaired_pre_mean = median(squeeze(curr_traces_pre), 2);
+        unpaired_post_mean = median(squeeze(curr_traces_pre), 2);
+        length_data_unpaired = length(unpaired_post_mean) - sum(isnan(unpaired_post_mean));
+        stim_frs = compute_stim_frs_modular(stim_mat, curr_trs_pre(1), frame_time);
+        stim_frs = stim_frs{1};                   %because olf2 is used for paired odor
+        %saved_resps(dir_n, 1) = mean(mean(squeeze(curr_traces(stim_frs(1):(stim_frs(2) + round(4./frame_time)), :, :)), 1, 'omitnan'));
+        %trace_mean = mean(curr_traces, 3, 'omitnan');
+        %trace_se = std(curr_traces, [], 3, 'omitnan')./sqrt(length(curr_trs));
         
-        trace_mean = mean(curr_traces, 3, 'omitnan');
-        trace_se = std(curr_traces, [], 3, 'omitnan')./sqrt(length(curr_trs));
         figure(3)
-%         plot(trace_mean, 'Color', distr_colour.*0.7, 'lineWidth', 3)
+        plot(squeeze(curr_traces_pre), 'Color', [0.6, 0.6, 0.6], 'lineWidth', 3);
         hold on
-        plot(squeeze(curr_traces), 'Color', ctrl_colour, 'lineWidth', 3)
-        %shadedErrorBar([], trace_mean, trace_se, {'Color', ctrl_colour})
-        ylabel('ctrl. responses (dF/F)')
-        hold on
-        
-        
-        %6 Ctrl odor post responses
-        curr_trs = ctrl_od_trs(ctrl_od_trs > pairing_tr_n);
-        curr_trs = sort(curr_trs);
-        curr_traces = dff_data_mat_f(:, :, curr_trs);
-        stim_frs = compute_stim_frs_modular(stim_mat, curr_trs(1), frame_time);
-        stim_frs = stim_frs{fore_olf_n};
-        saved_resps(dir_n, 6) = mean(mean(squeeze(curr_traces(stim_frs(1):(stim_frs(2) + round(4./frame_time)), :, :)), 1, 'omitnan'));
-        
-        trace_mean = mean(curr_traces, 3, 'omitnan');
-        trace_se = std(curr_traces, [], 3, 'omitnan')./sqrt(length(curr_trs));
-        figure(3)
-%         plot(trace_mean, 'Color', distr_colour.*0.7, 'lineWidth', 3)
-        hold on
-        plot(squeeze(curr_traces), 'Color', ctrl_colour.*0.55, 'lineWidth', 3)
-        %shadedErrorBar([], trace_mean, trace_se, {'Color', ctrl_colour.*0.7})
-        ax = axis();
-        ax(2) = 300;
-        ax(3) = -0.2;
-        ax(4) = 0.5;
-        axis(ax);
+        plot(squeeze(curr_traces_post), 'Color', [0.1, 0.1, 0.1], 'lineWidth', 3);
+        %shadedErrorBar([], trace_mean, trace_se, {'Color', fore_colour})
+        ylabel('paired odor, simple (dF/F)')
+        ax_vals = axis;
+        ax_vals(1, 4) = 0.1;
+        axis(ax_vals);
         set_xlabels_time(3, frame_time, 10);
         fig_wrapup(3, script_name);
-        add_stim_bar(3, stim_frs, [0.75, 0.75, 0.75]);
+        add_stim_bar(3, stim_frs, color_vec(2, :));
         hold off
         
+        %getting rid of nans
+        length_real_data = min([length_data_paired; length_data_unpaired]);
+        paired_pre_mean( (length_real_data + 1):end) = [];
+        paired_post_mean( (length_real_data + 1):end) = [];
+        unpaired_pre_mean( (length_real_data + 1):end) = [];
+        unpaired_post_mean( (length_real_data + 1):end) = [];
         
-        %plotting pairing trial PID traces
-        figure(4)
-        [PID_traces, traces_orig] = get_PID_traces(curr_dir, 16, frame_time);
-        plot(PID_traces(:, 1), 'lineWidth', 2)
+        %computing linear sums with time-offset to simulate handover trials
+        n_fr_delay = round(od_durs(1)./frame_time);
+        pad = zeros(n_fr_delay, 1) + nan;
+        plusminus_sum_pre = [paired_pre_mean; pad] + [pad; unpaired_pre_mean];           %CS+ first, CS- second
+        plusminus_sum_post = [paired_post_mean; pad] + [pad; unpaired_post_mean];        %CS+ first, CS- second
+        
+        minusplus_sum_pre = sum([[pad; paired_pre_mean], [unpaired_pre_mean; pad]], 2);          %CS- first, CS + second
+        minusplus_sum_post = sum([[pad; paired_post_mean], [unpaired_post_mean; pad]], 2);          %CS- first, CS + second
+
+        
+        %2. handover, paired odor
+        curr_trs = handover_trs;
+        curr_trs = intersect(curr_trs, all_trs_paired_od_olf2);
+        curr_trs_pre = curr_trs(curr_trs < pairing_tr_n);   %only pre trs 
+        curr_trs_post = curr_trs(curr_trs > pairing_tr_n);   %only post trs 
+                
+        curr_traces_pre = dff_data_mat_f(:, :, curr_trs_pre);
+        curr_traces_post = dff_data_mat_f(:, :, curr_trs_post);
+        stim_frs = compute_stim_frs_modular(stim_mat, curr_trs_pre(1), frame_time);
+        stim_frs = [stim_frs{1}; stim_frs{2}];                   %because olf2 is used for paired odor
+        %saved_resps(dir_n, 1) = mean(mean(squeeze(curr_traces(stim_frs(1):(stim_frs(2) + round(4./frame_time)), :, :)), 1, 'omitnan'));
+        %trace_mean = mean(curr_traces, 3, 'omitnan');
+        %trace_se = std(curr_traces, [], 3, 'omitnan')./sqrt(length(curr_trs));
+        
+        figure(2)
+        plot(squeeze(curr_traces_pre), 'Color', [0.6, 0.6, 0.6], 'lineWidth', 3);
         hold on
-        plot(PID_traces(:, 2), 'r')
+        plot(squeeze(curr_traces_post), 'Color', [0.1, 0.1, 0.1], 'lineWidth', 3);
+        plot(minusplus_sum_pre, 'Color', [0.3, 0.5, 0.8], 'lineWidth', 1.5);
+        plot(minusplus_sum_post, 'Color', [0.2, 0.35, 0.6], 'lineWidth', 1.5);
+        
+        %shadedErrorBar([], trace_mean, trace_se, {'Color', fore_colour})
+        ylabel('paired odor, handover (dF/F)')
+        ax_vals = axis;
+        ax_vals(1, 4) = 0.1;
+        axis(ax_vals);
+        set_xlabels_time(2, frame_time, 10);
+        fig_wrapup(2, script_name);
+        add_stim_bar(2, stim_frs, [color_vec(2, :); color_vec(1, :);]);
         hold off
-        ax = axis;
-        ax(3) = -0.002;
-        ax(4) = 0.008;
-        axis(ax);
-        ylabel('PID signal (V)')
+        
+        %4. handover, unpaired odor
+        curr_trs = handover_trs;
+        [del, del2] = intersect(curr_trs, all_trs_unpaired_od_olf1);
+        curr_trs(del2) = [];            %got rid of handover trs with unpaired od delivered first on olf1
+        curr_trs_pre = curr_trs(curr_trs < pairing_tr_n);   %only pre trs 
+        curr_trs_post = curr_trs(curr_trs > pairing_tr_n);   %only post trs 
+                
+        curr_traces_pre = dff_data_mat_f(:, :, curr_trs_pre);
+        curr_traces_post = dff_data_mat_f(:, :, curr_trs_post);
+        stim_frs = compute_stim_frs_modular(stim_mat, curr_trs_pre(1), frame_time);
+        stim_frs = [stim_frs{1}; stim_frs{2}];                   %because olf2 is used for paired odor
+        %saved_resps(dir_n, 1) = mean(mean(squeeze(curr_traces(stim_frs(1):(stim_frs(2) + round(4./frame_time)), :, :)), 1, 'omitnan'));
+        %trace_mean = mean(curr_traces, 3, 'omitnan');
+        %trace_se = std(curr_traces, [], 3, 'omitnan')./sqrt(length(curr_trs));
+        
+        figure(4)
+        plot(squeeze(curr_traces_pre), 'Color', [0.6, 0.6, 0.6], 'lineWidth', 3);
+        hold on
+        plot(squeeze(curr_traces_post), 'Color', [0.1, 0.1, 0.1], 'lineWidth', 3);
+        plot(plusminus_sum_pre, 'Color', [0.3, 0.5, 0.8], 'lineWidth', 1.5);
+        plot(plusminus_sum_post, 'Color', [0.2, 0.35, 0.6], 'lineWidth', 1.5);
+        %shadedErrorBar([], trace_mean, trace_se, {'Color', fore_colour})
+        ylabel('paired odor, handover (dF/F)')
+        ax_vals = axis;
+        ax_vals(1, 4) = 0.1;
+        axis(ax_vals);
         set_xlabels_time(4, frame_time, 10);
         fig_wrapup(4, script_name);
+        add_stim_bar(4, stim_frs, [color_vec(1, :); color_vec(2, :);]);
+        hold off
+        keyboard
         
-        if suppress_plots == 0
-            keyboard
-            
-        else
-        end
+      
+        
+        %plotting pairing trial PID traces
+%         figure(5)
+%         [PID_traces, traces_orig] = get_PID_traces(curr_dir, 16, frame_time);
+%         plot(PID_traces(:, 1), 'lineWidth', 2)
+%         hold on
+%         plot(PID_traces(:, 2), 'r')
+%         hold off
+%         ax = axis;
+%         ax(3) = -0.002;
+%         ax(4) = 0.008;
+%         axis(ax);
+%         ylabel('PID signal (V)')
+%         set_xlabels_time(4, frame_time, 10);
+%         fig_wrapup(4, script_name);
+%         
+%         if suppress_plots == 0
+%             keyboard
+%             
+%         else
+%         end
         close figure 1
         close figure 2
         close figure 3
