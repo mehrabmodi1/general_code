@@ -45,6 +45,7 @@ params_spec2.odours_olf2 = [];
 params_spec2.led_odours = curr_long_od;
 params_spec2.stim_dur = 60;
 params_spec2.st_duty_cyc = 0.5;
+params_spec2.stim_freq = 0.1;
 params_spec2.rel_stim_init_delay = 5;
 
 params_struc_pairing = setUpStimuli_modular(params_spec2);         %detailed, trial-by-trial parameter specification structure.
