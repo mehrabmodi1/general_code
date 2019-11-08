@@ -85,7 +85,7 @@ hold off
 
 fprintf('Calibrated! Stored mean needle valve flow of %0.3f ml/min\n',mu)
 vCalib=mu;
-save('E:\Turner lab\Matlab_scripts\Olfactometer\NewOlfactometer\calibration\ADOValvecalib.mat','vCalib')
+save('E:\Turner lab\Bitbucket_repos\general_code\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\ADOValvecalib.mat','vCalib')
 
 
 %Open valves and return flows to where the were
