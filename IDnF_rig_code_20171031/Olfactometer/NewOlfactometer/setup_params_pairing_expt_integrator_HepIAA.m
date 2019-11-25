@@ -78,6 +78,8 @@ if exist([curr_dir, 'params.mat']) == 2
     end
 else
     save([curr_dir, 'params.mat'], 'params_mat');
+    save('E:\Turner lab\Bitbucket_repos\general_code\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\reciprocal_expt_logs\pairing_expt_integrator_HepIAA_lastlongod.mat', 'last_long_od');
+
 end
 
 disp(['saved detailed stim params structure in ', curr_dir]);

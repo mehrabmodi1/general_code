@@ -63,7 +63,7 @@ params_spec1.duration_olf2 = 10;
 params_spec1.rel_stimLatency_olf2 = 10;
 params_struc2 = setUpStimuli_modular(params_spec1);         %detailed, trial-by-trial parameter specification structure for olf1 odour.
 
-params_struc = append_params(params_struc, params_struc2, 1);  %combining and randomising explicit param spec structures
+params_struc = append_params(params_struc, params_struc2, 0);  %combining and randomising explicit param spec structures
 
 %step 1.4 adding handover olf2-olf1 trials (CS+ to CS- odor trials)   
 params_spec2 = params_spec1;
@@ -77,7 +77,7 @@ elseif last_paired_od == 3 %BA on olf2
 else
 end    
 params_struc3= setUpStimuli_modular(params_spec2);         %detailed, trial-by-trial parameter specification structure for olf1 odour.
-params_struc = append_params(params_struc, params_struc3, 1);  %combining and randomising explicit param spec structures
+params_struc = append_params(params_struc, params_struc3, 0);  %combining and randomising explicit param spec structures
 
 
 %step1.4 setting up EL to CS- trials
@@ -85,20 +85,21 @@ params_spec3 = params_spec2;
 params_spec3.odours = [11];%EL on olf1
 params_spec3.reps = 5;
 params_struc3 = setUpStimuli_modular(params_spec3);         %detailed, trial-by-trial parameter specification structure for olf1 odour.
-params_struc = append_params(params_struc, params_struc3, 1);  %combining and randomising explicit param spec structures
+params_struc = append_params(params_struc, params_struc3, 0);  %combining and randomising explicit param spec structures
 
 %step1.5 setting up CS+ to EL trials
 params_spec4 = params_spec2;
 params_spec4.odours_olf2 = [4]; %EL on olf2
 params_spec4.reps = 5;
 params_struc4 = setUpStimuli_modular(params_spec4);         %detailed, trial-by-trial parameter specification structure for olf1 odour.
-params_struc = append_params(params_struc, params_struc4, 1);  %combining and randomising explicit param spec structures
+params_struc = append_params(params_struc, params_struc4, 0);  %combining and randomising explicit param spec structures
 
 params_struc_pre = params_struc;
 
 %step2.1: Setting up the pairing trial
 %editing param specification structure for only pairing trial. 
 params_spec2 = set_ADO_params_fore_distracter_HepIAA;
+params_spec2.odourNames_olf2 = odourNames_olf2;
 
 if last_paired_od == 1    %case when last expt was with PA on olf2 as CS+
     params_spec2.odours = 3;
