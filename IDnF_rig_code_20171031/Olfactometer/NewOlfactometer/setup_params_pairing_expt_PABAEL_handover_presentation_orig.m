@@ -91,7 +91,7 @@ params_struc = append_params(params_struc, params_struc3, 1);  %combining and ra
 % params_struc3 = setUpStimuli_modular(params_spec1);         %detailed, trial-by-trial parameter specification structure for olf1 odour.
 % 
 % params_struc = append_params(params_struc, params_struc3, 1);  %combining and randomising explicit param spec structures
-% params_struc_pre = params_struc;
+params_struc_pre = params_struc;
 
 %step2.1: Setting up the pairing trial
 %editing param specification structure for only pairing trial. 

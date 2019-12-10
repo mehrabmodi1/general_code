@@ -1,4 +1,4 @@
-function [params_spec1] = setup_params_pairing_expt_PABAEL_handover_presentation_v2()
+hfunction [params_spec1] = setup_params_pairing_expt_PABAEL_handover_presentation_v2()
 %syntax: [params_spec1] = setup_params_pairing_expt_PABAEL_handover_presentation()
 %This function sets up a detailed stimulus specification structure and saves
 %it into curr_aq_direc to set up stimulus delivery for a pre, pairing and
