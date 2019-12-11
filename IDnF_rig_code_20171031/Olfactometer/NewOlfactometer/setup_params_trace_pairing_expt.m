@@ -1,4 +1,4 @@
-function [params_spec1] = setup_params_trace_pairing_expt(trace_interval, n_pairings)
+function [params_struc1] = setup_params_trace_pairing_expt(trace_interval, n_pairings, no_LED_control)
 %syntax: [params_spec1] = setup_params_pairing_expt_PABAEL_handover_presentation()
 %This function sets up a detailed stimulus specification structure and saves
 %it into curr_aq_direc to set up stimulus delivery for a pre, pairing and
@@ -23,7 +23,7 @@ params_spec1.odours_olf2 = [];
 params_spec1.duration = 10;
 params_spec1.isi = 60;
 params_spec1.reps = 7;
-params_spec1.odours = [3, 11];    %PA and EL on olf1
+params_spec1.odours = [3, 11, 9];    %PA, EL and IAA on olf1
 params_spec1.n_od_pulses = 1;
 
 params_struc1 = setUpStimuli_modular(params_spec1);         %detailed, trial-by-trial parameter specification structure for olf1 odour.
@@ -34,21 +34,29 @@ params_struc_pre = params_struc1;
 params_spec2 = set_ADO_params_fore_distracter_HepIAA;
 params_spec2.odours = od_to_pair;
 params_spec2.n_od_pulses = 1;
-params_spec2.duration = 60;
-params_spec2.isi = 120 + trace_interval;
+params_spec2.duration = 10;
+params_spec2.isi = (params_spec2.stim_dur + trace_interval) + 120;
 params_spec2.stimLatency = 10;
 params_spec2.post_od_scan_dur = 10;
 params_spec2.odours_olf2 =[];
-params_spec2.stim_dur = 60;
-params_spec2.rel_stim_init_delay = 60 + trace_interval;
-params_spec2.led_odours = od_to_pair;
+if no_LED_control == 1
+    params_spec2.stim_dur = [];
+    params_spec2.rel_stim_init_delay = [];      %Yoshi defines ISI as difference between odor and LED onsets
+    params_spec2.led_odours = [];
+else
+    params_spec2.stim_dur = 10;
+    params_spec2.rel_stim_init_delay = trace_interval;      %Yoshi defines ISI as difference between odor and LED onsets
+    params_spec2.led_odours = od_to_pair;
+end
+params_spec2.stim_freq = 0.3;
+params_spec2.stim_duty_cyc = 1.5;
 
 params_struc2 = setUpStimuli_modular(params_spec2);
 
 %step2.2: Setting up the CS- trial
 params_spec3 = params_spec1;
-params_spec3.duration = 60;
-params_spec3.isi = 120;
+params_spec3.duration = 10;
+params_spec3.isi = params_spec3.duration + 120;
 if od_to_pair == 3
     params_spec3.odours = 11;
 else
