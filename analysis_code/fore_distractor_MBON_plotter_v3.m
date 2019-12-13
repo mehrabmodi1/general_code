@@ -7,8 +7,8 @@ dataset_list_paths = [...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_fore_distr_MBONAlpha1_set3_highLED.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_fore_distr_MBONGamma2.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_fore_distr_MBONGamma2_set1.xls'};...
-                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_fore_distr_MBONGamma2_set2.xls'};...
-
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_fore_distr_MBONGamma2_set2.xls'};...
+                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_fore_distr_MBONAlpha2sc.xls'};...
                       ];
             
 suppress_plots = 0;
@@ -29,7 +29,8 @@ for list_n = 1:size(dataset_list_paths, 1)
     dataset_list_name = findstr(curr_dir_list_path, 'list_');
     dataset_list_name = curr_dir_list_path((dataset_list_name + 5):(end - 4));
     
-    saved_resps = zeros(n_dirs, 7) + nan;                    %mean response of each fly
+    saved_resps_onset = zeros(n_dirs, 7) + nan;                    %mean response of each fly
+    saved_resps_off = zeros(n_dirs, 7) + nan;
     
     %loop to go through all experiment datasets listed in list file
     for dir_n = 1:n_dirs
@@ -96,7 +97,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         pairing_tr_n = find(stim_mat_simple(:, led_on_col_n) == 1);
         fore_od_n_olf1 = stim_mat_simple(pairing_tr_n, od_olf1_col_n);          %This assumes the foreground odor is always delivered on olf1
         distr_od_n_olf2 = stim_mat_simple(pairing_tr_n, od_olf2_col_n);
-        saved_resps(dir_n, 7) = fore_od_n_olf1;                                 %keeping track of the foreground odor number for current dataset
+        saved_resps_onset(dir_n, 7) = fore_od_n_olf1;                                 %keeping track of the foreground odor number for current dataset
         
         %identifying matching odor_ns for olf1 and olf2 based on odorNames
         %for the two olfactometers
@@ -144,15 +145,17 @@ for list_n = 1:size(dataset_list_paths, 1)
         curr_traces = dff_data_mat_f(:, :, curr_trs);
         stim_frs = compute_stim_frs_modular(stim_mat, curr_trs(1), frame_time);
         stim_frs = stim_frs{fore_olf_n};
-        saved_resps(dir_n, 1) = mean(mean(squeeze(curr_traces(stim_frs(1):(stim_frs(2) + round(4./frame_time)), :, :)), 1, 'omitnan'));
+        saved_resps_onset(dir_n, 1) = max(max(squeeze(curr_traces(stim_frs(1):(stim_frs(1) + round(4./frame_time)), :, :)), [], 1, 'omitnan'));
+        saved_resps_off(dir_n, 1)= max(max(squeeze(curr_traces(stim_frs(2):(stim_frs(2) + round(4./frame_time)), :, :)), [], 1, 'omitnan'));
         trace_mean = mean(curr_traces, 3, 'omitnan');
         trace_se = std(curr_traces, [], 3, 'omitnan')./sqrt(length(curr_trs));
         
         figure(1)
-%         plot(trace_mean, 'Color', fore_colour, 'lineWidth', 3)
-%         hold on
-%         plot(squeeze(curr_traces), 'Color', fore_colour, 'lineWidth', 0.2)
-        shadedErrorBar([], trace_mean, trace_se, {'Color', fore_colour})
+        %plot(trace_mean, 'Color', fore_colour, 'lineWidth', 3)
+        hold on
+        plot(squeeze(curr_traces), 'Color', fore_colour, 'lineWidth', 3)
+        %shadedErrorBar([], trace_mean, trace_se, {'Color', fore_colour})
+        
         hold on
         ylabel('fore. responses (dF/F)')
         set_xlabels_time(1, frame_time, 10);
@@ -164,7 +167,8 @@ for list_n = 1:size(dataset_list_paths, 1)
         curr_traces = dff_data_mat_f(:, :, curr_trs);
         stim_frs = compute_stim_frs_modular(stim_mat, curr_trs(1), frame_time);
         stim_frs = stim_frs{distr_olf_n};
-        saved_resps(dir_n, 3) = mean(mean(squeeze(curr_traces(stim_frs(1):(stim_frs(2) + round(4./frame_time)), :, :)), 1, 'omitnan'));
+        saved_resps_onset(dir_n, 3) = max(max(squeeze(curr_traces(stim_frs(1):(stim_frs(1) + round(4./frame_time)), :, :)), [], 1, 'omitnan'));
+        saved_resps_off(dir_n, 3)= max(max(squeeze(curr_traces(stim_frs(2):(stim_frs(2) + round(4./frame_time)), :, :)), [], 1, 'omitnan'));
         
         trace_mean = mean(curr_traces, 3, 'omitnan');
         trace_se = std(curr_traces, [], 3, 'omitnan')./sqrt(length(curr_trs));
@@ -172,8 +176,8 @@ for list_n = 1:size(dataset_list_paths, 1)
         figure(2)
 %         plot(trace_mean, 'Color', distr_colour, 'lineWidth', 3)
 %         hold on
-%         plot(squeeze(curr_traces), 'Color', distr_colour, 'lineWidth', 0.2)
-        shadedErrorBar([], trace_mean, trace_se, {'Color', distr_colour})
+        plot(squeeze(curr_traces), 'Color', distr_colour, 'lineWidth', 3)
+        %shadedErrorBar([], trace_mean, trace_se, {'Color', distr_colour})
         hold on
         ylabel('distr. responses (dF/F)')
         set_xlabels_time(2, frame_time, 10);
@@ -185,19 +189,20 @@ for list_n = 1:size(dataset_list_paths, 1)
         curr_traces = dff_data_mat_f(:, :, curr_trs);
         stim_frs = compute_stim_frs_modular(stim_mat, curr_trs(1), frame_time);
         stim_frs = stim_frs{fore_olf_n};
-        saved_resps(dir_n, 2) = mean(mean(squeeze(curr_traces(stim_frs(1):(stim_frs(2) + round(4./frame_time)), :, :)), 1, 'omitnan'));
+        saved_resps_onset(dir_n, 2) = max(max(squeeze(curr_traces(stim_frs(1):(stim_frs(1) + round(4./frame_time)), :, :)), [], 1, 'omitnan'));
+        saved_resps_off(dir_n, 2)= max(max(squeeze(curr_traces(stim_frs(2):(stim_frs(2) + round(4./frame_time)), :, :)), [], 1, 'omitnan'));
         trace_mean = mean(curr_traces, 3, 'omitnan');
         trace_se = std(curr_traces, [], 3, 'omitnan')./sqrt(length(curr_trs));
         
         figure(1)
 %         plot(trace_mean, 'Color', fore_colour.*0.7, 'lineWidth', 3)
 %         hold on
-%         plot(squeeze(curr_traces), 'Color', fore_colour.*0.7, 'lineWidth', 0.2)
-        shadedErrorBar([], trace_mean, trace_se, {'Color', fore_colour.*0.7})
+        plot(squeeze(curr_traces), 'Color', fore_colour.*0.55, 'lineWidth', 3)
+        %shadedErrorBar([], trace_mean, trace_se, {'Color', fore_colour.*0.7})
         ax = axis();
         ax(2) = 300;
         ax(3) = -0.2;
-        ax(4) = 0.5;
+        ax(4) = 0.2;
         axis(ax);
         set_xlabels_time(1, frame_time, 10);
         fig_wrapup(1, script_name);
@@ -210,19 +215,20 @@ for list_n = 1:size(dataset_list_paths, 1)
         curr_traces = dff_data_mat_f(:, :, curr_trs);
         stim_frs = compute_stim_frs_modular(stim_mat, curr_trs(1), frame_time);
         stim_frs = stim_frs{distr_olf_n};
-        saved_resps(dir_n, 4) = mean(mean(squeeze(curr_traces(stim_frs(1):(stim_frs(2) + round(4./frame_time)), :, :)), 1, 'omitnan'));
+        saved_resps_onset(dir_n, 4) = max(max(squeeze(curr_traces(stim_frs(1):(stim_frs(1) + round(4./frame_time)), :, :)), [], 1, 'omitnan'));
+        saved_resps_off(dir_n, 4)= max(max(squeeze(curr_traces(stim_frs(2):(stim_frs(2) + round(4./frame_time)), :, :)), [], 1, 'omitnan'));
         trace_mean = mean(curr_traces, 3, 'omitnan');
         trace_se = std(curr_traces, [], 3, 'omitnan')./sqrt(length(curr_trs));
         
         figure(2)
 %         plot(trace_mean, 'Color', distr_colour.*0.7, 'lineWidth', 3)
 %         hold on
-%         plot(squeeze(curr_traces), 'Color', distr_colour.*0.7, 'lineWidth', 0.2)
-        shadedErrorBar([], trace_mean, trace_se, {'Color', distr_colour.*0.7})
+        plot(squeeze(curr_traces), 'Color', distr_colour.*0.55, 'lineWidth', 3)
+        %shadedErrorBar([], trace_mean, trace_se, {'Color', distr_colour.*0.7})
         ax = axis();
         ax(2) = 300;
         ax(3) = -0.2;
-        ax(4) = 0.5;
+        ax(4) = 0.2;
         axis(ax);
         set_xlabels_time(2, frame_time, 10);
         fig_wrapup(2, script_name);
@@ -236,15 +242,16 @@ for list_n = 1:size(dataset_list_paths, 1)
         curr_traces = dff_data_mat_f(:, :, curr_trs);
         stim_frs = compute_stim_frs_modular(stim_mat, curr_trs(1), frame_time);
         stim_frs = stim_frs{fore_olf_n};
-        saved_resps(dir_n, 5) = mean(mean(squeeze(curr_traces(stim_frs(1):(stim_frs(2) + round(4./frame_time)), :, :)), 1, 'omitnan'));
+        saved_resps_onset(dir_n, 5) = max(max(squeeze(curr_traces(stim_frs(1):(stim_frs(1) + round(4./frame_time)), :, :)), [], 1, 'omitnan'));
+        saved_resps_off(dir_n, 5)= max(max(squeeze(curr_traces(stim_frs(2):(stim_frs(2) + round(4./frame_time)), :, :)), [], 1, 'omitnan'));
         
         trace_mean = mean(curr_traces, 3, 'omitnan');
         trace_se = std(curr_traces, [], 3, 'omitnan')./sqrt(length(curr_trs));
         figure(3)
-%         plot(trace_mean, 'Color', distr_colour.*0.7, 'lineWidth', 3)
-%         hold on
-%         plot(squeeze(curr_traces), 'Color', distr_colour.*0.7, 'lineWidth', 0.2)
-        shadedErrorBar([], trace_mean, trace_se, {'Color', ctrl_colour})
+        %plot(trace_mean, 'Color', distr_colour.*0.7, 'lineWidth', 3)
+        hold on
+        plot(squeeze(curr_traces), 'Color', ctrl_colour, 'lineWidth', 3)
+        %shadedErrorBar([], trace_mean, trace_se, {'Color', ctrl_colour})
         ylabel('ctrl. responses (dF/F)')
         hold on
         
@@ -255,19 +262,20 @@ for list_n = 1:size(dataset_list_paths, 1)
         curr_traces = dff_data_mat_f(:, :, curr_trs);
         stim_frs = compute_stim_frs_modular(stim_mat, curr_trs(1), frame_time);
         stim_frs = stim_frs{fore_olf_n};
-        saved_resps(dir_n, 6) = mean(mean(squeeze(curr_traces(stim_frs(1):(stim_frs(2) + round(4./frame_time)), :, :)), 1, 'omitnan'));
+        saved_resps_onset(dir_n, 6) = max(max(squeeze(curr_traces(stim_frs(1):(stim_frs(1) + round(4./frame_time)), :, :)), [], 1, 'omitnan'));
+        saved_resps_off(dir_n, 6)= max(max(squeeze(curr_traces(stim_frs(2):(stim_frs(2) + round(4./frame_time)), :, :)), [], 1, 'omitnan'));
         
         trace_mean = mean(curr_traces, 3, 'omitnan');
         trace_se = std(curr_traces, [], 3, 'omitnan')./sqrt(length(curr_trs));
         figure(3)
-%         plot(trace_mean, 'Color', distr_colour.*0.7, 'lineWidth', 3)
-%         hold on
-%         plot(squeeze(curr_traces), 'Color', distr_colour.*0.7, 'lineWidth', 0.2)
-        shadedErrorBar([], trace_mean, trace_se, {'Color', ctrl_colour.*0.7})
+        %plot(trace_mean, 'Color', distr_colour.*0.7, 'lineWidth', 3)
+        hold on
+        plot(squeeze(curr_traces), 'Color', ctrl_colour.*0.55, 'lineWidth', 3)
+        %shadedErrorBar([], trace_mean, trace_se, {'Color', ctrl_colour.*0.7})
         ax = axis();
         ax(2) = 300;
         ax(3) = -0.2;
-        ax(4) = 0.5;
+        ax(4) = 0.2;
         axis(ax);
         set_xlabels_time(3, frame_time, 10);
         fig_wrapup(3, script_name);
@@ -303,16 +311,21 @@ for list_n = 1:size(dataset_list_paths, 1)
     end
     marker_colors = [fore_colour; fore_colour; distr_colour; distr_colour; ctrl_colour; ctrl_colour];
     col_pairs = [1, 2; 3, 4; 5, 6];
-    scattered_dot_plot(saved_resps(:, 1:6), 5, 1, 4, 8, marker_colors, 1, col_pairs, [0.75, 0.75, 0.75],...
+    scattered_dot_plot(saved_resps_onset(:, 1:6), 5, 1, 4, 8, marker_colors, 1, col_pairs, [0.75, 0.75, 0.75],...
+                            [{'fore_p_r_e'}, {'fore_p_o_s_t'}, {'distr_p_r_e'}, {'distr_p_o_s_t'}, {'ctrl_p_r_e'}, {'ctrl_p_o_s_t'}], 1, [0.35, 0.35, 0.35]);
+    ylabel('on response size (mean dF/F)')
+    fig_wrapup(5, script_name);
+                        
+    scattered_dot_plot(saved_resps_off(:, 1:6), 6, 1, 4, 8, marker_colors, 1, col_pairs, [0.75, 0.75, 0.75],...
                             [{'fore_p_r_e'}, {'fore_p_o_s_t'}, {'distr_p_r_e'}, {'distr_p_o_s_t'}, {'ctrl_p_r_e'}, {'ctrl_p_o_s_t'}], 1, [0.35, 0.35, 0.35]);
     
-    ylabel('response size (mean dF/F)')
-    fig_wrapup(5, script_name);
+    ylabel('off response size (mean dF/F)')
+    fig_wrapup(6, script_name);
     
     %statistical testing
-    [h_fore, p_fore] = ttest(saved_resps(:, 1), saved_resps(:, 2));
-    [h_distr, p_distr] = ttest(saved_resps(:, 3), saved_resps(:, 4));
-    [h_ctrl, p_ctrl] = ttest(saved_resps(:, 5), saved_resps(:, 6));
+    [h_fore, p_fore] = ttest(saved_resps_onset(:, 1), saved_resps_onset(:, 2));
+    [h_distr, p_distr] = ttest(saved_resps_onset(:, 3), saved_resps_onset(:, 4));
+    [h_ctrl, p_ctrl] = ttest(saved_resps_onset(:, 5), saved_resps_onset(:, 6));
     
     [p_corr, h] = bonf_holm([p_fore, p_distr, p_ctrl], 0.05)
     keyboard

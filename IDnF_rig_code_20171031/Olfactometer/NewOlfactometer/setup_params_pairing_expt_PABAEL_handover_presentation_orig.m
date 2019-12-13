@@ -1,4 +1,4 @@
-function [params_spec1] = setup_params_pairing_expt_PABAEL_handover_presentation()
+function [params_spec1] = setup_params_pairing_expt_PABAEL_handover_presentation_orig()
 %syntax: [params_spec1] = setup_params_pairing_expt_PABAEL_handover_presentation()
 %This function sets up a detailed stimulus specification structure and saves
 %it into curr_aq_direc to set up stimulus delivery for a pre, pairing and
@@ -81,16 +81,16 @@ params_struc = append_params(params_struc, params_struc3, 1);  %combining and ra
 
 
 %step1.4 setting up EL alone control (olf1)
-params_spec1 = set_ADO_params_default;
-
-params_spec1.odours = [11];%EL
-params_spec1.odours_olf2 = [];%BA
-params_spec1.reps = 5;
-params_spec1.duration = 10;
-params_spec1.isi = 60;
-params_struc3 = setUpStimuli_modular(params_spec1);         %detailed, trial-by-trial parameter specification structure for olf1 odour.
-
-params_struc = append_params(params_struc, params_struc3, 1);  %combining and randomising explicit param spec structures
+% params_spec1 = set_ADO_params_default;
+% 
+% params_spec1.odours = [11];%EL
+% params_spec1.odours_olf2 = [];%BA
+% params_spec1.reps = 5;
+% params_spec1.duration = 10;
+% params_spec1.isi = 60;
+% params_struc3 = setUpStimuli_modular(params_spec1);         %detailed, trial-by-trial parameter specification structure for olf1 odour.
+% 
+% params_struc = append_params(params_struc, params_struc3, 1);  %combining and randomising explicit param spec structures
 params_struc_pre = params_struc;
 
 %step2.1: Setting up the pairing trial

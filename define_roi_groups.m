@@ -1,4 +1,4 @@
-function [ROI_groups] = define_roi_groups(ROI_mat, ave_im)
+function [ROI_groups] = define_roi_groups(ROI_mat, ave_im, ignore_ROIs)
 %This function pops up a figure showing all the ROIs in ROI_mat, and asks
 %the user to click on and define ROIs that belong in a group together. The
 %user decides how many ROIs go in each group, and how many groups there
@@ -23,7 +23,8 @@ hold on
 h = imshow(cyan_im);
 hold off
 set(h, 'AlphaData', ROI_mat_summed.*0.4) 
-set(1, 'Position', [200, 50, 100 + 800, 100 + 800]);
+%set(1, 'Position', [200, 50, 100 + 800, 100 + 800]);
+plot_big_fig(1)
 
 group_n = 1;
 prev_gp_n = 1;
@@ -43,7 +44,9 @@ while 1
     end
     prev_gp_n = group_n;
     
-    for ROI_n = 1:size(ROI_mat, 3)
+    
+   for ROI_n = 1:size(ROI_mat, 3)
+       
         if ROI_mat(curr_pos(2), curr_pos(1), ROI_n) == 1
             %removing ROI from any groups it has already been assigned to
             for group_n_temp = 1:size(ROI_groups, 1)
@@ -82,19 +85,24 @@ while 1
     h = imshow(cyan_im);
     hold off
     set(h, 'AlphaData', ROI_mat_summed_bk.*0.4) 
-    set(1, 'Position', [200, 50, 100 + 800, 100 + 800]);
+    %set(1, 'Position', [200, 50, 100 + 800, 100 + 800]);
+    plot_big_fig(1)
+
     hold on
     red_im = cat(3, (zeros(size(ave_im)) + 1), zeros(size(ave_im)), (zeros(size(ave_im)) + 0.5));
     h = imshow(red_im);
     hold off
     set(h, 'AlphaData', ROI_mat_summed_curr.*0.4) 
-    set(1, 'Position', [200, 50, 100 + 800, 100 + 800]);
+    %set(1, 'Position', [200, 50, 100 + 800, 100 + 800]);
+    plot_big_fig(1)
+
     hold on
     yellow_im = cat(3, (zeros(size(ave_im)) + 1), (zeros(size(ave_im)) + 0.7), (zeros(size(ave_im)) ));
     h = imshow(yellow_im);
     hold off
     set(h, 'AlphaData', ROI_mat_summed_assigned.*0.4) 
-    set(1, 'Position', [200, 50, 100 + 800, 100 + 800]);
+    %set(1, 'Position', [200, 50, 100 + 800, 100 + 800]);
+    plot_big_fig(1)
     
     %ending loop if all ROIs have been assigned to groups.
     if length(assigned_ROIs) == size(ROI_mat, 3)
@@ -114,5 +122,14 @@ while 1
     end
     
 end
- 
+
+%getting rid of ROIs in the ignore_ROIs list
+for group_n = 1:size(ROI_groups, 1)
+    curr_gp = ROI_groups{group_n, 1};
+    del = intersect(curr_gp, ignore_ROIs);
+    curr_gp(curr_gp == ignore_ROIs) = [];
+    ROI_groups{group_n, 1} = curr_gp;    
+end
+
+close figure 1 
 %end

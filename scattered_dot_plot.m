@@ -54,7 +54,12 @@ elseif isempty(with_lines) == 0
     for row_n = 1:size(mat, 1)
         for conn_pair_n = 1:size(with_lines, 1)
             curr_pair = with_lines(conn_pair_n, :);
-            curr_row = mat(row_n, curr_pair(1):curr_pair(2) );
+            try
+                curr_row = mat(row_n, curr_pair(1):curr_pair(2) );
+            catch
+                keyboard
+            end
+                
             if marker_filled == 0
                 plot(r_vecs(row_n, curr_pair(1):curr_pair(2)), curr_row, '-O', 'markerSize', markersize, 'markerEdgeColor', markercolor(curr_pair(1), :), 'Color', markercolor(curr_pair(1), :), 'lineWidth', 1)
             elseif marker_filled == 1

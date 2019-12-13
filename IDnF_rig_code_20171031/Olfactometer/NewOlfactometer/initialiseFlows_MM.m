@@ -29,26 +29,20 @@ setFlow(AC,firstDilution(2),'B');
 
 %Set flow through carrier
 try
-    load('E:\Turner lab\Bitbucket_repos\general_code\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\ADOValvecalib.mat','vCalib');  
+    a = load('E:\Turner lab\Bitbucket_repos\general_code\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\ADOValvecalib.mat','vCalib');  
+    vCalib = a.vCalib;
+    secCalib = 5000 - ((1 - vCalib).*1000);
     
 catch
     fprintf('Can''t load ADOValvecalib.mat, setting carrier to 0.5\n')
-    vCalib=0.1; %flow through needle valve 1
+    vCalib=0.4; %flow through needle valve 1
     
 end
 
-try
-    a = load('E:\Turner lab\Bitbucket_repos\general_code\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\sec_dil_calib.mat');
-    secCalib = a.calib_second_dilution;
-    
-catch
-    fprintf('Can''t load sec_dil_calib.mat, setting secondDilution to 4900mLpm\n')
-    secCalib=4900; %flow through needle valve 1
-end
 
 setFlow(AC,sum(firstDilution)-vCalib,'C')
 
-if secondDilution ~= secCalib
+if abs(secondDilution - secCalib) > 100 
     ans = input('secondDilution being set is different from last calibration. Might need to re-calibrate olfactometer before continuing. Input 0 to abort, anything else to ignore and continue.');
     if ans == 0
         error('aborted for re-calibration!')

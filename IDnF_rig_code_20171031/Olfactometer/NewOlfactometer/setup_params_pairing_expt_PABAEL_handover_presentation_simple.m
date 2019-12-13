@@ -1,4 +1,4 @@
-function [params_spec1] = setup_params_pairing_expt_PABAEL_handover_presentation()
+hfunction [params_spec1] = setup_params_pairing_expt_PABAEL_handover_presentation_v2()
 %syntax: [params_spec1] = setup_params_pairing_expt_PABAEL_handover_presentation()
 %This function sets up a detailed stimulus specification structure and saves
 %it into curr_aq_direc to set up stimulus delivery for a pre, pairing and
@@ -31,11 +31,11 @@ if last_paired_od == 1 %PA on olf2
     params_spec1.odours_olf2 = 3;%BA
 elseif last_paired_od == 3 %BA on olf2
     params_spec1.odours = 10;%BA
-    params_spec1.odours_olf2 = 1;%PA
+    params_spec1.odours_olf2 = 1;%PAO
 else
 end    
 
-%step1.1 setting up olf1 alone trials
+%step1.1 setting up olf1 alone trials (CS-)
 od_olf2 = params_spec1.odours_olf2;
 params_spec1.odours_olf2 = [];%BA
 params_spec1.reps = 5;
@@ -44,7 +44,7 @@ params_spec1.isi = 60;
 
 params_struc0 = setUpStimuli_modular(params_spec1);         %detailed, trial-by-trial parameter specification structure for olf1 odour.
 
-%step 1.2 setting up olf2 alone trials
+%step 1.2 setting up olf2 alone trials (CS+)
 params_spec1.odours_olf2 = od_olf2;%BA
 params_spec1.duration = 0.1;
 params_spec1.duration_olf2 = 10;
@@ -54,8 +54,16 @@ params_struc1 = setUpStimuli_modular(params_spec1);         %detailed, trial-by-
 %This contains olf1 alone and olf2 alone trials
 params_struc = append_params(params_struc0, params_struc1, 1);  %combining and randomising explicit param spec structures
 
+%step 1.3 setting up olf1 alone trials (EL)
+params_spec1.odours = 11; %EL
+params_spec1.odours_olf2 = [];
+params_spec1.duration = 10;
+params_spec1.reps = 5;
+params_struc1 = setUpStimuli_modular(params_spec1);         %detailed, trial-by-trial parameter specification structure for olf1 odour.
 
-%step 1.3 adding handover olf1-olf2 trials (CS- to CS+ odor trials)   
+params_struc = append_params(params_struc, params_struc1, 1);
+
+%step 1.4 adding handover olf1-olf2 trials (CS- to CS+ odor trials)   
 params_spec1.reps = 5;
 params_spec1.duration = 10;
 params_spec1.isi = 60;
@@ -65,7 +73,7 @@ params_struc2 = setUpStimuli_modular(params_spec1);         %detailed, trial-by-
 
 params_struc = append_params(params_struc, params_struc2, 1);  %combining and randomising explicit param spec structures
 
-%step 1.4 adding handover olf1-olf2 trials (CS+ to CS- odor trials)   
+%step 1.5 adding handover olf2-olf1 trials (CS+ to CS- odor trials)   
 params_spec2 = params_spec1;
 %the paired odor is presented on olf2.
 if last_paired_od == 1 %PA on olf2
@@ -80,22 +88,12 @@ params_struc3= setUpStimuli_modular(params_spec2);         %detailed, trial-by-t
 params_struc = append_params(params_struc, params_struc3, 1);  %combining and randomising explicit param spec structures
 
 
-%step1.4 setting up EL alone control (olf1)
-params_spec1 = set_ADO_params_default;
-
-params_spec1.odours = [11];%EL
-params_spec1.odours_olf2 = [];%BA
-params_spec1.reps = 5;
-params_spec1.duration = 10;
-params_spec1.isi = 60;
-params_struc3 = setUpStimuli_modular(params_spec1);         %detailed, trial-by-trial parameter specification structure for olf1 odour.
-
-params_struc = append_params(params_struc, params_struc3, 1);  %combining and randomising explicit param spec structures
 params_struc_pre = params_struc;
 
 %step2.1: Setting up the pairing trial
 %editing param specification structure for only pairing trial. 
 params_spec2 = set_ADO_params_fore_distracter_HepIAA;
+params_spec2.odourNames_olf2 = odourNames_olf2;
 
 if last_paired_od == 1    %case when last expt was with PA on olf2 as CS+
     params_spec2.odours = 3;
@@ -174,6 +172,3 @@ else
 end
 
 disp(['saved detailed stim params structure in ', curr_dir]);
-
-
-

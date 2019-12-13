@@ -245,7 +245,7 @@ for trial_n = start_tr:n_trials
     %% delivering odor
     %Setting up PID acuisition, 
     s = daq.createSession('ni');
-    addAnalogInputChannel(s,'Dev3', [0, 1], 'Voltage');
+    addAnalogInputChannel(s,'Dev3', [0, 2], 'Voltage');
     acq_rate = 2000;        %Hz
     s.Rate = acq_rate;
     s.DurationInSeconds = tot_tr_dur;
@@ -300,11 +300,16 @@ for trial_n = start_tr:n_trials
     %flipping shuttle valve to deliver odor pulse(s)
     disp('odor being delivered...')
     for r_pulse_n = 1:size(pulse_train, 1)
-        pause(pulse_train(r_pulse_n, 1));
-        FlipValve_EP('Final',0)        
-        
-        pause(pulse_train(r_pulse_n, 2));
-        FlipValve_EP('Final',1)
+        if pulse_train(r_pulse_n, 2) > 0.1        %condition to skip olf1 when only olf2 pulses are being presented.
+            
+            pause(pulse_train(r_pulse_n, 1));
+            FlipValve_EP('Final',0)        
+
+            pause(pulse_train(r_pulse_n, 2));
+            FlipValve_EP('Final',1)
+            
+        else
+        end
         
     end
     
