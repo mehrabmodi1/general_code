@@ -34,19 +34,30 @@ direc_lists_mat = [...
                     %{'E:\Data\Raw_Data_Current\dataset_lists\PABAEL_MBONGamma2_set2_0.1Hz.xls'};...
                     %{'E:\Data\Raw_Data_Current\dataset_lists\fore_distr_MBONGamma2_set3_nodistr_ctrl.xls'};...
                     %{'E:\Data\Raw_Data_Current\dataset_lists\KC_dense_plasticity.xls'};...
-                    {'E:\Data\Raw_Data_Current\dataset_lists\KC_sparse_plasticity_set1.xls'};...
-                    ];
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\KC_sparse_plasticity_set1.xls'};...
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\KC_sparse_odor_resps_set1.xls'};...
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\MBONG2_starved_Ara_PaBaEl.xls'}...
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\MBONG2_PaBaEl_handover.xls'}...
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\fore_distr_MBONAlpha2sc.xls'}...
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\MBONG2_PaBaEl_handover_simple_starved.xls'}...
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\Alpha1_60strace_71C03LxA_MB043CGal4.xls'}...
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\Alpha1_60strace_72D01LxAChr88tdT.xls'}...
+                    {'E:\Data\Raw_Data_Current\dataset_lists\MBONG2_PaBaEl_handover_starved_set2.xls'}...
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\KC_c739_PABAEL_201908set.xls'}...
+                     
+                     ];
                 
 n_direc_lists = size(direc_lists_mat, 1);
 
 save_path_base_manual = 'E:\Data\Analysed_data\Manual_ROIs\';
 save_path_base_Suite2P = 'E:\Data\Analysed_data\Suite2p\Results\';
-fuse_ROIs = 0;          %0-no, 1-yes. This flattens dim3 of ROI_mat in case there is a multi-patch neuron that needs to be considered as a single object.
+fuse_ROIs = 1;          %0-no, 1-yes. This flattens dim3 of ROI_mat in case there is a multi-patch neuron that needs to be considered as a single object.
 dilate_ROIs = 15; %15;        %This is the number of pixels by which the manually drawn ROIs are dilated before data extraction.
+remove_ROI_ovlap = 1;    %enabling this switch gets rid of an overlapping pixels between ROIs from all ROIs.   
 extract_both_channels = 0;  
 extract_traces_only = 0; %Enabling this switch makes the program only extract traces from a .tif file using given ROIs. It doesn't look for stim params/PID files of any sort. useful for data acquired on other rigs. 
 do_noisefit_subtraction = 0;    %Enabling this switch makes the pipeline fit slow, row-wise noise and subtract that from each frame.
-do_bk_subtraction = 0;      %Enabling this switch makes the pipeline subtract an estimate of the background offset value computed from the manually drawn background ROI
+do_bk_subtraction = 1;      %Enabling this switch makes the pipeline subtract an estimate of the background offset value computed from the manually drawn background ROI
 
 %looping through all directory lists and all datasets once to save mean frames and again to save manually determined slow x-y  offsets for each trial, as well as determine bad z-drift trials
 for do_over = 1:2
@@ -75,7 +86,7 @@ for do_over = 1:2
                 direc = direc1;
             else
             end
-                        
+                      
             remove_small_tifs(direc);
             prev_direc = pwd;
             cd([direc]);
@@ -99,6 +110,7 @@ for do_over = 1:2
                 tif_list = dir('*.tif');        %checking if trial 1 tif has been copied over to results folder
                 if isempty(tif_list) == 0
                     disp([dataset_name, 'already analysed. skipping...'])
+                    keyboard
                     continue
                 else
                 end
@@ -192,6 +204,16 @@ for do_over = 1:2
                         ROI_mat(:, :, ROI_n) = poly2mask(curr_ROI.mnCoordinates(:, 1), curr_ROI.mnCoordinates(:, 2), size(ref_im, 1), size(ref_im, 2));
                     end
                     
+                    %getting rid of ROI overlap pixels if manually specified
+                    if remove_ROI_ovlap == 1
+                        sum_mat = sum(ROI_mat, 3);
+                        sum_mat = repmat(sum_mat, 1, 1, size(ROI_mat, 3));
+                        ovlapi = find(sum_mat > 1);
+                        ROI_mat(ovlapi) = 0;
+                    else
+                    end
+                    
+                    
                     %re-saving ROIs in easy to load form
                     save([save_path_base, dataset_name, '\ROI_mat.mat'], 'ROI_mat');
                     
@@ -271,14 +293,16 @@ for direc_list_n = 1:n_direc_lists
         %checking if ROI_type is manualROIs (0) or Suite2P (1)
         if length(direc) == length(direc1)
             ROI_type = 0 ;
+            save_path_base = save_path_base_manual;
         elseif length(direc) < length(direc1)
             ROI_type = 1;
+            save_path_base = save_path_base_Suite2P;
             direc = direc1;
         else
         end
+        
         dataset_namei = findstr(direc, '20');
         dataset_name = direc((dataset_namei):end);
-        
         remove_small_tifs(direc);
         prev_direc = pwd;
         cd([direc]);
