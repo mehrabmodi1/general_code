@@ -9,7 +9,7 @@ function [params_spec] = calibrate_olf1olf2_handover_pulses(olf1_od, olf2_od)
 params_spec = set_ADO_params_default;
 
 %loop to go through each odor pair
-params_spec.reps = 2;
+params_spec.reps = 1;
 params_spec.odours = olf1_od;
 params_spec.odours_olf2 = olf2_od;
 params_spec.duration = 10;
@@ -17,3 +17,10 @@ params_spec.duration_olf2 = 10;
 params_spec.rel_stimLatency_olf2 = 10;
 params_spec.isi = 60;
 
+present_odours_modular_stim_led(params_spec, 0)
+
+olf1_olf2_delay = load('E:\Turner lab\Bitbucket_repos\general_code\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\olf1_olf2_delay.mat');
+olf1_olf2_delay = olf1_olf2_delay.olf1_olf2_delay;
+
+olf1_olf2_delay = input(['Delay currently ', num2str(olf1_olf2_delay), 's. Enter new delay:']);
+save('E:\Turner lab\Bitbucket_repos\general_code\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\olf1_olf2_delay.mat', 'olf1_olf2_delay');
