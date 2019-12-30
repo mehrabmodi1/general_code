@@ -10,7 +10,6 @@ if nargin == 1
 else
 end
 
-keyboard
 %connecting to arduino if necessary
 persistent trig_ard
 if iscon == 0
