@@ -107,7 +107,7 @@ for trial_n = start_tr:n_trials
     pulse_train = params_mat(trial_n).pulse_train;
     pulse_type = params_mat(trial_n).pulse_type;
     stimLatency = params_mat(trial_n).stimLatency;
-    
+    trig_scan = params_mat(trial_n).trigger_scan;
     
     %olfactometer2 params
     if isnan(params_mat(trial_n).duration_olf2) == 1
@@ -279,8 +279,13 @@ for trial_n = start_tr:n_trials
         tic
         t_stamp = now;
         s.startBackground();                    %starting PID acqn in the background
-        trigger_scan(1);                        %triggering ScanImage to start image acquisition
-        disp('pre odor scanning...')
+        
+        if trig_scan == 1
+            trigger_scan(1);                        %triggering ScanImage to start image acquisition
+            disp('pre odor scanning...')
+        else
+        end
+        
         pause(stim_latency - od_inj_dur)        %pause before filling system with odor for long stim latencies
         injectOdour_EP(odor_n)                  %filling system with odor, switching MFC B flow from empty vial to odor vial
 
@@ -292,9 +297,14 @@ for trial_n = start_tr:n_trials
         tic
         t_stamp = now;
         s.startBackground();                    %starting PID acqn in the background
-        trigger_scan(1);                        %triggering ScanImage to start image acquisition
-        disp('pre odor scanning...')
-        pause(stim_latency)   
+        
+        if trig_scan == 1
+            trigger_scan(1);                        %triggering ScanImage to start image acquisition
+            disp('pre odor scanning...')
+        else
+        end
+        
+        pause(stim_latency)
     else
     end
     
@@ -319,9 +329,14 @@ for trial_n = start_tr:n_trials
     
     ShutAllValves_EP;
     
-    disp('post odor scanning...')
-    pause(post_od_scan_dur)                 %waiting to end image acquisition
-    trigger_scan(0)                         %ending image acquisition
+    if trig_scan == 1
+        disp('post odor scanning...')
+        pause(post_od_scan_dur)                 %waiting to end image acquisition
+        trigger_scan(0)                         %ending image acquisition
+    else
+    end
+    
+    
     
        
     %logging current trial as done and saving params_mat

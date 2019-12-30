@@ -368,6 +368,12 @@ function [params, params_spec]=setUpStimuli_modular(params)
         params(tr_n).stim_freq = params_spec.stim_freq;
         params(tr_n).st_duty_cyc = params_spec.st_duty_cyc;
         
+        try
+            params(tr_n).trigger_scan = params_spec.trigger_scan;
+        catch
+            params(tr_n).trigger_scan = 1;      %in case an old param spec script is used, assuming scan needs to be triggered and specifying that
+        end
+    
     end
    
 end
