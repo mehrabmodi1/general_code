@@ -281,9 +281,10 @@ for trial_n = start_tr:n_trials
         s.startBackground();                    %starting PID acqn in the background
         
         if trig_scan == 1
-            trigger_scan(1);                        %triggering ScanImage to start image acquisition
+            trigger_scan(1, 1);                        %triggering ScanImage to start image acquisition
             disp('pre odor scanning...')
         else
+            trigger_scan(0, 1);
         end
         
         pause(stim_latency - od_inj_dur)        %pause before filling system with odor for long stim latencies
@@ -299,9 +300,10 @@ for trial_n = start_tr:n_trials
         s.startBackground();                    %starting PID acqn in the background
         
         if trig_scan == 1
-            trigger_scan(1);                        %triggering ScanImage to start image acquisition
+            trigger_scan(1, 1);                        %triggering ScanImage to start image acquisition
             disp('pre odor scanning...')
         else
+            trigger_scan(0, 1);
         end
         
         pause(stim_latency)
@@ -332,10 +334,9 @@ for trial_n = start_tr:n_trials
     if trig_scan == 1
         disp('post odor scanning...')
         pause(post_od_scan_dur)                 %waiting to end image acquisition
-        trigger_scan(0)                         %ending image acquisition
     else
     end
-    
+    trigger_scan(0, 0);         %ending image acquisition
     
     
        
@@ -357,9 +358,9 @@ for trial_n = start_tr:n_trials
     %tricking scanimage into releasing current trial file...
     %by triggering a fake, short trial
     pause(1)
-    trigger_scan(1)
+    trigger_scan(1, 0)
     pause(1)
-    trigger_scan(0)    
+    trigger_scan(0, 0)    
     
     %pause for inter stimulus interval (between this and next trial)
     if trial_n < n_trials
@@ -384,7 +385,7 @@ turn_off_olf2 = input('turn off olf2, 0 - no, 1 - yes');
 %defining clean up function
 function [] = my_cleanup()
 ShutAllValves_EP;
-trigger_scan(0);
+trigger_scan(0, 0);
 close_serial_port(19)
 
 if no_olf2 == 0
