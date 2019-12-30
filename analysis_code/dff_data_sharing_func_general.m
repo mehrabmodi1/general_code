@@ -11,9 +11,10 @@ dataset_list_paths = [%{'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Y
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_rand_trains.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_KC_Ca_alpha1T_set2.xls'};...
                       {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_KC_c739_PABAEL_201908set.xls'};...
-                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_KC_d5HT1b_PABAEL_201908set.xls'}...                      
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_KC_d5HT1b_PABAEL_201908set.xls'}...                      
                       ];
 
+dataset_type = 2; %2 - manualROI, 3 - Suite2P
 suppress_plots = 1;
 [del, odor_names] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList.xls', 1);
 a = colormap('bone');
@@ -33,7 +34,7 @@ for list_n = 1:size(dataset_list_paths, 1)
     for dir_n = 1:n_dirs
         saved_an_results.scriptname = mfilename('fullpath');
         curr_dir = [dir_list{dir_n, 1}, '\'];
-        curr_dir = manage_base_paths(curr_dir, 3);
+        curr_dir = manage_base_paths(curr_dir, dataset_type);
         curr_dir = raw_direc_with_1(curr_dir);
         curr_dir = [curr_dir, '\'];
         tif_times = load([curr_dir, 'tif_time_stamps.mat']);           %reading in time stamps for each tif file recorded by raw_data_extracter

@@ -6,7 +6,7 @@ dataset_list_paths = [...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_Alpha1_60strace_72D01LxAChr88tdT.xls'};...  
                       ];
             
-suppress_plots = 0;
+suppress_plots = 1;
 [del, odor_names1] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList.xls', 1);
 [del, odor_names2] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList_olf2.xls', 1);
 
@@ -92,10 +92,10 @@ for list_n = 1:size(dataset_list_paths, 1)
         %plotting responses for the paired odor
         curr_trs_pre = find(stim_mat_simple(:, od_olf1_col_n) == paired_od_n);
         curr_trs_pre = intersect(curr_trs_pre, pre_trs);
-        curr_trs_pre = curr_trs_pre(2:7);                             %discarding first presentation of any odor for habituation effects
+        curr_trs_pre = curr_trs_pre(1:7);                             %discarding first presentation of any odor for habituation effects
         curr_trs_post = find(stim_mat_simple(:, od_olf1_col_n) == paired_od_n);
         curr_trs_post = intersect(curr_trs_post, post_trs);
-        curr_trs_post = curr_trs_post(2:7);  
+        curr_trs_post = curr_trs_post(1:7);  
         pre_traces = squeeze(dff_data_mat_f(:, 1, curr_trs_pre));
         stim_frs = compute_stim_frs_modular(stim_mat, curr_trs_pre(1), frame_time);
         stim_frs = stim_frs{1};      
@@ -122,10 +122,10 @@ for list_n = 1:size(dataset_list_paths, 1)
         %plotting responses for the un-paired odor
         curr_trs_pre = find(stim_mat_simple(:, od_olf1_col_n) == unpaired_od_n);
         curr_trs_pre = intersect(curr_trs_pre, pre_trs);
-        curr_trs_pre = curr_trs_pre(2:7);                           %discarding first presentation of any odor for habituation effects
+        curr_trs_pre = curr_trs_pre(1:7);                           %discarding first presentation of any odor for habituation effects
         curr_trs_post = find(stim_mat_simple(:, od_olf1_col_n) == unpaired_od_n);
         curr_trs_post = intersect(curr_trs_post, post_trs);
-        curr_trs_post = curr_trs_post(2:7);
+        curr_trs_post = curr_trs_post(1:7);
         stim_frs = compute_stim_frs_modular(stim_mat, curr_trs_pre(1), frame_time);
         stim_frs = stim_frs{1};      
         

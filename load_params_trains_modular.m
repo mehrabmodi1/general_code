@@ -1,4 +1,4 @@
-function [stim_mat, stim_mat_simple, column_heads, color_vec, good_tr_list] = load_params_trains(direc, tif_datenums, match_tifs)
+function [stim_mat, stim_mat_simple, column_heads, color_vec, good_tr_list] = load_params_trains_modular(direc, tif_datenums, match_tifs)
 %syntax: [stim_mat, stim_mat_simple, column_heads, color_vec, bad_tr_list] = load_params_trains(direc, tif_datenums, match_tifs)
 %This function compares the time stamps of the tiff files in a dataset with
 %those saved for each trial in the params file and aligns the two sets of
