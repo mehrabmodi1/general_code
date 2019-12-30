@@ -51,7 +51,6 @@ for item_n = 1:length(date_time_list)
     time_stamp_vec(1, item_n) = datenum(curr_t(12:20), 'HH:MM:SS');
     
 end
-
 time_stamp_vec(1:2) = [];
 direc_tail = {dir_contents.name};
 direc_tail = {direc_tail{1, 3:length(direc_tail)} };

@@ -24,7 +24,7 @@ if exist([save_dir 'params.mat']) == 2
                 break
             else
             end
-        end
+        end 
         
         a = inputdlg('Input trial n to acquire next; 0 for last trial done.', 'Trial n', 1, {'0'});
         a = str2num(a{1, 1});
@@ -80,6 +80,7 @@ if isempty(AC) == 1
 end
     
 secondDilution1 = params_mat(1).secondDilution;
+
 initialiseFlows_MM(AC, 0.1, secondDilution1);      %initialising flows for the first time just to set things up. 
 od_inj_dur = 24.5;                         %this is the duration in s for which MFC B flow is injected into an odor vial to fully fill the system with odor. Stim_latency has to be longer than this.
 
