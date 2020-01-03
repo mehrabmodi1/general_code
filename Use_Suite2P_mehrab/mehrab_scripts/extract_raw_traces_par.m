@@ -1,4 +1,4 @@
-function [raw_data_mat] = extract_raw_traces(direc, ROI_mat, save_path, do_registration, extract_both_channels, subtraction_spec_vec)
+function [raw_data_mat] = extract_raw_traces_par(direc, ROI_mat, save_path, do_registration, extract_both_channels, subtraction_spec_vec, force_re_extraction)
 %syntax: [raw_data_mat] = extract_raw_traces(direc, ROI_mat, save_path)
 %This function extracts raw traces from all the large tif files in direc using 
 %the specified ROI_mat. It saves the extracted raw_data_mat after each trial 
@@ -35,17 +35,20 @@ if exist([save_path, 'extracted_raw_data_mat.mat']) == 2
             done_trs = 0;
         end
         
-        if max(done_trs) == n_trials
-            disp('all traces already extracted... skipping.')
-            del = [];
-            save([save_path, 'trace_extraction_complete.mat'], 'del');
-           
-            return
+        if force_re_extraction ~= 1
+            if max(done_trs) == n_trials
+                disp('all traces already extracted... skipping.')
+                del = [];
+                save([save_path, 'trace_extraction_complete.mat'], 'del');
+
+                return
+            else
+                start_trial = max(done_trs) + 1;
+
+            end
         else
-            start_trial = max(done_trs) + 1;
-           
+            start_trial = 1;
         end
-        
         
         disp(['Recovered some extracted traces. Starting to extract trial ', int2str(start_trial), '.'])
 
@@ -308,13 +311,13 @@ for trial_n = start_trial:n_trials
         curr_frame = double(curr_frame);
         
         %doing a background subtraction to subtract away the PMT offset, if any
-        if subtraction_spec_vec == 1
+        if subtraction_spec_vec(1, 1) == 1
             if isempty(bk_pixi) == 1
                 bk_val = 0;
             else
                 bk_val = bk_val_vec(frame_n, 1);
             end
-
+            
             curr_frame = curr_frame - bk_val;
         else
         end
@@ -328,7 +331,7 @@ for trial_n = start_trial:n_trials
             end
                     
             raw_vec(1, ROI_n) = mean(curr_frame(curr_ROI == 1));
-            %disp(['extracting data from ROI ' int2str(ROI_n)]); 
+            
         end
        
         curr_raw_data_mat(frame_n, :) = raw_vec;   %raw data mat for current trial

@@ -1,5 +1,5 @@
-function [im_warped, im_orig, landmarks] = warp_im(im_orig, landmarks)
-%This function takes an image and a set of pairs of points (landmarks, size n, 4)
+function [im_warped, im_orig, landmark_pairs] = warp_im(im_orig, landmark_pairs)
+%This function takes an image and a set of pairs of points (landmark_pairs, size n, 4)
 %identified in the original image and a second, warped reference frame of
 %the same size as the original image. It then warps each point in the
 %original image to bring each landmark point close to it's new location in
@@ -14,15 +14,15 @@ function [im_warped, im_orig, landmarks] = warp_im(im_orig, landmarks)
 % im_orig(10:20, 80:90) = 1;
 % im_orig(80:90, 10:20) = 1;
 % im_orig(80:90, 80:90) = 1;
-% landmarks(1, :) = [5, 5, 20, 20];
-% landmarks(2, :) = [85, 85, 50, 50];
+% landmark_pairs(1, :) = [5, 5, 20, 20];
+% landmark_pairs(2, :) = [85, 85, 50, 50];
 
 
 %this sets the exp decay rate of the weighting of landmarks by distance
 one_eth_decay_dist = 0.2;
 
 %computing the displacement of each landmark point
-lm_displacements = [(landmarks(:, 1) - landmarks(:, 3)), (landmarks(:, 2) - landmarks(:, 4))];
+lm_displacements = [(landmark_pairs(:, 1) - landmark_pairs(:, 3)), (landmark_pairs(:, 2) - landmark_pairs(:, 4))];
 max_dist = round(sqrt(size(im_orig, 1).^2 + size(im_orig, 2).^2));  %the length of the diagonal of im orig
 decay_rate = 1./(max_dist.*one_eth_decay_dist);
 
@@ -32,7 +32,7 @@ im_warped = zeros(size(im_orig, 1), size(im_orig, 2)) + nan;
 im_warped_pix_counts = zeros(size(im_orig, 1), size(im_orig, 2));       %to keep track of how many pixels' values from im_orig have been assigned to each pixel in im_warped
 for row_n = 1:size(im_orig, 1)
     for col_n = 1:size(im_orig, 2)
-        coords = [row_n, col_n; landmarks(:, 1:2)];
+        coords = [row_n, col_n; landmark_pairs(:, 1:2)];
         dist_vec = squareform(pdist(coords));
         dist_vec = dist_vec(1, :);
         dist_vec(1) = [];               %vector of distances of curr point in im_orig from each landmark in im_orig
