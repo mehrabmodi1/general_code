@@ -85,8 +85,8 @@ initialiseFlows_MM(AC, 0.1, secondDilution1);      %initialising flows for the f
 od_inj_dur = 24.5;                         %this is the duration in s for which MFC B flow is injected into an odor vial to fully fill the system with odor. Stim_latency has to be longer than this.
 
 %reading in manually measured odor propagation delays to align stimuli in time
-olf1_olf2_delay_mat = load('E:\Turner lab\Bitbucket_repos\general_code\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\olf1_olf2_delay_mat.mat');
-olf1_olf2_delay_mat = olf1_olf2_delay_mat.olf1_olf2_delay_mat;
+olf1_olf2_delay = load('E:\Turner lab\Bitbucket_repos\general_code\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\olf1_olf2_delay.mat');
+olf1_olf2_delay = olf1_olf2_delay.olf1_olf2_delay;
 LED_olf1_delay = load('E:\Turner lab\Bitbucket_repos\general_code\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\LED_olf1_delay.mat');
 LED_olf1_delay = LED_olf1_delay.LED_olf1_delay;
 
@@ -266,16 +266,9 @@ for trial_n = start_tr:n_trials
         else
             mid_trial = 1;
         end
-        
+        keyboard
         odor_vec_olf2 = zeros(size(pulse_train_olf2, 1), 1) + odor_n_olf2;
-        
-        olf1_olf2_delay = olf1_olf2_delay_mat(odor_n, odor_n_olf2);
-        if isnan(olf1_olf2_delay) == 1
-            olf1_olf2_delay = olf1_olf2_delay_mat(10, 3);
-            disp('Warning: olf1_olf2_delay uncalibrated for current olf1, olf2 odor pair. Using a default.')
-        else
-        end
-        
+        olf1_olf2_delay = olf1_olf2_d
         initial_delay_olf2 = stimLatency + rel_stimLatency_olf2 - olf1_olf2_delay;
         %sending params to olf2 arduino
         olf_arduino_serial_comm(mid_trial, pulse_train_olf2, odor_vec_olf2, initial_delay_olf2); 
