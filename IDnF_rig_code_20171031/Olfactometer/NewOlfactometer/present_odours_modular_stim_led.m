@@ -18,13 +18,14 @@ if exist([save_dir 'params.mat']) == 2
         params_mat = params_mat.params_mat;
         n_trials = size(params_mat, 2);
         %identifying last tr completed
-        for d_tr_n = 1:n_trials
+        for d_tr_n = n_trials:-1:1
             done_tr = params_mat(d_tr_n).trs_done;
-            if done_tr == 0
+            if done_tr ~= 0
                 break
             else
             end
         end 
+        d_tr_n = d_tr_n + 1;
         
         a = inputdlg('Input trial n to acquire next; 0 for last trial done.', 'Trial n', 1, {'0'});
         a = str2num(a{1, 1});
