@@ -24,6 +24,10 @@ present_odours_modular_stim_led(params_spec, 0)
 olf1_olf2_delay_mat = load('E:\Turner lab\Bitbucket_repos\general_code\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\olf1_olf2_delay_mat.mat');
 olf1_olf2_delay_mat = olf1_olf2_delay_mat.olf1_olf2_delay_mat;
 olf1_olf2_delay = olf1_olf2_delay_mat(olf1_od, olf2_od);        %old delay for this odor pair
+if isnan(olf1_olf2_delay) == 1
+    olf1_olf2_delay = olf1_olf2_delay_mat(10, 3);
+else
+end
 
 olf1_olf2_delay = input(['Delay currently ', num2str(olf1_olf2_delay), 's. Enter new delay:']);
 olf1_olf2_delay_mat(olf1_od, olf2_od) = olf1_olf2_delay;
