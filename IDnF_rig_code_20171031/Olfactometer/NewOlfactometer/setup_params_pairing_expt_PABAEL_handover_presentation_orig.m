@@ -111,7 +111,7 @@ if last_paired_od == 1    %case when last expt was with PA on olf2 as CS+
     params_spec2.st_duty_cyc = 0.5;
     params_spec2.rel_stim_init_delay = 0.5;
     params_spec2.isi = 120;     %this gives 45s before the next trial begins + 15s of pre odor scan on the CS- trial
-    
+    params_spec2.trigger_scan = 0;
 elseif last_paired_od == 3    %case when last expt was with PA on olf2 as CS+
     params_spec2.odours = 10;
     params_spec2.duration = 0.1;
@@ -126,7 +126,7 @@ elseif last_paired_od == 3    %case when last expt was with PA on olf2 as CS+
     params_spec2.st_duty_cyc = 0.5;
     params_spec2.rel_stim_init_delay = 0.5;
     params_spec2.isi = 120;     %this gives 45s before the next trial begins + 15s of pre odor scan on the CS- trial
-    
+    params_spec2.trigger_scan = 0;
 else
 end
 
@@ -147,6 +147,7 @@ end
 params_spec3.isi = 180;
 params_spec3.duration = 60;
 params_spec3.reps = 1;
+params_spec3.trigger_scan = 0;
 
 params_struc_CSminus = setUpStimuli_modular(params_spec3);         %detailed, trial-by-trial parameter specification structure.
 params_struc = append_params(params_struc, params_struc_CSminus, 0);
