@@ -47,9 +47,9 @@ params_spec1.duration = 20;
 params_spec1.reps = 2;
 params_spec1.odours = olf1_ods;
 params_spec1.odours_olf2 = [];
-params_spec1.isi = 50;
-params_spec1.post_od_scan_dur = 0;
-params_spec1.stimLatency = 0;
+params_spec1.isi = 55;
+params_spec1.post_od_scan_dur = 5;
+params_spec1.stimLatency = 10;
 
 params_spec1.odourNames = params_struc_orig(1).odourNames;
 params_spec1.odourNames_olf2 = params_struc_orig(1).odourNames_olf2;
