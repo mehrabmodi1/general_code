@@ -30,6 +30,7 @@ decay_rate = 1./(max_dist.*one_eth_decay_dist);
 %warped image
 im_warped = zeros(size(im_orig, 1), size(im_orig, 2)) + nan;
 im_warped_pix_counts = zeros(size(im_orig, 1), size(im_orig, 2));       %to keep track of how many pixels' values from im_orig have been assigned to each pixel in im_warped
+
 for row_n = 1:size(im_orig, 1)
     for col_n = 1:size(im_orig, 2)
         coords = [row_n, col_n; landmark_pairs(:, 1:2)];
@@ -40,7 +41,7 @@ for row_n = 1:size(im_orig, 1)
         
         %weighted mean displacement for current pixel in im_orig to be inserted into im_warped
         curr_displacements = round(weighted_mean(lm_displacements, landmark_wts'));
-        
+       
         %inserting current pixel from im_orig into im_warped if possible.
         %If another pixel has already been inserted at the same location in
         %im_warped, the mean of the two will be taken.

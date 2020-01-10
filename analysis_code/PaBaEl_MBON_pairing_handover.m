@@ -10,8 +10,9 @@ dataset_list_paths = [...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_fore_distr_MBONGamma2_set2.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_PaBaEl_MBONG2_handover.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_MBONG2_PaBaEl_handover_simple_starved.xls'};...
-                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_MBONG2_PaBaEl_handover_starved36_halfAra.xls'};...
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_MBONG2_PaBaEl_handover_starved36_halfAra.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_MBONG2_PaBaEl_handover_starved_halfAra.xls'};...
+                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_MBONG2_PaBaEl_handover_starved_halfAra_prehabituated.xls'};...
                       
                       ];
             
@@ -47,7 +48,7 @@ for list_n = 1:size(dataset_list_paths, 1)
        
         tif_times = load([curr_dir, 'tif_time_stamps.mat']);           %reading in time stamps for each tif file recorded by raw_data_extracter
         tif_times = tif_times.time_stamps;
-        [stim_mat, stim_mat_simple, column_heads, color_vec] = load_params_trains_modular(curr_dir, tif_times);    %reading in trial stimulus parameters after matching time stamps to F traces
+        [stim_mat, stim_mat_simple, column_heads, color_vec, good_tr_list, params_orig] = load_params_trains_modular(curr_dir, tif_times);    %reading in trial stimulus parameters after matching time stamps to F traces
         paired_color = color_vec(2, :);
         unpaired_color = color_vec(1, :);
         EL_color = color_vec(3, :);
@@ -106,7 +107,9 @@ for list_n = 1:size(dataset_list_paths, 1)
         
         
         %identifying relevant odor numbers for each olfactometer
-        pairing_tr_n = find(stim_mat_simple(:, led_on_col_n) == 1);
+        pairing_tr_n = find_pairing_tr(params_orig);
+        
+        
         paired_od_n_olf2 = stim_mat_simple(pairing_tr_n, od_olf2_col_n);    %paired odor is always an olf2 odor        
         paired_od_name = odor_names2{paired_od_n_olf2};
         paired_od_n_olf1 = od_name_lookup(odor_names1, paired_od_name); 

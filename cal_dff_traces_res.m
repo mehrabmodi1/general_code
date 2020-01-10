@@ -49,11 +49,19 @@ for trial_n = 1:n_trials
     end
     
     stim_frame = floor(stim_time./frame_time) + floor(PID_latency./frame_time);
-        
+    if stim_frame == 1
+        stim_frame = 60;        %probably a pre-habituation trial acquired in error
+    else
+    end
+    
+    
     %calculating dF/F for all cells, for current trial
     raw_mat = squeeze(raw_data_mat(:, :, trial_n) );
-    
-    baseline_vec = mean(raw_mat((stim_frame - round(5./frame_time)):(stim_frame - round(2./frame_time)), :), 1, 'omitnan');          %vector of F baselines for all cells
+    try
+        baseline_vec = mean(raw_mat((stim_frame - round(5./frame_time)):(stim_frame - round(2./frame_time)), :), 1, 'omitnan');          %vector of F baselines for all cells
+    catch
+        keyboard
+    end
     baseline_mat = repmat(baseline_vec, n_frames, 1);
     dff_mat = (raw_mat - baseline_mat)./baseline_mat;
     b_vec = zeros(1, round(filt_time./frame_time)) + 1;
