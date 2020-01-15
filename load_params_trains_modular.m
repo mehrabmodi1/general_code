@@ -1,4 +1,4 @@
-function [stim_mat, stim_mat_simple, column_heads, color_vec, good_tr_list] = load_params_trains_modular(direc, tif_datenums, match_tifs)
+function [stim_mat, stim_mat_simple, column_heads, color_vec, good_tr_list, params_orig] = load_params_trains_modular(direc, tif_datenums, match_tifs)
 %syntax: [stim_mat, stim_mat_simple, column_heads, color_vec, bad_tr_list] = load_params_trains(direc, tif_datenums, match_tifs)
 %This function compares the time stamps of the tiff files in a dataset with
 %those saved for each trial in the params file and aligns the two sets of
@@ -33,15 +33,8 @@ end
 [del, last_filen] = max(date_nums);
 par_filename = dir_contents(last_filen).name;
 params = load([direc, par_filename]);
-
-
-try
-    params = params.params_mat;
-catch
-    keyboard
-end
-
-
+params = params.params_mat;
+params_orig = params;
 
 if datenum_check == 1
     n_trials_p = size(params, 2);        %n_trials according to the param file
@@ -74,12 +67,15 @@ if datenum_check == 1
         end   
     end
   
-    %finding matches for each param time_stampg
+    
+    pairing_tr_n_vec = find_pairing_tr(params);
+    
+    %finding matches for each param time_stamp
     saved_matches = [];
     for trial_n_p = 1:n_trials_p
         curr_vec = match_mat(trial_n_p, :);       %vec of time differences with all tiff timestamps for current param timestamp
-       [delay, matched_t] = min(abs(curr_vec), [], 'omitnan');
-        
+        [delay, matched_t] = min(abs(curr_vec), [], 'omitnan');
+       
         %checking if currently matched tif_n has already been matched to
         %another par_n
         if trial_n_p > 1
@@ -89,9 +85,9 @@ if datenum_check == 1
                 if dup_delay > delay                %duplicate already in saved_matches is falsely matched
                     saved_matches(dup_i, :) = [];
                     saved_matches = [saved_matches; [delay, matched_t, trial_n_p]];
-                    continue
+                    %continue
                 elseif dup_delay < delay            %duplicate already in saved_matches is the correct match
-                continue
+                %continue
                 else
                 end
             else
@@ -102,14 +98,41 @@ if datenum_check == 1
         else
             saved_matches = [saved_matches; [delay, matched_t, trial_n_p]];
         end
+        
+        
+        %accounting for case when no tif was acquired on the pairing trial
+        %within the matching loop
+        if isempty(intersect(trial_n_p, pairing_tr_n_vec)) == 0
+            if saved_matches(size(saved_matches, 1), 3) ~= trial_n_p
+                %case where current trial is led pairing trial, but no tiff was acquired
+                saved_matches = [saved_matches; [delay, nan, trial_n_p]];
+                
+            else
+            end
+           
+        else
+        end
+        
     end
     
     %syncing up match tr list with good_tr_list
     good_tr_list_bool = zeros(n_trials_t, 1);
     good_tr_list_bool(good_tr_list) = 1;
     matched_tr_list = saved_matches(:, 2);
-    good_tr_list_bool = good_tr_list_bool(matched_tr_list);
-    good_tr_list = find(good_tr_list_bool == 1);
+    
+    %accounting for cases where a pairing trial had no tif associated with
+    %it by inserting an extra trial for it, and offsetting subsequent
+    %trials by 1 position in the vector
+    good_tr_list_booli = [];
+    for matched_tr_n = 1:length(matched_tr_list)
+        if isnan(matched_tr_list(matched_tr_n)) == 0
+            good_tr_list_booli = [good_tr_list_booli; good_tr_list_bool(matched_tr_list(matched_tr_n))];
+        elseif isnan(matched_tr_list(matched_tr_n)) == 1
+            good_tr_list_booli = [good_tr_list_booli; 1];
+        else
+        end
+    end
+    good_tr_list = find(good_tr_list_booli == 1);
     
     tif_num = saved_matches(:, 2);
     par_num = saved_matches(:, 3);    
@@ -127,7 +150,7 @@ if datenum_check == 1
 
    
 else
-    %allowing for there to be no tifs associated with the loaded params file
+    %allowing for cases where there are no tif_times associated with the loaded params file
     if no_tifs == 1
         n_trials_t = size(params, 2);
         
