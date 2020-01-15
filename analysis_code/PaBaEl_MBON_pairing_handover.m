@@ -16,7 +16,7 @@ dataset_list_paths = [...
                       
                       ];
             
-suppress_plots = 0;
+suppress_plots = 1;
 [del, odor_names1] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList.xls', 1);
 [del, odor_names2] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList_olf2.xls', 1);
 odor_names2{3} = 'Butyl acetate';
@@ -27,6 +27,9 @@ global greymap
 greymap = flipud(a);
 fly_n = 0;
 script_name = mfilename;
+
+y_ax_traces = 0.8;
+y_ax_fit_traces = 0.6;
 
 for list_n = 1:size(dataset_list_paths, 1)
     curr_dir_list_path = dataset_list_paths{list_n, 1};
@@ -39,6 +42,10 @@ for list_n = 1:size(dataset_list_paths, 1)
     %loop to go through all experiment datasets listed in list file
     saved_resps_hover = [];
     saved_resps_simple = [];
+    saved_mean_traces_simple = [];
+    saved_mean_traces_transition = [];
+    
+    
     for dir_n = 1:n_dirs
         fly_n = fly_n + 1;
               
@@ -77,7 +84,17 @@ for list_n = 1:size(dataset_list_paths, 1)
         raw_data_mat = raw_data_mat.raw_data_mat;           %raw F traces extracted from ROIs
         raw_data_mat_orig = raw_data_mat;
         tif_n_col_n = find_stim_mat_simple_col('matched_tif_n', column_heads);
-        raw_data_mat = raw_data_mat(:, :, stim_mat_simple(:, tif_n_col_n));       %making sure only time-stamp matched trials are used for further analysis
+        %raw_data_mat = raw_data_mat(:, :, stim_mat_simple(:, tif_n_col_n));       %making sure only time-stamp matched trials are used for further analysis
+        
+        %inserting dummy trials (all nans) into raw_data_mat for pairing trials for
+        %which no corress .tifs were acquired
+        raw_data_mat = match_up_rawmat_matchedtrs(raw_data_mat, stim_mat_simple, tif_n_col_n);
+        
+        %dumping data from manually identified, z-drifted trials
+        bad_tr_list = 1:size(raw_data_mat, 3);
+        bad_tr_list(good_tr_list) = [];
+        raw_data_mat(:, :, bad_tr_list) = nan;
+        
         n_cells = size(raw_data_mat, 2);
         
         %calculating dF/F traces from raw data
@@ -107,8 +124,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         
         
         %identifying relevant odor numbers for each olfactometer
-        pairing_tr_n = find_pairing_tr(params_orig);
-        
+        pairing_tr_n = find(stim_mat_simple(:, led_on_col_n) == 1);        
         
         paired_od_n_olf2 = stim_mat_simple(pairing_tr_n, od_olf2_col_n);    %paired odor is always an olf2 odor        
         paired_od_name = odor_names2{paired_od_n_olf2};
@@ -140,9 +156,11 @@ for list_n = 1:size(dataset_list_paths, 1)
         stim_frs = compute_stim_frs_modular(stim_mat, curr_trs_pre(1), frame_time);
         stim_frs = stim_frs{2};                   %because olf2 is used for paired odor
         
-        paired_simple_pre = max(mean(squeeze(curr_traces_pre(stim_frs(1, 1):stim_frs(1, 2), :)), 2));
-        paired_simple_post = max(mean(squeeze(curr_traces_post(stim_frs(1, 1):stim_frs(1, 2), :)), 2));
+        paired_simple_pre = max(mean(squeeze(curr_traces_pre(stim_frs(1, 1):(stim_frs(1, 2)+ round(3./frame_time) ), :)), 2, 'omitnan'));
+        paired_simple_post = max(mean(squeeze(curr_traces_post(stim_frs(1, 1):(stim_frs(1, 2)+ round(3./frame_time) ), :)), 2, 'omitnan'));
         
+        paired_simple_trace_pre = mean(squeeze(curr_traces_pre(stim_frs(1, 1):(stim_frs(1, 2)+ round(3./frame_time) ), :)), 2, 'omitnan');
+        paired_simple_trace_post = mean(squeeze(curr_traces_post(stim_frs(1, 1):(stim_frs(1, 2)+ round(3./frame_time) ), :)), 2, 'omitnan');
         
         
         figure(1)
@@ -152,7 +170,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         %shadedErrorBar([], trace_mean, trace_se, {'Color', fore_colour})
         ylabel('paired odor, simple (dF/F)')
         ax_vals = axis;
-        ax_vals(1, 4) = 1.2;
+        ax_vals(1, 4) = y_ax_traces;
         axis(ax_vals);
         set_xlabels_time(1, frame_time, 10);
         fig_wrapup(1, script_name);
@@ -175,8 +193,12 @@ for list_n = 1:size(dataset_list_paths, 1)
         stim_frs = compute_stim_frs_modular(stim_mat, curr_trs_pre(1), frame_time);
         stim_frs = stim_frs{1};                   %because olf2 is used for paired odor
         
-        unpaired_simple_pre = max(mean(squeeze(curr_traces_pre(stim_frs(1, 1):stim_frs(1, 2), :)), 2));
-        unpaired_simple_post = max(mean(squeeze(curr_traces_post(stim_frs(1, 1):stim_frs(1, 2), :)), 2));
+        unpaired_simple_pre = max(mean(squeeze(curr_traces_pre(stim_frs(1, 1):(stim_frs(1, 2)+ round(3./frame_time) ), :)), 2, 'omitnan'));
+        unpaired_simple_post = max(mean(squeeze(curr_traces_post(stim_frs(1, 1):(stim_frs(1, 2)+ round(3./frame_time) ), :)), 2, 'omitnan'));
+        
+        unpaired_simple_trace_pre = mean(squeeze(curr_traces_pre(stim_frs(1, 1):(stim_frs(1, 2)+ round(3./frame_time) ), :)), 2, 'omitnan');
+        unpaired_simple_trace_post = mean(squeeze(curr_traces_post(stim_frs(1, 1):(stim_frs(1, 2)+ round(3./frame_time) ), :)), 2, 'omitnan');
+        
         
         figure(3)
         plot(squeeze(curr_traces_pre), 'Color', [0.6, 0.6, 0.6], 'lineWidth', 1.5);
@@ -184,7 +206,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         plot(squeeze(curr_traces_post), 'Color', [0.1, 0.1, 0.1], 'lineWidth', 1.5);
         ylabel('unpaired odor, simple (dF/F)')
         ax_vals = axis;
-        ax_vals(1, 4) = 1.2;
+        ax_vals(1, 4) = y_ax_traces;
         axis(ax_vals);
         set_xlabels_time(3, frame_time, 10);
         fig_wrapup(3, script_name);
@@ -220,8 +242,12 @@ for list_n = 1:size(dataset_list_paths, 1)
         stim_frs = [stim_frs{1}; stim_frs{2}];                   %because olf2 is used for paired odor
         
         %computing response to second odor pulse in handover presentations
-        paired_mean_resp_pre = max(mean(squeeze(curr_traces_pre(stim_frs(2, 1):stim_frs(2, 2), :)), 2));
-        paired_mean_resp_post = max(mean(squeeze(curr_traces_post(stim_frs(2, 1):stim_frs(2, 2), :)), 2));
+        paired_mean_resp_pre = max(mean(squeeze(curr_traces_pre(stim_frs(2, 1):(stim_frs(2, 2)+ round(3./frame_time) ), :)), 2, 'omitnan'));
+        paired_mean_resp_post = max(mean(squeeze(curr_traces_post(stim_frs(2, 1):(stim_frs(2, 2)+ round(3./frame_time) ), :)), 2, 'omitnan'));
+        
+        paired_trans_trace_pre = mean(squeeze(curr_traces_pre(stim_frs(1, 1):(stim_frs(1, 2)+ round(3./frame_time) ), :)), 2, 'omitnan');
+        paired_trans_trace_post = mean(squeeze(curr_traces_post(stim_frs(1, 1):(stim_frs(1, 2)+ round(3./frame_time) ), :)), 2, 'omitnan');
+        
         
         %raw trace plot
         figure(2)
@@ -230,7 +256,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         plot(squeeze(curr_traces_post), 'Color', [0.1, 0.1, 0.1], 'lineWidth', 1.5);
         ylabel('paired odor, handover (dF/F)')
         ax_vals = axis;
-        ax_vals(1, 4) = 1.2;
+        ax_vals(1, 4) = y_ax_traces;
         axis(ax_vals);
         set_xlabels_time(2, frame_time, 10);
         fig_wrapup(2, script_name);
@@ -241,9 +267,9 @@ for list_n = 1:size(dataset_list_paths, 1)
         %linear model plot
         figure(5)
         mean_pre = mean(squeeze(curr_traces_pre), 2, 'omitnan');
-        se_pre = std(squeeze(curr_traces_pre), [], 2, 'omitnan')./sqrt(size(squeeze(curr_traces_pre), 2));
+        se_pre = std(squeeze(curr_traces_pre), [], 2, 'omitnan');%./sqrt(size(squeeze(curr_traces_pre), 2));
         mean_post = mean(squeeze(curr_traces_post), 2, 'omitnan');
-        se_post = std(squeeze(curr_traces_post), [], 2, 'omitnan')./sqrt(size(squeeze(curr_traces_post), 2));
+        se_post = std(squeeze(curr_traces_post), [], 2, 'omitnan');%./sqrt(size(squeeze(curr_traces_post), 2));
         shadedErrorBar([], mean_pre, se_pre, {'Color', [0.6, 0.6, 0.6], 'lineWidth', 1.5});
         hold on
         shadedErrorBar([], mean_post, se_post, {'Color', [0, 0, 0], 'lineWidth', 1.5});
@@ -251,7 +277,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         plot(minusplus_sum_post, 'Color', [0.2, 0.35, 0.6], 'lineWidth', 1.5);
         ylabel('paired odor, handover (dF/F)')
         ax_vals = axis;
-        ax_vals(1, 4) = 0.6;
+        ax_vals(1, 4) = y_ax_fit_traces;
         axis(ax_vals);
         set_xlabels_time(5, frame_time, 10);
         fig_wrapup(5, script_name);
@@ -271,11 +297,18 @@ for list_n = 1:size(dataset_list_paths, 1)
         stim_frs = [stim_frs{1}; stim_frs{2}];                   %because olf2 is used for paired odor
         
         %computing response to second odor pulse in handover presentations
-        unpaired_mean_resp_pre = max(mean(squeeze(curr_traces_pre(stim_frs(2, 1):stim_frs(2, 2), :)), 2));
-        unpaired_mean_resp_post = max(mean(squeeze(curr_traces_post(stim_frs(2, 1):stim_frs(2, 2), :)), 2));
+        unpaired_mean_resp_pre = max(mean(squeeze(curr_traces_pre(stim_frs(2, 1):(stim_frs(2, 2) + round(3./frame_time) ), :)), 2, 'omitnan'));
+        unpaired_mean_resp_post = max(mean(squeeze(curr_traces_post(stim_frs(2, 1):(stim_frs(2, 2)+ round(3./frame_time) ), :)), 2, 'omitnan'));
+        
+        unpaired_trans_trace_pre = mean(squeeze(curr_traces_pre(stim_frs(1, 1):(stim_frs(1, 2)+ round(3./frame_time) ), :)), 2, 'omitnan');
+        unpaired_trans_trace_post = mean(squeeze(curr_traces_post(stim_frs(1, 1):(stim_frs(1, 2)+ round(3./frame_time) ), :)), 2, 'omitnan');
+        
         
         saved_resps_hover = [saved_resps_hover; paired_mean_resp_pre, paired_mean_resp_post, unpaired_mean_resp_pre, unpaired_mean_resp_post];
         saved_resps_simple = [saved_resps_simple; paired_simple_pre, paired_simple_post, unpaired_simple_pre, unpaired_simple_post];
+        
+        saved_mean_traces_simple = cat(3, saved_mean_traces_simple, [paired_simple_trace_pre, paired_simple_trace_post, unpaired_simple_trace_pre, unpaired_simple_trace_post]);
+        saved_mean_traces_transition = cat(3, saved_mean_traces_transition, [paired_trans_trace_pre, paired_trans_trace_post, unpaired_trans_trace_pre, unpaired_trans_trace_post]);
         
         figure(4)
         plot(squeeze(curr_traces_pre), 'Color', [0.6, 0.6, 0.6], 'lineWidth', 1.5);
@@ -283,7 +316,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         plot(squeeze(curr_traces_post), 'Color', [0.1, 0.1, 0.1], 'lineWidth', 1.5);
         ylabel('unpaired odor, handover (dF/F)')
         ax_vals = axis;
-        ax_vals(1, 4) = 1.2;
+        ax_vals(1, 4) = y_ax_traces;
         axis(ax_vals);
         set_xlabels_time(4, frame_time, 10);
         fig_wrapup(4, script_name);
@@ -294,9 +327,9 @@ for list_n = 1:size(dataset_list_paths, 1)
         %linear model plot
         figure(6)
         mean_pre = mean(squeeze(curr_traces_pre), 2, 'omitnan');
-        se_pre = std(squeeze(curr_traces_pre), [], 2, 'omitnan')./sqrt(size(squeeze(curr_traces_pre), 2));
+        se_pre = std(squeeze(curr_traces_pre), [], 2, 'omitnan');%./sqrt(size(squeeze(curr_traces_pre), 2));
         mean_post = mean(squeeze(curr_traces_post), 2, 'omitnan');
-        se_post = std(squeeze(curr_traces_post), [], 2, 'omitnan')./sqrt(size(squeeze(curr_traces_post), 2));
+        se_post = std(squeeze(curr_traces_post), [], 2, 'omitnan');%./sqrt(size(squeeze(curr_traces_post), 2));
         shadedErrorBar([], mean_pre, se_pre, {'Color', [0.6, 0.6, 0.6], 'lineWidth', 1.5});
         hold on
         shadedErrorBar([], mean_post, se_post, {'Color', [0, 0, 0], 'lineWidth', 1.5});
@@ -304,7 +337,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         plot(plusminus_sum_post, 'Color', [0.2, 0.35, 0.6], 'lineWidth', 1.5);
         ylabel('unpaired odor, handover (dF/F)')
         ax_vals = axis;
-        ax_vals(1, 4) = 0.6;
+        ax_vals(1, 4) = y_ax_fit_traces;
         axis(ax_vals);
         set_xlabels_time(6, frame_time, 10);
         fig_wrapup(6, script_name);
@@ -345,11 +378,59 @@ for list_n = 1:size(dataset_list_paths, 1)
     ylabel('single pulse resp (mean dF/F)')
     fig_wrapup(8, script_name);
     
-    %statistical testing
-    [h_paired, p_paired] = ttest(saved_resps_hover(:, 1), saved_resps_hover(:, 2));
-    [h_unpaired, p_unpaired] = ttest(saved_resps_hover(:, 3), saved_resps_hover(:, 4));
     
-    keyboard
+    %computing pre-post difference in peak response for paired and unpaired odors
+    pk_diff_simple = cat(2, (saved_resps_simple(:, 1) - saved_resps_simple(:, 2)), (saved_resps_simple(:, 3) - saved_resps_simple(:, 4)));
+    pk_diff_transition = cat(2, (saved_resps_hover(:, 1) - saved_resps_hover(:, 2)), (saved_resps_hover(:, 3) - saved_resps_hover(:, 4)));
+    
+    marker_colors = [[0.6, 0.6, 0.6]; [0.6, 0.6, 0.6]];
+    col_pairs = [1, 2];
+    scattered_dot_plot(pk_diff_simple, 11, 1, 4, 8, marker_colors, 1, col_pairs, [0.75, 0.75, 0.75],...
+                            [{'paired'}, {'unpaired'}], 1, [0.9, 0.3, 0.3]);
+    ylabel('pre-post peak difference, simple (mean dF/F)')
+    fig_wrapup(11, script_name);
+    
+    
+    marker_colors = [[0.6, 0.6, 0.6]; [0.6, 0.6, 0.6]];
+    col_pairs = [1, 2];
+    scattered_dot_plot(pk_diff_transition, 12, 1, 4, 8, marker_colors, 1, col_pairs, [0.75, 0.75, 0.75],...
+                            [{'paired'}, {'unpaired'}], 1, [0.9, 0.3, 0.3]);
+    ylabel('pre-post peak difference, simple (mean dF/F)')
+    fig_wrapup(12, script_name);
+    
+    
+    %statistical testing
+    [h_paired, p_paired] = ttest(saved_resps_simple(:, 1), saved_resps_simple(:, 2))
+    [h_unpaired, p_unpaired] = ttest(saved_resps_simple(:, 3), saved_resps_simple(:, 4))
+    
+    [h_paired, p_paired] = ttest(saved_resps_hover(:, 1), saved_resps_hover(:, 2))
+    [h_unpaired, p_unpaired] = ttest(saved_resps_hover(:, 3), saved_resps_hover(:, 4))
+    
+    
+    %comparing paired odor with unpaired odor
+    [h_paired, p_paired] = ttest(saved_resps_hover(:, 1), saved_resps_hover(:, 3))
+    [h_unpaired, p_unpaired] = ttest(saved_resps_hover(:, 2), saved_resps_hover(:, 4))
+    
+    
+    
+    %computing area of difference between pre and post response traces and sorting flies
+    diff_mat_simple  = squeeze(mean(cat(2, (saved_mean_traces_simple(:,1, :) - saved_mean_traces_simple(:,2, :)),  (saved_mean_traces_simple(:,3, :) - saved_mean_traces_simple(:,4, :))), 1));
+    diff_mat_transition  = squeeze(mean(cat(2, (saved_mean_traces_transition(:,1, :) - saved_mean_traces_transition(:,2, :)),  (saved_mean_traces_transition(:,3, :) - saved_mean_traces_transition(:,4, :))), 1));
+   
+    marker_colors = [[0.6, 0.6, 0.6]; [0.6, 0.6, 0.6]];
+    col_pairs = [1, 2];
+    scattered_dot_plot(diff_mat_simple', 9, 1, 4, 8, marker_colors, 1, col_pairs, [0.75, 0.75, 0.75],...
+                            [{'paired'}, {'unpaired'}], 1, [0.9, 0.3, 0.3]);
+    ylabel('pre-post area difference, simple (mean dF/F)')
+    fig_wrapup(9, script_name);
+    
+    
+    marker_colors = [[0.6, 0.6, 0.6]; [0.6, 0.6, 0.6]];
+    col_pairs = [1, 2];
+    scattered_dot_plot(diff_mat_transition', 10, 1, 4, 8, marker_colors, 1, col_pairs, [0.75, 0.75, 0.75],...
+                            [{'paired'}, {'unpaired'}], 1, [0.9, 0.3, 0.3]);
+    ylabel('pre-post area difference, transition (mean dF/F)')
+    fig_wrapup(10, script_name);
     
     
 
