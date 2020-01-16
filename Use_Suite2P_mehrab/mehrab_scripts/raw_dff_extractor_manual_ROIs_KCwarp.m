@@ -157,10 +157,21 @@ for do_over = 1:2
                 else
                     tif_start_n = 1;
                 end
+                
+                prev_dir = pwd;
+                cd(direc);
+                dir_contents = dir('*.tif');
+                cd(prev_dir);
+                
                 for tif_n = tif_start_n:length(tif_list)
                     stack_obj = ScanImageTiffReader([direc, tif_list(tif_n).name]);
                     curr_stack = stack_obj.data();
                     curr_stack = permute(curr_stack,[2 1 3]);
+                    
+                    %obtaining, logging timestamp
+                    curr_time_stamp = parse_tiff_timestamp(stack_obj);
+                    time_stamps(tif_n).tstamp = curr_time_stamp;
+                    time_stamps(tif_n).name = dir_contents(tif_n).name;
                     
                     %checking how many color channels were acquired and saving red chan separately
                     [frame_time, zoom, n_chans] = SI_tif_info(stack_obj);
@@ -190,6 +201,7 @@ for do_over = 1:2
                     end
                     
                     save([save_path, '\tr_avg_stack.mat'], 'ave_stack');
+                    save([save_path, 'tif_time_stamps.mat'], 'time_stamps');
                 end
                 
                 
@@ -265,8 +277,13 @@ for do_over = 1:2
                 %ROI-warping landmarks
                 if warp_ROIs == 1
                     
+                    tiff_times = load([save_path, 'tif_time_stamps.mat']);
+                    tiff_times = tiff_times.time_stamps;
+                    [warping_landmarks, ROI_mat_warped] = pick_matched_landmarks(save_path);
                     
                 else
+                    ROI_mat_warped = [];
+                    warping_landmarks = [];
                 end
                 keyboard
                 
@@ -286,7 +303,7 @@ for do_over = 1:2
                     else
                         ROI_mat_s = ROI_mat;
                     end
-                    [lag_mat, bad_trs, done_marking, bk_ROI] = manual_xylags_zbad2(dataset_stack, ROI_mat_s);
+                    [lag_mat, bad_trs, done_marking, bk_ROI] = manual_xylags_zbad2(dataset_stack, ROI_mat_s, ROI_mat_warped, warping_landmarks);
                 end
                 
                 bad_tr_list = 1:1:size(dataset_stack, 3);

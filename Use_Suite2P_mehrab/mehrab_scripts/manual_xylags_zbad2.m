@@ -1,4 +1,4 @@
-function [lag_mat, bad_trs, done_marking, bk_ROI] = manual_xylags_zbad(dataset_stack, ROI_mat)
+function [lag_mat, bad_trs, done_marking, bk_ROI] = manual_xylags_zbad(dataset_stack, ROI_mat, ROI_mat_warped, warping_landmarks)
 %This function displays an averaged image of each frame for the user to
 %click on a fixed landmark to determine x-y lags for slow drift as well as
 %to allow the user to report bad, z-drift trials by clicking outside the
@@ -9,6 +9,14 @@ reg_stack = zeros(size(dataset_stack, 1), size(dataset_stack, 2), size(dataset_s
 curr_threshm = 4.5;
 curr_threshm_tr1 = curr_threshm;
 int_ranges = zeros(size(dataset_stack, 3), 2);
+
+if isempty(warping_landmarks) == 1
+    warped_ROIs = 0;
+elseif isempty(warping_landmarks) == 0
+    warped_ROIs = 1;
+else
+end
+
 trial_n = 0;
 global im_posx1
 global im_posy1
@@ -21,6 +29,14 @@ while trial_n < size(dataset_stack, 3)
     frame1 = squeeze(dataset_stack(:, :, 1));
     if sign(min(min(frame1))) == -1
         frame1 = frame1 + (-1 .* min(min(frame1)));
+    else
+    end
+    
+    %swapping in appropriate, warped ROI_mat for the original ROI_mat
+    if warped_ROIs == 1
+        keyboard
+        
+    elseif warped_ROIs == 0
     else
     end
     
