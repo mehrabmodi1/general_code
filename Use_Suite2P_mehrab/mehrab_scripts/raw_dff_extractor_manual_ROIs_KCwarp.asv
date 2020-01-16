@@ -58,7 +58,7 @@ save_path_base_Suite2P = 'E:\Data\Analysed_data\Suite2p\Results\';
 fuse_ROIs = 1;          %0-no, 1-yes. This flattens dim3 of ROI_mat in case there is a multi-patch neuron that needs to be considered as a single object.
 dilate_ROIs = 15; %15;        %This is the number of pixels by which the manually drawn ROIs are dilated before data extraction.
 remove_ROI_ovlap = 1;    %enabling this switch gets rid of an overlapping pixels between ROIs from all ROIs.   
-warp_ROIs = 1;           %typically used for KC datasets - user-specified landmarks used t
+warp_ROIs = 1;           %typically used for KC datasets - user-specified landmarks used to warp ROI matrix to align ROIs with cells as tissue distorts over session.
 extract_both_channels = 0;  
 extract_traces_only = 0; %Enabling this switch makes the program only extract traces from a .tif file using given ROIs. It doesn't look for stim params/PID files of any sort. useful for data acquired on other rigs. 
 do_noisefit_subtraction = 1;    %Enabling this switch makes the pipeline fit slow, row-wise noise and subtract that from each frame.
@@ -157,10 +157,21 @@ for do_over = 1:2
                 else
                     tif_start_n = 1;
                 end
+                
+                prev_dir = pwd;
+                cd(direc);
+                dir_contents = dir('*.tif');
+                cd(prev_dir);
+                
                 for tif_n = tif_start_n:length(tif_list)
                     stack_obj = ScanImageTiffReader([direc, tif_list(tif_n).name]);
                     curr_stack = stack_obj.data();
                     curr_stack = permute(curr_stack,[2 1 3]);
+                    
+                    %obtaining, logging timestamp
+                    curr_time_stamp = parse_tiff_timestamp(stack_obj);
+                    time_stamps(tif_n).tstamp = curr_time_stamp;
+                    time_stamps(tif_n).name = dir_contents(tif_n).name;
                     
                     %checking how many color channels were acquired and saving red chan separately
                     [frame_time, zoom, n_chans] = SI_tif_info(stack_obj);
@@ -190,6 +201,7 @@ for do_over = 1:2
                     end
                     
                     save([save_path, '\tr_avg_stack.mat'], 'ave_stack');
+                    save([save_path, 'tif_time_stamps.mat'], 'time_stamps');
                 end
                 
                 
@@ -263,7 +275,18 @@ for do_over = 1:2
                 
                 %if this is a KC dataset, asking user to manually identify
                 %ROI-warping landmarks
+                if warp_ROIs == 1
+                    
+                    tiff_times = load([save_path, 'tif_time_stamps.mat']);
+                    tiff_times = tiff_times.time_stamps;
+                    [saved_warping_landmarks, ROI_mat_warped] = pick_matched_landmarks(save_path);
+                    
+                else
+                    ROI_mat_warped = [];
+                    saved_warping_lan
+                end
                 keyboard
+                
                 
                 %looping through an ave frame for each trial in the
                 %dataset, for the user to click on a fixed landmark in each frame
@@ -280,7 +303,7 @@ for do_over = 1:2
                     else
                         ROI_mat_s = ROI_mat;
                     end
-                    [lag_mat, bad_trs, done_marking, bk_ROI] = manual_xylags_zbad2(dataset_stack, ROI_mat_s);
+                    [lag_mat, bad_trs, done_marking, bk_ROI] = manual_xylags_zbad2(dataset_stack, ROI_mat_s, ROI_mat_warped);
                 end
                 
                 bad_tr_list = 1:1:size(dataset_stack, 3);

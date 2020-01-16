@@ -1,4 +1,4 @@
-function [saved_warping_landmarks, ROI_mat_warped] = pick_matched_landmarks(save_path)
+function [saved_warping_landmarks, ROI_mat_warped] = pick_matched_landmarks(load_path)
 %This function displays an averaged image for trials 15 min apart for the user to
 %click on a fixed landmark in both to map out distortions in the KC field to 
 %allow ROI_mat to be warped to match it.
@@ -6,14 +6,14 @@ function [saved_warping_landmarks, ROI_mat_warped] = pick_matched_landmarks(save
 %Testing lines
 % clear all
 % close all
-% save_path = 'C:\Data\Data\Analysed_data\Suite2P_results\20190822\fly2_c739_PABAEL\1\';
-reg_stack = load([save_path, 'tr_avg_stack.mat']);
+% load_path = 'C:\Data\Data\Analysed_data\Suite2P_results\20190822\fly2_c739_PABAEL\1\';
+reg_stack = load([load_path, 'tr_avg_stack.mat']);
 dataset_stack = reg_stack.ave_stack;
-ROI_mat = load([save_path, 'ROI_mat.mat']);
+ROI_mat = load([load_path, 'ROI_mat.mat']);
 ROI_mat = ROI_mat.ROI_mat;
 ROI_mat_flat = sum(ROI_mat, 3);
 ROI_mat_flat(ROI_mat_flat > 1) = 0;     %getting rid of overlapping pixels
-tiff_times = load([save_path, 'tif_time_stamps.mat']);
+tiff_times = load([load_path, 'tif_time_stamps.mat']);
 tiff_times = tiff_times.time_stamps;
 
 time_window = 15;   %in minutes, the time window across which landmarks are manually matched
@@ -38,8 +38,8 @@ saved_warping_landmarks.ref_tr_nums = trn_15;
 
 trial_ni = 0;
 while trial_ni < (length(trn_15) - 1)
-    if exist([save_path, '\saved_warping_landmarks.mat']) == 2
-        saved_warping_landmarks = load([save_path, '\saved_warping_landmarks.mat']);
+    if exist([load_path, '\saved_warping_landmarks.mat']) == 2
+        saved_warping_landmarks = load([load_path, '\saved_warping_landmarks.mat']);
         saved_warping_landmarks = saved_warping_landmarks.saved_warping_landmarks;
         threshes = saved_warping_landmarks(size(saved_warping_landmarks, 2)).threshes;
         curr_threshm_tr1 = threshes(1);
@@ -153,7 +153,7 @@ while trial_ni < (length(trn_15) - 1)
     
     saved_warping_landmarks(trial_ni).landmark_pairs = landmark_pairs;
     saved_warping_landmarks(trial_ni).threshes = threshes;
-    save([save_path, '\saved_warping_landmarks.mat'], 'saved_warping_landmarks');
+    save([load_path, '\saved_warping_landmarks.mat'], 'saved_warping_landmarks');
     
     close figure 1
 
@@ -161,15 +161,13 @@ while trial_ni < (length(trn_15) - 1)
 end
 
 %warping ROI_mat to match landmark pairs specified.
-disp('Warping ROIs...')
+ROI_mat_warped = zeros(size(ROI_mat, 1), size(ROI_mat, 2), size(saved_warping_landmarks, 2)) + nan;
+ref_tr_nums =  saved_warping_landmarks(1).ref_tr_nums; 
+
 if exist([save_path, 'ROI_mat_warped.mat']) == 2
     ROI_mat_warped = load([save_path, 'ROI_mat_warped.mat']);
     ROI_mat_warped = ROI_mat_warped.ROI_mat_warped;
-else
-    ROI_mat_warped = zeros(size(ROI_mat, 1), size(ROI_mat, 2), size(saved_warping_landmarks, 2)) + nan;
-end
-ref_tr_nums =  saved_warping_landmarks(1).ref_tr_nums; 
-
+    else
     
 for lm_setn = 1:size(saved_warping_landmarks, 2)
     curr_tr1 = ref_tr_nums(lm_setn);
@@ -181,6 +179,8 @@ for lm_setn = 1:size(saved_warping_landmarks, 2)
     ROI_mat_warped(:, :, lm_setn) = warp_im(ROI_mat_flat, curr_landmark_pairs);
     save([save_path, 'ROI_mat_warped.mat'], 'ROI_mat_warped');
 end
+
+
 
 
 
