@@ -2,11 +2,13 @@ clear all
 close all
 
 dataset_list_paths = [...
-                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_Alpha1_60strace_71C03LxA_MB043CGal4.xls'};...
-                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_Alpha1_60strace_72D01LxAChr88tdT.xls'};...  
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_Alpha1_60strace_71C03LxA_MB043CGal4.xls'};...
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_Alpha1_60strace_72D01LxAChr88tdT.xls'};...
+                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_Alpha1_60strace_71C03LxA_MB043CGal4_noChrisoncontrol.xls'};...
+                      
                       ];
             
-suppress_plots = 1;
+suppress_plots = 0;
 [del, odor_names1] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList.xls', 1);
 [del, odor_names2] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList_olf2.xls', 1);
 
@@ -82,8 +84,9 @@ for list_n = 1:size(dataset_list_paths, 1)
         %identifying relevant odor numbers for each olfactometer
         pairing_trs = find(stim_mat_simple(:, led_on_col_n) == 1);
         paired_od_n = stim_mat_simple(pairing_trs(1), od_olf1_col_n);
-        unpaired_od_n = odor_list_olf1;
+        unpaired_od_n = [3, 11];        %only PA or EL are ever paired with LED
         unpaired_od_n(unpaired_od_n == paired_od_n) = [];
+        ctrl_od_n = 9;
         
         pre_trs = 1:1:(min(pairing_trs) - 1);
         post_trs = (max(pairing_trs) + 2):1:size(dff_data_mat, 3);          %accounting for the CS- trial after the last pairing trial
@@ -92,10 +95,10 @@ for list_n = 1:size(dataset_list_paths, 1)
         %plotting responses for the paired odor
         curr_trs_pre = find(stim_mat_simple(:, od_olf1_col_n) == paired_od_n);
         curr_trs_pre = intersect(curr_trs_pre, pre_trs);
-        curr_trs_pre = curr_trs_pre(1:7);                             %discarding first presentation of any odor for habituation effects
+        %curr_trs_pre = curr_trs_pre(1:7);                             %discarding first presentation of any odor for habituation effects
         curr_trs_post = find(stim_mat_simple(:, od_olf1_col_n) == paired_od_n);
         curr_trs_post = intersect(curr_trs_post, post_trs);
-        curr_trs_post = curr_trs_post(1:7);  
+        %curr_trs_post = curr_trs_post(1:7);  
         pre_traces = squeeze(dff_data_mat_f(:, 1, curr_trs_pre));
         stim_frs = compute_stim_frs_modular(stim_mat, curr_trs_pre(1), frame_time);
         stim_frs = stim_frs{1};      
@@ -109,23 +112,23 @@ for list_n = 1:size(dataset_list_paths, 1)
                     
         
         figure(1)
-        plot(pre_traces, 'Color', [0.6, 0.6, 0.6], 'lineWidth', 3)
+        plot(pre_traces, 'Color', [0.6, 0.6, 0.6], 'lineWidth', 1.5)
         hold on
-        plot(post_traces, 'Color', [0.1, 0.1, 0.1], 'lineWidth', 3)
+        plot(post_traces, 'Color', [0.1, 0.1, 0.1], 'lineWidth', 1.5)
         ylabel('paired odor response (dF/F)');
         set_xlabels_time(1, frame_time, 10);
         fig_wrapup(1, []);
-        add_stim_bar(1, stim_frs, color_vec(1, :));
+        add_stim_bar(1, stim_frs, color_vec(2, :));
         
         
         
         %plotting responses for the un-paired odor
         curr_trs_pre = find(stim_mat_simple(:, od_olf1_col_n) == unpaired_od_n);
         curr_trs_pre = intersect(curr_trs_pre, pre_trs);
-        curr_trs_pre = curr_trs_pre(1:7);                           %discarding first presentation of any odor for habituation effects
+        %curr_trs_pre = curr_trs_pre(1:7);                           %discarding first presentation of any odor for habituation effects
         curr_trs_post = find(stim_mat_simple(:, od_olf1_col_n) == unpaired_od_n);
         curr_trs_post = intersect(curr_trs_post, post_trs);
-        curr_trs_post = curr_trs_post(1:7);
+        %curr_trs_post = curr_trs_post(1:7);
         stim_frs = compute_stim_frs_modular(stim_mat, curr_trs_pre(1), frame_time);
         stim_frs = stim_frs{1};      
         
@@ -140,18 +143,45 @@ for list_n = 1:size(dataset_list_paths, 1)
         stim_frs = stim_frs{1};                   
         
         figure(2)
-        plot(pre_traces, 'Color', [0.6, 0.6, 0.6], 'lineWidth', 3)
+        plot(pre_traces, 'Color', [0.6, 0.6, 0.6], 'lineWidth', 1.5)
         hold on
-        plot(post_traces, 'Color', [0.1, 0.1, 0.1], 'lineWidth', 3)
+        plot(post_traces, 'Color', [0.1, 0.1, 0.1], 'lineWidth', 1.5)
         ylabel('un-paired odor response (dF/F)');
         set_xlabels_time(2, frame_time, 10);
         fig_wrapup(2, []);
-        add_stim_bar(2, stim_frs, color_vec(2, :));
+        add_stim_bar(2, stim_frs, color_vec(1, :));
         
-%         if resp_vec(1,1) > 0.1
-%             keyboard
-%         else
-%         end
+        
+        %plotting responses for the third, ctrl odor
+        curr_trs_pre = find(stim_mat_simple(:, od_olf1_col_n) == ctrl_od_n);
+        curr_trs_pre = intersect(curr_trs_pre, pre_trs);
+        %curr_trs_pre = curr_trs_pre(1:7);                           %discarding first presentation of any odor for habituation effects
+        curr_trs_post = find(stim_mat_simple(:, od_olf1_col_n) == ctrl_od_n);
+        curr_trs_post = intersect(curr_trs_post, post_trs);
+        %curr_trs_post = curr_trs_post(1:7);
+        stim_frs = compute_stim_frs_modular(stim_mat, curr_trs_pre(1), frame_time);
+        stim_frs = stim_frs{1};      
+        
+        pre_traces = squeeze(dff_data_mat_f(:, 1, curr_trs_pre));
+        mean_pre_trace = mean(pre_traces, 2);
+        resp_vec(1, 3) = max(mean_pre_trace(stim_frs(1):(stim_frs(2) + round(2./frame_time))));       %taking max of filtered trace as resp measure
+        post_traces = squeeze(dff_data_mat_f(:, 1, curr_trs_post));
+        mean_post_trace = mean(post_traces, 2);
+        resp_vec(1, 4) = max(mean_post_trace(stim_frs(1):(stim_frs(2) + round(2./frame_time))));      %taking max of filtered trace as resp measure
+        
+        stim_frs = compute_stim_frs_modular(stim_mat, curr_trs_pre(1), frame_time);
+        stim_frs = stim_frs{1};                   
+        
+        figure(3)
+        plot(pre_traces, 'Color', [0.6, 0.6, 0.6], 'lineWidth', 1.5)
+        hold on
+        plot(post_traces, 'Color', [0.1, 0.1, 0.1], 'lineWidth', 1.5)
+        ylabel('control odor response (dF/F)');
+        set_xlabels_time(3, frame_time, 10);
+        fig_wrapup(3, []);
+        add_stim_bar(3, stim_frs, color_vec(3, :));
+        
+        
         
         if suppress_plots == 0
             keyboard
@@ -160,6 +190,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         
         close figure 1
         close figure 2
+        close figure 3
         
         resp_vec
         saved_resps = [saved_resps; resp_vec];
