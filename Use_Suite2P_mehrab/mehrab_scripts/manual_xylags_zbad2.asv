@@ -34,7 +34,7 @@ while trial_n < size(dataset_stack, 3)
     
     %swapping in appropriate, warped ROI_mat for the original ROI_mat
     if warped_ROIs == 1
-        keyboard
+        
         
     elseif warped_ROIs == 0
     else
