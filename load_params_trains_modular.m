@@ -15,8 +15,15 @@ else
     datenum_check = 0;
     
     %reading in manually determined list of bad (z-drifted) trials
-    good_tr_list = load([direc, 'bad_trial_list.mat']);
-    good_tr_list = good_tr_list.bad_tr_list;
+    try
+        good_tr_list = load([direc, 'bad_trial_list.mat']);
+        good_tr_list = good_tr_list.bad_tr_list;
+    catch
+        disp('no z-drift tr list found.')
+        keyboard
+        good_tr_list = [];
+    end
+    
 
 end
 

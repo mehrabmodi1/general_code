@@ -8,6 +8,7 @@ function [PID_traces, traces_orig] = get_PID_traces(direc, curr_trs, frame_time)
 % curr_trs = [10 13, 21, 23, 26];
 % frame_time = 99.933;        %in ms
 
+%frame_time = frame_time.*1000;  %converting from s to ms
 n_trials = length(curr_trs);
 PID_traces = [];
 traces_orig = [];
@@ -38,7 +39,11 @@ for trial_n = 1:n_trials
     curr_trace_ds(1:4, :) = 0;
     %curr_trace_ds = interp1(curr_trace(:, 3), curr_trace(:, 1), points_to_sample, 'linear');
     PID_traces = [PID_traces, curr_trace_ds];
-    traces_orig = [traces_orig, curr_trace];
+    try
+        traces_orig = [traces_orig, curr_trace];
+    catch
+        keyboard
+    end
 end
 %normalising while retaining relative differences between repeats
 PID_traces = PID_traces./max(max(PID_traces));
