@@ -1,4 +1,4 @@
-function [PID_traces, traces_orig] = get_PID_traces(direc, curr_trs, frame_time)
+function [PID_traces, traces_orig] = get_PID_traces(direc, curr_trs, frame_time, normalise)
 %Syntax:[PID_traces] = get_PID_traces(direc, curr_trs, frame_time)
 %This function loads in PID traces, baseline subtracts and normalises them.
 %It also down-samples them to match the frame rate.
@@ -45,5 +45,9 @@ for trial_n = 1:n_trials
         keyboard
     end
 end
-%normalising while retaining relative differences between repeats
-PID_traces = PID_traces./max(max(PID_traces));
+
+if normalise == 1
+    %normalising while retaining relative differences between repeats
+    PID_traces = PID_traces./max(max(PID_traces));
+else
+end
