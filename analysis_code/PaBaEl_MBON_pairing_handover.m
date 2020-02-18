@@ -18,7 +18,7 @@ dataset_list_paths = [...
                       
                       ];
             
-suppress_plots = 0;
+suppress_plots = 1;
 [del, odor_names1] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList.xls', 1);
 [del, odor_names2] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList_olf2.xls', 1);
 odor_names2{3} = 'Butyl acetate';
@@ -322,7 +322,9 @@ for list_n = 1:size(dataset_list_paths, 1)
                 
         if stim_mat_simple(curr_trs(1), od_col_ns(1)) == 11      %ie. EL on olf1
             handover_color1 = EL_color;
-        else
+        elseif stim_mat_simple(curr_trs(1), od_col_ns(1)) == paired_od_n_olf1
+            handover_color1 = paired_color;
+        elseif stim_mat_simple(curr_trs(1), od_col_ns(1)) == unpaired_od_n_olf1
             handover_color1 = unpaired_color;
         end
         
@@ -435,7 +437,7 @@ for list_n = 1:size(dataset_list_paths, 1)
     col_pairs = [1, 2];
     scattered_dot_plot(pk_diff_transition, 12, 1, 4, 8, marker_colors, 1, col_pairs, [0.75, 0.75, 0.75],...
                             [{'paired'}, {'unpaired'}], 1, [0.9, 0.3, 0.3]);
-    ylabel('pre-post peak difference, simple (mean dF/F)')
+    ylabel('pre-post peak difference, transition (mean dF/F)')
     fig_wrapup(12, script_name);
     
     
@@ -446,10 +448,13 @@ for list_n = 1:size(dataset_list_paths, 1)
     [h_paired_t, p_paired_t] = ttest(saved_resps_hover(:, 1), saved_resps_hover(:, 2))
     [h_unpaired_t, p_unpaired_t] = ttest(saved_resps_hover(:, 3), saved_resps_hover(:, 4))
     
+    [h_pkdiff_s, p_pkdiff_s] = ttest(pk_diff_simple(:, 1), pk_diff_simple(:, 2))
+    [h_pkdiff_t, p_pkdiff_t] = ttest(pk_diff_transition(:, 1), pk_diff_transition(:, 2))
+    
     
     %comparing paired odor with unpaired odor
-    [h_paired, p_paired] = ttest(saved_resps_hover(:, 1), saved_resps_hover(:, 3))
-    [h_unpaired, p_unpaired] = ttest(saved_resps_hover(:, 2), saved_resps_hover(:, 4))
+    [h_pre_comp, p_pre_comp] = ttest(saved_resps_hover(:, 1), saved_resps_hover(:, 3))
+    [h_post_comp, p_post_comp] = ttest(saved_resps_hover(:, 2), saved_resps_hover(:, 4))
     
     
     
