@@ -4,8 +4,8 @@ close all
 dataset_list_paths = [...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_Alpha1_60strace_71C03LxA_MB043CGal4.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_Alpha1_60strace_72D01LxAChr88tdT.xls'};...
-                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_Alpha1_60strace_71C03LxA_MB043CGal4_noChrisoncontrol.xls'};...
-                      
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_Alpha1_60strace_71C03LxA_MB043CGal4_noChrisoncontrol.xls'};...
+                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Alpha1_60strace_71C03LxA_MB043CGal4_Chrison_noLED_control.xls'};...                      
                       ];
             
 suppress_plots = 0;
@@ -37,8 +37,7 @@ for list_n = 1:size(dataset_list_paths, 1)
        
         tif_times = load([curr_dir, 'tif_time_stamps.mat']);           %reading in time stamps for each tif file recorded by raw_data_extracter
         tif_times = tif_times.time_stamps;
-        [stim_mat, stim_mat_simple, column_heads, color_vec] = load_params_trains_modular(curr_dir, tif_times);    %reading in trial stimulus parameters after matching time stamps to F traces
-        fore_colour = color_vec(1, :);
+        [stim_mat, stim_mat_simple, column_heads, color_vec, good_tr_list, params_orig] = load_params_trains_modular(curr_dir, tif_times);    %reading in trial stimulus parameters after matching time stamps to F tracesfore_colour = color_vec(1, :);
         distr_colour = color_vec(2, :);
         ctrl_colour = color_vec(3, :);
         
@@ -59,7 +58,11 @@ for list_n = 1:size(dataset_list_paths, 1)
         raw_data_mat = raw_data_mat.raw_data_mat;           %raw F traces extracted from ROIs
         raw_data_mat_orig = raw_data_mat;
         tif_n_col_n = find_stim_mat_simple_col('matched_tif_n', column_heads);
-        raw_data_mat = raw_data_mat(:, :, stim_mat_simple(:, tif_n_col_n));       %making sure only time-stamp matched trials are used for further analysis
+        
+        %inserting dummy trials (all nans) into raw_data_mat for pairing trials for
+        %which no corress .tifs were acquired
+        raw_data_mat = match_up_rawmat_matchedtrs(raw_data_mat, stim_mat_simple, tif_n_col_n);
+        
         n_cells = size(raw_data_mat, 2);
         
         %calculating dF/F traces from raw data
@@ -83,6 +86,10 @@ for list_n = 1:size(dataset_list_paths, 1)
                 
         %identifying relevant odor numbers for each olfactometer
         pairing_trs = find(stim_mat_simple(:, led_on_col_n) == 1);
+        if isempty(pairing_trs) == 1
+            pairing_trs = (((size(dff_data_mat, 3) - 6)./2) + 1):((size(dff_data_mat, 3) - 6)./2) + 7;
+        else
+        end
         paired_od_n = stim_mat_simple(pairing_trs(1), od_olf1_col_n);
         unpaired_od_n = [3, 11];        %only PA or EL are ever paired with LED
         unpaired_od_n(unpaired_od_n == paired_od_n) = [];
@@ -115,7 +122,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         plot(pre_traces, 'Color', [0.6, 0.6, 0.6], 'lineWidth', 1.5)
         hold on
         plot(post_traces, 'Color', [0.1, 0.1, 0.1], 'lineWidth', 1.5)
-        ylabel('paired odor response (dF/F)');
+        ylabel([odor_names1{paired_od_n}, ' odor response (dF/F)']);
         set_xlabels_time(1, frame_time, 10);
         fig_wrapup(1, []);
         add_stim_bar(1, stim_frs, color_vec(2, :));
@@ -146,7 +153,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         plot(pre_traces, 'Color', [0.6, 0.6, 0.6], 'lineWidth', 1.5)
         hold on
         plot(post_traces, 'Color', [0.1, 0.1, 0.1], 'lineWidth', 1.5)
-        ylabel('un-paired odor response (dF/F)');
+        ylabel([odor_names1{unpaired_od_n}, ' odor response (dF/F)']);
         set_xlabels_time(2, frame_time, 10);
         fig_wrapup(2, []);
         add_stim_bar(2, stim_frs, color_vec(1, :));
@@ -192,7 +199,6 @@ for list_n = 1:size(dataset_list_paths, 1)
         close figure 2
         close figure 3
         
-        resp_vec
         saved_resps = [saved_resps; resp_vec];
        
     end
