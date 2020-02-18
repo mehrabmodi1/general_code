@@ -1,4 +1,4 @@
-function [resp_sizes, sig_trace_mat, sig_trace_mat_old, sig_cell_mat, resp_areaundercurves] = cal_sig_responses_res_modular(dff_data_mat, stim_mat_struc, stim_mat_simple, direc, frame_time)
+function [resp_sizes, sig_trace_mat, sig_trace_mat_old, sig_cell_mat, resp_areaundercurves] = cal_sig_responses_res_modular(dff_data_mat, stim_mat_struc, stim_mat_simple, direc, frame_time, od_col_ns, dur_col_ns)
 %This function takes as inputs, the 3-D dff_data_mat that contains dF/F traces stored
 %by frame_n, cell_n, trial_n and odor_n; and stim_mat which contains
 %stimulus delivery information for each trial. The outputs are three 2D
@@ -11,9 +11,9 @@ function [resp_sizes, sig_trace_mat, sig_trace_mat_old, sig_cell_mat, resp_areau
 n_frames = size(dff_data_mat, 1);
 n_cells = size(dff_data_mat, 2);
 n_trials = size(dff_data_mat, 3);
-odor_list = unique(stim_mat_simple(:, 1));
+odor_list = unique(stim_mat_simple(:, od_col_ns(1) ));
 n_odors = length(odor_list);
-odor_dur_list = unique(stim_mat_simple(:, 2));
+odor_dur_list = unique(stim_mat_simple(:, dur_col_ns(1) ));
 del = find(odor_dur_list == 0);
 odor_dur_list(del) = [];
 del = find(isnan(odor_dur_list) == 1);
@@ -31,6 +31,10 @@ stim_frame = floor(stim_time./frame_time);                  %frame no at which o
 %pre_stim_frame = floor((stim_time - 4000)./frame_time);     %frame no 4 s prior to odor - to identify a 4s baseline
 pre_stim_frame = 1;
 
+%replacing Nans in stim_mat_simple's od_n_olf2 column with zeroes (if any)
+del = isnan(stim_mat_simple(:, od_col_ns(2)));
+del = find(del == 1);
+stim_mat_simple(del, od_col_ns(2)) = 0;
 
 resp_sizes = zeros(n_cells, n_trials) + nan;
 resp_areaundercurves = zeros(n_cells, n_trials) + nan;
@@ -63,7 +67,7 @@ for rep_gp = 1:n_rep_gps                %a rep_gp is a group of repeats of the s
     else
     end
     stim_end_fr = ceil(stim_frame + ((stim_duration.*1)./frame_time) );
-    rep_tr_list = find(stim_mat_simple(:, 1) == odor_ni & stim_mat_simple(:, 2) == stim_duration);    %list of repeat tr numbers
+    rep_tr_list = find(stim_mat_simple(:, od_col_ns(1) ) == odor_ni & stim_mat_simple(:, dur_col_ns(1)) == stim_duration & stim_mat_simple(:, od_col_ns(2)) == 0);    %list of repeat tr numbers
     
     
     for cell_n = 1:n_cells
