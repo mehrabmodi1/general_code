@@ -34,7 +34,19 @@ while trial_n < size(dataset_stack, 3)
     
     %swapping in appropriate, warped ROI_mat for the original ROI_mat
     if warped_ROIs == 1
-        keyboard
+        ref_trs = warping_landmarks(1).ref_tr_nums;     %list of waypoint trials 15 min apart for which landmarks were picked
+        wpnts_passed = sum(trial_n > ref_trs);
+        if trial_n == 1
+            wpnts_passed = 1;
+        elseif wpnts_passed == length(ref_trs)      %case when a few more trials exist past the last waypoint.
+            wpnts_passed = wpnts_passed - 1;
+        end
+        
+        try
+            ROI_mat = ROI_mat_warped(:, :, wpnts_passed);
+        catch
+            keyboard
+        end
         
     elseif warped_ROIs == 0
     else

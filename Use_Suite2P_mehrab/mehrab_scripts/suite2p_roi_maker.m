@@ -10,7 +10,9 @@ extract_both_channels = 0;
 
 %% Reading in manually created direc list
 %direc_list = 'E:\Data\Raw_Data_Current\dataset_lists\KC_d5HT1b_PABAEL_201908set.xls';
-direc_list = 'E:\Data\Raw_Data_Current\dataset_lists\KC_c739_PABAEL_201908set.xls';
+%direc_list = 'E:\Data\Raw_Data_Current\dataset_lists\KC_c739_PABAEL_201908set.xls';
+direc_list = 'E:\Data\Raw_Data_Current\dataset_lists\c739KC_PaBaEl_handover_prehabituated.xls';
+
 [del, raw_direc_list] = xlsread(direc_list, 1);
 raw_direc_list_copy = raw_direc_list;
 
@@ -124,7 +126,6 @@ for raw_direc_n = 1:size(raw_direc_list, 1)
     [ROI_mat] = setup_Suite2P_ROIs(data_mat);
     save([results_direc, raw_direc, '\ROI_mat.mat'], 'ROI_mat');
     clear data_mat
-    
     %checking if directory structure was extended with a \1\ folder at the
     %end and copying over the results file from ROI_prune to that folder
     copy_files_to_1_direc(results_direc, raw_direc);
