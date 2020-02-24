@@ -270,6 +270,7 @@ for do_over = 1:2
 
                 if fuse_ROIs == 1
                     ROI_mat = sum(ROI_mat, 3);
+                    ROI_mat(ROI_mat > 1) = 1;
                 else
                 end
 
@@ -387,6 +388,20 @@ for direc_list_n = 1:n_direc_lists
         ROI_mat = load([save_path_base, dataset_name, '\ROI_mat.mat']);
         ROI_mat = ROI_mat.ROI_mat;
         
+        %fusing multiple ROIs
+        if fuse_ROIs == 1
+            ROI_mat = sum(ROI_mat, 3);
+            ROI_mat(ROI_mat > 1) = 1;
+        else
+        end
+        
+        %dilating ROIs if specified by user
+        if dilate_ROIs > 0
+            str = strel('disk', dilate_ROIs, 0); 
+            ROI_mat = imdilate(ROI_mat, str);
+
+        else
+        end
         
         %extracting raw traces
         dataset_namei = findstr(direc, '20');
@@ -401,6 +416,12 @@ for direc_list_n = 1:n_direc_lists
         save_path = [save_path_base, dataset_name, '\' ];
         
         subtraction_spec_vec = [do_bk_subtraction, do_noisefit_subtraction];    %two manually specified booleans that specify whether or not to do the resp corrections while extracting data.
+        
+        %deleting old extracted traces if re-extraction is forced
+        if force_re_extraction == 1
+            delete([save_path, 'extracted_raw_data_mat.mat']);
+        else
+        end
         
         [raw_data_mat] = extract_raw_traces_par(direc, ROI_mat, save_path, 1, extract_both_channels, subtraction_spec_vec, force_re_extraction);
         
