@@ -168,20 +168,23 @@ if exist([save_path, 'ROI_mat_warped.mat']) == 2
 else
     ROI_mat_warped = zeros(size(ROI_mat, 1), size(ROI_mat, 2), size(saved_warping_landmarks, 2)) + nan;
 end
-ref_tr_nums =  saved_warping_landmarks(1).ref_tr_nums; 
+del = sum(sum(ROI_mat_warped, 1, 'omitnan'), 2, 'omitnan');
+mats_warped = sum(sign(del));     %number of ROI_mats that have already been warped
+ref_tr_nums =  saved_warping_landmarks(1).ref_tr_nums;
 
-    
-for lm_setn = 1:size(saved_warping_landmarks, 2)
-    curr_tr1 = ref_tr_nums(lm_setn);
-    curr_im1 = dataset_stack(:, :, curr_tr1);
-    curr_tr2 = ref_tr_nums(lm_setn + 1);
-    curr_im2 = dataset_stack(:, :, curr_tr2);
+if (mats_warped + 1) <= size(saved_warping_landmarks, 2)
+    for lm_setn = (mats_warped + 1):size(saved_warping_landmarks, 2)
+        curr_tr1 = ref_tr_nums(lm_setn);
+        curr_im1 = dataset_stack(:, :, curr_tr1);
+        curr_tr2 = ref_tr_nums(lm_setn + 1);
+        curr_im2 = dataset_stack(:, :, curr_tr2);
 
-    curr_landmark_pairs = saved_warping_landmarks(lm_setn).landmark_pairs;
-    ROI_mat_warped(:, :, lm_setn) = warp_im(ROI_mat_flat, curr_landmark_pairs);
-    save([save_path, 'ROI_mat_warped.mat'], 'ROI_mat_warped');
+        curr_landmark_pairs = saved_warping_landmarks(lm_setn).landmark_pairs;
+        ROI_mat_warped(:, :, lm_setn) = warp_im(ROI_mat_flat, curr_landmark_pairs);
+        save([save_path, 'ROI_mat_warped.mat'], 'ROI_mat_warped');
+    end
+else
 end
-
 
 
 %This function creates a subplot with the frame and the ROI on top of it.
