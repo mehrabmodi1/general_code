@@ -74,7 +74,7 @@ else
     bk_ROI = [];
     keyboard
 end
-
+bk_val_vecs = [];
 
 for trial_n = start_trial:n_trials
     try
@@ -176,9 +176,13 @@ for trial_n = start_trial:n_trials
             end
             
             disp(['registering frames for trial ' int2str(trial_n)])
-            [stack_reg, saved_lags] = slow_xy_motion_correct(stack, ref_im, lag_mat(trial_n, :), detailed_lag_mat, local_registration_type);
-            disp(['registration done. extracting data.'])
-            
+            try
+                [stack_reg, saved_lags] = slow_xy_motion_correct(stack, ref_im, lag_mat(trial_n, :), detailed_lag_mat, local_registration_type);
+                disp(['registration done. extracting data.'])
+            catch
+                keyboard
+                [stack_reg, saved_lags] = slow_xy_motion_correct(stack, ref_im, [0, 0, 0], detailed_lag_mat, local_registration_type);
+            end
             
         elseif do_registration == 2 %do a 2D cc to identify lags for each frame in a stack relative to the meam frame for that stack after doing the slow correction above
             if exist([save_path, '\xy_lags.mat']) == 2
@@ -294,11 +298,11 @@ for trial_n = start_trial:n_trials
                 curr_frame = stack_reg(:, :, frame_n);
                 curr_frame = double(curr_frame);
 
-                bk_val_vec(frame_n, 1) = mean(mean(curr_frame(bk_pixi)));
+                bk_val_vec(frame_n, 1) = mean(mean(curr_frame(bk_pixi), 'omitnan'), 'omitnan');
 
             end
             %computing moving-window average of bk_vals
-            bk_val_vec = movmean(bk_val_vec, 101);
+            bk_val_vec = movmean(bk_val_vec, 101, 'omitnan');
 
         else
         end
@@ -322,6 +326,7 @@ for trial_n = start_trial:n_trials
         else
         end
         raw_vec = zeros(1, n_cells);
+        bk_val_vecs = pad_n_concatenate(bk_val_vecs, bk_val_vec, 2, nan);
         
         for ROI_n = 1:n_cells
             try
@@ -330,7 +335,7 @@ for trial_n = start_trial:n_trials
                 keyboard
             end
                     
-            raw_vec(1, ROI_n) = mean(curr_frame(curr_ROI == 1));
+            raw_vec(1, ROI_n) = mean(curr_frame(curr_ROI == 1), 'omitnan');
             
         end
        
@@ -369,6 +374,7 @@ for trial_n = start_trial:n_trials
     save([save_path, 'extracted_raw_data_mat.mat'], 'raw_data_mat');
     save([save_path, 'ref_im.mat'], 'ref_im');
     save([save_path, 'tif_time_stamps.mat'], 'time_stamps');
+    save([[save_path, 'bk_val_vecs.mat'], 'bk_val_vecs'])
     disp(['traces extracted, from trial ', int2str(trial_n), ', and saved.'])
    
     try
