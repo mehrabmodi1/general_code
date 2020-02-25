@@ -5,7 +5,8 @@ dataset_list_paths = [...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_Alpha1_60strace_71C03LxA_MB043CGal4.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_Alpha1_60strace_72D01LxAChr88tdT.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_Alpha1_60strace_71C03LxA_MB043CGal4_noChrisoncontrol.xls'};...
-                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Alpha1_60strace_71C03LxA_MB043CGal4_Chrison_noLED_control.xls'};...                      
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Alpha1_60strace_71C03LxA_MB043CGal4_Chrison_noLED_control.xls'};... 
+                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Alpha1_60strace_71C03LxA_MB043CGal4_with_Chrimson_LED.xls'};... 
                       ];
             
 suppress_plots = 0;
@@ -100,20 +101,18 @@ for list_n = 1:size(dataset_list_paths, 1)
         
         
         %plotting responses for the paired odor
-        curr_trs_pre = find(stim_mat_simple(:, od_olf1_col_n) == paired_od_n);
+        curr_trs_pre = find(stim_mat_simple(:, od_olf1_col_n) == paired_od_n & stim_mat_simple(:, dur_olf1_col_n) == 10);
         curr_trs_pre = intersect(curr_trs_pre, pre_trs);
-        %curr_trs_pre = curr_trs_pre(1:7);                             %discarding first presentation of any odor for habituation effects
-        curr_trs_post = find(stim_mat_simple(:, od_olf1_col_n) == paired_od_n);
+        curr_trs_post = find(stim_mat_simple(:, od_olf1_col_n) == paired_od_n & stim_mat_simple(:, dur_olf1_col_n) == 10);
         curr_trs_post = intersect(curr_trs_post, post_trs);
-        %curr_trs_post = curr_trs_post(1:7);  
         pre_traces = squeeze(dff_data_mat_f(:, 1, curr_trs_pre));
         stim_frs = compute_stim_frs_modular(stim_mat, curr_trs_pre(1), frame_time);
         stim_frs = stim_frs{1};      
         
-        mean_pre_trace = mean(pre_traces, 2);
+        mean_pre_trace = mean(pre_traces, 2, 'omitnan');
         resp_vec(1, 1) = max(mean_pre_trace(stim_frs(1):(stim_frs(2) + round(2./frame_time))));       %taking max of filtered trace as resp measure
         post_traces = squeeze(dff_data_mat_f(:, 1, curr_trs_post));
-        mean_post_trace = mean(post_traces, 2);
+        mean_post_trace = mean(post_traces, 2, 'omitnan');
         resp_vec(1, 2) = max(mean_post_trace(stim_frs(1):(stim_frs(2) + round(2./frame_time))));      %taking max of filtered trace as resp measure
                 
                     
@@ -130,20 +129,19 @@ for list_n = 1:size(dataset_list_paths, 1)
         
         
         %plotting responses for the un-paired odor
-        curr_trs_pre = find(stim_mat_simple(:, od_olf1_col_n) == unpaired_od_n);
+        curr_trs_pre = find(stim_mat_simple(:, od_olf1_col_n) == unpaired_od_n & stim_mat_simple(:, dur_olf1_col_n) == 10);
         curr_trs_pre = intersect(curr_trs_pre, pre_trs);
         %curr_trs_pre = curr_trs_pre(1:7);                           %discarding first presentation of any odor for habituation effects
-        curr_trs_post = find(stim_mat_simple(:, od_olf1_col_n) == unpaired_od_n);
+        curr_trs_post = find(stim_mat_simple(:, od_olf1_col_n) == unpaired_od_n & stim_mat_simple(:, dur_olf1_col_n) == 10);
         curr_trs_post = intersect(curr_trs_post, post_trs);
         %curr_trs_post = curr_trs_post(1:7);
         stim_frs = compute_stim_frs_modular(stim_mat, curr_trs_pre(1), frame_time);
         stim_frs = stim_frs{1};      
-        
         pre_traces = squeeze(dff_data_mat_f(:, 1, curr_trs_pre));
-        mean_pre_trace = mean(pre_traces, 2);
+        mean_pre_trace = mean(pre_traces, 2, 'omitnan');
         resp_vec(1, 3) = max(mean_pre_trace(stim_frs(1):(stim_frs(2) + round(2./frame_time))));       %taking max of filtered trace as resp measure
         post_traces = squeeze(dff_data_mat_f(:, 1, curr_trs_post));
-        mean_post_trace = mean(post_traces, 2);
+        mean_post_trace = mean(post_traces, 2, 'omitnan');
         resp_vec(1, 4) = max(mean_post_trace(stim_frs(1):(stim_frs(2) + round(2./frame_time))));      %taking max of filtered trace as resp measure
         
         stim_frs = compute_stim_frs_modular(stim_mat, curr_trs_pre(1), frame_time);
@@ -160,20 +158,18 @@ for list_n = 1:size(dataset_list_paths, 1)
         
         
         %plotting responses for the third, ctrl odor
-        curr_trs_pre = find(stim_mat_simple(:, od_olf1_col_n) == ctrl_od_n);
+        curr_trs_pre = find(stim_mat_simple(:, od_olf1_col_n) == ctrl_od_n & stim_mat_simple(:, dur_olf1_col_n) == 10);
         curr_trs_pre = intersect(curr_trs_pre, pre_trs);
-        %curr_trs_pre = curr_trs_pre(1:7);                           %discarding first presentation of any odor for habituation effects
-        curr_trs_post = find(stim_mat_simple(:, od_olf1_col_n) == ctrl_od_n);
+        curr_trs_post = find(stim_mat_simple(:, od_olf1_col_n) == ctrl_od_n & stim_mat_simple(:, dur_olf1_col_n) == 10);
         curr_trs_post = intersect(curr_trs_post, post_trs);
-        %curr_trs_post = curr_trs_post(1:7);
         stim_frs = compute_stim_frs_modular(stim_mat, curr_trs_pre(1), frame_time);
         stim_frs = stim_frs{1};      
         
         pre_traces = squeeze(dff_data_mat_f(:, 1, curr_trs_pre));
-        mean_pre_trace = mean(pre_traces, 2);
+        mean_pre_trace = mean(pre_traces, 2, 'omitnan');
         resp_vec(1, 3) = max(mean_pre_trace(stim_frs(1):(stim_frs(2) + round(2./frame_time))));       %taking max of filtered trace as resp measure
         post_traces = squeeze(dff_data_mat_f(:, 1, curr_trs_post));
-        mean_post_trace = mean(post_traces, 2);
+        mean_post_trace = mean(post_traces, 2, 'omitnan');
         resp_vec(1, 4) = max(mean_post_trace(stim_frs(1):(stim_frs(2) + round(2./frame_time))));      %taking max of filtered trace as resp measure
         
         stim_frs = compute_stim_frs_modular(stim_mat, curr_trs_pre(1), frame_time);
@@ -188,7 +184,9 @@ for list_n = 1:size(dataset_list_paths, 1)
         fig_wrapup(3, []);
         add_stim_bar(3, stim_frs, color_vec(3, :));
         
-        
+        figure(4)
+        imagesc(squeeze(dff_data_mat_f(:, :, 7:end))');
+        fig_wrapup(3, []);
         
         if suppress_plots == 0
             keyboard

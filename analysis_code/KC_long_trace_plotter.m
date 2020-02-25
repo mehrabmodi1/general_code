@@ -145,6 +145,8 @@ for list_n = 1:size(dataset_list_paths, 1)
             else
             end
             curr_mean_traces = squeeze(mean(dff_data_mat_f(:, curr_sig_cells, curr_trs), 3, 'omitnan'));
+            del = curr_mean_traces < 0;
+            curr_mean_traces(del) = 0;
             stim_frs = compute_stim_frs_modular(stim_mat, curr_trs(1), frame_time);
             stim_frs = stim_frs{1};    
             curr_sds = std(curr_mean_traces((stim_frs(1) - round(10./frame_time)):(stim_frs(1) - 2), :), [], 1, 'omitnan');
@@ -154,9 +156,10 @@ for list_n = 1:size(dataset_list_paths, 1)
             %identifying last point in each response trace that is higher than thresh for each cell.
             for cell_n = 1:length(curr_sig_cells)
                 [sig_val_frs, del] =  find(curr_mean_traces(stim_frs(1):end, cell_n) > curr_threshes(cell_n));
+                keyboard
                 if isempty(sig_val_frs) == 0
                     saved_sig_frs(cell_n, 1) = max(sig_val_frs);
-                    if max(sig_val_frs) > 400
+                    if max(sig_val_frs) > (50./frame_time)
                         saved_long_traces = pad_n_concatenate(saved_long_traces, curr_mean_traces(:, cell_n), 2, nan);
                     else
                     end
@@ -177,7 +180,20 @@ for list_n = 1:size(dataset_list_paths, 1)
         close all
                 
     end
-   
+    figure(1)
+    hist(all_sig_frs)
+    
+    figure(2)
+    saved_long_traces_n = saved_long_traces./max(saved_long_traces, [], 1);
+    imagesc(saved_long_traces_n(1:904, :)');
+    colormap(greymap)
+    set_xlabels_time(2, frame_time, 20)
+    ylabel('sig. cell n')
+    fig_wrapup(2, [])
+    add_stim_bar(2, stim_frs, [0.65, 0.65, 0.65]);
+    
+    save('C:\Data\Data\Analysed_data\Analysis_results\KC_long_trace\all_sig_frs.mat', 'all_sig_frs');
+    save('C:\Data\Data\Analysed_data\Analysis_results\KC_long_trace\saved_long_traces.mat', 'saved_long_traces');
     
     keyboard
 
