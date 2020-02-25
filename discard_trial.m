@@ -3,7 +3,6 @@ function [] = discard_trial(direc, trial_n)
 %This function allows the user to manually identify trials with issues
 %(movement etc)and discard them in the saved_traces .mat file
 
-direc = 'C:\Data\Data\Analysed_data\Suite2P_results\20200103\fly1_c739_handoverPaBaEl\\\1\';
 extracted_raw_data_mat = load([direc, 'extracted_raw_data_mat.mat']);
 raw_data_mat = extracted_raw_data_mat.raw_data_mat;
 raw_data_mat_orig = raw_data_mat;
