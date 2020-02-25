@@ -245,38 +245,38 @@ for trial_n = start_trial:n_trials
     end
    
     %registration testing lines of code
-    if trial_n > 1 && rem(trial_n, 2) == 0
-        figure(2)
-        subplot(2, 1, 1)
-        curr_fra = std(stack_reg, [], 3, 'omitnan');
-        imagesc(curr_fra)
-        colormap('gray')
-        ROI_im = sum(ROI_mat, 3);
-        
-        hold on
-        ROI_im_sc = ROI_im.*max(max(curr_fra));
-        s = imagesc(ROI_im_sc);
-        s.AlphaData = ROI_im.*0.5;
-        
-        subplot(2, 1, 2)
-        imagesc(std(stack_reg, [], 3, 'omitnan'))
-        colormap('gray')
-        
-        figure(3)
-        try
-            diff_fr = std(stack_reg, [], 3, 'omitnan') - first_fr;
-            imagesc(diff_fr, [-10, 10]);
-            colormap('gray')
-        catch
-            first_fr = std(stack_reg, [], 3, 'omitnan');
-            diff_fr = std(stack_reg, [], 3, 'omitnan') - first_fr;
-            imagesc(diff_fr, [-10, 10]);
-            colormap('gray')
-        end
-    keyboard
-    elseif trial_n == 1
-        first_fr = std(stack_reg, [], 3, 'omitnan');
-    end
+%     if trial_n > 1 && rem(trial_n, 2) == 0
+%         figure(2)
+%         subplot(2, 1, 1)
+%         curr_fra = std(stack_reg, [], 3, 'omitnan');
+%         imagesc(curr_fra)
+%         colormap('gray')
+%         ROI_im = sum(ROI_mat, 3);
+%         
+%         hold on
+%         ROI_im_sc = ROI_im.*max(max(curr_fra));
+%         s = imagesc(ROI_im_sc);
+%         s.AlphaData = ROI_im.*0.5;
+%         
+%         subplot(2, 1, 2)
+%         imagesc(std(stack_reg, [], 3, 'omitnan'))
+%         colormap('gray')
+%         
+%         figure(3)
+%         try
+%             diff_fr = std(stack_reg, [], 3, 'omitnan') - first_fr;
+%             imagesc(diff_fr, [-10, 10]);
+%             colormap('gray')
+%         catch
+%             first_fr = std(stack_reg, [], 3, 'omitnan');
+%             diff_fr = std(stack_reg, [], 3, 'omitnan') - first_fr;
+%             imagesc(diff_fr, [-10, 10]);
+%             colormap('gray')
+%         end
+%     keyboard
+%     elseif trial_n == 1
+%         first_fr = std(stack_reg, [], 3, 'omitnan');
+%     end
     
     
     bk_pixi = find(bk_ROI == 1);
