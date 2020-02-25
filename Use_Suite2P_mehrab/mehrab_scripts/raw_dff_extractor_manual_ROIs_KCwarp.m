@@ -43,22 +43,30 @@ direc_lists_mat = [...
 %                     {'E:\Data\Raw_Data_Current\dataset_lists\Alpha1_60strace_71C03LxA_MB043CGal4.xls'};...
 %                     {'E:\Data\Raw_Data_Current\dataset_lists\Alpha1_60strace_72D01LxAChr88tdT.xls'};...
                     %{'E:\Data\Raw_Data_Current\dataset_lists\MBONG2_PaBaEl_handover_starved_set2.xls'}...
-                    {'E:\Data\Raw_Data_Current\dataset_lists\KC_c739_PABAEL_201908set.xls'}...
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\KC_c739_PABAEL_201908set.xls'}...
                     %{'E:\Data\Raw_Data_Current\dataset_lists\MBONG2_PaBaEl_handover_starved_halfAra.xls'}...
                     %{'E:\Data\Raw_Data_Current\dataset_lists\MBONG2_PaBaEl_handover_starved36_halfAra.xls'}...
                     %{'E:\Data\Raw_Data_Current\dataset_lists\MBONG2_PaBaEl_handover_starved_halfAra_prehabituated.xls'}...
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\MBONG2_PaBaEl_handover_starved_halfAra_prehabituated_strongUS.xls'}...
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\Alpha1_60strace_71C03LxA_MB043CGal4_noChrisoncontrol.xls'}...
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\MBONG2_PaBaEl_handover_starved_halfAra_prehabituated_strongUS_EL_handover.xls'}...
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\MBONG2_PaBaEl_handover_starved_halfAra_prehabituated_strongUS_EL_second.xls'}...
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\c739KC_PaBaEl_handover_prehabituated.xls'}...
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\Alpha1_60strace_71C03LxA_MB043CGal4_Chrison_noLED_control.xls'}...
+                    {'E:\Data\Raw_Data_Current\dataset_lists\Alpha1_60strace_71C03LxA_MB043CGal4_with_Chrimson_LED.xls'}...
+                    
                      ];
                 
 n_direc_lists = size(direc_lists_mat, 1);
 
-save_path_base_manual = 'E:\Data\Analysed_data\Manual_ROIs\';
+save_path_base_manual = 'E:\Data\Analysed_data\Manual_ROIs\';  
 save_path_base_Suite2P = 'E:\Data\Analysed_data\Suite2p\Results\';
 
 
 fuse_ROIs = 1;          %0-no, 1-yes. This flattens dim3 of ROI_mat in case there is a multi-patch neuron that needs to be considered as a single object.
-dilate_ROIs = 15; %15;        %This is the number of pixels by which the manually drawn ROIs are dilated before data extraction.
-remove_ROI_ovlap = 1;    %enabling this switch gets rid of an overlapping pixels between ROIs from all ROIs.   
-warp_ROIs = 1;           %typically used for KC datasets - user-specified landmarks used to warp ROI matrix to align ROIs with cells as tissue distorts over session.
+dilate_ROIs = 25; %15;        %This is the number of pixels by which the manually drawn ROIs are dilated before data extraction.
+remove_ROI_ovlap = 0;    %enabling this switch gets rid of an overlapping pixels between ROIs from all ROIs.   
+warp_ROIs = 0;           %typically used for KC datasets - user-specified landmarks used to warp ROI matrix to align ROIs with cells as tissue distorts over session.
 extract_both_channels = 0;  
 extract_traces_only = 0; %Enabling this switch makes the program only extract traces from a .tif file using given ROIs. It doesn't look for stim params/PID files of any sort. useful for data acquired on other rigs. 
 do_noisefit_subtraction = 1;    %Enabling this switch makes the pipeline fit slow, row-wise noise and subtract that from each frame.
@@ -105,8 +113,9 @@ for do_over = 1:2
                 direc = direc1;
             else
             end
-                      
+                    
             remove_small_tifs(direc);
+           
             prev_direc = pwd;
             cd([direc]);
             dataset_namei = findstr(direc, '20');
@@ -261,6 +270,7 @@ for do_over = 1:2
 
                 if fuse_ROIs == 1
                     ROI_mat = sum(ROI_mat, 3);
+                    ROI_mat(ROI_mat > 1) = 1;
                 else
                 end
 
@@ -285,8 +295,6 @@ for do_over = 1:2
                     ROI_mat_warped = [];
                     warping_landmarks = [];
                 end
-                keyboard
-                
                 
                 %looping through an ave frame for each trial in the
                 %dataset, for the user to click on a fixed landmark in each frame
@@ -303,7 +311,8 @@ for do_over = 1:2
                     else
                         ROI_mat_s = ROI_mat;
                     end
-                    [lag_mat, bad_trs, done_marking, bk_ROI] = manual_xylags_zbad2(dataset_stack, ROI_mat_s, ROI_mat_warped, warping_landmarks);
+%                     [lag_mat, bad_trs, done_marking, bk_ROI] = manual_xylags_zbad2(dataset_stack, ROI_mat_s, ROI_mat_warped, warping_landmarks);
+                    [lag_mat, bad_trs, done_marking, bk_ROI] = manual_xylags_zbad2(dataset_stack, ROI_mat_s, ROI_mat_warped, []);
                 end
                 
                 bad_tr_list = 1:1:size(dataset_stack, 3);
@@ -379,6 +388,20 @@ for direc_list_n = 1:n_direc_lists
         ROI_mat = load([save_path_base, dataset_name, '\ROI_mat.mat']);
         ROI_mat = ROI_mat.ROI_mat;
         
+        %fusing multiple ROIs
+        if fuse_ROIs == 1
+            ROI_mat = sum(ROI_mat, 3);
+            ROI_mat(ROI_mat > 1) = 1;
+        else
+        end
+        
+        %dilating ROIs if specified by user
+        if dilate_ROIs > 0
+            str = strel('disk', dilate_ROIs, 0); 
+            ROI_mat = imdilate(ROI_mat, str);
+
+        else
+        end
         
         %extracting raw traces
         dataset_namei = findstr(direc, '20');
@@ -393,6 +416,12 @@ for direc_list_n = 1:n_direc_lists
         save_path = [save_path_base, dataset_name, '\' ];
         
         subtraction_spec_vec = [do_bk_subtraction, do_noisefit_subtraction];    %two manually specified booleans that specify whether or not to do the resp corrections while extracting data.
+        
+        %deleting old extracted traces if re-extraction is forced
+        if force_re_extraction == 1
+            delete([save_path, 'extracted_raw_data_mat.mat']);
+        else
+        end
         
         [raw_data_mat] = extract_raw_traces_par(direc, ROI_mat, save_path, 1, extract_both_channels, subtraction_spec_vec, force_re_extraction);
         

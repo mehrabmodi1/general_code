@@ -18,6 +18,7 @@ raw_data_mat = zeros(100, n_cells, n_trials) + nan;
 n_frames = zeros(n_trials, 1);
 
 
+
 %checking if any trials have already been extracted and recovering
 if exist([save_path, 'extracted_raw_data_mat.mat']) == 2
     try
@@ -361,9 +362,8 @@ for trial_n = start_trial:n_trials
         raw_data_mat(1:size(curr_raw_data_mat, 1), :, trial_n) = curr_raw_data_mat;
        
     else
-        
+        try
         raw_data_mat(:, :, trial_n) = curr_raw_data_mat;
-        
     end
     
     clear stack
