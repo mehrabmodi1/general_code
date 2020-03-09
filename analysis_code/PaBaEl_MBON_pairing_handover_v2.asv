@@ -290,21 +290,14 @@ frame_time = 0.099;
 
 if isempty(olf1_odn) == 1
     olfn = 2;
-    olfn_other = 1;
 elseif isempty(olf2_odn) == 1
     olf_n = 1;
-    olf_n_other = 2;
 else
 end
 
 %identifying current trials
 curr_trs = find(stim_mat_simple(:, od_col_ns(olfn)) == olf1_odn & stim_mat_simple(:, dur_col_ns(olf_n)) == 10 ...
-    & stim_mat_simple_nonans(:, dur_col_ns(olf_n_other)) < 1);
-
-
-%PICK UP THREAD HERE
-%figure out how to handle simple trials delivered with olf1 or olf2 and
-%make the appropriate plots.
+    & stim_mat_simple_(:, od_col_ns(2)) == 0 & stim_mat_simple(:, dur_col_ns(2)) == 10);
 
 %case where current od1-od2 transition isn't part of the dataset
 if isempty(curr_trs) == 1
