@@ -2,13 +2,13 @@
 %dataset folders at sink (laptop/server) as per the lists in list_of_lists. It then copies
 %over only the extracted raw data mat file from source(server/an_machine).
 
-transfer_type = 1;      %valid options are 1 - source:an_machine, sink:server; or 2 - source:server, sink:laptop
+transfer_type = 2;      %valid options are 1 - source:an_machine, sink:server; or 2 - source:server, sink:laptop
 
-if transfer_type == 1
+if transfer_type == 1 %from an_machine to server
     source_path_base = 'E:\Data\Analysed_data\Manual_ROIs\';    %an_machine path
     sink_path_base = '\\dm11\turnerlab\Mehrab\Analysed_data\';  %server path
     list_path_base = 'E:\Data\Raw_Data_Current\dataset_lists\';
-elseif transfer_type == 2
+elseif transfer_type == 2 %from server to laptop
     source_path_base = '\\dm11\turnerlab\Mehrab\Analysed_data\';  %server path
     sink_path_base =  'C:\Data\Data\Analysed_data\Manual_ROI_results\'; %laptop path
     list_path_base = 'C:\Data\Code\general_code_old\data_folder_lists\Janelia\';
