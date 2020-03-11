@@ -22,7 +22,7 @@ params_spec1 = set_ADO_params_default;
 params_spec1.odours_olf2 = [];
 params_spec1.duration = 10;
 params_spec1.isi = 60;
-params_spec1.reps = 7;
+params_spec1.reps = 5;
 params_spec1.odours = [3, 11, 9];    %PA, EL and IAA on olf1
 params_spec1.n_od_pulses = 1;
 
@@ -48,8 +48,8 @@ else
     params_spec2.rel_stim_init_delay = trace_interval;      %Yoshi defines ISI as difference between odor and LED onsets
     params_spec2.led_odours = od_to_pair;
 end
-params_spec2.stim_freq = 0.3;
-params_spec2.stim_duty_cyc = 1.5;
+params_spec2.stim_freq = 1;
+params_spec2.stim_duty_cyc = 25;
 
 params_struc2 = setUpStimuli_modular(params_spec2);
 
@@ -98,3 +98,4 @@ else
 end
 
 disp(['saved detailed stim params structure in ', curr_dir]);
+setup_odor_habituation_trials(curr_dir, 1);

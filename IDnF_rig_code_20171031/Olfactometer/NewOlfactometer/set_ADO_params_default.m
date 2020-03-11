@@ -48,14 +48,14 @@ defaults={...
     %random train params
     'rand_trains', 0;
     'n_rand_trains', 2;
-    'min_pulse_dur', 0.1;               %in seconds, the shortest pulse the olfactometer can deliver
+    'min_pulse_dur', 0.5;               %in seconds, the shortest pulse the olfactometer can deliver
     'mean_rand_pulse_dur', 2;                %mean pulse duration in rand trains for olfactometer 1
     
         
     %olfactometer2 params
     'duration_olf2', [3];...            %for rand trains - duration of train, for simple trains, duration of each pulse
     'odours_olf2',[2, 3];...                %olf1_list = [3, 5, 10, 11] corress olf2_list = [1, 3, 2, 4]
-    'rel_stimLatency_olf2', 2;...       %stim latency of olfactometer2 pulse train relative to olfactometer1 pulse train
+    'rel_stimLatency_olf2', 1;...       %stim latency of olfactometer2 pulse train relative to olfactometer1 pulse train
     %simple train params
     'n_od_pulses_olf2', 1;...           %will deliver n_odor_pulses of length duration and inter_pulse_interval in between
     'inter_pulse_interval_olf2', 5;...

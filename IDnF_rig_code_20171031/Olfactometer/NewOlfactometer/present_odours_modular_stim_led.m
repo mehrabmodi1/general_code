@@ -329,6 +329,7 @@ for trial_n = start_tr:n_trials
     %flipping shuttle valve to deliver odor pulse(s)
     disp('odor being delivered...')
     for r_pulse_n = 1:size(pulse_train, 1)
+        keyboard
         if pulse_train(r_pulse_n, 2) > 0.1        %condition to skip olf1 when only olf2 pulses are being presented.
             
             pause(pulse_train(r_pulse_n, 1));
@@ -351,6 +352,7 @@ for trial_n = start_tr:n_trials
         disp('post odor scanning...')
         pause(post_od_scan_dur)                 %waiting to end image acquisition
     else
+        pause(10)  
     end
     trigger_scan(0, 0);         %ending image acquisition
     
@@ -379,6 +381,7 @@ for trial_n = start_tr:n_trials
         pause(1)
         trigger_scan(0, 0)    
     else
+        pause(2)
     end
     
     

@@ -1,4 +1,4 @@
-function [] = setup_odor_habituation_trials(path)
+function [] = setup_odor_habituation_trials(path, trig_scan)
 %This function looks in 'path' for and loads in an explicit stimulus specification
 %structure. It then lists the odors being delivered on each olfactometer,
 %and creates two, 20s pre-exposure trials for each odor, randomly
@@ -26,8 +26,12 @@ n_trs = size(params_struc_orig, 2);
 olf1_ods = zeros(n_trs, 1) + nan;
 olf2_ods = zeros(n_trs, 1) + nan;
 for tr_n = 1:n_trs
+    try
     olf1_ods(tr_n, 1) = params_struc_orig(tr_n).odours;
     olf2_ods(tr_n, 1) = params_struc_orig(tr_n).odours_olf2;
+    catch
+        keyboard
+    end
     
 end
 
@@ -42,13 +46,13 @@ olf2_ods = unique(olf2_ods);
 %building implicit stim param structure for habituation trials
 %for olf1 odors
 params_spec1 = set_ADO_params_default;
-params_spec1.trigger_scan = 0;
+params_spec1.trigger_scan = trig_scan;
 params_spec1.duration = 20;
 params_spec1.reps = 2;
 params_spec1.odours = olf1_ods;
 params_spec1.odours_olf2 = [];
-params_spec1.isi = 55;
-params_spec1.post_od_scan_dur = 5;
+params_spec1.isi = 65;
+params_spec1.post_od_scan_dur = 10;
 params_spec1.stimLatency = 10;
 
 params_spec1.odourNames = params_struc_orig(1).odourNames;
