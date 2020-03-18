@@ -205,45 +205,42 @@ def dataset_analysis(activity, odor, nonan, param, fold_fit):
     # importing the dataset
     stim_lat = param['stim_latency'][0, 0][0]
     stim_dur = param['odor_duration'][0, nonan]
-    breakpoint()
-    stim_long = 60
+    dur_list = np.unique(stim_dur);
+    stim_long = np.max(dur_list);       #longest stimulus duration delivered
+    
     i_stilong = (stim_dur == stim_long)
+    i_stilong = np.squeeze(i_stilong);
+    
     logging.info(
         "activity shape (stim index, KC index, trace): %s",
         activity.shape
     )
+   
     activity = activity[i_stilong, ...]
     odor_long = odor[i_stilong]
+    
     logging.info("odors for the long stimuli: %s", odor_long)
     acti_perodor = np.zeros((3, activity.shape[1], activity.shape[2]))
     acti_perodor[0, ...] = np.mean(activity[odor_long == 0], axis=0)
     acti_perodor[1, ...] = np.mean(activity[odor_long == 1], axis=0)
     acti_perodor[2, ...] = np.mean(activity[odor_long == 2], axis=0)
-
+    breakpoint()
     logging.info("time latency: %s", stim_lat)
-    # fig, ax = plt.subplots()
-    # logging.info("plotting the 20 first KCs, for the first stimulus")
-    # for i in np.arange(20):
-    #     ax.plot(acti_perodor[0, i, :])
-    # plt.show()
-
-    # sys.exit()
-    # activity = activity[0, :20, :]
-    # acti_perodor = acti_perodor[0, :20, :]
-
+    
     # looking at the synchronization
     n_stim = activity.shape[0]
     act_dur = activity.shape[2]
     times = np.arange(act_dur) / FRAME_RATE
     lline = n_stim // 2 + 1
+    """
     fig, ax = plt.subplots(2, lline, figsize=(16, 4))
     xlim = (times > 20.0) & (times < 30.0)
     for i in np.arange(n_stim):
         ax[i // lline, i % lline].plot(
             times[xlim], np.mean(activity[i, ...], axis=0)[xlim]
         )
-    fig.tight_layout()
-    fig.savefig(os.path.join(fold_fit, "start_stim.svg"))
+    #fig.tight_layout()
+    #fig.savefig(os.path.join(fold_fit, "start_stim.svg"))
 
     fig, ax = plt.subplots(2, lline, figsize=(16, 4))
     xlim = (times > 70.0) & (times < 100.0)
@@ -252,10 +249,10 @@ def dataset_analysis(activity, odor, nonan, param, fold_fit):
             times[xlim], np.mean(activity[i, ...], axis=0)[xlim]
         )
     fig.tight_layout()
-    fig.savefig(os.path.join(fold_fit, "end_stim.svg"))
+    #fig.savefig(os.path.join(fold_fit, "end_stim.svg"))
     plt.show()
     # sys.exit()
-
+    """
     stim_lat = 25.5
     # stim_long = 56.5
     train(acti_perodor, stim_lat, stim_long, fold_fit)
@@ -264,18 +261,7 @@ def dataset_analysis(activity, odor, nonan, param, fold_fit):
     fn_fits = os.path.join(fold_fit, "fit_params.npy")
     fits_params = np.load(fn_fits)
     f_kc, frac_longt = gen_optifunc(stim_lat, stim_long)
-    # f_kc = gen_optifunc(stim_lat, stim_long)
-    # for j in np.arange(acti_perodor.shape[1]):
-    #     fig, ax = plt.subplots(1, acti_perodor.shape[0], figsize=(12, 4))
-    #     # for i in np.arange(activity.shape[0]):
-    #     for i in np.arange(acti_perodor.shape[0]):
-    #         print(i, j)
-    #         ax[i].plot(times[:-1], acti_perodor[i, j, :-1])
-    #         ax[i].plot(times[:-1], f_kc(times[:-1], *fits_params[i, j, :]))
-
-    #     fig.tight_layout()
-    #     fig.savefig("cell{}.svg".format(j))
-
+    
     fig, ax = plt.subplots()
     taus = np.max(fits_params[..., (4, 5)], axis=2)
     # print(taus)
@@ -327,7 +313,7 @@ def main():
             odor[odor == 11] = 2
 
             folder_fit = "C:/Data/Data/Analysed_data/data_sharing/KC_param_fitting_sandbox/fits_{}_fly{}".format(lobe, fly)
-            breakpoint()
+            
             pathlib.Path(folder_fit).mkdir(exist_ok=True)
             dataset_analysis(activity, odor, nonan, params, folder_fit)
 
