@@ -302,33 +302,42 @@ def dataset_analysis(activity, odor, nonan, param, fold_fit):
 def main():
     """ Main function (supervises the optimization)
     """
-    
-    #PICK UP THREAD HERE
-    #Figure out how to automate folder detection and looping through all folders in a specified path
-
+   
     # configures the logging (level of messages)
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
+    
+    from pathlib import Path, PureWindowsPath
+    
+    base_path = PureWindowsPath("C:\Data\Data\Analysed_data\data_sharing\KC_long_trace");
+    base_path = Path(base_path);
+    obj_list = os.listdir(base_path);
+    n_objs = len(obj_list);
+    n_dirs = 0;
+    for obj_n in range(0, (n_objs - 1) ):
+        curr_path = "{}/{}".format(base_path, obj_list[obj_n]);
+        if os.path.isdir(curr_path) == 1:
+            n_dirs = n_dirs + 1;
+   
+    n_flies = n_dirs;
+    for fly_n in range(1, (n_flies)):
+        act_fn = "{}/fly{}/dFF_data.mat".format(base_path, fly_n)
+        para_fn = "{}/fly{}/stim_mat".format(base_path, fly_n)
+        activity = io.loadmat(act_fn)['dff_data_mat_f'].T
+        nonan = ~np.isnan(activity[:, :, 0:400]).any(axis=(1, 2))
+        activity = activity[nonan, ...]
+        params = io.loadmat(para_fn)['stim_mat']
 
-    for lobe in ['Gamma', 'AlphaBeta']:
-        for fly in range(1, 4):
-            act_fn = "C:/Data/Data/Analysed_data/data_sharing/KC_param_fitting_sandbox/{}/fly{}/dFF_data.mat".format(lobe, fly)
-            para_fn = "C:/Data/Data/Analysed_data/data_sharing/KC_param_fitting_sandbox/{}/fly{}/stim_mat".format(lobe, fly)
-            activity = io.loadmat(act_fn)['dff_data_mat_f'].T
-            nonan = ~np.isnan(activity[:, :, 0:400]).any(axis=(1, 2))
-            activity = activity[nonan, ...]
+        
+        odor = params['odor_n'][0, nonan]
+        odor[odor == 3] = 0
+        odor[odor == 10] = 1
+        odor[odor == 11] = 2
 
-            params = io.loadmat(para_fn)['stim_mat']
-
-            odor = params['odor_n'][0, nonan]
-            odor[odor == 3] = 0
-            odor[odor == 10] = 1
-            odor[odor == 11] = 2
-
-            folder_fit = "C:/Data/Data/Analysed_data/data_sharing/KC_param_fitting_sandbox/fits_{}_fly{}".format(lobe, fly)
-            
-            pathlib.Path(folder_fit).mkdir(exist_ok=True)
-            dataset_analysis(activity, odor, nonan, params, folder_fit)
+        folder_fit = "{}/fly{}".format(base_path, fly_n)
+        
+        pathlib.Path(folder_fit).mkdir(exist_ok=True)
+        dataset_analysis(activity, odor, nonan, params, folder_fit)
 
 
 if __name__ == "__main__":

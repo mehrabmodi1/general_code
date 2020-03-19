@@ -16,3 +16,16 @@ folder_fit = "C:/Data/Data/Analysed_data/data_sharing/KC_param_fitting_sandbox/f
 
 for a in np.arange(5):
     print(a)
+    
+    
+import os as os    
+from pathlib import Path, PureWindowsPath
+base_path = PureWindowsPath("C:\Data\Data\Analysed_data\data_sharing\KC_long_trace");
+base_path = Path(base_path);
+obj_list = os.listdir(base_path);
+n_objs = len(obj_list);
+n_dirs = 0;
+for obj_n in range(0, (n_objs - 1) ):
+    curr_path = "{}/{}".format(base_path, obj_list[obj_n]);
+    if os.path.isdir(curr_path) == 1:
+        n_dirs = n_dirs + 1;
