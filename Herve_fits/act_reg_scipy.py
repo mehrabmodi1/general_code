@@ -106,6 +106,7 @@ def gen_optifunc(stim_lat, stim_dur):
 
 
 def train(activity, stim_lat, stim_dur, fold_fit):
+    
     """ performing the fit
     Parameters
     ----------
@@ -163,7 +164,7 @@ def train(activity, stim_lat, stim_dur, fold_fit):
 
             ax[i].plot(times[:-1], activity[i, j, :-1])
             ax[i].plot(times[:-1], f_kc(times[:-1], *popt))
-
+            
         fig.tight_layout()
         fig.savefig(os.path.join(fold_fit, "cell{}.svg".format(j)))
 
@@ -312,8 +313,8 @@ def main():
 
     for lobe in ['Gamma', 'AlphaBeta']:
         for fly in range(1, 4):
-            act_fn = "{}/fly{}/dFF_data.mat".format(lobe, fly)
-            para_fn = "{}/fly{}/stim_mat".format(lobe, fly)
+            act_fn = "C:/Data/Data/Analysed_data/data_sharing/KC_param_fitting_sandbox/{}/fly{}/dFF_data.mat".format(lobe, fly)
+            para_fn = "C:/Data/Data/Analysed_data/data_sharing/KC_param_fitting_sandbox/{}/fly{}/stim_mat".format(lobe, fly)
             activity = io.loadmat(act_fn)['dff_data_mat_f'].T
             nonan = ~np.isnan(activity[:, :, 0:400]).any(axis=(1, 2))
             activity = activity[nonan, ...]
@@ -325,7 +326,7 @@ def main():
             odor[odor == 10] = 1
             odor[odor == 11] = 2
 
-            folder_fit = "fits_{}_fly{}".format(lobe, fly)
+            folder_fit = "C:/Data/Data/Analysed_data/data_sharing/KC_param_fitting_sandbox/fits_{}_fly{}".format(lobe, fly)
             pathlib.Path(folder_fit).mkdir(exist_ok=True)
             dataset_analysis(activity, odor, nonan, params, folder_fit)
 
