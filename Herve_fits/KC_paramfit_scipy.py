@@ -36,6 +36,7 @@ def gen_optifunc(stim_lat, stim_dur):
         domain0 = (t <= stim_lat)
         domain1 = (t > stim_lat) & (t <= stim_lat + stim_dur)
         domain2 = (t > stim_lat + stim_dur)
+        
         out = domain0 * a0
         out += domain1 * (
             a1 * (1.0 - np.exp(-(t - stim_lat) / t0))
@@ -106,6 +107,10 @@ def gen_optifunc(stim_lat, stim_dur):
 
 
 def train(activity, stim_lat, stim_dur, fold_fit):
+    
+    stim_lat = float(stim_lat);
+    stim_dur = float(stim_dur);
+    
     """ performing the fit
     Parameters
     ----------
@@ -147,7 +152,7 @@ def train(activity, stim_lat, stim_dur, fold_fit):
     # for j in np.arange(3):
     fit_params = np.zeros((activity.shape[0], activity.shape[1], 8))
     for j in np.arange(activity.shape[1]):
-        fig, ax = plt.subplots(1, activity.shape[0], figsize=(12, 4))
+        #fig, ax = plt.subplots(1, activity.shape[0], figsize=(12, 4))
         for i in np.arange(activity.shape[0]):
             try:
                 popt, pcov = curve_fit(
@@ -161,14 +166,15 @@ def train(activity, stim_lat, stim_dur, fold_fit):
                 continue
             fit_params[i, j, :] = popt
 
-            ax[i].plot(times[:-1], activity[i, j, :-1])
-            ax[i].plot(times[:-1], f_kc(times[:-1], *popt))
-
-        fig.tight_layout()
-        fig.savefig(os.path.join(fold_fit, "cell{}.svg".format(j)))
+            #ax[i].plot(times[:-1], activity[i, j, :-1])
+            #ax[i].plot(times[:-1], f_kc(times[:-1], *popt))
+            
+        #fig.tight_layout()
+        #fig.savefig(os.path.join(fold_fit, "cell{}.svg".format(j)))
 
     fn_fits = os.path.join(fold_fit, "fit_params.npy")
     np.save(fn_fits, fit_params)
+    
 
     # coefs = tf.Variable(init_c, name="filt_coefs")
     # xran = tf.reshape(tf.range(sig_len, dtype=tf.float32), (1, sig_len))
@@ -204,11 +210,14 @@ def dataset_analysis(activity, odor, nonan, param, fold_fit):
     """
     # importing the dataset
     stim_lat = param['stim_latency'][0, 0][0]
-    stim_dur = param['odor_duration'][0, nonan]
-    dur_list = np.unique(stim_dur);
+    stim_durs = param['odor_duration'][0, nonan]      #list of all odor durations
+    odor_ns = param['odor_n'][0, nonan]               #list of all odor numbers delivered, not odor indices
+    dur_list = np.unique(stim_durs);
+    odor_list = np.unique(odor_ns);
+    n_odors = odor_list.shape;                        #number of odors presented
+    n_odors = n_odors[0];
     stim_long = np.max(dur_list);       #longest stimulus duration delivered
-    
-    i_stilong = (stim_dur == stim_long)
+    i_stilong = (stim_durs == stim_long)
     i_stilong = np.squeeze(i_stilong);
     
     logging.info(
@@ -216,15 +225,14 @@ def dataset_analysis(activity, odor, nonan, param, fold_fit):
         activity.shape
     )
    
-    activity = activity[i_stilong, ...]
-    odor_long = odor[i_stilong]
+    activity = activity[i_stilong, ...]     #activity traces only for longest dur trials, throwing away all other trials - not needed for fitting.     
+    odor_long = odor[i_stilong]             #list of odor indices (not odor numbers) delivered on each long duration trial.
     
     logging.info("odors for the long stimuli: %s", odor_long)
     acti_perodor = np.zeros((3, activity.shape[1], activity.shape[2]))
-    acti_perodor[0, ...] = np.mean(activity[odor_long == 0], axis=0)
-    acti_perodor[1, ...] = np.mean(activity[odor_long == 1], axis=0)
-    acti_perodor[2, ...] = np.mean(activity[odor_long == 2], axis=0)
-    breakpoint()
+    for odor_ni in range(0, n_odors):
+        acti_perodor[odor_ni, ...] = np.mean(activity[odor_long == odor_ni], axis=0)        #mean response traces for each odor, long dur
+        
     logging.info("time latency: %s", stim_lat)
     
     # looking at the synchronization
@@ -253,11 +261,13 @@ def dataset_analysis(activity, odor, nonan, param, fold_fit):
     plt.show()
     # sys.exit()
     """
-    stim_lat = 25.5
+    
+    stim_lat = stim_lat + 0.5;
     # stim_long = 56.5
     train(acti_perodor, stim_lat, stim_long, fold_fit)
 
     # opening the dataset, the fits and plotting them
+    """
     fn_fits = os.path.join(fold_fit, "fit_params.npy")
     fits_params = np.load(fn_fits)
     f_kc, frac_longt = gen_optifunc(stim_lat, stim_long)
@@ -287,11 +297,14 @@ def dataset_analysis(activity, odor, nonan, param, fold_fit):
     fig.tight_layout()
     fig.savefig(os.path.join(fold_fit, "hist_tauoff.svg"))
     plt.show()
-
+    """
 
 def main():
     """ Main function (supervises the optimization)
     """
+    
+    #PICK UP THREAD HERE
+    #Figure out how to automate folder detection and looping through all folders in a specified path
 
     # configures the logging (level of messages)
     logger = logging.getLogger()
