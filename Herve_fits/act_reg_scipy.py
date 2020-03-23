@@ -216,6 +216,7 @@ def dataset_analysis(activity, odor, nonan, param, fold_fit):
     odor_long = odor[i_stilong]
     logging.info("odors for the long stimuli: %s", odor_long)
     acti_perodor = np.zeros((3, activity.shape[1], activity.shape[2]))
+    
     acti_perodor[0, ...] = np.mean(activity[odor_long == 0], axis=0)
     acti_perodor[1, ...] = np.mean(activity[odor_long == 1], axis=0)
     acti_perodor[2, ...] = np.mean(activity[odor_long == 2], axis=0)

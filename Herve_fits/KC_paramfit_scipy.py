@@ -9,7 +9,7 @@ import logging
 import numpy as np
 from scipy.optimize import curve_fit
 import scipy.io as io
-import matplotlib.pyplot as plt
+import matplotlib as plt
 
 plt.rcParams['svg.fonttype'] = 'none'
 plt.rcParams['font.family'] = 'sans-serif'
@@ -95,9 +95,7 @@ def gen_optifunc(stim_lat, stim_dur):
         else:
             ti = t1
             amp = a2
-        # logging.info("ti and amp", ti, amp)
-        # logging.info("stim_dur", stim_dur)
-        # logging.info("exp", np.exp(-stim_dur / ti))
+       
         frac_longexp = np.abs(
             amp * (ti - (ti + stim_dur) * np.exp(-stim_dur / ti))
         )
@@ -136,23 +134,12 @@ def train(activity, stim_lat, stim_dur, fold_fit):
     logging.info(domain2)
     logging.info(domain3)
 
-    # fig, ax = plt.subplots()
-    # ax.plot(times, domain1)
-    # ax.plot(times, domain2)
-    # ax.plot(times, domain3)
-
+    
     f_kc, frac_longt = gen_optifunc(stim_lat, stim_dur)
-    # test_out = f_kc(times, 1.0, 2.0, 5.0, 3.0, 0.5, 2.5, 1.0, 10.0)
-    # ax.plot(times, test_out)
-    # plt.show()
-    # sys.exit()
-
-    # print(activity[0, :-1])
-    # print(activity[0, :].shape)
-    # for j in np.arange(3):
+   
     fit_params = np.zeros((activity.shape[0], activity.shape[1], 8))
     for j in np.arange(activity.shape[1]):
-        #fig, ax = plt.subplots(1, activity.shape[0], figsize=(12, 4))
+        
         for i in np.arange(activity.shape[0]):
             try:
                 popt, pcov = curve_fit(
@@ -166,57 +153,26 @@ def train(activity, stim_lat, stim_dur, fold_fit):
                 continue
             fit_params[i, j, :] = popt
 
-            #ax[i].plot(times[:-1], activity[i, j, :-1])
-            #ax[i].plot(times[:-1], f_kc(times[:-1], *popt))
-            
-        #fig.tight_layout()
-        #fig.savefig(os.path.join(fold_fit, "cell{}.svg".format(j)))
+           
 
     fn_fits = os.path.join(fold_fit, "fit_params.npy")
     np.save(fn_fits, fit_params)
     
-
-    # coefs = tf.Variable(init_c, name="filt_coefs")
-    # xran = tf.reshape(tf.range(sig_len, dtype=tf.float32), (1, sig_len))
-    # filt_dec = tf.exp(-tf.multiply(times, xran))
-    # coeftimes = coefs * times[..., 0]
-    # print(filt_dec.shape)
-    # filt = tf.einsum("abc,abcd->abd", coeftimes, filt_dec)
-    # xmushfft = tf.spectral.rfft(xmush)
-    # print(xmush.shape)
-    # filtfft = tf.spectral.rfft(filt)
-    # outputh1 = tf.nn.relu(tf.spectral.irfft(xmushfft * filtfft))
-    # init_c2 = tf.truncated_normal((ncell, 2))
-    # coefs2 = tf.Variable(init_c2, name="filt_coefs2")
-    # output = tf.einsum("ab,abc->ac", coefs2, outputh1)
-
     logging.info("starting optimization")
 
 
 def dataset_analysis(activity, odor, nonan, param, fold_fit):
-    """TODO: Docstring for dataset_analysis.
-
-    Parameters
-    ----------
-    activity : TODO
-    params : TODO
-    lobe : TODO
-    fly : TODO
-
-    Returns
-    -------
-    TODO
-
-    """
+    
     # importing the dataset
-    stim_lat = param['stim_latency'][0, 0][0]
-    stim_durs = param['odor_duration'][0, nonan]      #list of all odor durations
-    odor_ns = param['odor_n'][0, nonan]               #list of all odor numbers delivered, not odor indices
+    stim_lat = param['stimLatency'][0, 0][0]
+    stim_durs = param['duration'][0, nonan]      #list of all odor durations
+    odor_ns = param['odours'][0, nonan]               #list of all odor numbers delivered, not odor indices
     dur_list = np.unique(stim_durs);
     odor_list = np.unique(odor_ns);
     n_odors = odor_list.shape;                        #number of odors presented
     n_odors = n_odors[0];
     stim_long = np.max(dur_list);       #longest stimulus duration delivered
+            
     i_stilong = (stim_durs == stim_long)
     i_stilong = np.squeeze(i_stilong);
     
@@ -229,75 +185,30 @@ def dataset_analysis(activity, odor, nonan, param, fold_fit):
     odor_long = odor[i_stilong]             #list of odor indices (not odor numbers) delivered on each long duration trial.
     
     logging.info("odors for the long stimuli: %s", odor_long)
-    acti_perodor = np.zeros((3, activity.shape[1], activity.shape[2]))
-    for odor_ni in range(0, n_odors):
-        acti_perodor[odor_ni, ...] = np.mean(activity[odor_long == odor_ni], axis=0)        #mean response traces for each odor, long dur
+    acti_perodor = np.zeros((n_odors, activity.shape[1], activity.shape[2]))
+    for odor_n in np.arange(n_odors):
+       
+        odor_ni = odor_list[odor_n];
+        curr_trs = [odor_long == odor_ni];
+        curr_trs = curr_trs[0];
+        curr_trs = np.squeeze(np.transpose(curr_trs));
+        acti_perodor[odor_n, ...] = np.mean(activity[curr_trs, :, :], axis=0)        #mean response traces for each odor, long dur
         
-    logging.info("time latency: %s", stim_lat)
-    
-    # looking at the synchronization
-    n_stim = activity.shape[0]
-    act_dur = activity.shape[2]
-    times = np.arange(act_dur) / FRAME_RATE
-    lline = n_stim // 2 + 1
-    """
-    fig, ax = plt.subplots(2, lline, figsize=(16, 4))
-    xlim = (times > 20.0) & (times < 30.0)
-    for i in np.arange(n_stim):
-        ax[i // lline, i % lline].plot(
-            times[xlim], np.mean(activity[i, ...], axis=0)[xlim]
-        )
-    #fig.tight_layout()
-    #fig.savefig(os.path.join(fold_fit, "start_stim.svg"))
-
-    fig, ax = plt.subplots(2, lline, figsize=(16, 4))
-    xlim = (times > 70.0) & (times < 100.0)
-    for i in np.arange(n_stim):
-        ax[i // lline, i % lline].plot(
-            times[xlim], np.mean(activity[i, ...], axis=0)[xlim]
-        )
-    fig.tight_layout()
-    #fig.savefig(os.path.join(fold_fit, "end_stim.svg"))
-    plt.show()
-    # sys.exit()
-    """
-    
-    stim_lat = stim_lat + 0.5;
-    # stim_long = 56.5
-    train(acti_perodor, stim_lat, stim_long, fold_fit)
-
-    # opening the dataset, the fits and plotting them
-    """
-    fn_fits = os.path.join(fold_fit, "fit_params.npy")
-    fits_params = np.load(fn_fits)
-    f_kc, frac_longt = gen_optifunc(stim_lat, stim_long)
-    
-    fig, ax = plt.subplots()
-    taus = np.max(fits_params[..., (4, 5)], axis=2)
-    # print(taus)
-    ax.hist(taus.flatten(), bins=20)
-    plt.show()
-
-    fits_all = fits_params.reshape((-1, 8))
-    outs = np.zeros((fits_all.shape[0], 2))
-    valid_par = np.zeros(fits_all.shape[0], dtype=bool)
-    for i in np.arange(fits_all.shape[0]):
-        outs[i, 0], outs[i, 1] = frac_longt(*fits_all[i, :])
-        if outs[i, 0] > 0.1 and outs[i, 0] < 1.0 and outs[i, 1] < 25:
-            valid_par[i] = True
-
-    fig, ax = plt.subplots(2, 1, figsize=(4, 8))
-    ax[0].semilogx(outs[:, 0], outs[:, 1], '.')
-    ax[1].loglog(outs[:, 0], fits_all[:, 4] / fits_all[:, 5], '.')
-
-    fig, ax = plt.subplots(figsize=(4, 3))
-    ax.hist(outs[valid_par, 1], bins=20)
-    ax.set_xlabel("$\\tau_1^\\mathrm{off}$ (s)")
-    ax.set_ylabel("# cells")
-    fig.tight_layout()
-    fig.savefig(os.path.join(fold_fit, "hist_tauoff.svg"))
-    plt.show()
-    """
+        logging.info("time latency: %s", stim_lat)
+        
+        # looking at the synchronization
+        n_stim = activity.shape[0]
+        act_dur = activity.shape[2]
+        times = np.arange(act_dur) / FRAME_RATE
+        lline = n_stim // 2 + 1
+       
+        
+        stim_lat = stim_lat + 0.5;
+        # stim_long = 56.5
+        
+        train(acti_perodor, stim_lat, stim_long, fold_fit)
+       
+   
 
 def main():
     """ Main function (supervises the optimization)
@@ -309,7 +220,7 @@ def main():
     
     from pathlib import Path, PureWindowsPath
     
-    base_path = PureWindowsPath("C:\Data\Data\Analysed_data\data_sharing\KC_long_trace");
+    base_path = PureWindowsPath("C:\Data\Data\Analysed_data\data_sharing\KC_long_trace");       #this is the base path specified by the user 
     base_path = Path(base_path);
     obj_list = os.listdir(base_path);
     n_objs = len(obj_list);
@@ -320,25 +231,52 @@ def main():
             n_dirs = n_dirs + 1;
    
     n_flies = n_dirs;
-    for fly_n in range(1, (n_flies)):
-        act_fn = "{}/fly{}/dFF_data.mat".format(base_path, fly_n)
-        para_fn = "{}/fly{}/stim_mat".format(base_path, fly_n)
-        activity = io.loadmat(act_fn)['dff_data_mat_f'].T
-        nonan = ~np.isnan(activity[:, :, 0:400]).any(axis=(1, 2))
-        activity = activity[nonan, ...]
-        params = io.loadmat(para_fn)['stim_mat']
-
+    for fly_n in range(1, n_flies):
+        act_fn = "{}/fly{}/dFF_data.mat".format(base_path, fly_n);
+        para_fn = "{}/fly{}/stim_mat".format(base_path, fly_n);
+        activity = io.loadmat(act_fn)['dff_data_mat_f'].T;
         
-        odor = params['odor_n'][0, nonan]
-        odor[odor == 3] = 0
-        odor[odor == 10] = 1
-        odor[odor == 11] = 2
-
+        #downsizing activity in frame_n dim to get rid of nans at the end. Matching all trials to shortest real data trial.
+        n_nans_max = 0;
+        tr_list = np.arange(activity.shape[0]);
+        bad_trs = [];
+        for tr_n in np.arange(activity.shape[0]):
+            curr_vec = activity[tr_n, 0, :];
+            n_nans = np.sum(np.isnan(curr_vec));
+            if n_nans > (activity.shape[2]*0.7):
+                bad_trs = bad_trs + [tr_n];           #building list of bad trs, with more than 70% of the frames as nans
+            elif n_nans <= (activity.shape[2]*0.7):
+                n_nans_max = np.max([n_nans, n_nans_max]);  #max number of nans in any trial. Cropping all trials at the end by this frame count
+           
+        nonan  = np.delete(tr_list, bad_trs, 0);      #getting rid of bd trs from list of good trs
+        activity_trimmed = np.delete(activity, np.arange((activity.shape[2] - n_nans_max), activity.shape[2]), 2);
+        
+        
+        activity = activity_trimmed[nonan, ...];
+        params = io.loadmat(para_fn)['stim_mat'];
+        
+        breakpoint()
+        
+        #checking if current fly has already been analysed and recovering if partially analysed
+        an_file_path = "{}/fly{}/fit_params.npy".format(base_path, fly_n);
+       
+        if os.path.isfile(an_file_path) == 1: 
+            n_cells = activity.shape;
+            n_cells = n_cells[1];
+            prev_fits = np.load(an_file_path);
+            #identifying last analysed cell in case of an interruption
+            prev_fits = np.sum(prev_fits, axis = 2);
+            #finish work on skipping previously analysed stuff
+        
+        
+        odor = params['odours'][0, nonan]
+        
         folder_fit = "{}/fly{}".format(base_path, fly_n)
         
         pathlib.Path(folder_fit).mkdir(exist_ok=True)
         dataset_analysis(activity, odor, nonan, params, folder_fit)
-
+        mes = "done extracting params for fly {} of {} flies".format(fly_n,  n_flies);
+        print(mes)
 
 if __name__ == "__main__":
     # execute only if run as a script

@@ -29,3 +29,12 @@ for obj_n in range(0, (n_objs - 1) ):
     curr_path = "{}/{}".format(base_path, obj_list[obj_n]);
     if os.path.isdir(curr_path) == 1:
         n_dirs = n_dirs + 1;
+
+
+        
+import matplotlib as plt
+test_var = np.random.rand(1601,)
+test_var[800:1600,] = np.nan;
+#plt.pyplot.imshow(test_var)
+breakpoint()
+plt.pyplot.plot(test_var)
