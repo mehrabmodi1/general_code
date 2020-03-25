@@ -36,7 +36,7 @@ def gen_optifunc(stim_lat, stim_dur):
         domain0 = (t <= stim_lat)
         domain1 = (t > stim_lat) & (t <= stim_lat + stim_dur)
         domain2 = (t > stim_lat + stim_dur)
-        
+        breakpoint()
         out = domain0 * a0
         out += domain1 * (
             a1 * (1.0 - np.exp(-(t - stim_lat) / t0))
@@ -52,6 +52,7 @@ def gen_optifunc(stim_lat, stim_dur):
             a3 * np.exp(-(t - stim_lat - stim_dur) / t2)
             + (end1 - a3) * np.exp(-(t - stim_lat - stim_dur) / t3)
         )
+        breakpoint()
         return out
 
     def frac_longt(a0, a1, a2, a3, t0, t1, t2, t3):
@@ -231,7 +232,9 @@ def main():
             n_dirs = n_dirs + 1;
    
     n_flies = n_dirs;
-    for fly_n in range(1, n_flies):
+    for fly_n in range(1, (n_flies + 1)):
+        mes = "extracting params for fly {} of {} flies".format(fly_n,  n_flies);
+        print(mes)
         act_fn = "{}/fly{}/dFF_data.mat".format(base_path, fly_n);
         para_fn = "{}/fly{}/stim_mat".format(base_path, fly_n);
         activity = io.loadmat(act_fn)['dff_data_mat_f'].T;
@@ -255,7 +258,7 @@ def main():
         activity = activity_trimmed[nonan, ...];
         params = io.loadmat(para_fn)['stim_mat'];
         
-        breakpoint()
+        #breakpoint()
         
         #checking if current fly has already been analysed and recovering if partially analysed
         an_file_path = "{}/fly{}/fit_params.npy".format(base_path, fly_n);
@@ -266,7 +269,7 @@ def main():
             prev_fits = np.load(an_file_path);
             #identifying last analysed cell in case of an interruption
             prev_fits = np.sum(prev_fits, axis = 2);
-            #finish work on skipping previously analysed stuff
+            #continue
         
         
         odor = params['odours'][0, nonan]
@@ -277,7 +280,8 @@ def main():
         dataset_analysis(activity, odor, nonan, params, folder_fit)
         mes = "done extracting params for fly {} of {} flies".format(fly_n,  n_flies);
         print(mes)
-
+    
+    breakpoint()
 if __name__ == "__main__":
     # execute only if run as a script
     main()

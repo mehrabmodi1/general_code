@@ -51,6 +51,7 @@ def gen_optifunc(stim_lat, stim_dur):
             a3 * np.exp(-(t - stim_lat - stim_dur) / t2)
             + (end1 - a3) * np.exp(-(t - stim_lat - stim_dur) / t3)
         )
+        
         return out
 
     def frac_longt(a0, a1, a2, a3, t0, t1, t2, t3):
