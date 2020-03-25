@@ -30,7 +30,7 @@ for list_n = 1:size(dataset_list_paths, 1)
     n_dirs = size(dir_list, 1);
     dataset_list_name = findstr(curr_dir_list_path, 'dataset_list');
     dataset_list_name = curr_dir_list_path((dataset_list_name + 13):(end - 4));
-    dataset_list_name = 'KC_long_trace';    %REMOVE THIS LINE
+    %dataset_list_name = 'KC_long_trace';    %REMOVE THIS LINE
    
     
     for dir_n = 1:n_dirs
@@ -73,6 +73,10 @@ for list_n = 1:size(dataset_list_paths, 1)
         raw_data_mat(:, :, bad_tr_list) = nan;
         n_cells = size(raw_data_mat, 2);
         
+        %creating a list of trial numbers to keep track of which trials
+        %were included for KC param fitting.
+        tr_list = 1:size(raw_data_mat, 3);
+        
         %since this is for KC response parameter extraction, only saving
         %the longest duration, single-odor, single-pulse trials for all odors. Also
         %combining olf1 and olf2 paramters as follows: olf2 od_ns will be
@@ -84,7 +88,8 @@ for list_n = 1:size(dataset_list_paths, 1)
                 
         %step1: Getting rid of all trials that aren't single-odor, single-pulse trials.
         db_od_trs = find(stim_mat_simple(:, dur_olf1_col_n) > 0.1 & stim_mat_simple(:, dur_olf2_col_n) > 0);   %dur_olf1 == 0.1 is just a place-holder, no stim actually delivered on olf_1.
-        [raw_data_mat, stim_mat, stim_mat_simple] = remove_trs(db_od_trs, raw_data_mat, stim_mat, stim_mat_simple);         %removing trs with two odors delivered in the same trial
+        [raw_data_mat, stim_mat, stim_mat_simple, tr_list] = remove_trs(db_od_trs, raw_data_mat, stim_mat, stim_mat_simple, tr_list);         %removing trs with two odors delivered in the same trial
+      
         
         %identifying multi-pulse train trials
         multi_pulse_trs = [];
@@ -95,7 +100,7 @@ for list_n = 1:size(dataset_list_paths, 1)
             else
             end
         end
-        [raw_data_mat, stim_mat, stim_mat_simple] = remove_trs(multi_pulse_trs, raw_data_mat, stim_mat, stim_mat_simple);   %removing trials with more than one long odor pulse
+        [raw_data_mat, stim_mat, stim_mat_simple, tr_list] = remove_trs(multi_pulse_trs, raw_data_mat, stim_mat, stim_mat_simple, tr_list);   %removing trials with more than one long odor pulse
         
         
         %step2: Getting rid of all trials that aren't longest duration,
@@ -104,8 +109,8 @@ for list_n = 1:size(dataset_list_paths, 1)
         dur_list_olf2 = unique(stim_mat_simple(:, dur_olf2_col_n));
         max_dur = max([dur_list_olf1; dur_list_olf2], [], 'omitnan');       %this is the longest duration stimulus, across olfactometers 
         short_dur_trs = find(stim_mat_simple(:, dur_olf1_col_n) < max_dur & stim_mat_simple(:, dur_olf2_col_n) < max_dur);
-        [raw_data_mat, stim_mat, stim_mat_simple] = remove_trs(short_dur_trs, raw_data_mat, stim_mat, stim_mat_simple);   %removing trials with more shorter than max_dur odor pulses
-                
+        [raw_data_mat, stim_mat, stim_mat_simple, tr_list] = remove_trs(short_dur_trs, raw_data_mat, stim_mat, stim_mat_simple, tr_list);   %removing trials with more shorter than max_dur odor pulses
+        
         %combining odor numbers and durations for olf1 and olf2 so as not
         %to confuse the fitting program, which expects only one
         %olfactometer
@@ -129,13 +134,15 @@ for list_n = 1:size(dataset_list_paths, 1)
         save([share_path, '\dFF_data.mat'], 'dff_data_mat_f');
         save([share_path, '\stim_mat.mat'], 'stim_mat');
         save([share_path, '\path_orig.mat'], 'curr_dir');
+        save([share_path, '\tr_list.mat'], 'tr_list');
         
     end
     
 end
 
-function [raw_data_mat, stim_mat, stim_mat_simple] = remove_trs(rem_tr_list, raw_data_mat, stim_mat, stim_mat_simple)
+function [raw_data_mat, stim_mat, stim_mat_simple, tr_list] = remove_trs(rem_tr_list, raw_data_mat, stim_mat, stim_mat_simple, tr_list)
     raw_data_mat(:, :, rem_tr_list) = [];
     stim_mat_simple(rem_tr_list, :) = [];
     stim_mat(rem_tr_list) = [];
+    tr_list(rem_tr_list) = [];
 end
