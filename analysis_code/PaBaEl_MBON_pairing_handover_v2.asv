@@ -43,10 +43,8 @@ for list_n = 1:size(dataset_list_paths, 1)
     
     
     %loop to go through all experiment datasets listed in list file
-    all_saved_mean_traces_simple_pre = [];
-    all_saved_mean_traces_transition_pre = [];
-    all_saved_mean_traces_simple_post = [];
-    all_saved_mean_traces_transition_post = [];
+    all_saved_mean_traces_simple = [];
+    all_saved_mean_traces_transition = [];
     
     
     for dir_n = 1:n_dirs
@@ -217,17 +215,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         
         
         %8. simple trials, unpaired odor
-        [mean_trace_pre, mean_trace_post] = plot_simple_traces(unpaired_od_n_olf1, [], unpaired_od_name, unpaired_color, 8,...
-            stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr_n, y_ax_lim, plot_means, suppress_plots);
-        if isempty(mean_trace_pre) == 0
-            saved_mean_traces_simple_pre = pad_n_concatenate(saved_mean_traces_simple_pre, mean_trace_pre, 2, nan);
-            saved_mean_traces_simple_post = pad_n_concatenate(saved_mean_traces_simple_post, mean_trace_post, 2, nan);
-        else
-        end
-        
-        
-        %9. simple trials, paired odor
-        [mean_trace_pre, mean_trace_post] = plot_simple_traces(11, [], 'Ethyl lactate', EL_color, 9,...
+        [mean_trace_pre, mean_trace_post] = plot_simple_traces([], paired_od_n_olf2, paired_od_name, paired_color, 7,...
             stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr_n, y_ax_lim, plot_means, suppress_plots);
         if isempty(mean_trace_pre) == 0
             saved_mean_traces_simple_pre = pad_n_concatenate(saved_mean_traces_simple_pre, mean_trace_pre, 2, nan);
@@ -242,23 +230,10 @@ for list_n = 1:size(dataset_list_paths, 1)
         all_saved_mean_traces_transition_pre = pad_n_concatenate(all_saved_mean_traces_transition_pre, saved_mean_traces_transition_pre, 3, nan);
         all_saved_mean_traces_transition_post = pad_n_concatenate(all_saved_mean_traces_transition_post, saved_mean_traces_transition_post, 3, nan);
         
-        all_saved_mean_traces_simple_pre = pad_n_concatenate(all_saved_mean_traces_simple_pre, saved_mean_traces_simple_pre, 3, nan);
-        all_saved_mean_traces_simple_post = pad_n_concatenate(all_saved_mean_traces_simple_post, saved_mean_traces_simple_post, 3, nan);
-        
     end
     
 
 end
-
-%quantifying mean responses from different response time-windows
-
-
-
-
-
-
-
-
 
 function [mean_trace_pre, mean_trace_post] = plot_hover_traces(olf1_odn, olf2_odn, od2_name, od1_color, od2_color, fign,...
     stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr, y_ax_lim, plot_means, suppress_plots)
