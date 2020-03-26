@@ -13,13 +13,13 @@ dataset_list_paths = [...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_MBONG2_PaBaEl_handover_starved36_halfAra.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_MBONG2_PaBaEl_handover_starved_halfAra.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_MBONG2_PaBaEl_handover_starved_halfAra_prehabituated.xls'};...
-                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_MBONG2_PaBaEl_handover_starved_halfAra_prehabituated_strongUS.xls'};...
+                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_MBONG2_PaBaEl_handover_starved_halfAra_prehabituated_strongUS.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_MBONG2_PaBaEl_handover_starved_halfAra_prehabituated_strongUS_EL_handover.xls'};...
-                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_MBONG2_PaBaEl_handover_starved_halfAra_prehabituated_strongUS_EL_second.xls'};...
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_MBONG2_PaBaEl_handover_starved_halfAra_prehabituated_strongUS_EL_second.xls'};...
                       
                       ];
             
-suppress_plots = 0;
+suppress_plots = 1;
 [del, odor_names1] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList.xls', 1);
 [del, odor_names2] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList_olf2.xls', 1);
 odor_names2{3} = 'Butyl acetate';
@@ -236,7 +236,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         end
         
         
-        keyboard
+        
         close all
         
         all_saved_mean_traces_transition_pre = pad_n_concatenate(all_saved_mean_traces_transition_pre, saved_mean_traces_transition_pre, 3, nan);
@@ -250,8 +250,121 @@ for list_n = 1:size(dataset_list_paths, 1)
 
 end
 
-%quantifying mean responses from different response time-windows
 
+%quantification of responses and statistical testing
+
+%quantifying mean responses from different response time-windows
+n_sec = 5;      %width of moving integration window in s
+transition_trs = find(stim_mat_simple(:, dur_col_ns(1)) == 10 & stim_mat_simple(:, dur_col_ns(2)) == 10);     %list of transition trials
+simple_trs = find(stim_mat_simple(:, dur_col_ns(1)) == 10 & stim_mat_simple(:, dur_col_ns(2)) ~= 10 |...
+                    stim_mat_simple(:, dur_col_ns(1)) ~= 10 & stim_mat_simple(:, dur_col_ns(2)) == 10);     %list of simple trials
+
+pulse1_on = stim_mat(simple_trs(1)).stimLatency;
+pulse1_off = max([stim_mat(simple_trs(1)).duration, stim_mat(simple_trs(1)).duration_olf2])+ pulse1_on;
+pulse2_on = stim_mat(transition_trs(1)).rel_stimLatency_olf2 + pulse1_on;
+pulse2_off = stim_mat(transition_trs(1)).duration_olf2 + pulse2_on;
+
+all_integration_wins = [];
+
+%1. integration window = odor period
+frames = (1:1:size(dff_data_mat, 1)).*frame_time;
+ave_win_simple = (frames > pulse1_on & frames <= pulse1_off);
+ave_win_trans = (frames > pulse2_on & frames <= pulse2_off);
+whole_od_win_simple_pre = mean(all_saved_mean_traces_simple_pre(ave_win_simple, :, :), 1, 'omitnan');
+whole_od_win_simple_post = mean(all_saved_mean_traces_simple_post(ave_win_simple, :, :), 1, 'omitnan');
+whole_od_win_trans_pre = mean(all_saved_mean_traces_transition_pre(ave_win_trans, :, :), 1, 'omitnan');
+whole_od_win_trans_post = mean(all_saved_mean_traces_transition_post(ave_win_trans, :, :), 1, 'omitnan');
+all_integration_wins = [all_integration_wins; ave_win_simple; ave_win_trans];
+
+%2. onset integration window = N s after odor onset
+ave_win_simple = (frames > pulse1_on & frames <= (pulse1_on + n_sec) );
+ave_win_trans = (frames > pulse2_on & frames <= (pulse2_on + n_sec) );
+onset_od_win_simple_pre = mean(all_saved_mean_traces_simple_pre(ave_win_simple, :, :), 1, 'omitnan');
+onset_od_win_simple_post = mean(all_saved_mean_traces_simple_post(ave_win_simple, :, :), 1, 'omitnan');
+onset_od_win_trans_pre = mean(all_saved_mean_traces_transition_pre(ave_win_trans, :, :), 1, 'omitnan');
+onset_od_win_trans_post = mean(all_saved_mean_traces_transition_post(ave_win_trans, :, :), 1, 'omitnan');
+all_integration_wins = [all_integration_wins; ave_win_simple; ave_win_trans];
+
+%3. off response integration window = N s after odor off (after pulse2 off for transition trials)
+ave_win_simple = (frames > pulse1_off & frames <= (pulse1_off + n_sec) );
+ave_win_trans = (frames > pulse2_off & frames <= (pulse2_off + n_sec) );
+off_od_win_simple_pre = mean(all_saved_mean_traces_simple_pre(ave_win_simple, :, :), 1, 'omitnan');
+off_od_win_simple_post = mean(all_saved_mean_traces_simple_post(ave_win_simple, :, :), 1, 'omitnan');
+off_od_win_trans_pre = mean(all_saved_mean_traces_transition_pre(ave_win_trans, :, :), 1, 'omitnan');
+off_od_win_trans_post = mean(all_saved_mean_traces_transition_post(ave_win_trans, :, :), 1, 'omitnan');
+all_integration_wins = [all_integration_wins; ave_win_simple; ave_win_trans];
+
+%4. extended od period integration window = odor period + N s after odor off
+ave_win_simple = (frames > pulse1_on & frames <= (pulse1_off + n_sec) );
+ave_win_trans = (frames > pulse2_on & frames <= (pulse2_off + n_sec) );
+ext_od_win_simple_pre = mean(all_saved_mean_traces_simple_pre(ave_win_simple, :, :), 1, 'omitnan');
+ext_od_win_simple_post = mean(all_saved_mean_traces_simple_post(ave_win_simple, :, :), 1, 'omitnan');
+ext_od_win_trans_pre = mean(all_saved_mean_traces_transition_pre(ave_win_trans, :, :), 1, 'omitnan');
+ext_od_win_trans_post = mean(all_saved_mean_traces_transition_post(ave_win_trans, :, :), 1, 'omitnan');
+all_integration_wins = [all_integration_wins; ave_win_simple; ave_win_trans];
+
+
+%Making statistical comparisons
+
+%1. Pre-pairing transition responses are larger than simple trial
+%responses?
+curr_trs = find(stim_mat_simple(:, dur_col_ns(1)) == 10 & stim_mat_simple(:, dur_col_ns(2)) == 10);
+trans_od_list = unique(stim_mat_simple(curr_trs, od_col_ns(2)));
+fig_n = 1;
+col_pairs = [1, 2; 3, 4; 5, 6; 7, 8; 9, 10; 11, 12; 13, 14; 15, 16];
+if length(trans_od_list) == 2       %case where the paired or unpaired odor are second in transition trials
+    onset_resps_paired = [reshape(onset_od_win_simple_pre(:, 1, :), [], 1), reshape(onset_od_win_trans_pre(:, 1, :), [], 1)];
+    onset_resps_unpaired = [reshape(onset_od_win_simple_pre(:, 2, :), [], 1), reshape(onset_od_win_trans_pre(:, 2, :), [], 1)];
+    off_resps_paired = [reshape(off_od_win_simple_pre(:, 1, :), [], 1), reshape(off_od_win_trans_pre(:, 1, :), [], 1)];
+    off_resps_unpaired = [reshape(off_od_win_simple_pre(:, 2, :), [], 1), reshape(off_od_win_trans_pre(:, 2, :), [], 1)];
+    whole_resps_paired = [reshape(whole_od_win_simple_pre(:, 1, :), [], 1), reshape(whole_od_win_trans_pre(:, 1, :), [], 1)];
+    whole_resps_unpaired = [reshape(whole_od_win_simple_pre(:, 2, :), [], 1), reshape(whole_od_win_trans_pre(:, 2, :), [], 1)];
+    ext_resps_paired = [reshape(ext_od_win_simple_pre(:, 1, :), [], 1), reshape(ext_od_win_trans_pre(:, 1, :), [], 1)];
+    ext_resps_unpaired = [reshape(ext_od_win_simple_pre(:, 2, :), [], 1), reshape(ext_od_win_trans_pre(:, 2, :), [], 1)];
+    plot_mat = [onset_resps_paired, onset_resps_unpaired, off_resps_paired, off_resps_unpaired, whole_resps_paired, whole_resps_unpaired, onset_resps_paired, ext_resps_unpaired];
+    marker_colors = [paired_color; paired_color; unpaired_color; unpaired_color;...
+                        paired_color; paired_color; unpaired_color; unpaired_color;...
+                        paired_color; paired_color; unpaired_color; unpaired_color;...
+                        paired_color; paired_color; unpaired_color; unpaired_color];
+    line_colors = marker_colors;
+    
+    xlabels = [{'prd_s on'}, {'prd_t on'}, {'unp_s on'}, {'unp_t on'},...
+                    {'prd_s off'}, {'prd_t off'}, {'unp_s off'}, {'unp_t off'},...
+                    {'prd_s wh'}, {'prd_t wh'}, {'unp_s wh'}, {'unp_t wh'},...
+                    {'prd_s ext'}, {'prd_t ext'}, {'unp_s ext'}, {'unp_t ext'}];
+    
+    
+elseif length(trans_od_list) == 1   %case where only EL is the second odor in transition trials
+    onset_resps_paired = [reshape(onset_od_win_simple_pre(:, 3, :), [], 1), reshape(onset_od_win_trans_pre(:, 1, :), [], 1)];
+    onset_resps_unpaired = [reshape(onset_od_win_simple_pre(:, 3, :), [], 1), reshape(onset_od_win_trans_pre(:, 2, :), [], 1)];
+    off_resps_paired = [reshape(off_od_win_simple_pre(:, 3, :), [], 1), reshape(off_od_win_trans_pre(:, 1, :), [], 1)];
+    off_resps_unpaired = [reshape(off_od_win_simple_pre(:, 3, :), [], 1), reshape(off_od_win_trans_pre(:, 2, :), [], 1)];
+    whole_resps_paired = [reshape(whole_od_win_simple_pre(:, 3, :), [], 1), reshape(whole_od_win_trans_pre(:, 1, :), [], 1)];
+    whole_resps_unpaired = [reshape(whole_od_win_simple_pre(:, 3, :), [], 1), reshape(whole_od_win_trans_pre(:, 2, :), [], 1)];
+    ext_resps_paired = [reshape(ext_od_win_simple_pre(:, 3, :), [], 1), reshape(ext_od_win_trans_pre(:, 1, :), [], 1)];
+    ext_resps_unpaired = [reshape(ext_od_win_simple_pre(:, 3, :), [], 1), reshape(ext_od_win_trans_pre(:, 2, :), [], 1)];
+    plot_mat = [onset_resps_paired, onset_resps_unpaired, off_resps_paired, off_resps_unpaired, whole_resps_paired, whole_resps_unpaired, onset_resps_paired, ext_resps_unpaired];
+    marker_colors = repmat(EL_color, 16, 1);
+    line_colors = marker_colors;
+    xlabels = [{'EL_s on'}, {'EL_p on'}, {'EL_s on'}, {'EL_u_n_p on'},...
+                    {'EL_s off'}, {'EL_p off'}, {'EL_s off'}, {'EL_u_n_p off'},...
+                    {'EL_s wh'}, {'EL_p wh'}, {'EL_s wh'}, {'EL_u_n_p wh'},...
+                    {'EL_s ext'}, {'EL_p ext'}, {'EL_s ext'}, {'EL_u_n_p ext'},];
+else
+end
+fig_h = scattered_dot_plot_ttest(plot_mat, fig_n, 1, 4, 8, marker_colors, 1, col_pairs, line_colors, xlabels, 1, [1, 0.2, 0.2], 1);
+ylabel('win-averaged response (dF/F)');
+fig_wrapup(fig_n)
+[p_vec_out] = stat_testing(plot_mat);
+keyboard
+
+%2. paired_simple_pre vs paired_simple_post, also unpaired, EL
+%3. paired_trans_pre vs paired_trans_post, also unpaired
+%4. EL_trans_pre vs EL_trans_post
+
+
+
+keyboard
 
 
 
