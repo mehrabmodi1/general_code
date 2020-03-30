@@ -50,9 +50,14 @@ if isempty(with_lines) == 1
         if rem(col_n, 2) == 0
             curr_veci = [mat(:, col_n); mat(:, (col_n - 1))];
             curr_p_val = round(p_vec_out(col_n./2, 1), 3);
-            p_label = ['p = ', num2str(curr_p_val)];
+            if curr_p_val ~= 0
+                p_label = ['p = ', num2str(curr_p_val)];
+            elseif curr_p_val == 0
+                p_label = ['p < ', '0.001'];
+            else
+            end
             x_pos = mean(r_vec) - col_spacing;
-            y_pos = max(curr_veci.*1.2);
+            y_pos = max(curr_vec) + (max(max(mat)).*0.2);
             text(x_pos, y_pos, p_label);
         else
         end
@@ -71,9 +76,14 @@ elseif isempty(with_lines) == 0
         if rem(col_n, 2) == 0
             curr_vec = [mat(:, col_n); mat(:, (col_n - 1))];
             curr_p_val = round(p_vec_out(col_n./2, 1), 3);
-            p_label = ['p = ', num2str(curr_p_val)];
+            if curr_p_val ~= 0
+                p_label = ['p = ', num2str(curr_p_val)];
+            elseif curr_p_val == 0
+                p_label = ['p < ', '0.001'];
+            else
+            end
             x_pos = mean(r_vecs(:, col_n)) - col_spacing;
-            y_pos = max(curr_vec.*1.2);
+            y_pos = max(curr_vec) + (max(max(mat)).*0.2);
             text(x_pos, y_pos, p_label);
             hold on
         else
@@ -90,8 +100,13 @@ elseif isempty(with_lines) == 0
                 
             if marker_filled == 0
                 plot(r_vecs(row_n, curr_pair(1):curr_pair(2)), curr_row, '-O', 'markerSize', markersize, 'markerEdgeColor', markercolor(curr_pair(1), :), 'Color', linecolor(curr_pair(1), :), 'lineWidth', 1)
+                hold on
+                plot(r_vecs(row_n, curr_pair(2)), curr_row(2), '-O', 'markerSize', markersize, 'markerEdgeColor', markercolor(curr_pair(2), :), 'Color', linecolor(curr_pair(1), :), 'lineWidth', 1)
             elseif marker_filled == 1
                 plot(r_vecs(row_n, curr_pair(1):curr_pair(2)), curr_row, '-O', 'markerSize', markersize, 'markerEdgeColor', markercolor(curr_pair(1), :), 'markerFaceColor', markercolor(curr_pair(1), :), 'Color', linecolor(curr_pair(1), :), 'lineWidth', 1)
+                hold on
+                plot(r_vecs(row_n, curr_pair(2)), curr_row(2), '-O', 'markerSize', markersize, 'markerEdgeColor', markercolor(curr_pair(2), :), 'markerFaceColor', markercolor(curr_pair(2), :), 'Color', linecolor(curr_pair(1), :), 'lineWidth', 1)
+                
             else
             end
             
@@ -116,6 +131,7 @@ if plot_mean == 1
         saved_col_centers(col_n) = col_center;
         curr_mean = mean(mat(:, col_n), 1, 'omitnan');
         curr_se = std(mat(:, col_n), 0, 1, 'omitnan')./sqrt(size(mat, 1) - sum(isnan(mat(:, col_n))));
+       
         errorbar(col_center, curr_mean, curr_se, 'O', 'markerSize', markersize, 'markerEdgeColor', mean_color, 'markerFaceColor', mean_color, 'Color', mean_color, 'lineWidth', 2)
         
    end
