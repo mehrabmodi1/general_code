@@ -3,7 +3,7 @@ close all
 
 path_base = 'C:\Data\Data\Analysed_data\data_sharing\KC_long_trace\';
 
-n_flies = 6;
+n_flies = 5;
 
 for fly_n = 1:n_flies
     an_path = [path_base, 'fly', num2str(fly_n), '\'];
@@ -150,9 +150,9 @@ function [olf1_model_resps, olf2_model_resps] = get_fit_traces(curr_trs, stim_ma
     
     function model_trace = fit_KC_response(curr_train, curr_cell_params, frame_time, n_frames, stim_latency, curr_resp_trace)
         a0 = curr_cell_params(1);
-        a1 = curr_cell_params(2) .* -1;
+        a1 = curr_cell_params(2);
         a2 = curr_cell_params(3) ;
-        a3 = curr_cell_params(4) .* -1;
+        a3 = curr_cell_params(4);
         t0 = curr_cell_params(5);
         t1 = curr_cell_params(6);
         t2 = curr_cell_params(7);
@@ -192,7 +192,7 @@ function [olf1_model_resps, olf2_model_resps] = get_fit_traces(curr_trs, stim_ma
             plot(curr_resp_trace);
             hold on
             plot(curr_model_trace', 'r')
-            
+            keyboard
             close figure 1
             
         end
