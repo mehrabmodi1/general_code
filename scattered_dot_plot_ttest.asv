@@ -45,26 +45,26 @@ if isempty(with_lines) == 1
         
         %adding p val label
         if rem(col_n, 2) == 0
-            curr_veci = [mat(:, col_n); mat(:, (col_n - 1))];
-            curr_p_val = round(p_vec_out(col_n./2, 1), 3);
-            curr_d = round(effect_sizes_out(col_n./2, 1), 3);
-            if curr_p_val ~= 0
-                p_label = ['p = ', num2str(curr_p_val)];
-            elseif curr_p_val == 0
-                p_label = ['p < ', '0.001'];
-            else
-            end
-            if curr_d ~= 0
-                d_label = ['Cohen''s d = ', num2str(curr_d)];
-            elseif curr_d == 0
-                d_label = ['Cohen''s d  < ', '0.001'];
-            else
-            end
-            x_pos = mean(r_vec) - col_spacing;
-            y_pos = max(curr_vec) + (max(max(mat)).*0.1);
-            text(x_pos, y_pos, p_label);
-            text(x_pos, (y_pos + (max(max(mat)).*0.05)), d_label);
-           
+%             curr_veci = [mat(:, col_n); mat(:, (col_n - 1))];
+%             curr_p_val = round(p_vec_out(col_n./2, 1), 3);
+%             curr_d = round(effect_sizes_out(col_n./2, 1), 3);
+%             if curr_p_val ~= 0
+%                 p_label = ['p = ', num2str(curr_p_val)];
+%             elseif curr_p_val == 0
+%                 p_label = ['p < ', '0.001'];
+%             else
+%             end
+%             if curr_d ~= 0
+%                 d_label = ['Cohen''s d = ', num2str(curr_d)];
+%             elseif curr_d == 0
+%                 d_label = ['Cohen''s d  < ', '0.001'];
+%             else
+%             end
+%             x_pos = mean(r_vec) - col_spacing;
+%             y_pos = max(curr_vec) + (max(max(mat)).*0.2);
+%             text(x_pos, y_pos, p_label);
+%             text(x_pos, (y_pos + (max(max(mat)).*0.05)), d_label);
+            add_p_d_labels(mat, col_n, p_vec_out, effect_sizes_out);
         else
         end
     end
@@ -80,26 +80,18 @@ elseif isempty(with_lines) == 0
                 
         %adding p_val label
         if rem(col_n, 2) == 0
-            curr_vec = [mat(:, col_n); mat(:, (col_n - 1))];
-            curr_p_val = round(p_vec_out(col_n./2, 1), 3);
-            curr_d = round(effect_sizes_out(col_n./2, 1), 3);
-            if curr_p_val ~= 0
-                p_label = ['p = ', num2str(curr_p_val)];
-            elseif curr_p_val == 0
-                p_label = ['p < ', '0.001'];
-            else
-            end
-            if curr_d ~= 0
-                d_label = ['Cohen''s d = ', num2str(curr_d)];
-            elseif curr_d == 0
-                d_label = ['Cohen''s d  < ', '0.001'];
-            else
-            end
-            x_pos = mean(r_vecs(:, col_n)) - col_spacing;
-            y_pos = max(curr_vec) + (max(max(mat)).*0.1);
-            text(x_pos, y_pos, p_label);
-            text(x_pos, (y_pos + (max(max(mat)).*0.1)), d_label);
-            hold on
+%             curr_vec = [mat(:, col_n); mat(:, (col_n - 1))];
+%             curr_p_val = round(p_vec_out(col_n./2, 1), 3);
+%             if curr_p_val ~= 0
+%                 p_label = ['p = ', num2str(curr_p_val)];
+%             elseif curr_p_val == 0
+%                 p_label = ['p < ', '0.001'];
+%             else
+%             end
+%             x_pos = mean(r_vecs(:, col_n)) - col_spacing;
+%             y_pos = max(curr_vec) + (max(max(mat)).*0.2);
+%             text(x_pos, y_pos, p_label);
+%             hold on
             
         else
         end
@@ -228,5 +220,28 @@ function [p_vec_out, effect_sizes_out] = stat_testing(plot_mat, test_type, plot_
     else
     end
         
+
+end
+
+function [] = add_p_d_labels(mat, col_n, p_vec_out, effect_sizes_out)
+    curr_veci = [mat(:, col_n); mat(:, (col_n - 1))];
+    curr_p_val = round(p_vec_out(col_n./2, 1), 3);
+    curr_d = round(effect_sizes_out(col_n./2, 1), 3);
+    if curr_p_val ~= 0
+        p_label = ['p = ', num2str(curr_p_val)];
+    elseif curr_p_val == 0
+        p_label = ['p < ', '0.001'];
+    else
+    end
+    if curr_d ~= 0
+        d_label = ['Cohen''s d = ', num2str(curr_d)];
+    elseif curr_d == 0
+        d_label = ['Cohen''s d  < ', '0.001'];
+    else
+    end
+    x_pos = mean(r_vec) - col_spacing;
+    y_pos = max(curr_vec) + (max(max(mat)).*0.2);
+    text(x_pos, y_pos, p_label);
+    text(x_pos, (y_pos + (max(max(mat)).*0.05)), d_label);
 
 end
