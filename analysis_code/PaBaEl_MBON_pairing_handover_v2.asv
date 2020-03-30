@@ -34,12 +34,39 @@ script_name = mfilename;
 y_ax_traces = 0.8;
 y_ax_fit_traces = 0.6;
 
+an_save_path = 'C:\Data\Data\Analysed_data\Analysis_results\PaBaEl_Gamma2\';
+force_resave = 1;
+
 for list_n = 1:size(dataset_list_paths, 1)
     curr_dir_list_path = dataset_list_paths{list_n, 1};
     [del, dir_list] = xlsread(curr_dir_list_path, 1);        %list of Suite2P results directories
     n_dirs = size(dir_list, 1);
     dataset_list_name = findstr(curr_dir_list_path, 'list_');
     dataset_list_name = curr_dir_list_path((dataset_list_name + 5):(end - 4));
+    
+    save_path = [an_save_path, dataset_list_name, '\'];
+    if exist([save_path, 'all_saved_mean_traces_transition_pre.mat']) == 2 && force_resave == 0
+        
+        all_saved_mean_traces_transition_pre = load([save_path, 'all_saved_mean_traces_transition_pre.mat']); 
+        all_saved_mean_traces_transition_pre = all_saved_mean_traces_transition_pre.all_saved_mean_traces_transition_pre;
+        all_saved_mean_traces_transition_post = load([save_path, 'all_saved_mean_traces_transition_post.mat']);
+        all_saved_mean_traces_transition_post = all_saved_mean_traces_transition_post.all_saved_mean_traces_transition_post;
+        all_saved_mean_traces_simple_pre = load([save_path, 'all_saved_mean_traces_simple_pre.mat']);
+        all_saved_mean_traces_simple_pre = all_saved_mean_traces_simple_pre.all_saved_mean_traces_simple_pre;
+        all_saved_mean_traces_simple_post = load([save_path, 'all_saved_mean_traces_simple_post.mat']);
+        all_saved_mean_traces_simple_post = all_saved_mean_traces_simple_post.all_saved_mean_traces_simple_post;
+        stim_mat_simple = load([save_path, 'example_stim_mat_simple.mat']);
+        stim_mat_simple = stim_mat_simple.stim_mat_simple;
+        stim_mat = load([save_path, 'example_stim_mat.mat']);
+        stim_mat = stim_mat.stim_mat;
+        dur_col_ns = load([save_path, 'example_dur_col_ns.mat']);
+        dur_col_ns = dur_col_ns.dur_col_ns;
+        frame_time = load([save_path, 'example_frame_time.mat']);
+        frame_time = frame_time.frame_time;
+        continue
+    else
+    end
+
     
     
     %loop to go through all experiment datasets listed in list file
@@ -66,6 +93,9 @@ for list_n = 1:size(dataset_list_paths, 1)
         paired_color = color_vec(2, :);
         unpaired_color = color_vec(1, :);
         EL_color = color_vec(3, :);
+        %mean_color = [0.5, 0.83, 0.98];
+        %mean_color = [149, 200, 216]./256;
+        mean_color = [0, 49, 152]./256;
         
         stim_mat_simple_nonans = stim_mat_simple;
         stim_mat_simple_nonans(isnan(stim_mat_simple)) = 0;
@@ -151,16 +181,8 @@ for list_n = 1:size(dataset_list_paths, 1)
         y_ax_lim = [];
         plot_means = 1;
         %plotting and quantifying
-        %1. transition trials, paired-unpaired
-        [mean_trace_pre, mean_trace_post] = plot_hover_traces(paired_od_n_olf1, unpaired_od_n_olf2, unpaired_od_name, paired_color, unpaired_color, 1,...
-            stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr_n, y_ax_lim, plot_means, suppress_plots);
-        if isempty(mean_trace_pre) == 0
-            saved_mean_traces_transition_pre = pad_n_concatenate(saved_mean_traces_transition_pre, mean_trace_pre, 2, nan);
-            saved_mean_traces_transition_post = pad_n_concatenate(saved_mean_traces_transition_post, mean_trace_post, 2, nan);
-        else
-        end
-            
-        %2. transition trials, unpaired-paired
+                    
+        %1. transition trials, unpaired-paired
         [mean_trace_pre, mean_trace_post] = plot_hover_traces(unpaired_od_n_olf1, paired_od_n_olf2, paired_od_name, unpaired_color, paired_color, 2,...
             stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr_n, y_ax_lim, plot_means, suppress_plots);
         if isempty(mean_trace_pre) == 0
@@ -168,6 +190,15 @@ for list_n = 1:size(dataset_list_paths, 1)
             saved_mean_traces_transition_post = pad_n_concatenate(saved_mean_traces_transition_post, mean_trace_post, 2, nan);
         else
         end
+        
+        %2. transition trials, paired-unpaired
+        [mean_trace_pre, mean_trace_post] = plot_hover_traces(paired_od_n_olf1, unpaired_od_n_olf2, unpaired_od_name, paired_color, unpaired_color, 1,...
+            stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr_n, y_ax_lim, plot_means, suppress_plots);
+        if isempty(mean_trace_pre) == 0
+            saved_mean_traces_transition_pre = pad_n_concatenate(saved_mean_traces_transition_pre, mean_trace_pre, 2, nan);
+            saved_mean_traces_transition_post = pad_n_concatenate(saved_mean_traces_transition_post, mean_trace_post, 2, nan);
+        else
+        end        
         
         %3. transition trials, EL-paired
         [mean_trace_pre, mean_trace_post] = plot_hover_traces(11, paired_od_n_olf2, paired_od_name, EL_color, paired_color, 3,...
@@ -225,8 +256,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         else
         end
         
-        
-        %9. simple trials, paired odor
+        %9. simple trials, EL
         [mean_trace_pre, mean_trace_post] = plot_simple_traces(11, [], 'Ethyl lactate', EL_color, 9,...
             stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr_n, y_ax_lim, plot_means, suppress_plots);
         if isempty(mean_trace_pre) == 0
@@ -235,8 +265,10 @@ for list_n = 1:size(dataset_list_paths, 1)
         else
         end
         
-        
-        
+        if suppress_plots == 0
+            keyboard
+        else
+        end
         close all
         
         all_saved_mean_traces_transition_pre = pad_n_concatenate(all_saved_mean_traces_transition_pre, saved_mean_traces_transition_pre, 3, nan);
@@ -244,17 +276,32 @@ for list_n = 1:size(dataset_list_paths, 1)
         
         all_saved_mean_traces_simple_pre = pad_n_concatenate(all_saved_mean_traces_simple_pre, saved_mean_traces_simple_pre, 3, nan);
         all_saved_mean_traces_simple_post = pad_n_concatenate(all_saved_mean_traces_simple_post, saved_mean_traces_simple_post, 3, nan);
-        
+                
     end
     
 
+end
+
+%saving response quantifications
+save_path = [an_save_path, dataset_list_name, '\'];
+if exist([save_path, 'all_saved_mean_traces_transition_pre.mat']) ~= 2 || force_resave == 1
+    mkdir(save_path);
+    save([save_path, 'all_saved_mean_traces_transition_pre.mat'], 'all_saved_mean_traces_transition_pre');
+    save([save_path, 'all_saved_mean_traces_transition_post.mat'], 'all_saved_mean_traces_transition_post');
+    save([save_path, 'all_saved_mean_traces_simple_pre.mat'], 'all_saved_mean_traces_simple_pre');
+    save([save_path, 'all_saved_mean_traces_simple_post.mat'], 'all_saved_mean_traces_simple_post');
+    save([save_path, 'example_stim_mat_simple.mat'], 'stim_mat_simple');
+    save([save_path, 'example_stim_mat.mat'], 'stim_mat');
+    save([save_path, 'example_dur_col_ns.mat'], 'dur_col_ns');
+    save([save_path, 'example_frame_time.mat'], 'frame_time');
+else
 end
 
 
 %quantification of responses and statistical testing
 
 %quantifying mean responses from different response time-windows
-n_sec = 5;      %width of moving integration window in s
+n_sec = 2;      %width of moving integration window in s
 transition_trs = find(stim_mat_simple(:, dur_col_ns(1)) == 10 & stim_mat_simple(:, dur_col_ns(2)) == 10);     %list of transition trials
 simple_trs = find(stim_mat_simple(:, dur_col_ns(1)) == 10 & stim_mat_simple(:, dur_col_ns(2)) ~= 10 |...
                     stim_mat_simple(:, dur_col_ns(1)) ~= 10 & stim_mat_simple(:, dur_col_ns(2)) == 10);     %list of simple trials
@@ -267,7 +314,7 @@ pulse2_off = stim_mat(transition_trs(1)).duration_olf2 + pulse2_on;
 all_integration_wins = [];
 
 %1. integration window = odor period
-frames = (1:1:size(dff_data_mat, 1)).*frame_time;
+frames = (1:1:size(all_saved_mean_traces_transition_pre, 1)).*frame_time;
 ave_win_simple = (frames > pulse1_on & frames <= pulse1_off);
 ave_win_trans = (frames > pulse2_on & frames <= pulse2_off);
 whole_od_win_simple_pre = mean(all_saved_mean_traces_simple_pre(ave_win_simple, :, :), 1, 'omitnan');
@@ -311,6 +358,7 @@ all_integration_wins = [all_integration_wins; ave_win_simple; ave_win_trans];
 curr_trs = find(stim_mat_simple(:, dur_col_ns(1)) == 10 & stim_mat_simple(:, dur_col_ns(2)) == 10);
 trans_od_list = unique(stim_mat_simple(curr_trs, od_col_ns(2)));
 fig_n = 1;
+figure('Name','Simple v/s Transition odor stim, pre-pairing resps only.')
 col_pairs = [1, 2; 3, 4; 5, 6; 7, 8; 9, 10; 11, 12; 13, 14; 15, 16];
 if length(trans_od_list) == 2       %case where the paired or unpaired odor are second in transition trials
     onset_resps_paired = [reshape(onset_od_win_simple_pre(:, 1, :), [], 1), reshape(onset_od_win_trans_pre(:, 1, :), [], 1)];
@@ -321,11 +369,12 @@ if length(trans_od_list) == 2       %case where the paired or unpaired odor are 
     whole_resps_unpaired = [reshape(whole_od_win_simple_pre(:, 2, :), [], 1), reshape(whole_od_win_trans_pre(:, 2, :), [], 1)];
     ext_resps_paired = [reshape(ext_od_win_simple_pre(:, 1, :), [], 1), reshape(ext_od_win_trans_pre(:, 1, :), [], 1)];
     ext_resps_unpaired = [reshape(ext_od_win_simple_pre(:, 2, :), [], 1), reshape(ext_od_win_trans_pre(:, 2, :), [], 1)];
-    plot_mat = [onset_resps_paired, onset_resps_unpaired, off_resps_paired, off_resps_unpaired, whole_resps_paired, whole_resps_unpaired, onset_resps_paired, ext_resps_unpaired];
+    plot_mat1 = [onset_resps_paired, onset_resps_unpaired, off_resps_paired, off_resps_unpaired, whole_resps_paired, whole_resps_unpaired, ext_resps_paired, ext_resps_unpaired];
     marker_colors = [paired_color; paired_color; unpaired_color; unpaired_color;...
                         paired_color; paired_color; unpaired_color; unpaired_color;...
                         paired_color; paired_color; unpaired_color; unpaired_color;...
                         paired_color; paired_color; unpaired_color; unpaired_color];
+    line_colors = marker_colors;
     
     xlabels = [{'prd_s on'}, {'prd_t on'}, {'unp_s on'}, {'unp_t on'},...
                     {'prd_s off'}, {'prd_t off'}, {'unp_s off'}, {'unp_t off'},...
@@ -342,35 +391,145 @@ elseif length(trans_od_list) == 1   %case where only EL is the second odor in tr
     whole_resps_unpaired = [reshape(whole_od_win_simple_pre(:, 3, :), [], 1), reshape(whole_od_win_trans_pre(:, 2, :), [], 1)];
     ext_resps_paired = [reshape(ext_od_win_simple_pre(:, 3, :), [], 1), reshape(ext_od_win_trans_pre(:, 1, :), [], 1)];
     ext_resps_unpaired = [reshape(ext_od_win_simple_pre(:, 3, :), [], 1), reshape(ext_od_win_trans_pre(:, 2, :), [], 1)];
-    plot_mat = [onset_resps_paired, onset_resps_unpaired, off_resps_paired, off_resps_unpaired, whole_resps_paired, whole_resps_unpaired, onset_resps_paired, ext_resps_unpaired];
+    plot_mat1 = [onset_resps_paired, onset_resps_unpaired, off_resps_paired, off_resps_unpaired, whole_resps_paired, whole_resps_unpaired, ext_resps_paired, ext_resps_unpaired];
     marker_colors = repmat(EL_color, 16, 1);
+    line_colors = marker_colors;
     xlabels = [{'EL_s on'}, {'EL_p on'}, {'EL_s on'}, {'EL_u_n_p on'},...
                     {'EL_s off'}, {'EL_p off'}, {'EL_s off'}, {'EL_u_n_p off'},...
                     {'EL_s wh'}, {'EL_p wh'}, {'EL_s wh'}, {'EL_u_n_p wh'},...
                     {'EL_s ext'}, {'EL_p ext'}, {'EL_s ext'}, {'EL_u_n_p ext'},];
 else
 end
-fig_h = scattered_dot_plot(plot_mat, fig_n, 1, 4, 8, marker_colors, 1, col_pairs, [0.6, 0.6, 0.6], xlabels, 1, [1, 0.2, 0.2]);
+fig_h = scattered_dot_plot_ttest(plot_mat1, fig_n, 1, 4, 8, marker_colors, 1, col_pairs, line_colors, xlabels, 1, mean_color, 1);
+ylabel('win-averaged response (dF/F)');
+fig_wrapup(fig_n, []);
+
+
+%2. paired_simple_pre vs paired_simple_post, also unpaired and EL as a control
+fig_n = 2;
+figure('Name','Simple pre v/s simple post.')
+col_pairs = [1, 2; 3, 4; 5, 6; 7, 8; 9, 10; 11, 12; 13, 14; 15, 16];
+onset_resps_paired = [reshape(onset_od_win_simple_pre(:, 1, :), [], 1), reshape(onset_od_win_simple_post(:, 1, :), [], 1)];
+onset_resps_unpaired = [reshape(onset_od_win_simple_pre(:, 2, :), [], 1), reshape(onset_od_win_simple_post(:, 2, :), [], 1)];
+off_resps_paired = [reshape(off_od_win_simple_pre(:, 1, :), [], 1), reshape(off_od_win_simple_post(:, 1, :), [], 1)];
+off_resps_unpaired = [reshape(off_od_win_simple_pre(:, 2, :), [], 1), reshape(off_od_win_simple_post(:, 2, :), [], 1)];
+whole_resps_paired = [reshape(whole_od_win_simple_pre(:, 1, :), [], 1), reshape(whole_od_win_simple_post(:, 1, :), [], 1)];
+whole_resps_unpaired = [reshape(whole_od_win_simple_pre(:, 2, :), [], 1), reshape(whole_od_win_simple_post(:, 2, :), [], 1)];
+ext_resps_paired = [reshape(ext_od_win_simple_pre(:, 1, :), [], 1), reshape(ext_od_win_simple_post(:, 1, :), [], 1)];
+ext_resps_unpaired = [reshape(ext_od_win_simple_pre(:, 2, :), [], 1), reshape(ext_od_win_simple_post(:, 2, :), [], 1)];
+plot_mat2 = [onset_resps_paired, onset_resps_unpaired, off_resps_paired, off_resps_unpaired, whole_resps_paired, whole_resps_unpaired, ext_resps_paired, ext_resps_unpaired];
+paired_multiplier = 0.7;
+marker_colors = [paired_color; paired_color.*paired_multiplier; unpaired_color; unpaired_color.*paired_multiplier;...
+                    paired_color; paired_color.*paired_multiplier; unpaired_color; unpaired_color.*paired_multiplier;...
+                    paired_color; paired_color.*paired_multiplier; unpaired_color; unpaired_color.*paired_multiplier;...
+                    paired_color; paired_color.*paired_multiplier; unpaired_color; unpaired_color.*paired_multiplier];
+line_colors = marker_colors;
+
+xlabels = [{'prd_s on'}, {'prd_s on'}, {'EL_tr on'}, {'EL_tr on'},...
+                {'prd_s off'}, {'prd_s off'}, {'EL_tr off'}, {'EL_tr off'},...
+                {'prd_s wh'}, {'prd_s wh'}, {'EL_tr wh'}, {'EL_tr wh'},...
+                {'prd_s ext'}, {'prd_s ext'}, {'EL_tr ext'}, {'EL_tr ext'}];
+
+fig_h = scattered_dot_plot_ttest(plot_mat2, fig_n, 1, 4, 8, marker_colors, 1, col_pairs, line_colors, xlabels, 1, mean_color, 1);
+ylabel('win-averaged response (dF/F)');
+fig_wrapup(fig_n, []);
+            
+%3. paired_trans_pre vs paired_trans_post, also unpaired or if EL post dataset, EL_trans_pre vs EL_trans_post
+if isempty(strfind(dataset_list_name, 'EL_second')) == 1
+    %3. paired_trans_pre vs paired_trans_post
+    fig_n = 3;
+    figure('Name','transition pre v/s transition post.')
+    col_pairs = [1, 2; 3, 4; 5, 6; 7, 8; 9, 10; 11, 12; 13, 14; 15, 16];
+    onset_resps_paired = [reshape(onset_od_win_trans_pre(:, 1, :), [], 1), reshape(onset_od_win_trans_post(:, 1, :), [], 1)];
+    onset_resps_unpaired = [reshape(onset_od_win_trans_pre(:, 2, :), [], 1), reshape(onset_od_win_trans_post(:, 2, :), [], 1)];
+    off_resps_paired = [reshape(off_od_win_trans_pre(:, 1, :), [], 1), reshape(off_od_win_trans_post(:, 1, :), [], 1)];
+    off_resps_unpaired = [reshape(off_od_win_trans_pre(:, 2, :), [], 1), reshape(off_od_win_trans_post(:, 2, :), [], 1)];
+    whole_resps_paired = [reshape(whole_od_win_trans_pre(:, 1, :), [], 1), reshape(whole_od_win_trans_post(:, 1, :), [], 1)];
+    whole_resps_unpaired = [reshape(whole_od_win_trans_pre(:, 2, :), [], 1), reshape(whole_od_win_trans_post(:, 2, :), [], 1)];
+    ext_resps_paired = [reshape(ext_od_win_trans_pre(:, 1, :), [], 1), reshape(ext_od_win_trans_post(:, 1, :), [], 1)];
+    ext_resps_unpaired = [reshape(ext_od_win_trans_pre(:, 2, :), [], 1), reshape(ext_od_win_trans_post(:, 2, :), [], 1)];
+    plot_mat3 = [onset_resps_paired, onset_resps_unpaired, off_resps_paired, off_resps_unpaired, whole_resps_paired, whole_resps_unpaired, ext_resps_paired, ext_resps_unpaired];
+    paired_multiplier = 0.7;
+    marker_colors = [paired_color; paired_color.*paired_multiplier; unpaired_color; unpaired_color.*paired_multiplier;...
+                        paired_color; paired_color.*paired_multiplier; unpaired_color; unpaired_color.*paired_multiplier;...
+                        paired_color; paired_color.*paired_multiplier; unpaired_color; unpaired_color.*paired_multiplier;...
+                        paired_color; paired_color.*paired_multiplier; unpaired_color; unpaired_color.*paired_multiplier];
+    line_colors = marker_colors;
+
+    xlabels = [{'prd_t_r on'}, {'prd_t_r on'}, {'unp_t_r on'}, {'unp_t_r on'},...
+                    {'prd_t_r off'}, {'prd_t_r off'}, {'unp_t_r off'}, {'unp_t_r off'},...
+                    {'prd_t_r wh'}, {'prd_t_r wh'}, {'unp_t_r wh'}, {'unp_t_r wh'},...
+                    {'prd_t_r ext'}, {'prd_t_r ext'}, {'unp_t_r ext'}, {'unp_t_r ext'}];
+
+    fig_h = scattered_dot_plot_ttest(plot_mat3, fig_n, 1, 4, 8, marker_colors, 1, col_pairs, line_colors, xlabels, 1, mean_color, 1);
     ylabel('win-averaged response (dF/F)');
-    fig_wrapup(fig_n)
-
-keyboard
-
-%2. paired_simple_pre vs paired_simple_post, also unpaired, EL
-%3. paired_trans_pre vs paired_trans_post, also unpaired
-%4. EL_trans_pre vs EL_trans_post
+    fig_wrapup(fig_n, []);
 
 
+else
+    %3. EL_trans_pre vs EL_trans_post
+    fig_n = 3;
+    figure('Name','transition pre v/s transition post.')
+    onset_resps_paired = [reshape(onset_od_win_trans_pre(:, 1, :), [], 1), reshape(onset_od_win_trans_post(:, 1, :), [], 1)];
+    onset_resps_unpaired = [reshape(onset_od_win_trans_pre(:, 2, :), [], 1), reshape(onset_od_win_trans_post(:, 2, :), [], 1)];
+    off_resps_paired = [reshape(off_od_win_trans_pre(:, 1, :), [], 1), reshape(off_od_win_trans_post(:, 1, :), [], 1)];
+    off_resps_unpaired = [reshape(off_od_win_trans_pre(:, 2, :), [], 1), reshape(off_od_win_trans_post(:, 2, :), [], 1)];
+    whole_resps_paired = [reshape(whole_od_win_trans_pre(:, 1, :), [], 1), reshape(whole_od_win_trans_post(:, 1, :), [], 1)];
+    whole_resps_unpaired = [reshape(whole_od_win_trans_pre(:, 2, :), [], 1), reshape(whole_od_win_trans_post(:, 2, :), [], 1)];
+    ext_resps_paired = [reshape(ext_od_win_trans_pre(:, 1, :), [], 1), reshape(ext_od_win_trans_post(:, 1, :), [], 1)];
+    ext_resps_unpaired = [reshape(ext_od_win_trans_pre(:, 2, :), [], 1), reshape(ext_od_win_trans_post(:, 2, :), [], 1)];
+    plot_mat3 = [onset_resps_paired, onset_resps_unpaired, off_resps_paired, off_resps_unpaired, whole_resps_paired, whole_resps_unpaired, ext_resps_paired, ext_resps_unpaired];
+    paired_multiplier = 0.7;    %for setting paired color darkness
+    marker_colors = [EL_color; EL_color.*paired_multiplier; EL_color; EL_color.*paired_multiplier;...
+                        EL_color; EL_color.*paired_multiplier; EL_color; EL_color.*paired_multiplier;...
+                        EL_color; EL_color.*paired_multiplier; EL_color; EL_color.*paired_multiplier;...
+                        EL_color; EL_color.*paired_multiplier; EL_color; EL_color.*paired_multiplier];
+    col_pairs = [1, 2; 3, 4; 5, 6; 7, 8; 9, 10; 11, 12; 13, 14; 15, 16];
+    line_colors = marker_colors;
 
-keyboard
+    xlabels = [{'EL_p_r on'}, {'EL_p_r on'}, {'EL_u_n_p on'}, {'EL_u_n_p on'},...
+                    {'EL_p_r off'}, {'EL_p_r off'}, {'EL_u_n_p off'}, {'EL_u_n_p off'},...
+                    {'EL_p_r wh'}, {'EL_p_r wh'}, {'EL_u_n_p wh'}, {'EL_u_n_p wh'},...
+                    {'EL_p_r ext'}, {'EL_p_r ext'}, {'EL_u_n_p ext'}, {'EL_u_n_p ext'}];
+
+    fig_h = scattered_dot_plot_ttest(plot_mat3, fig_n, 1, 4, 8, marker_colors, 1, col_pairs, line_colors, xlabels, 1, mean_color, 1);
+    ylabel('win-averaged response (dF/F)');
+    fig_wrapup(fig_n, []);
+end
+
+
+%Plotting norm. pre-post differences rather than response sizes: (pre - post)/pre, plotting onset window measures only
+%4. simple trial differences
+diff_mat2 = [(plot_mat2(:, 1) - plot_mat2(:, 2))./abs(plot_mat2(:, 1)), (plot_mat2(:, 3) - plot_mat2(:, 4))./abs(plot_mat2(:, 3)),...
+              (plot_mat3(:, 1) - plot_mat3(:, 2))./abs(plot_mat3(:, 1)), (plot_mat3(:, 3) - plot_mat2(:, 4))./abs(plot_mat3(:, 3))];
+
+paired_multiplier = 0.7;    %for setting paired color darkness
+marker_colors = [paired_color; unpaired_color] [paired_color; unpaired_color];
+col_pairs = [1, 2; 3, 4];
+line_colors = repmat([0.6, 0.6, 0.6], 2, 1);
+xlabels = [{'paired_s'}, {'unpaired_s'}, {'paired_t_r'}, {'unpaired_t_r'}];
+fig_h = scattered_dot_plot_ttest(diff_mat2, 4, 1, 4, 8, marker_colors, 1, col_pairs, line_colors, xlabels, 1, mean_color, 1);
+ylabel('Response change (pre-post)/pre');
+fig_wrapup(4, []);
 
 
 
+diff_mat2 = [(plot_mat2(:, 1) - plot_mat2(:, 2))./abs(plot_mat2(:, 1)), (plot_mat2(:, 3) - plot_mat2(:, 4))./abs(plot_mat2(:, 3)),...
+              (plot_mat3(:, 1) - plot_mat3(:, 2))./abs(plot_mat3(:, 1)), (plot_mat3(:, 3) - plot_mat2(:, 4))./abs(plot_mat3(:, 3))];
+
+paired_multiplier = 0.7;    %for setting paired color darkness
+marker_colors = [paired_color; unpaired_color] [paired_color; unpaired_color];
+col_pairs = [1, 2; 3, 4];
+line_colors = repmat([0.6, 0.6, 0.6], 2, 1);
+xlabels = [{'paired_s'}, {'unpaired_s'}, {'paired_t_r'}, {'unpaired_t_r'}];
+fig_h = scattered_dot_plot_ttest(diff_mat2, 4, 1, 4, 8, marker_colors, 1, col_pairs, line_colors, xlabels, 1, mean_color, 1);
+ylabel('Response change (pre-post)/pre');
+fig_wrapup(4, []);
 
 
 
-
-
+%---------------------------------
+%worker functions
 function [mean_trace_pre, mean_trace_post] = plot_hover_traces(olf1_odn, olf2_odn, od2_name, od1_color, od2_color, fign,...
     stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr, y_ax_lim, plot_means, suppress_plots)
 frame_time = 0.099;
@@ -506,17 +665,5 @@ if suppress_plots == 0
 elseif suppress_plots == 1
 else
 end
-
-end
-
-
-function [p_vec_out] = stat_testing(plot_mat)
-    n_col_pairs = size(plot_mat, 2)./2;
-    p_vec = zeros(n_col_pairs, 1) + nan;
-    for col_pair_n = 0:(n_col_pairs - 1)
-        col1 = (col_pair_n.*2) + 1;
-        col2
-        [del, p] = ttest(plot_mat(),);
-    end
 
 end
