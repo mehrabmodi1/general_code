@@ -1,4 +1,4 @@
-function fig_h = scattered_dot_plot_ttest(mat, fig_n, col_width, col_spacing, markersize, markercolor, marker_filled, with_lines, linecolor, xlabels, plot_mean, mean_color, st_test_type)
+function fig_h = scattered_dot_plot_ttest(mat, fig_n, col_width, col_spacing, markersize, markercolor, marker_filled, with_lines, linecolor, xlabels, plot_mean, mean_color, st_test_type, p_val)
 %syntax: fig_h = scattered_dot_plot_ttest(mat, fig_n, col_width, col_spacing, markersize, markercolor, marker_filled, with_lines, linecolor, xlabels, plot_mean, mean_color, st_test_type)
 %This function plots the values in each column of mat as dots separated
 %with a random scatter of width col_width and inter-column spacing as
@@ -23,8 +23,7 @@ else
 end
 
 
-[p_vec_out, effect_sizes_out] = stat_testing(mat, st_test_type, plot_mean); 
-
+[p_vec_out, effect_sizes_out, min_difs_out] = stat_testing(mat, st_test_type, plot_mean, p_val); 
 
 fig_h = figure(fig_n);
 saved_col_centers = zeros(1, n_cols);
@@ -48,6 +47,10 @@ if isempty(with_lines) == 1
             curr_veci = [mat(:, col_n); mat(:, (col_n - 1))];
             curr_p_val = round(p_vec_out(col_n./2, 1), 3);
             curr_d = round(effect_sizes_out(col_n./2, 1), 3);
+            curr_dif = round(min_difs_out(col_n./2, 1), 3);
+            curr_ac_dif = round(min_difs_out(col_n./2, 2), 3);
+            min_n = min_difs_out(col_n./2, 3);
+            ac_n = min_difs_out(col_n./2, 4);
             if curr_p_val ~= 0
                 p_label = ['p = ', num2str(curr_p_val)];
             elseif curr_p_val == 0
@@ -60,11 +63,22 @@ if isempty(with_lines) == 1
                 d_label = ['Cohen''s d  < ', '0.001'];
             else
             end
+            n_label = ['min n = ' num2str(min_n), ', n = ' num2str(ac_n)];
+            if curr_dif ~= 0
+                dif_label = ['min. dif = ', num2str(curr_dif), ', dif = ' num2str(curr_ac_dif)];
+            elseif curr_dif == 0
+                dif_label = ['min. dif  < ', '0.001, dif = ', num2str(curr_ac_dif)];
+            elseif isempty(curr_dif) == 1
+                dif_label = [];
+                n_label = [];
+            else
+            end
             x_pos = mean(r_vec) - col_spacing;
             y_pos = max(curr_vec) + (max(max(mat)).*0.1);
             text(x_pos, y_pos, p_label);
-            text(x_pos, (y_pos + (max(max(mat)).*0.05)), d_label);
-           
+            text(x_pos, (y_pos + (max(max(mat)).*0.1)), d_label);
+%             text(x_pos, (y_pos + 2.*(max(max(mat)).*0.1)), dif_label);
+%             text(x_pos, (y_pos + 3.*(max(max(mat)).*0.1)), n_label);
         else
         end
     end
@@ -83,6 +97,10 @@ elseif isempty(with_lines) == 0
             curr_vec = [mat(:, col_n); mat(:, (col_n - 1))];
             curr_p_val = round(p_vec_out(col_n./2, 1), 3);
             curr_d = round(effect_sizes_out(col_n./2, 1), 3);
+            curr_dif = round(min_difs_out(col_n./2, 1), 3);
+            curr_ac_dif = round(min_difs_out(col_n./2, 2), 3);
+            min_n = min_difs_out(col_n./2, 3);
+            ac_n = min_difs_out(col_n./2, 4);
             if curr_p_val ~= 0
                 p_label = ['p = ', num2str(curr_p_val)];
             elseif curr_p_val == 0
@@ -95,10 +113,22 @@ elseif isempty(with_lines) == 0
                 d_label = ['Cohen''s d  < ', '0.001'];
             else
             end
+            n_label = ['min n = ' num2str(min_n), ', n = ' num2str(ac_n)];
+            if curr_dif ~= 0
+                dif_label = ['min. dif = ', num2str(curr_dif), ', dif = ' num2str(curr_ac_dif)];
+            elseif curr_dif == 0
+                dif_label = ['min. dif  < ', '0.001, dif = num2str(curr_ac_dif)'];
+            elseif isempty(curr_dif) == 1
+                dif_label = [];
+                n_label = [];
+            else
+            end
             x_pos = mean(r_vecs(:, col_n)) - col_spacing;
             y_pos = max(curr_vec) + (max(max(mat)).*0.1);
             text(x_pos, y_pos, p_label);
             text(x_pos, (y_pos + (max(max(mat)).*0.1)), d_label);
+%             text(x_pos, (y_pos + 2.*(max(max(mat)).*0.1)), dif_label);
+%             text(x_pos, (y_pos + 3.*(max(max(mat)).*0.1)), n_label);
             hold on
             
         else
@@ -172,29 +202,55 @@ ax.XTickLabels = xlabels;
 hold off
 
 end
-function [p_vec_out, effect_sizes_out] = stat_testing(plot_mat, test_type, plot_mean)
+
+
+function [p_vec_out, effect_sizes_out, min_dif_out] = stat_testing(plot_mat, test_type, plot_mean, p_val)
     n_col_pairs = size(plot_mat, 2)./2;
     p_vec_out = zeros(n_col_pairs, 1) + nan;
     effect_sizes_out = zeros(n_col_pairs, 1) + nan;
     for col_pair_n = 0:(n_col_pairs - 1)
         col1 = (col_pair_n.*2) + 1;
         col2 = col1 + 1;
+            n = size(plot_mat, 1);
+            
             if plot_mean == 1   %means, assume normal distributions
                 if test_type == 1       %paired samples
                     [del, p] = ttest(plot_mat(:, col1), plot_mat(:, col2));
                     effect_size = computeCohen_d(plot_mat(:, col1), plot_mat(:, col2), 'paired');
+                    paired_difs = plot_mat(:, col1) - plot_mat(:, col2);    %for paired-samples, sample distribution is distribution of paired differences.
+                    mean1 = mean( paired_difs, 'omitnan');                  %actual mean of paired differences
+                    sd1 = std(paired_difs, [], 'omitnan');
+                    min_mean1 = sampsizepwr('t',[0 sd1],[],(1 - p_val.*2), n);        %null hypothesis mean is difference of 0
+                    needed_n = sampsizepwr('t',[0 sd1], mean1, (1 - p_val.*2), []);
+                    min_dif = abs(min_mean1 - 0); 
+                    ac_dif = mean1;
                 elseif test_type == 2   %independent samples
                     [del, p] = ttest2(plot_mat(:, col1), plot_mat(:, col2));
-                    effect_size = computeCohen_d(plot_mat(:, col1), plot_mat(:, col2), 'independent');                    
+                    effect_size = computeCohen_d(plot_mat(:, col1), plot_mat(:, col2), 'independent');
+                    mean1 = mean(plot_mat(:, col1), 'omitnan');
+                    ac_mean2 = mean(plot_mat(:, col2), 'omitnan');
+                    sd1 = std(plot_mat(:, col1), [], 'omitnan');
+                    mean2 = sampsizepwr('t2',[mean1 sd1],[],(1 - p_val.*2), n);        %two-tailed test
+                    needed_n = sampsizepwr('t',[0 sd1], mean1, (1 - p_val.*2), []);
+                    min_dif = abs(mean2 - mean1);
+                    ac_dif = abs(ac_mean2 - mean1);
                 else
                 end
             elseif plot_mean == 2   %medians, non-parametric tests
                 if test_type == 1       %paired samples
                     p = signrank(plot_mat(:, col1), plot_mat(:, col2));
                     effect_size = computeCohen_d(plot_mat(:, col1), plot_mat(:, col2), 'paired');
+                    min_dif = [];
+                    ac_dif = [];
+                    needed_n = [];
+                    n = [];
                 elseif test_type == 2   %independent samples
                     p = ranksum(plot_mat(:, col1), plot_mat(:, col2));    %Mann Whitney U test
                     effect_size = computeCohen_d(plot_mat(:, col1), plot_mat(:, col2), 'independent');
+                    min_dif = [];
+                    needed_n = [];
+                    ac_dif = [];
+                    n = [];
                 else
                 end
                 
@@ -203,7 +259,7 @@ function [p_vec_out, effect_sizes_out] = stat_testing(plot_mat, test_type, plot_
         try
             p_vec_out((col_pair_n + 1), 1) = p;
             effect_sizes_out((col_pair_n + 1), 1) = effect_size;
-            
+            min_dif_out((col_pair_n + 1), 1:4) = [min_dif, ac_dif, needed_n, n];
         catch
             keyboard
         end
