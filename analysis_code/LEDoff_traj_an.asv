@@ -80,7 +80,7 @@ keyboard
 %worker functions
 function [ctrl_data_mat, ctrl_params, ctrl_fnums, MBON_data_mat, MBON_params, MBON_fnums, LED_oni, LED_offi] = load_data(base_path, fname_empty, fname_MB077B, frame_time)
 
-if exist([base_path, fname_empty, '_data.mat']) ~= 2
+if exist([base_path, fname_empty, '_data.mat']) ~= 1
     
     %reading in and parsing trajectory data from file
     [ctrl_data_mat, ctrl_meta_data] = read_data_file([base_path, fname_empty, '.txt']);
@@ -111,10 +111,10 @@ ctrl_data_mat(1, :) = [];
 MBON_data_mat(1, :) = [];
 ctrl_data_mat = sortrows(ctrl_data_mat);
 MBON_data_mat = sortrows(MBON_data_mat);
-ctrl_params = ctrl_data_mat(:, 1:6);        %timestamp, arena_n, cam_n, fly_n and param_n for each row of data_mat
-MBON_params = MBON_data_mat(:, 1:6);        %timestamp, arena_n, cam_n, fly_n and param_n for each row of data_mat
-ctrl_data_mat(:, 1:6) = [];
-MBON_data_mat(:, 1:6) = [];
+ctrl_params = ctrl_data_mat(:, 1:5);        %timestamp, arena_n, cam_n, fly_n and param_n for each row of data_mat
+MBON_params = MBON_data_mat(:, 1:5);        %timestamp, arena_n, cam_n, fly_n and param_n for each row of data_mat
+ctrl_data_mat(:, 1:5) = [];
+MBON_data_mat(:, 1:5) = [];
 
 function [data_mat, met_data_mat] = read_data_file(file_path)
 %This function reads in relevant data as doubles in data mat and metadata
@@ -221,6 +221,8 @@ while 1
         curr_delimiters = [(delimiteri(col_n) + 7), (delimiteri(col_n + 1) - 1)];
         trial_n = str2num(curr_line(curr_delimiters(1):curr_delimiters(2)));
         
+        keyboard
+        
         params = [tstamp, arena_n, cam_n, fly_n, trial_n, param_n];
     elseif line_n == 1
         params = zeros(1, 6) + nan;  %header row
@@ -292,29 +294,28 @@ for tstamp_n = 1:length(t_list)
                     %This set should contain three rows, one for each measured parameter, else
                     %discard this fly.
 
-                    if length(unique(param_mat_tr(:, 6))) == 3
-                        if size(param_mat_tr, 1) > 3       %case where padding rows of zeros exist
+                    if length(unique(param_mat_fly(:, 6))) == 3
+                        if size(param_mat_fly, 1) > 3       %case where padding rows of zeros exist
                             data_summed = sum(data_mat_tr, 2);
                             real_rowsi = find(data_summed ~= 0);
-                            param_mat_tr = param_mat_tr(real_rowsi, :);
-                            data_mat_tr = data_mat_tr(real_rowsi, :);
+                            param_mat_fly = param_mat_fl(real_rowsi, :);
+                            data_mat_fly = data_mat_fly(real_rowsi, :);
                         else
                         end
 
-                        if size(param_mat_tr, 1) > 3
+                        if size(param_mat_fly, 1) > 3
                             fly_n_replicates = fly_n_replicates + 1;
-                            n_disc_rows = n_disc_rows + size(param_mat_tr, 1);
-                            param_mat_tr = [];
-                            data_mat_tr = [];
+                            n_disc_rows = n_disc_rows + size(param_mat_fly, 1);
+                            param_mat_fly = [];
+                            data_mat_fly = [];
                         else
                         end
 
-                        good_param_mat = [good_param_mat; param_mat_tr];
-                        good_data_mat = [good_data_mat; data_mat_tr];
+                        good_param_mat = [good_param_mat; param_mat_fly];
+                        good_data_mat = [good_data_mat; data_mat_fly];
                     else
                         %not concatenating and so, discarding current fly
                     end
-                    
                 end
             end
         end
