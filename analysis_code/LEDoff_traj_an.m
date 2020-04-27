@@ -8,73 +8,174 @@ fname_MB077B = 'Results_10sLED-air_MB077B';
 frame_time = 1./30; %in s
 dia = 910;  %in pixels
 
+a = colormap('bone');
+global greymap
+greymap = flipud(a);
+
 %reading in parsed data
 [ctrl_data_mat, ctrl_params, ctrl_fnums, MBON_data_mat, MBON_params, MBON_fnums, LED_oni, LED_offi] = load_data(base_path, fname_empty, fname_MB077B, frame_time);
 
 %cleaning up data
 [ctrl_params, ctrl_data_mat, ctrl_fly_n_replicates, crtl_n_disc_rows] = get_good_flies(ctrl_params, ctrl_data_mat);
 [MBON_params, MBON_data_mat, MBON_fly_n_replicates, MBON_n_disc_rows] = get_good_flies(MBON_params, MBON_data_mat);
+fig_n = 0;
+close all
 
-%getting distances from arena center
-ctrl_c_dists = dist_from_center(ctrl_data_mat);
-ctrl_c_dists = ctrl_c_dists./(dia./2);  %normalising to radius
-stim_frs = [LED_oni, LED_offi];
-
-%subtracting baseline dists
-ctrl_baselines = mean(ctrl_c_dists(:, (LED_oni - round(10./frame_time)):(LED_oni - 1)), 2);
-ctrl_c_dists_sub  = ctrl_c_dists - repmat(ctrl_baselines, 1, size(ctrl_c_dists, 2));
-
-fig_n = 1;
-figure(fig_n)
-imagesc(ctrl_c_dists)
-hold on
-add_stim_bar(fig_n, stim_frs, [0.8, 0.4, 0.5]);
-hold off
-set_xlabels_time(fig_n, frame_time, 10)
-title('control trajectories, d_c_e_n_t_r_e')
-ylabel('fly n')
-
-fig_n = 2;
-figure(fig_n)
-ctrl_mean_traj = mean(ctrl_c_dists_sub, 1);
-ctrl_se_traj = std(ctrl_c_dists_sub)./sqrt(size(ctrl_mean_traj, 1));
-shadedErrorBar([], ctrl_mean_traj, ctrl_se_traj, {'Color', [0.65, 0.65, 0.65]})
-hold on
-add_stim_bar(fig_n, stim_frs, [0.8, 0.4, 0.5]);
-hold off
-set_xlabels_time(fig_n, frame_time, 10)
-ylabel('norm., baseline-subtracted d_c_e_n_t_r_e')
-title('control mean+/-SE control trajectory')
-
-MBON_c_dists = dist_from_center(MBON_data_mat);
-MBON_c_dists = MBON_c_dists./(dia./2);  %normalising to radius
-
-MBON_baselines = mean(MBON_c_dists(:, (LED_oni - round(10./frame_time)):(LED_oni - 1)), 2);
-MBON_c_dists_sub  = MBON_c_dists - repmat(MBON_baselines, 1, size(MBON_c_dists, 2));
-
-
-fig_n = 3;
-figure(fig_n)
-imagesc(MBON_c_dists)
-hold on
-add_stim_bar(fig_n, stim_frs, [0.8, 0.4, 0.5]);
-hold off
-set_xlabels_time(fig_n, frame_time, 10)
-title('MB077B trajectories, d_c_e_n_t_r_e')
-ylabel('fly n')
-
-fig_n = 4;
-figure(fig_n)
-MBON_mean_traj = mean(MBON_c_dists_sub, 1);
-MBON_se_traj = std(MBON_c_dists_sub)./sqrt(size(MBON_mean_traj, 1));
-shadedErrorBar([], MBON_mean_traj, MBON_se_traj, {'Color', [0.65, 0.65, 0.65]})
-hold on
-add_stim_bar(fig_n, stim_frs, [0.8, 0.4, 0.5]);
-hold off
-set_xlabels_time(fig_n, frame_time, 10)
-ylabel('norm., baseline-subtracted d_c_e_n_t_r_e')
-title('MB077B mean+/-SE control trajectory')
+fig_n = fig_n + 1;
+figure('Name', 'Ex trajectories, MB077B')
+t_win = [(LED_offi - round(4./frame_time)), (LED_offi + round(4./frame_time))];
+adj_data_mat = plot_trajectories(fig_n, MBON_data_mat, t_win, 0.05, 2);
 keyboard
+fig_n = fig_n + 1;
+figure('Name', 'Ex trajectories, control')
+t_win = [LED_offi, (LED_offi + round(8./frame_time))];
+adj_data_mat = plot_trajectories(fig_n, ctrl_data_mat, t_win, 0.05, 2);
+keyboard
+
+% %getting distances from arena center
+% ctrl_c_dists = dist_from_center(ctrl_data_mat);
+% ctrl_c_dists = ctrl_c_dists./(dia./2);  %normalising to radius
+% stim_frs = [LED_oni, LED_offi];
+% 
+% %ctrl raw distance to center
+% fig_n = fig_n + 1;
+% figure('Name', 'control trajectories, d_c_e_n_t_r_e')
+% imagesc(ctrl_c_dists)
+% colormap(greymap);
+% set_xlabels_time(fig_n, frame_time, 10)
+% ylabel('fly n')
+% fig_wrapup(fig_n, [])
+% add_stim_bar(fig_n, stim_frs, [0.8, 0.4, 0.5]);
+% 
+% %ctrl mean raw distance to center
+% fig_n = fig_n + 1;
+% figure('Name', 'control mean+/-SE control trajectory')
+% ctrl_mean_traj = mean(ctrl_c_dists, 1);
+% ctrl_se_traj = std(ctrl_c_dists)./sqrt(size(ctrl_mean_traj, 1));
+% shadedErrorBar([], ctrl_mean_traj, ctrl_se_traj, {'Color', [0.65, 0.65, 0.65]})
+% set_xlabels_time(fig_n, frame_time, 10)
+% ylabel('norm., baseline-subtracted d_c_e_n_t_r_e')
+% fig_wrapup(fig_n, [])
+% add_stim_bar(fig_n, stim_frs, [0.8, 0.4, 0.5]);
+% 
+% 
+% MBON_c_dists = dist_from_center(MBON_data_mat);
+% MBON_c_dists = MBON_c_dists./(dia./2);  %normalising to radius
+% 
+% MBON_baselines = mean(MBON_c_dists(:, (LED_oni - round(10./frame_time)):(LED_oni - 1)), 2);
+% MBON_c_dists_sub  = MBON_c_dists - repmat(MBON_baselines, 1, size(MBON_c_dists, 2));
+% 
+% %MBON raw distance to center
+% fig_n = fig_n + 1;
+% figure('Name', 'MB077B trajectories, d_c_e_n_t_r_e')
+% imagesc(MBON_c_dists)
+% colormap(greymap);
+% set_xlabels_time(fig_n, frame_time, 10)
+% ylabel('fly n')
+% fig_wrapup(fig_n, [])
+% add_stim_bar(fig_n, stim_frs, [0.8, 0.4, 0.5]);
+% 
+% %MBON mean raw distance to center
+% fig_n = fig_n + 1;
+% figure('Name','MB077B mean+/-SE control trajectory')
+% MBON_mean_traj = mean(MBON_c_dists, 1);
+% MBON_se_traj = std(MBON_c_dists)./sqrt(size(MBON_mean_traj, 1));
+% shadedErrorBar([], MBON_mean_traj, MBON_se_traj, {'Color', [0.65, 0.65, 0.65]})
+% set_xlabels_time(fig_n, frame_time, 10)
+% ylabel('norm., baseline-subtracted d_c_e_n_t_r_e')
+% fig_wrapup(fig_n, []);
+% add_stim_bar(fig_n, stim_frs, [0.8, 0.4, 0.5]);
+
+% %ctrl heading
+% fig_n = fig_n + 1;
+% figure('Name','Ctrl heading')
+% ctrl_heading_mat = ctrl_data_mat(3:3:end, :);
+% imagesc(ctrl_heading_mat);
+% colormap(greymap);
+% set_xlabels_time(fig_n, frame_time, 10)
+% ylabel('fly n')
+% fig_wrapup(fig_n, [])
+% add_stim_bar(fig_n, stim_frs, [0.8, 0.4, 0.5]);
+% 
+% %control mean heading
+% fig_n = fig_n + 1;
+% figure('Name','control mean+/-SE heading')
+% ctrl_mean_head = mean(ctrl_data_mat(3:3:end, :), 1);
+% ctrl_se_head = std(ctrl_data_mat(3:3:end, :))./sqrt(size(ctrl_mean_head, 1));
+% shadedErrorBar([], ctrl_mean_head, ctrl_se_head, {'Color', [0.65, 0.65, 0.65]})
+% set_xlabels_time(fig_n, frame_time, 10)
+% ylabel('heading')
+% fig_wrapup(fig_n, []);
+% add_stim_bar(fig_n, stim_frs, [0.8, 0.4, 0.5]);
+% 
+% %MBON heading
+% fig_n = fig_n + 1;
+% figure('Name','MB077B heading')
+% MBON_heading_mat = MBON_data_mat(3:3:end, :);
+% imagesc(MBON_heading_mat);
+% colormap(greymap);
+% set_xlabels_time(fig_n, frame_time, 10)
+% ylabel('fly n')
+% fig_wrapup(fig_n, [])
+% add_stim_bar(fig_n, stim_frs, [0.8, 0.4, 0.5]);
+
+% %MBON mean heading
+% fig_n = fig_n + 1;
+% figure('Name','MB077B mean+/-SE Heading angle')
+% MBON_mean_angle = mean(MBON_heading_mat, 1);
+% MBON_se_angle = std(MBON_heading_mat)./sqrt(size(MBON_mean_angle, 1));
+% shadedErrorBar([], MBON_mean_angle, MBON_se_angle, {'Color', [0.65, 0.65, 0.65]})
+% set_xlabels_time(fig_n, frame_time, 10)
+% ylabel('norm., baseline-subtracted angle')
+% fig_wrapup(fig_n, []);
+% add_stim_bar(fig_n, stim_frs, [0.8, 0.4, 0.5]);
+
+%Plotting fly speeds
+ctrl_speed_mat = calc_speed(ctrl_data_mat);
+MBON_speed_mat = calc_speed(MBON_data_mat);
+
+%ctrl all traces
+fig_n = fig_n + 1;
+figure('Name','ctrl speed')
+imagesc(ctrl_speed_mat);
+colormap(greymap);
+set_xlabels_time(fig_n, frame_time, 10)
+ylabel('fly n')
+fig_wrapup(fig_n, [])
+add_stim_bar(fig_n, stim_frs, [0.8, 0.4, 0.5]);
+
+%ctrl mean trace
+fig_n = fig_n + 1;
+figure('Name','ctrl mean+/-SE speed')
+ctrl_mean_speed = mean(ctrl_speed_mat, 1);
+ctrl_se_speed = std(ctrl_speed_mat)./sqrt(size(ctrl_mean_speed, 1));
+shadedErrorBar([], ctrl_mean_speed, ctrl_se_speed, {'Color', [0.65, 0.65, 0.65]})
+set_xlabels_time(fig_n, frame_time, 10)
+ylabel('norm., baseline-subtracted angle')
+fig_wrapup(fig_n, []);
+add_stim_bar(fig_n, stim_frs, [0.8, 0.4, 0.5]);
+
+%MBON all traces
+fig_n = fig_n + 1;
+figure('Name','MB077B speed')
+imagesc(MBON_speed_mat);
+colormap(greymap);
+set_xlabels_time(fig_n, frame_time, 10)
+ylabel('fly n')
+fig_wrapup(fig_n, [])
+add_stim_bar(fig_n, stim_frs, [0.8, 0.4, 0.5]);
+
+%MBON mean trace
+fig_n = fig_n + 1;
+figure('Name','MB077B mean+/-SE speed')
+MBON_mean_speed = mean(MBON_speed_mat, 1);
+MBON_se_speed = std(MBON_speed_mat)./sqrt(size(MBON_mean_speed, 1));
+shadedErrorBar([], MBON_mean_speed, MBON_se_speed, {'Color', [0.65, 0.65, 0.65]})
+set_xlabels_time(fig_n, frame_time, 10)
+ylabel('norm., baseline-subtracted angle')
+fig_wrapup(fig_n, []);
+add_stim_bar(fig_n, stim_frs, [0.8, 0.4, 0.5]);
+
 
 %----------------
 %worker functions
@@ -348,4 +449,83 @@ for fly_n = 1:n_flies
     end
     
 end
+end
+
+function speed_mat = calc_speed(data_mat)
+    n_flies = size(data_mat, 1)./3;
+    speed_mat = [];
+    n_frames = size(data_mat, 2);
+    for fly_n = 1:n_flies
+        x_row = ((fly_n - 1).*3) + 1;
+        y_row = x_row + 1;
+        for frame_n = 1:(n_frames - 1)
+            pair1 = data_mat(x_row:y_row, frame_n);
+            pair2 = data_mat(x_row:y_row, (frame_n + 1) );
+            pairs = [pair1, pair2];
+            curr_dist = squareform(pdist(pairs'));
+            curr_dist = curr_dist(1, 2);
+            speed_mat(fly_n, frame_n) = curr_dist;            
+        end        
+    end
+end
+
+function [adj_data_mat] = plot_trajectories(fig_n, data_mat, t_win, sparseness, col_type)
+    adj_data_mat = zeros((size(data_mat, 1).*(2./3)), (t_win(2) - t_win(1) + 1)) + nan;
+    %converting xy coords to rtheta coords
+    for fly_n = 1:(size(data_mat, 1)./3)
+        x_row = ((fly_n - 1).*3 + 1);
+        y_row = x_row + 1;
+        x_rowi = (fly_n - 1).*2 + 1;
+        y_rowi = x_rowi + 1;
+        curr_xy = data_mat(x_row:y_row, t_win(1):t_win(2));
+        [theta, rho] = cart2pol(curr_xy(1, :), curr_xy(2, :));
+        %subtracting initial heading and position to line up all
+        %trajetories with each other
+        theta = theta - theta(1);
+        rho = rho - rho(1);
+        [adj_x, adj_y] = pol2cart(theta, rho);
+        adj_data_mat(x_rowi:y_rowi, :) = [adj_x; adj_y];
+    end
+    
+            
+    %plotting
+    %making color vector
+    r_vals = linspace(0.9, 0.1, size(adj_data_mat, 2))';
+    g_vals = zeros(size(r_vals, 1), 1) + 0.2;
+    b_vals = linspace(0.1, 0.9, size(adj_data_mat, 2))';
+    col_vec_graded = [r_vals, g_vals, b_vals];
+    half_l = round(size(adj_data_mat, 2)./2);
+    col_vec_dig = [repmat([0.9, 0.2, 0.1], half_l, 1); repmat([0.1, 0.2, 0.9], half_l, 1)];
+    if col_type == 1
+        col_vec = col_vec_graded;
+    elseif col_type == 2
+        col_vec = col_vec_dig;
+    else
+    end
+    figure(fig_n);
+    for subplot_n = 1:3
+        subplot_tight(1, 3, subplot_n)
+        n_flies_r = round(size(data_mat, 1).*sparseness);
+        rng('shuffle');
+        r_vec = randperm((size(data_mat, 1)./3), n_flies_r);
+        
+        for r_fly_n = 1:length(r_vec)
+            curr_fly = r_vec(r_fly_n);
+            x_row = (curr_fly - 1).*2 + 1;
+            y_row = x_row + 1;
+            for frame_n = 1:size(adj_data_mat, 2)
+                curr_color = col_vec(frame_n, :);
+                plot(adj_data_mat(x_row, frame_n), adj_data_mat(y_row, frame_n), '.', 'Color', curr_color);
+                hold on
+            end
+            
+%             if rem(r_fly_n, 5) == 1
+%                 keyboard
+%             else
+%             end
+        end
+        hold off
+        
+    end
+        
 end
