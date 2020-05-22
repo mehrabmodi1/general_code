@@ -1,5 +1,5 @@
 function fig_h = scattered_dot_plot_ttest(mat, fig_n, col_width, col_spacing, markersize, markercolor, marker_filled, with_lines, linecolor, xlabels, plot_mean, mean_color, st_test_type, p_val)
-%syntax: fig_h = scattered_dot_plot_ttest(mat, fig_n, col_width, col_spacing, markersize, markercolor, marker_filled, with_lines, linecolor, xlabels, plot_mean, mean_color, st_test_type)
+%syntax: fig_h = scattered_dot_plot_ttest(mat, fig_n, col_width, col_spacing, markersize, markercolor, marker_filled, with_lines, linecolor, xlabels, plot_mean, mean_color, st_test_type, p_val)
 %This function plots the values in each column of mat as dots separated
 %with a random scatter of width col_width and inter-column spacing as
 %specified. Line spec can be used to specify marker style, color and size.
@@ -25,7 +25,14 @@ end
 
 [p_vec_out, effect_sizes_out, min_difs_out] = stat_testing(mat, st_test_type, plot_mean, p_val); 
 
-fig_h = figure(fig_n);
+
+curr_class = whos('fig_n');
+if strcmp(curr_class.class, 'double') == 1
+    fig_h = figure(fig_n);
+else
+    fig_h = fig_n;
+end
+
 saved_col_centers = zeros(1, n_cols);
 if isempty(with_lines) == 1
     for col_n = 1:n_cols

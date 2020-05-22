@@ -36,7 +36,7 @@ def gen_optifunc(stim_lat, stim_dur):
         domain0 = (t <= stim_lat)
         domain1 = (t > stim_lat) & (t <= stim_lat + stim_dur)
         domain2 = (t > stim_lat + stim_dur)
-        breakpoint()
+        
         out = domain0 * a0
         out += domain1 * (
             a1 * (1.0 - np.exp(-(t - stim_lat) / t0))
@@ -52,7 +52,7 @@ def gen_optifunc(stim_lat, stim_dur):
             a3 * np.exp(-(t - stim_lat - stim_dur) / t2)
             + (end1 - a3) * np.exp(-(t - stim_lat - stim_dur) / t3)
         )
-        breakpoint()
+       
         return out
 
     def frac_longt(a0, a1, a2, a3, t0, t1, t2, t3):
@@ -157,8 +157,9 @@ def train(activity, stim_lat, stim_dur, fold_fit):
            
 
     fn_fits = os.path.join(fold_fit, "fit_params.npy")
+    fn_fits_a = os.path.join(fold_fit, "fit_data.npy")
     np.save(fn_fits, fit_params)
-    
+    np.save(fn_fits_a, activity)
     logging.info("starting optimization")
 
 
