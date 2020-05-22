@@ -20,6 +20,8 @@ dataset_list_paths = [...
                       ];
             
 suppress_plots = 1;
+plotting_quant_no_filt = 1;     %1 - only unfiltered traces used for all analysis and plotting - traces included. 0 - filtered traces used for everything.
+
 [del, odor_names1] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList.xls', 1);
 [del, odor_names2] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList_olf2.xls', 1);
 odor_names2{3} = 'Butyl acetate';
@@ -66,7 +68,6 @@ for list_n = 1:size(dataset_list_paths, 1)
         continue
     else
     end
-
     
     
     %loop to go through all experiment datasets listed in list file
@@ -74,7 +75,8 @@ for list_n = 1:size(dataset_list_paths, 1)
     all_saved_mean_traces_transition_pre = [];
     all_saved_mean_traces_simple_post = [];
     all_saved_mean_traces_transition_post = [];
-    
+    all_tr1_ims = [];
+    all_ROI_mats = [];
     
     for dir_n = 1:n_dirs
         fly_n = fly_n + 1;
@@ -99,7 +101,6 @@ for list_n = 1:size(dataset_list_paths, 1)
         
         stim_mat_simple_nonans = stim_mat_simple;
         stim_mat_simple_nonans(isnan(stim_mat_simple)) = 0;
-        
         
         %Reading in experimental parameters
         odor_list_olf1 = unique(stim_mat_simple(:, 1) );
@@ -140,7 +141,12 @@ for list_n = 1:size(dataset_list_paths, 1)
         %calculating dF/F traces from raw data
         filt_time = 0.2;            %in s, the time window for boxcar filter for generating filtered traces
         [dff_data_mat, dff_data_mat_f] = cal_dff_traces_res(raw_data_mat, stim_mat, frame_time, filt_time, curr_dir);
-        
+        if plotting_quant_no_filt == 1
+            dff_data_mat_f = dff_data_mat;
+        else
+        end
+           
+            
         if size(dff_data_mat, 2) > 1
             dff_data_mat = mean(dff_data_mat, 2, 'omitnan');
             dff_data_mat_f = mean(dff_data_mat_f, 2, 'omitnan');
@@ -276,11 +282,59 @@ for list_n = 1:size(dataset_list_paths, 1)
         
         all_saved_mean_traces_simple_pre = pad_n_concatenate(all_saved_mean_traces_simple_pre, saved_mean_traces_simple_pre, 3, nan);
         all_saved_mean_traces_simple_post = pad_n_concatenate(all_saved_mean_traces_simple_post, saved_mean_traces_simple_post, 3, nan);
-                
+        
+        ave_im_stack = load([curr_dir, 'tr_avg_stack.mat']);
+        tr1_im = ave_im_stack.ave_stack(:, :, 1);
+        ROI_mat = load([curr_dir, 'ROI_mat.mat']);
+        ROI_mat = ROI_mat.ROI_mat;
+        
+        all_tr1_ims = cat(3, all_tr1_ims, tr1_im);
+        all_ROI_mats = cat(3, all_ROI_mats, ROI_mat);
+        
     end
     
 
 end
+
+fig_n = 0;
+
+%Code to display raw image and raw image with ROI overlay for all datasets
+% fig_n = fig_n + 1;
+% figure('Name', 'tr1 image alone, and with ROI overlay');
+% col_max = median(reshape(all_tr1_ims, [], 1)).*4.5;     %using the same colomap for all raw images
+% n_flies = size(all_tr1_ims, 3);
+% for fly_n = 1:n_flies
+%     figure('Name', 'tr1 image alone, and with ROI overlay');
+%     frame = squeeze(all_tr1_ims(:, :, fly_n));
+%     subplot_n = [1, 2];
+%     subplot_tight(1, 2, subplot_n(1), [0.04, 0.04])
+%     imagesc(frame, [0, col_max]);
+%     colormap('gray')
+%     set(gca,'xtick',[])
+%     set(gca,'xticklabel',[])
+%     set(gca,'ytick',[])
+%     set(gca,'yticklabel',[])
+%     pbaspect([1, 1, 1]);
+%     subplot_tight(1, 2, subplot_n(2), [0.04, 0.04])
+%     imagesc(frame, [0, col_max]);
+%     colormap('gray')
+%     set(gca,'xtick',[])
+%     set(gca,'xticklabel',[])
+%     set(gca,'ytick',[])
+%     set(gca,'yticklabel',[])
+%     pbaspect([1, 1, 1]);
+%     hold on
+%     ROI_mat = all_ROI_mats(:, :, fly_n);
+%     ROI_mat_sc = ROI_mat.*max(max(frame));
+%     ROI_obj = imagesc(ROI_mat_sc);
+%     hold off
+%     ROI_obj.AlphaData = ROI_mat.*0.5;
+%     keyboard
+%     close figure 2
+% end
+
+
+
 
 %saving response quantifications
 save_path = [an_save_path, dataset_list_name, '\'];
@@ -372,7 +426,7 @@ all_integration_wins = [all_integration_wins; ave_win_trans];
 %responses
 curr_trs = find(stim_mat_simple(:, dur_col_ns(1)) == 10 & stim_mat_simple(:, dur_col_ns(2)) == 10);
 trans_od_list = unique(stim_mat_simple(curr_trs, od_col_ns(2)));
-fig_n = 1;
+fig_n = fig_n + 1;
 figure('Name','Simple v/s Transition odor stim, pre-pairing resps only.')
 col_pairs = [1, 2; 3, 4; 5, 6; 7, 8; 9, 10; 11, 12; 13, 14; 15, 16];
 if length(trans_od_list) == 2       %case where the paired or unpaired odor are second in transition trials
@@ -581,7 +635,8 @@ xlabels = [{'prd_t_r'}, {'prd_t_r'}, {'unp_t_r'}, {'unp_t_r'},...
 fig_h = scattered_dot_plot_ttest(plot_mat, fig_n, 1, 4, 8, marker_colors, 1, col_pairs, line_colors, xlabels, 1, mean_color, 1, 0.05);
 ylabel('resps around transition (dF/F)');
 fig_wrapup(fig_n, []);
-
+hold off
+keyboard
 %Comparing pre paired resps with pre unpaired resps and the same for post; Transition stimuli.
 fig_n = fig_n + 1;
 figure('Name','Comparing pre p with pre unp and post p with post unp; Transition');
@@ -602,7 +657,7 @@ hold off
 ylabel('win-averaged response (dF/F)');
 fig_wrapup(fig_n, []);
  
-
+keyboard
 %Plotting norm. pre-post differences rather than response sizes: (pre - post)/pre, plotting onset window measures only
 %4. simple trial differences
 fig_n = fig_n + 1;
@@ -816,10 +871,6 @@ fig_wrapup(fig_n, []);
 od_color = [[0.65, 0.65, 0.65]; unpaired_color];
 add_stim_bar(fig_n, stim_frs_trans, od_color);
 
-
-%PICK UP THREAD HERE
-%figure out discrepancy between these figs and figure 4. Also, separate
-%last two columns from figure 4 into a separate plot.
 
 %8 Plotting simple bar plots to match Berry et al.
 %simple bar plot
