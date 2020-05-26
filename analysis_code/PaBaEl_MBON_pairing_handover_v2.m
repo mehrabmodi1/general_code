@@ -120,7 +120,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         stack_obj = ScanImageTiffReader([curr_dir, tif_name(1).name]);
         [frame_time, zoom, n_chans, PMT_offsets] = SI_tif_info(stack_obj);
         
-        
+       
         %loading extracted raw fluorescence data matrices written by raw_dff_extractor
         raw_data_mat = load([curr_dir 'extracted_raw_data_mat.mat']);
         raw_data_mat = raw_data_mat.raw_data_mat;           %raw F traces extracted from ROIs

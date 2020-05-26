@@ -30,7 +30,7 @@ for list_n = 1:size(dataset_list_paths, 1)
     n_dirs = size(dir_list, 1);
     dataset_list_name = findstr(curr_dir_list_path, 'dataset_list');
     dataset_list_name = curr_dir_list_path((dataset_list_name + 13):(end - 4));
-    %dataset_list_name = 'KC_long_trace';    %REMOVE THIS LINE
+    dataset_list_name = 'KC_long_trace';    %REMOVE THIS LINE
    
     
     for dir_n = 1:n_dirs
@@ -121,7 +121,6 @@ for list_n = 1:size(dataset_list_paths, 1)
             else
             end
         end
-       
         %calculating dF/F traces from raw data
         filt_time = 0.2;            %in s, the time window for boxcar filter for generating filtered traces
         [dff_data_mat, dff_data_mat_f] = cal_dff_traces_res(raw_data_mat, stim_mat, frame_time, filt_time, curr_dir);
