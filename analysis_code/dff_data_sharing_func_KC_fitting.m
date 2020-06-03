@@ -13,7 +13,7 @@ dataset_list_paths = [%{'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Y
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_KC_c739_PABAEL_201908set.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_KC_d5HT1b_PABAEL_201908set.xls'}...                      
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_MBONG2_PaBaEl_handover_starved_halfAra_prehabituated_strongUS.xls'};...
-                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_c739KC_PaBaEl_handover_prehabituated.xls'};...
+                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_c739KC_PaBaEl_handover_prehabituated_trimmed.xls'};...
                       ];
 
 dataset_type = 3; %2 - manualROI, 3 - Suite2P
@@ -85,7 +85,10 @@ for list_n = 1:size(dataset_list_paths, 1)
         
         dur_olf1_col_n = find_stim_mat_simple_col('duration', column_heads);        %identifying relevant column number in stim_mat_simple
         dur_olf2_col_n = find_stim_mat_simple_col('duration_olf2', column_heads);   %identifying relevant column number in stim_mat_simple
-                
+        
+        raw_data_mat_orig = raw_data_mat;
+        stim_mat_orig = stim_mat;
+        
         %step1: Getting rid of all trials that aren't single-odor, single-pulse trials.
         db_od_trs = find(stim_mat_simple(:, dur_olf1_col_n) > 0.1 & stim_mat_simple(:, dur_olf2_col_n) > 0);   %dur_olf1 == 0.1 is just a place-holder, no stim actually delivered on olf_1.
         [raw_data_mat, stim_mat, stim_mat_simple, tr_list] = remove_trs(db_od_trs, raw_data_mat, stim_mat, stim_mat_simple, tr_list);         %removing trs with two odors delivered in the same trial
@@ -124,6 +127,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         %calculating dF/F traces from raw data
         filt_time = 0.2;            %in s, the time window for boxcar filter for generating filtered traces
         [dff_data_mat, dff_data_mat_f] = cal_dff_traces_res(raw_data_mat, stim_mat, frame_time, filt_time, curr_dir);
+        [dff_data_mat_orig, dff_data_mat_f_orig] = cal_dff_traces_res(raw_data_mat_orig, stim_mat_orig, frame_time, filt_time, curr_dir);
         
         %saving stuff for sharing data
         share_path_base = 'C:\Data\Data\Analysed_data\data_sharing\';
@@ -134,6 +138,8 @@ for list_n = 1:size(dataset_list_paths, 1)
         save([share_path, '\stim_mat.mat'], 'stim_mat');
         save([share_path, '\path_orig.mat'], 'curr_dir');
         save([share_path, '\tr_list.mat'], 'tr_list');
+        save([share_path, '\dff_data_mat_orig.mat'], 'dff_data_mat_f_orig');
+        save([share_path, '\stim_mat_orig.mat'], 'stim_mat_orig');
         
     end
     

@@ -18,6 +18,7 @@ del = find(odor_dur_list == 0);
 odor_dur_list(del) = [];
 del = find(isnan(odor_dur_list) == 1);
 odor_dur_list(del) = [];
+odor_dur_list(odor_dur_list == 0.1) = [];
 n_odor_durs = length(odor_dur_list);
 
 try

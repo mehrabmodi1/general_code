@@ -3,14 +3,14 @@ close all
 
 path_base = 'C:\Data\Data\Analysed_data\data_sharing\KC_long_trace\';
 
-n_flies = 5;
+n_flies = 4;
 frame_time = 0.0999;    %in s
 
 
 model_traces_all = [];
 resp_traces_all = [];
 cell_params_all = [];
-for fly_n = 2:n_flies
+for fly_n = 1:n_flies
     an_path = [path_base, 'fly', num2str(fly_n), '\'];
     
     %reading in KC response params fitted with Herve's program
@@ -78,8 +78,14 @@ add_stim_bar(fig_h2, stim_frs, [0.65, 0.65, 0.65]);
 
 
 %plotting fit param distribution for off decay time or t3
-t3_vec = cell_params_all(8, :).*frame_time;         %multiplying by frame time to convert from n_frames to s
-hist(t3_vec);
+fig_h3 = figure('Name', 'distribution of decay taus3');      
+t3_vec = cell_params_all(8, :);         %multiplying by frame time to convert from n_frames to s
+histogram(t3_vec);
+
+%plotting fit param distribution for off decay time or t2
+fig_h4 = figure('Name', 'distribution of decay taus2');      
+t3_vec = cell_params_all(7, :);         %multiplying by frame time to convert from n_frames to s
+histogram(t3_vec);
 
 
 function [model_traces, resp_traces, cell_params, stim_frs] = get_fit_traces(curr_trs, stim_mat, od_list_olf1, fit_params, frame_time, dff_data_mat, sig_cell_mat)
@@ -140,7 +146,7 @@ function [model_trace, stim_frs] = fit_KC_response(curr_train, curr_cell_params,
     for pulse_n = 1:n_pulses
         curr_model_trace = zeros(n_frames, 1);
         curr_pulse = curr_train(pulse_n, :);
-        curr_train_time = sum(sum(curr_train(1:(curr_pulse - 1), :)));
+        curr_train_time = sum(sum(curr_train(1:(pulse_n - 1), :)));
         on_time = stim_latency + curr_train_time + curr_pulse(1, 1);                       %time from beginning of train to onset of current pulse
         off_time = on_time + curr_pulse(1, 2);   %time from beginning of train to off of current pulse
 
@@ -171,7 +177,7 @@ function [model_trace, stim_frs] = fit_KC_response(curr_train, curr_cell_params,
 %         plot_fit_trace(1, curr_resp_trace, curr_model_trace, stim_frs, frame_time);
 %         keyboard
 %         close figure 1
-        
+      
         
     end
     
