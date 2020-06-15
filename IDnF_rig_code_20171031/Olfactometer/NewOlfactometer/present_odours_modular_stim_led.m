@@ -194,7 +194,9 @@ for trial_n = start_tr:n_trials
         isi = params_mat(trial_n).isi;
         if isi < (tot_tr_dur + (od_inj_dur - stimLatency))
             disp('isi is shorter than odor train for olf1 or olf2, make it longer')
-            keyboard
+            isi = (tot_tr_dur + (od_inj_dur - stimLatency)) + 2;
+            params_mat(trial_n).isi = isi;
+            
         else
         end
         
@@ -329,8 +331,8 @@ for trial_n = start_tr:n_trials
     %flipping shuttle valve to deliver odor pulse(s)
     disp('odor being delivered...')
     for r_pulse_n = 1:size(pulse_train, 1)
-        keyboard
-        if pulse_train(r_pulse_n, 2) > 0.1        %condition to skip olf1 when only olf2 pulses are being presented.
+        
+        if pulse_train(r_pulse_n, 2) > 0.2        %condition to skip olf1 when only olf2 pulses are being presented.
             
             pause(pulse_train(r_pulse_n, 1));
             FlipValve_EP('Final',0)        
