@@ -51,6 +51,7 @@ def gen_optifunc(stim_lat, stim_dur):
             a3 * np.exp(-(t - stim_lat - stim_dur) / t2)
             + (end1 - a3) * np.exp(-(t - stim_lat - stim_dur) / t3)
         )
+        
         return out
 
     def frac_longt(a0, a1, a2, a3, t0, t1, t2, t3):
@@ -106,6 +107,7 @@ def gen_optifunc(stim_lat, stim_dur):
 
 
 def train(activity, stim_lat, stim_dur, fold_fit):
+    
     """ performing the fit
     Parameters
     ----------
@@ -163,7 +165,7 @@ def train(activity, stim_lat, stim_dur, fold_fit):
 
             ax[i].plot(times[:-1], activity[i, j, :-1])
             ax[i].plot(times[:-1], f_kc(times[:-1], *popt))
-
+            
         fig.tight_layout()
         fig.savefig(os.path.join(fold_fit, "cell{}.svg".format(j)))
 
@@ -215,6 +217,7 @@ def dataset_analysis(activity, odor, nonan, param, fold_fit):
     odor_long = odor[i_stilong]
     logging.info("odors for the long stimuli: %s", odor_long)
     acti_perodor = np.zeros((3, activity.shape[1], activity.shape[2]))
+    
     acti_perodor[0, ...] = np.mean(activity[odor_long == 0], axis=0)
     acti_perodor[1, ...] = np.mean(activity[odor_long == 1], axis=0)
     acti_perodor[2, ...] = np.mean(activity[odor_long == 2], axis=0)
@@ -312,8 +315,8 @@ def main():
 
     for lobe in ['Gamma', 'AlphaBeta']:
         for fly in range(1, 4):
-            act_fn = "{}/fly{}/dFF_data.mat".format(lobe, fly)
-            para_fn = "{}/fly{}/stim_mat".format(lobe, fly)
+            act_fn = "C:/Data/Data/Analysed_data/data_sharing/KC_param_fitting_sandbox/{}/fly{}/dFF_data.mat".format(lobe, fly)
+            para_fn = "C:/Data/Data/Analysed_data/data_sharing/KC_param_fitting_sandbox/{}/fly{}/stim_mat".format(lobe, fly)
             activity = io.loadmat(act_fn)['dff_data_mat_f'].T
             nonan = ~np.isnan(activity[:, :, 0:400]).any(axis=(1, 2))
             activity = activity[nonan, ...]
@@ -325,7 +328,7 @@ def main():
             odor[odor == 10] = 1
             odor[odor == 11] = 2
 
-            folder_fit = "fits_{}_fly{}".format(lobe, fly)
+            folder_fit = "C:/Data/Data/Analysed_data/data_sharing/KC_param_fitting_sandbox/fits_{}_fly{}".format(lobe, fly)
             pathlib.Path(folder_fit).mkdir(exist_ok=True)
             dataset_analysis(activity, odor, nonan, params, folder_fit)
 

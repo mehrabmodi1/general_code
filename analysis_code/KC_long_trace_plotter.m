@@ -109,8 +109,6 @@ for list_n = 1:size(dataset_list_paths, 1)
         dff_data_mat_f(del) = -1;       %forcing crazy values to sane ones
         
        
-
-        
         %identifying stim_mat_simple col numbers
         led_on_col_n = find_stim_mat_simple_col('led_on', column_heads);            %identifying relevant column number in stim_mat_simple
         od_olf1_col_n = find_stim_mat_simple_col('odor_n', column_heads);           %identifying relevant column number in stim_mat_simple

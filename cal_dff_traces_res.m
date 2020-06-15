@@ -64,11 +64,9 @@ for trial_n = 1:n_trials
     end
     baseline_mat = repmat(baseline_vec, n_frames, 1);
     dff_mat = (raw_mat - baseline_mat)./baseline_mat;
-    b_vec = zeros(1, round(filt_time./frame_time)) + 1;
-    a_vec = round(1./frame_time);
-    
+    box_frs = ceil(filt_time./frame_time);   
     try
-        dff_mat_f = filter(b_vec, a_vec, dff_mat, [], 1);
+        dff_mat_f = movmean(dff_mat, box_frs);
     catch
         keyboard
     end

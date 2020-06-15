@@ -1,4 +1,4 @@
-function [resp_sizes, sig_trace_mat, sig_trace_mat_old, sig_cell_mat, resp_areaundercurves] = cal_sig_responses_res_modular(dff_data_mat, stim_mat_struc, stim_mat_simple, direc, frame_time, od_col_ns, dur_col_ns)
+function [resp_sizes, sig_trace_mat, sig_trace_mat_old, sig_cell_mat, resp_areaundercurves] = cal_sig_responses_res_modular(dff_data_mat, stim_mat_struc, stim_mat_simple, frame_time, od_col_ns, dur_col_ns)
 %This function takes as inputs, the 3-D dff_data_mat that contains dF/F traces stored
 %by frame_n, cell_n, trial_n and odor_n; and stim_mat which contains
 %stimulus delivery information for each trial. The outputs are three 2D
@@ -39,10 +39,10 @@ stim_mat_simple(del, od_col_ns(2)) = 0;
 resp_sizes = zeros(n_cells, n_trials) + nan;
 resp_areaundercurves = zeros(n_cells, n_trials) + nan;
 sig_trace_mat = zeros(n_cells, n_trials);
-sig_cell_mat = zeros(n_cells, 12, n_odor_durs);
+sig_cell_mat = zeros(n_cells, 16, n_odor_durs);
 
 sig_trace_mat_old = zeros(n_cells, n_trials);
-sig_cell_mat_old = zeros(n_cells, 12, n_odor_durs);
+sig_cell_mat_old = zeros(n_cells, 16, n_odor_durs);
 
 
 n_rep_gps = length(odor_list).*length(odor_dur_list);   %number of odor-dur pairs with sets of repeats
@@ -137,7 +137,7 @@ for rep_gp = 1:n_rep_gps                %a rep_gp is a group of repeats of the s
 %                 plot(ave_trace, 'k', 'LineWidth', 2)
 %                 hold off
 %                 keyboard
-                
+%                 
             else
                 
             end

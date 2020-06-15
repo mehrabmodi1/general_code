@@ -15,11 +15,12 @@ dataset_list_paths = [...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_MBONG2_PaBaEl_handover_starved_halfAra_prehabituated.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_MBONG2_PaBaEl_handover_starved_halfAra_prehabituated_strongUS.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_MBONG2_PaBaEl_handover_starved_halfAra_prehabituated_strongUS_EL_handover.xls'};...
-                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_MBONG2_PaBaEl_handover_starved_halfAra_prehabituated_strongUS_EL_second.xls'};...
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_MBONG2_PaBaEl_handover_starved_halfAra_prehabituated_strongUS_EL_second.xls'};...
+                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_c739KC_PaBaEl_handover_prehabituated.xls'};...
                       
                       ];
             
-suppress_plots = 0;
+suppress_plots = [];
 [del, odor_names1] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList.xls', 1);
 [del, odor_names2] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList_olf2.xls', 1);
 odor_names2{3} = 'Butyl acetate';
@@ -33,7 +34,8 @@ script_name = mfilename;
 
 y_ax_traces = 0.8;
 y_ax_fit_traces = 0.6;
-
+saved_long_traces = 0;
+all_sig_frs = [];
 for list_n = 1:size(dataset_list_paths, 1)
     curr_dir_list_path = dataset_list_paths{list_n, 1};
     [del, dir_list] = xlsread(curr_dir_list_path, 1);        %list of Suite2P results directories
@@ -43,31 +45,26 @@ for list_n = 1:size(dataset_list_paths, 1)
     
     
     %loop to go through all experiment datasets listed in list file
-    all_saved_mean_traces_simple = [];
-    all_saved_mean_traces_transition = [];
+    saved_resps_hover = [];
+    saved_resps_simple = [];
+    saved_mean_traces_simple = [];
+    saved_mean_traces_transition = [];
     
     
     for dir_n = 1:n_dirs
         fly_n = fly_n + 1;
-        
-        saved_mean_traces_simple_pre = [];
-        saved_mean_traces_simple_post = [];
-        saved_mean_traces_transition_pre = [];
-        saved_mean_traces_transition_post = [];
-        
+              
+        saved_an_results.scriptname = mfilename('fullpath');
         curr_dir = [dir_list{dir_n, 1}, '\'];
-        curr_dir = manage_base_paths(curr_dir, 2);
+        curr_dir = manage_base_paths(curr_dir, 3);
+        curr_dir = [curr_dir, '\1\'];
        
         tif_times = load([curr_dir, 'tif_time_stamps.mat']);           %reading in time stamps for each tif file recorded by raw_data_extracter
         tif_times = tif_times.time_stamps;
         [stim_mat, stim_mat_simple, column_heads, color_vec, good_tr_list, params_orig] = load_params_trains_modular(curr_dir, tif_times);    %reading in trial stimulus parameters after matching time stamps to F traces
-        paired_color = color_vec(2, :);
-        unpaired_color = color_vec(1, :);
+        PA_color = color_vec(1, :);
+        BA_color = PA_color.*0.6;
         EL_color = color_vec(3, :);
-        
-        stim_mat_simple_nonans = stim_mat_simple;
-        stim_mat_simple_nonans(isnan(stim_mat_simple)) = 0;
-        
         
         %Reading in experimental parameters
         odor_list_olf1 = unique(stim_mat_simple(:, 1) );
@@ -106,17 +103,14 @@ for list_n = 1:size(dataset_list_paths, 1)
         n_cells = size(raw_data_mat, 2);
         
         %calculating dF/F traces from raw data
-        filt_time = 0.2;            %in s, the time window for boxcar filter for generating filtered traces
+        filt_time = .5;            %in s, the time window for boxcar filter for generating filtered traces
         [dff_data_mat, dff_data_mat_f] = cal_dff_traces_res(raw_data_mat, stim_mat, frame_time, filt_time, curr_dir);
         
-        if size(dff_data_mat, 2) > 1
-            dff_data_mat = mean(dff_data_mat, 2, 'omitnan');
-            dff_data_mat_f = mean(dff_data_mat_f, 2, 'omitnan');
-        else
-        end
+        
         del = find(dff_data_mat_f < -1);
         dff_data_mat_f(del) = -1;       %forcing crazy values to sane ones
         
+       
         %identifying stim_mat_simple col numbers
         led_on_col_n = find_stim_mat_simple_col('led_on', column_heads);            %identifying relevant column number in stim_mat_simple
         od_olf1_col_n = find_stim_mat_simple_col('odor_n', column_heads);           %identifying relevant column number in stim_mat_simple
@@ -129,100 +123,36 @@ for list_n = 1:size(dataset_list_paths, 1)
         od_durs(isnan(od_durs)) = [];
         odn_list_olf2 = unique(stim_mat_simple(:, od_col_ns(2)));
         odn_list_olf2(isnan(odn_list_olf2)) = [];
+        odn_list_olf1 = unique(stim_mat_simple(:, od_col_ns(1)));
         
-        
-        %identifying relevant odor numbers for each olfactometer
-        pairing_tr_n = find(stim_mat_simple(:, led_on_col_n) == 1);        
-        
-        paired_od_n_olf2 = stim_mat_simple(pairing_tr_n, od_olf2_col_n);    %paired odor is always an olf2 odor        
-        paired_od_name = odor_names2{paired_od_n_olf2};
-        paired_od_n_olf1 = od_name_lookup(odor_names1, paired_od_name); 
-
-        %if paired odor is PA, unpaired odor must be BA or vice versa
-        unpaired_od_n_olf2 = [1, 3];
-        [del, deli] = intersect(unpaired_od_n_olf2, paired_od_n_olf2);
-        unpaired_od_n_olf2(deli)= [];
-        unpaired_od_name = odor_names2{unpaired_od_n_olf2};
-        unpaired_od_n_olf1 = od_name_lookup(odor_names1, unpaired_od_name); 
-        
+        %replacing Nans in stim_mat_simple's od_n_olf2 column with zeroes
+        del = isnan(stim_mat_simple(:, od_col_ns(2)));
+        del = find(del == 1);
+        stim_mat_simple(del, od_col_ns(2)) = 0;
+       
+        [resp_sizes, sig_trace_mat, sig_trace_mat_old, sig_cell_mat, resp_areaundercurves] = cal_sig_responses_res_modular(dff_data_mat, stim_mat, stim_mat_simple, curr_dir, frame_time, od_col_ns, dur_col_ns);
         
         y_ax_lim = [];
-        plot_means = 1;
-        %plotting and quantifying
-        %1. transition trials, paired-unpaired
-        [mean_trace_pre, mean_trace_post] = plot_hover_traces(paired_od_n_olf1, unpaired_od_n_olf2, unpaired_od_name, paired_color, unpaired_color, 1,...
-            stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr_n, y_ax_lim, plot_means, suppress_plots);
-        if isempty(mean_trace_pre) == 0
-            saved_mean_traces_transition_pre = pad_n_concatenate(saved_mean_traces_transition_pre, mean_trace_pre, 2, nan);
-            saved_mean_traces_transition_post = pad_n_concatenate(saved_mean_traces_transition_post, mean_trace_post, 2, nan);
-        else
-        end
-            
-        %2. transition trials, unpaired-paired
-        [mean_trace_pre, mean_trace_post] = plot_hover_traces(unpaired_od_n_olf1, paired_od_n_olf2, paired_od_name, unpaired_color, paired_color, 2,...
-            stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr_n, y_ax_lim, plot_means, suppress_plots);
-        if isempty(mean_trace_pre) == 0
-            saved_mean_traces_transition_pre = pad_n_concatenate(saved_mean_traces_transition_pre, mean_trace_pre, 2, nan);
-            saved_mean_traces_transition_post = pad_n_concatenate(saved_mean_traces_transition_post, mean_trace_post, 2, nan);
-        else
-        end
         
-        %3. transition trials, EL-paired
-        [mean_trace_pre, mean_trace_post] = plot_hover_traces(11, paired_od_n_olf2, paired_od_name, EL_color, paired_color, 3,...
-            stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr_n, y_ax_lim, plot_means, suppress_plots);
-        if isempty(mean_trace_pre) == 0
-            saved_mean_traces_transition_pre = pad_n_concatenate(saved_mean_traces_transition_pre, mean_trace_pre, 2, nan);
-            saved_mean_traces_transition_post = pad_n_concatenate(saved_mean_traces_transition_post, mean_trace_post, 2, nan);
-        else
-        end
-        
-        %4. transition trials, EL-unpaired
-        [mean_trace_pre, mean_trace_post] = plot_hover_traces(11, unpaired_od_n_olf2, unpaired_od_name, EL_color, unpaired_color, 4,...
-            stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr_n, y_ax_lim, plot_means, suppress_plots);
-        if isempty(mean_trace_pre) == 0
-            saved_mean_traces_transition_pre = pad_n_concatenate(saved_mean_traces_transition_pre, mean_trace_pre, 2, nan);
-            saved_mean_traces_transition_post = pad_n_concatenate(saved_mean_traces_transition_post, mean_trace_post, 2, nan);
-        else
-        end
-        
-        %5. transition trials, paired-EL
-        [mean_trace_pre, mean_trace_post] = plot_hover_traces(paired_od_n_olf1, 4, 'Ethyl lactate', paired_color, EL_color, 5,...
-            stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr_n, y_ax_lim, plot_means, suppress_plots);
-        if isempty(mean_trace_pre) == 0
-            saved_mean_traces_transition_pre = pad_n_concatenate(saved_mean_traces_transition_pre, mean_trace_pre, 2, nan);
-            saved_mean_traces_transition_post = pad_n_concatenate(saved_mean_traces_transition_post, mean_trace_post, 2, nan);
-        else
-        end
-        
-        %6. transition trials, unpaired-EL
-        [mean_trace_pre, mean_trace_post] = plot_hover_traces(unpaired_od_n_olf1, 4, 'Ethyl lactate', unpaired_color, EL_color, 6,...
-            stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr_n, y_ax_lim, plot_means, suppress_plots);
-        if isempty(mean_trace_pre) == 0
-            saved_mean_traces_transition_pre = pad_n_concatenate(saved_mean_traces_transition_pre, mean_trace_pre, 2, nan);
-            saved_mean_traces_transition_post = pad_n_concatenate(saved_mean_traces_transition_post, mean_trace_post, 2, nan);
-        else
-        end
-        
-        
-        
-        
-        
-        
-        
+        %1. simple trials, PA, olf1
+        [mean_trace_pre, mean_trace_post] = plot_simple_traces(3, [], 'Pentyl acetate', PA_color, fign,...
+            stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, y_ax_lim, 1, suppress_plots);
+       
         
         keyboard
-        close all
-        
-        all_saved_mean_traces_transition_pre = pad_n_concatenate(all_saved_mean_traces_transition_pre, saved_mean_traces_transition_pre, 3, nan);
-        all_saved_mean_traces_transition_post = pad_n_concatenate(all_saved_mean_traces_transition_post, saved_mean_traces_transition_post, 3, nan);
-        
+                
     end
     
 
 end
 
+
+
+
+%---------------------------------
+%worker functions
 function [mean_trace_pre, mean_trace_post] = plot_hover_traces(olf1_odn, olf2_odn, od2_name, od1_color, od2_color, fign,...
-    stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr, y_ax_lim, plot_means, suppress_plots)
+    stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, y_ax_lim, plot_means, suppress_plots)
 frame_time = 0.099;
 
 %identifying current trials
@@ -230,12 +160,6 @@ curr_trs = find(stim_mat_simple(:, od_col_ns(1)) == olf1_odn & stim_mat_simple(:
     & stim_mat_simple(:, od_col_ns(2)) == olf2_odn & stim_mat_simple(:, dur_col_ns(2)) == 10);
 
 %case where current od1-od2 transition isn't part of the dataset
-if isempty(curr_trs) == 1
-    mean_trace_pre = [];
-    mean_trace_post = [];
-    return
-else
-end
 
 curr_trs_pre = curr_trs(curr_trs < pairing_tr);
 curr_trs_post = curr_trs(curr_trs > pairing_tr);
@@ -285,19 +209,26 @@ end
 
 
 function [mean_trace_pre, mean_trace_post] = plot_simple_traces(olf1_odn, olf2_odn, od_name, od_color, fign,...
-    stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr, y_ax_lim, plot_means, suppress_plots)
+    stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, y_ax_lim, plot_means, suppress_plots)
 frame_time = 0.099;
 
 if isempty(olf1_odn) == 1
-    olfn = 2;
+    olf_n = 2;
+    olf_n_other = 1;
+    od_n = olf2_odn;
 elseif isempty(olf2_odn) == 1
     olf_n = 1;
+    olf_n_other = 2;
+    od_n = olf1_odn;
 else
 end
 
+stim_mat_simple_nonans = stim_mat_simple;
+stim_mat_simple_nonans(isnan(stim_mat_simple_nonans)) = 0;
+
 %identifying current trials
-curr_trs = find(stim_mat_simple(:, od_col_ns(olfn)) == olf1_odn & stim_mat_simple(:, dur_col_ns(olf_n)) == 10 ...
-    & stim_mat_simple_(:, od_col_ns(2)) == 0 & stim_mat_simple(:, dur_col_ns(2)) == 10);
+curr_trs = find(stim_mat_simple(:, od_col_ns(olf_n)) == od_n & stim_mat_simple(:, dur_col_ns(olf_n)) == 10 ...
+    & stim_mat_simple_nonans(:, dur_col_ns(olf_n_other)) < 1);
 
 %case where current od1-od2 transition isn't part of the dataset
 if isempty(curr_trs) == 1
@@ -307,33 +238,25 @@ if isempty(curr_trs) == 1
 else
 end
 
-curr_trs_pre = curr_trs(curr_trs < pairing_tr);
-curr_trs_post = curr_trs(curr_trs > pairing_tr);
-
-curr_traces_pre = squeeze(dff_data_mat_f(:, :, curr_trs_pre));
-curr_traces_post = squeeze(dff_data_mat_f(:, :, curr_trs_post));
-mean_trace_pre = mean(curr_traces_pre, 2, 'omitnan');
-mean_trace_post = mean(curr_traces_post, 2, 'omitnan');
+curr_traces = squeeze(dff_data_mat_f(:, :, curr_trs_pre));
+mean_trace = mean(curr_traces, 2, 'omitnan');
 
 if suppress_plots == 0
     stim_frs = compute_stim_frs_modular(stim_mat, curr_trs(1), frame_time);
-    stim_frs = [stim_frs{1}; stim_frs{2}]; 
+    stim_frs = stim_frs{olf_n}; 
     figure(fign)
 
     if plot_means == 1
-        plot(mean_trace_pre, 'lineWidth', 2.5, 'Color', [0.65, 0.65, 0.65]);
-        hold on
-        plot(mean_trace_post, 'lineWidth', 2.5, 'Color', [0, 0, 0]);
-        plot(curr_traces_pre, 'lineWidth', 0.5, 'Color', [0.65, 0.65, 0.65]);
-        plot(curr_traces_post, 'lineWidth', 0.5, 'Color', [0, 0, 0]);
+        plot(mean_trace, 'lineWidth', 2.5, 'Color', [0.65, 0.65, 0.65]);
+        plot(curr_traces, 'lineWidth', 0.5, 'Color', [0.65, 0.65, 0.65]);
+        
     elseif plot_means == 0
-        plot(curr_traces_pre, 'lineWidth', 0.5, 'Color', [0.65, 0.65, 0.65]);
-        hold on
-        plot(curr_traces_post, 'lineWidth', 0.5, 'Color', [0, 0, 0]);
+        plot(curr_traces, 'lineWidth', 0.5, 'Color', [0.65, 0.65, 0.65]);
+        
     else
     end
     hold off
-    ylabel([od2_name, ' responses (\DeltaF/F)']);
+    ylabel([od_name, ' responses (\DeltaF/F)']);
     
     if isempty(y_ax_lim) == 0
         ax_vals = axis;
@@ -344,7 +267,7 @@ if suppress_plots == 0
     
     set_xlabels_time(fign, frame_time, 10);
     fig_wrapup(fign, []);
-    add_stim_bar(fign, stim_frs, [od1_color; od2_color]);
+    add_stim_bar(fign, stim_frs, od_color);
 
 elseif suppress_plots == 1
 else
