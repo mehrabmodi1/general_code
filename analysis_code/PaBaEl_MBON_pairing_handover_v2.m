@@ -13,9 +13,10 @@ dataset_list_paths = [...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_MBONG2_PaBaEl_handover_starved36_halfAra.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_MBONG2_PaBaEl_handover_starved_halfAra.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_MBONG2_PaBaEl_handover_starved_halfAra_prehabituated.xls'};...
-                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_MBONG2_PaBaEl_handover_starved_halfAra_prehabituated_strongUS.xls'};...
+                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_MBONG2_PaBaEl_handover_starved_halfAra_prehabituated_strongUS.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_MBONG2_PaBaEl_handover_starved_halfAra_prehabituated_strongUS_EL_handover.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_MBONG2_PaBaEl_handover_starved_halfAra_prehabituated_strongUS_EL_second.xls'};...
+                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_starved_halfAra_prehabituated_noLED_control.xls'};...
                       
                       ];
             
@@ -98,7 +99,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         %mean_color = [0.5, 0.83, 0.98];
         %mean_color = [149, 200, 216]./256;
         mean_color = ([0, 49, 152]./256).*1.5;
-        
+        keyboard
         stim_mat_simple_nonans = stim_mat_simple;
         stim_mat_simple_nonans(isnan(stim_mat_simple)) = 0;
         
@@ -171,8 +172,15 @@ for list_n = 1:size(dataset_list_paths, 1)
         
         %identifying relevant odor numbers for each olfactometer
         pairing_tr_n = find(stim_mat_simple(:, led_on_col_n) == 1);        
+        if isempty(pairing_tr_n) == 1   %no LED control dataset
+            %identifying habituation trials, if any
+            n_hab_trs = length(find(stim_mat_simple(:, dur_olf1_col_n) == 20));
+            n_hab_trs = n_hab_trs + length(find(stim_mat_simple(:, dur_olf2_col_n) == 20));
+            pairing_tr_n = ((size(stim_mat, 2) - n_hab_trs) - 2)./2 + 1 + n_hab_trs;
+        else
+        end        
         
-        paired_od_n_olf2 = stim_mat_simple(pairing_tr_n, od_olf2_col_n);    %paired odor is always an olf2 odor        
+        paired_od_n_olf2 = stim_mat_simple(pairing_tr_n, od_olf2_col_n);    %paired odor is always an olf2 odor
         paired_od_name = odor_names2{paired_od_n_olf2};
         paired_od_n_olf1 = od_name_lookup(odor_names1, paired_od_name); 
 
