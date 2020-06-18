@@ -132,13 +132,11 @@ function [params, params_spec]=setUpStimuli_modular(params)
             for mean_rand_dur_n = 1:n_mean_rand_pulse_durs
                 mean_rand_dur_ni = mean_rand_pulse_durs(mean_rand_dur_n);
                 curr_row_list = find(param_mat(:, 1) == curr_duration & param_mat(:, 13) == rand_train_n & param_mat(:, 10) == mean_rand_dur_ni);
-                if size(curr_row_list, 1) > 0
-                    row_lists = [row_lists; {curr_row_list}];       %these are lists of trials that should have a given pulse timing train - random or simple
-                else
-                end
+                row_lists = [row_lists; {curr_row_list}];       %these are lists of trials that should have a given pulse timing train - random or simple
             end
         end
     end
+    
     %generating lists of rows or trials with the same pulse train (list of on-off timings) before converting param_mat to a cell array
     n_durations = length(params.duration_olf2);
     n_rand_trains = params.n_rand_trains_olf2;
@@ -158,7 +156,7 @@ function [params, params_spec]=setUpStimuli_modular(params)
     param_mat_orig = param_mat;
     param_mat = num2cell(param_mat);                        %converting to cell array in order to be able to handle stimulus trains
      
-   
+    
     
     
     %generating random pulse trains or simple trains and inserting them into the param_mat cell array at the appropriate train number for olf1
@@ -184,6 +182,7 @@ function [params, params_spec]=setUpStimuli_modular(params)
         end
         
     elseif params.rand_trains == 0                %for case with simple trains, inserting trains of a single pulse of length equal to duration
+      
         for duration_n = 1:n_durations
             curr_duration = params.duration(duration_n);
             curr_trs = row_lists{duration_n};    %list of rows in param_mat into which current train needs to be inserted
@@ -225,7 +224,7 @@ function [params, params_spec]=setUpStimuli_modular(params)
         n_mean_rand_pulse_durs = length(mean_rand_pulse_durs);    
         r_train_counter = 1;
         for duration_n = 1:n_durations
-            curr_duration = params.duration_olf2(duration_n);
+            curr_duration = params.duration(duration_n);
             for rand_train_n = 1:n_rand_trains
                 for mean_rand_pulse_dur_n = 1:n_mean_rand_pulse_durs
                    mean_rand_pulse_dur_ni = mean_rand_pulse_durs(mean_rand_pulse_dur_n);

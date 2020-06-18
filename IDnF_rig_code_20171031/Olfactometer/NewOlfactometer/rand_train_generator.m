@@ -9,12 +9,23 @@ function [train] = rand_train_generator(train_dur, mean_dur, min_pulse_dur, max_
 % max_pulse_dur = 10;
 % mean_dur = 2;          %in s, the mean pulse duration
 
+off_dur = 6;        %mean inter-rpulse-interval
+
 %building a reference distribution of pulse durations to draw from 
 prob_dist = exprnd(mean_dur, 10000, 1);  %un-sorted, exp distributed random pulse-durs
 del = find(prob_dist < min_pulse_dur);
 prob_dist(del) = [];                    
 del = find(prob_dist > max_pulse_dur);
 prob_dist(del) = [];                    
+
+
+%building a reference distribution of pulse durations to draw from for off
+%pulses
+prob_dist = exprnd(off_dur, 10000, 1);  %un-sorted, exp distributed random pulse-durs
+del = find(prob_dist < min_pulse_dur);
+prob_dist(del) = [];                    
+del = find(prob_dist > max_pulse_dur);
+prob_dist(del) = [];               
 
 %hist(prob_dist)
 

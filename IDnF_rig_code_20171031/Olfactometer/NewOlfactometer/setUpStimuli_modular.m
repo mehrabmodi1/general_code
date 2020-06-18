@@ -132,7 +132,11 @@ function [params, params_spec]=setUpStimuli_modular(params)
             for mean_rand_dur_n = 1:n_mean_rand_pulse_durs
                 mean_rand_dur_ni = mean_rand_pulse_durs(mean_rand_dur_n);
                 curr_row_list = find(param_mat(:, 1) == curr_duration & param_mat(:, 13) == rand_train_n & param_mat(:, 10) == mean_rand_dur_ni);
-                row_lists = [row_lists; {curr_row_list}];       %these are lists of trials that should have a given pulse timing train - random or simple
+               
+                if size(curr_row_list, 1) >= 1
+                    row_lists = [row_lists; {curr_row_list}];       %these are lists of trials that should have a given pulse timing train - random or simple
+                else
+                end
             end
         end
     end
@@ -149,14 +153,16 @@ function [params, params_spec]=setUpStimuli_modular(params)
             for mean_rand_dur_n = 1:n_mean_rand_pulse_durs
                 mean_rand_dur_ni = mean_rand_pulse_durs(mean_rand_dur_n);
                 curr_row_list = find(param_mat(:, 14) == curr_duration & param_mat(:, 21) == rand_train_n & param_mat(:, 19) == mean_rand_dur_ni);
-                row_lists_olf2 = [row_lists_olf2; {curr_row_list}];       %these are lists of trials that should have a given pulse timing train - random or simple
+                if size(curr_row_list, 1) > 0
+                    row_lists_olf2 = [row_lists_olf2; {curr_row_list}];       %these are lists of trials that should have a given pulse timing train - random or simple
+                else
+                end
             end
         end
     end
     param_mat_orig = param_mat;
     param_mat = num2cell(param_mat);                        %converting to cell array in order to be able to handle stimulus trains
      
-    
     
     
     %generating random pulse trains or simple trains and inserting them into the param_mat cell array at the appropriate train number for olf1
@@ -185,6 +191,7 @@ function [params, params_spec]=setUpStimuli_modular(params)
       
         for duration_n = 1:n_durations
             curr_duration = params.duration(duration_n);
+            
             curr_trs = row_lists{duration_n};    %list of rows in param_mat into which current train needs to be inserted
             
             for tr_n = 1:length(curr_trs)
@@ -224,7 +231,7 @@ function [params, params_spec]=setUpStimuli_modular(params)
         n_mean_rand_pulse_durs = length(mean_rand_pulse_durs);    
         r_train_counter = 1;
         for duration_n = 1:n_durations
-            curr_duration = params.duration(duration_n);
+            curr_duration = params.duration_olf2(duration_n);
             for rand_train_n = 1:n_rand_trains
                 for mean_rand_pulse_dur_n = 1:n_mean_rand_pulse_durs
                    mean_rand_pulse_dur_ni = mean_rand_pulse_durs(mean_rand_pulse_dur_n);

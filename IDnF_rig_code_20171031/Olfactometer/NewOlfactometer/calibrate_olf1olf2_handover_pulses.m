@@ -16,9 +16,22 @@ params_spec.duration = 10;
 params_spec.duration_olf2 = 10;
 params_spec.rel_stimLatency_olf2 = 10;
 params_spec.isi = 60;
-params_spec.post_odour_scan_dur = 0;
+params_spec.post_od_scan_dur = 2;
+curr_path = curr_aq_direc;
+if exist([curr_path, 'PID_trace_tr-1.mat']) == 2
+    delete([curr_path, 'PID_trace_tr-1.mat']);
+else
+end
 
 present_odours_modular_stim_led(params_spec, 0)
+
+%loading and plotting PID trace
+
+curr_trs = 1;
+traces = get_PID_traces(curr_path, curr_trs, 0.1, 1);
+figure(1)
+plot(traces);
+set_xlabels_time(1, 0.1, 10);
 
 %loading in matrix of manually calibrated olf1_olf2 delays for various odor pairs
 olf1_olf2_delay_mat = load('E:\Turner lab\Bitbucket_repos\general_code\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\olf1_olf2_delay_mat.mat');

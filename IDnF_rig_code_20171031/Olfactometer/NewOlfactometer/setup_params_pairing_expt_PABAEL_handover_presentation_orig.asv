@@ -100,11 +100,7 @@ params_spec2 = set_ADO_params_fore_distracter_HepIAA;
 if last_paired_od == 1    %case when last expt was with PA on olf2 as CS+
     params_spec2.odours = 3;
     params_spec2.duration = 0.1;
-    if LED_on == 0
-        params_spec2.led_odours = [];
-    else
-        params_spec2.led_odours = 3;
-    end
+    params_spec2.led_odours = 3;
     params_spec2.n_od_pulses = 1;
     params_spec2.n_od_pulses_olf2 = 1;
     params_spec2.odours_olf2 = 3;
@@ -114,16 +110,12 @@ if last_paired_od == 1    %case when last expt was with PA on olf2 as CS+
     params_spec2.stim_freq = 0.1;
     params_spec2.st_duty_cyc = 0.5;
     params_spec2.rel_stim_init_delay = 0.5;
-    params_spec2.isi = 120;     %this gives 45s before the next trial begins + 15s of pre odor scan on the CS- trial for a total of 60s 
+    params_spec2.isi = 120;     %this gives 45s before the next trial begins + 15s of pre odor scan on the CS- trial
     params_spec2.trigger_scan = 0;
 elseif last_paired_od == 3    %case when last expt was with PA on olf2 as CS+
     params_spec2.odours = 10;
     params_spec2.duration = 0.1;
-    if LED_on == 0
-        params_spec2.led_odours = [];
-    else
-        params_spec2.led_odours = 10;
-    end
+    params_spec2.led_odours = 10;
     params_spec2.n_od_pulses = 1;
     params_spec2.n_od_pulses_olf2 = 1;
     params_spec2.odours_olf2 = 1;
