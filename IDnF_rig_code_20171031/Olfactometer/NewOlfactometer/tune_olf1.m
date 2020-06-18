@@ -17,7 +17,7 @@ if strcmp(mode, 'n') == 1   %rapidly deliver many pulses to tune olfactometer
     present_odours_modular_stim_led(params, 0)
     
 elseif strcmp(mode, 'plot') == 1
-    params.reps = 5;
+    params.reps = 1;
     params.isi = 35;
     params.duration = 10;
     params.n_od_pulses = 1;
@@ -32,10 +32,7 @@ elseif strcmp(mode, 'plot') == 1
     curr_trs = 1:1:5;
     traces = get_PID_traces(curr_path, curr_trs, 0.1, 1);
     
-    mean_tr = mean(traces, 2);
-    se_tr = std(traces, [], 2)./sqrt(5);
-    figure(1)
-    shadedErrorBar([], mean_tr, se_tr);
+    plot(traces)
     
 else
 end
