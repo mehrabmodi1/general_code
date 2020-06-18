@@ -152,7 +152,6 @@ ax_vals(1, 4) = 1.2;
 axis(ax_vals);
 fig_wrapup(fig_n, []);
 
-
 % %Heading direction
 % %control mean heading
 % fig_n = fig_n + 1;

@@ -26,7 +26,6 @@ else
     n_olfs = 1;
 end
 
-
 disp('Run this function only AFTER fig_wrapup or the time-scale is distorted.');
 figure(fig_n);
 a = gca;

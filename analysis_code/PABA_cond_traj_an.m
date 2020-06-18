@@ -79,7 +79,7 @@ for base_path_n = 1:2
                 data_struc = load([base_path, set_name, '_data_struc.mat']);
                 eval(['data_struc = data_struc.', set_name, '_data_struc;']);
             end
-
+            
             %cleaning up data, part1: ensuring consistency, getting rid of spurious
             %points at 0, 0 and adding appropriate offsets to x and y data.
             params_mat = data_struc.params_mat;
@@ -145,7 +145,7 @@ for base_path_n = 1:2
         all_plus_out_trajs_B = all_plus_out_trajs_B.all_plus_out_trajs_B;
 
     end
-
+keyboard
     %plotting all boundary-touch trajectories
     plot_trajectories(all_plus_out_trajs_E, 'Leaving CS+ quadrant, coarse', 1, 0)
     plot_trajectories(all_plus_in_trajs_E, 'Entering CS+ quadrant, coarse', 1, 0)
