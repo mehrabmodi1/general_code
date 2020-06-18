@@ -29,11 +29,14 @@ elseif strcmp(mode, 'plot') == 1
     
     %loading and plotting PID traces
     curr_path = curr_aq_direc;
-    curr_trs = 1:1:5;
+    curr_trs = 1;
     traces = get_PID_traces(curr_path, curr_trs, 0.1, 1);
     
     plot(traces)
+<<<<<<< Updated upstream
     
+=======
+>>>>>>> Stashed changes
 else
 end
 

@@ -1,4 +1,4 @@
-function [params_spec1] = setup_params_pairing_expt_PABAEL_handover_presentation_orig(LED_on)
+function [params_spec1] = setup_params_pairing_expt_PABAEL_handover_presentation_orig(LED_on, EL_simp_on)
 %syntax: [params_spec1] = setup_params_pairing_expt_PABAEL_handover_presentation()
 %This function sets up a detailed stimulus specification structure and saves
 %it into curr_aq_direc to set up stimulus delivery for a pre, pairing and
@@ -50,6 +50,7 @@ params_spec1.duration = 0.1;
 params_spec1.duration_olf2 = 10;
 params_spec1.rel_stimLatency_olf2 = 0;
 params_struc1 = setUpStimuli_modular(params_spec1);         %detailed, trial-by-trial parameter specification structure for olf1 odour.
+paramsspec_simp = params_spec1;
 
 %This contains olf1 alone and olf2 alone trials
 params_struc = append_params(params_struc0, params_struc1, 1);  %combining and randomising explicit param spec structures
@@ -81,16 +82,20 @@ params_struc = append_params(params_struc, params_struc3, 1);  %combining and ra
 
 
 %step1.4 setting up EL alone control (olf1)
-% params_spec1 = set_ADO_params_default;
-% 
-% params_spec1.odours = [11];%EL
-% params_spec1.odours_olf2 = [];%BA
-% params_spec1.reps = 5;
-% params_spec1.duration = 10;
-% params_spec1.isi = 60;
-% params_struc3 = setUpStimuli_modular(params_spec1);         %detailed, trial-by-trial parameter specification structure for olf1 odour.
-% 
-% params_struc = append_params(params_struc, params_struc3, 1);  %combining and randomising explicit param spec structures
+if EL_simp_on == 1
+    params_spec1 = set_ADO_params_default;
+
+    params_spec1.odours = [11];%EL
+    params_spec1.odours_olf2 = [];%BA
+    params_spec1.reps = 5;
+    params_spec1.duration = 10;
+    params_spec1.isi = 60;
+    params_struc35 = setUpStimuli_modular(params_spec1);         %detailed, trial-by-trial parameter specification structure for olf1 odour.
+    params_struc = append_params(params_struc, params_struc35, 1);  %combining and randomising explicit param spec structures
+    
+else
+end
+
 params_struc_pre = params_struc;
 
 %step2.1: Setting up the pairing trial

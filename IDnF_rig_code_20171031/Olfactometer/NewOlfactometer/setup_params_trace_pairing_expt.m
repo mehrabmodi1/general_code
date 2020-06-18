@@ -1,5 +1,5 @@
-function [params_struc1] = setup_params_trace_pairing_expt(trace_interval, n_pairings, no_LED_control)
-%syntax: [params_spec1] = setup_params_pairing_expt_PABAEL_handover_presentation()
+function [params_struc1] = setup_params_trace_pairing_expt(trace_interval, n_pairings, LED_on)
+%syntax: [params_spec1] = setup_params_trace_pairing_expt(trace_interval, n_pairings, no_LED_control)
 %This function sets up a detailed stimulus specification structure and saves
 %it into curr_aq_direc to set up stimulus delivery for a pre, pairing and
 %post experiment protocol, with extra trials to hand off a CS+ to CS- odor pulses and vice
@@ -16,8 +16,8 @@ od_to_pair = odors_to_switch;
 last_paired_od = od_to_pair;
 save(log_file_path, 'last_paired_od');
 
-%step1:Setting up the pre PA, EL trials
-%creating param specification structure for std KC recording expt. This is for pre-pairing characterisation. 
+%step1:Setting up the pre PA, EL, IAA trials
+%creating param specification structure as for std KC recording expt. This is for pre-pairing characterisation. 
 params_spec1 = set_ADO_params_default;
 params_spec1.odours_olf2 = [];
 params_spec1.duration = 10;
@@ -39,7 +39,7 @@ params_spec2.isi = (params_spec2.stim_dur + trace_interval) + 120;
 params_spec2.stimLatency = 10;
 params_spec2.post_od_scan_dur = 10;
 params_spec2.odours_olf2 =[];
-if no_LED_control == 1
+if LED_on == 0
     params_spec2.stim_dur = [];
     params_spec2.rel_stim_init_delay = [];      %Yoshi defines ISI as difference between odor and LED onsets
     params_spec2.led_odours = [];
