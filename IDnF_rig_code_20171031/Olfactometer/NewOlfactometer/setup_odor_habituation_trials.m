@@ -83,3 +83,5 @@ params_mat = append_params(params_struc, params_struc_orig, 0);
 
 %saving to file
 save([path, 'params.mat'], 'params_mat');
+
+disp([num2str(length(params_struc)), ' habituation trials added.']);
