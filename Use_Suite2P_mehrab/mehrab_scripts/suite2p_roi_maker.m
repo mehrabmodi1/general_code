@@ -11,7 +11,8 @@ extract_both_channels = 0;
 %% Reading in manually created direc list
 %direc_list = 'E:\Data\Raw_Data_Current\dataset_lists\KC_d5HT1b_PABAEL_201908set.xls';
 %direc_list = 'E:\Data\Raw_Data_Current\dataset_lists\KC_c739_PABAEL_201908set.xls';
-direc_list = 'E:\Data\Raw_Data_Current\dataset_lists\c739KC_PaBaEl_handover_prehabituated.xls';
+%direc_list = 'E:\Data\Raw_Data_Current\dataset_lists\c739KC_PaBaEl_handover_prehabituated.xls';
+direc_list = 'E:\Data\Raw_Data_Current\dataset_lists\c739KC_PaBaEl_handover_rtrain_prehabituated';
 
 [del, raw_direc_list] = xlsread(direc_list, 1);
 raw_direc_list_copy = raw_direc_list;
