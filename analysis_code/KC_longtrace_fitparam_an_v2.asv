@@ -98,9 +98,7 @@ add_stim_bar(fig_h2, stim_frs, [0.65, 0.65, 0.65]);
 fig_h3 = figure('Name', 'distribution of decay taus3');      
 t3_vec = cell_params_all(8, :);         %multiplying by frame time to convert from n_frames to s
 [counts, centers] = hist(t3_vec, 8);
-counts = counts./sum(counts);
-keyboard
-bar(centers, counts)
+counts
 xlabel('tau2 (s)')
 ylabel('fraction of counts')
 fig_wrapup(fig_h3, []);
@@ -108,9 +106,7 @@ fig_wrapup(fig_h3, []);
 %plotting fit param distribution for off decay time or t2
 fig_h4 = figure('Name', 'distribution of decay taus2');      
 t2_vec = cell_params_all(7, :);         %multiplying by frame time to convert from n_frames to s
-[counts, centers] = hist(t2_vec, 8);
-counts = counts./sum(counts);
-bar(centers, counts)
+histogram(t2_vec, 8);
 xlabel('tau2 (s)')
 ylabel('fraction of counts')
 fig_wrapup(fig_h4, []);
