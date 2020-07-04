@@ -148,7 +148,7 @@ def train(activity, stim_lat, stim_dur, fold_fit):
                     times[:-1],
                     activity[i, j, :-1],
                     bounds=([-1e3, -1e3, -1e3, -1e3, 0.3, 0.3, 0.3, 0.3],
-                            [1e3, 1e3, 1e3, 1e3, 30.0, 30.0, 30.0, 30.0])
+                            [1e3, 1e3, 1e3, 1e3, 70.0, 70.0, 70.0, 70.0])
                 )
             except RuntimeError:
                 continue
