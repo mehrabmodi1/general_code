@@ -109,7 +109,11 @@ while trial_n < size(dataset_stack, 3)
         
         done = 0;
         while done == 0
-            [frame_obj, ROI_obj] = plot_frame(curr_frame, curr_threshm, [1, 2, 2], ROI_mat);
+            try
+                [frame_obj, ROI_obj] = plot_frame(curr_frame, curr_threshm, [1, 2, 2], ROI_mat);
+            catch
+                keyboard
+            end
             title(['Trial ', int2str(trial_n), ' mean, drag to match ROI, or click to bring up cursor.'  ])
             draggable(ROI_obj, 'none', [-inf inf -inf inf], 'endfcn', @end_drag_func); 
             uiwait(gcf)
@@ -195,7 +199,14 @@ end
 function [frame_obj, ROI_obj] = plot_frame(frame, curr_thresh, subplot_n, ROI_mat)
     figure(1)
     subplot(subplot_n(1), subplot_n(2), subplot_n(3))
-    frame_obj = imagesc(frame, [0, curr_thresh.*median(reshape(frame, 1, []), 'omitnan')]);
+    
+    if median(reshape(frame, 1, []), 'omitnan') ~= 0
+        frame_obj = imagesc(frame, [0, curr_thresh.*median(reshape(frame, 1, []), 'omitnan')]);
+    elseif median(reshape(frame, 1, []), 'omitnan') == 0
+        frame_obj = imagesc(frame, [0, 1]);
+    end
+    
+    
     set(gca,'xtick',[])
     set(gca,'xticklabel',[])
     set(gca,'ytick',[])

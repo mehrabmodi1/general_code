@@ -33,10 +33,7 @@ elseif strcmp(mode, 'plot') == 1
     traces = get_PID_traces(curr_path, curr_trs, 0.1, 1);
     
     plot(traces)
-<<<<<<< Updated upstream
     
-=======
->>>>>>> Stashed changes
 else
 end
 

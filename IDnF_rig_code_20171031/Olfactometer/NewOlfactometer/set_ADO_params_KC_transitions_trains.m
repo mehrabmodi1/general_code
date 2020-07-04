@@ -127,5 +127,5 @@ end
 
 disp(['saved detailed stim params structure in ', curr_dir]);
 
-setup_odor_habituation_trials(curr_dir, 1);
+setup_odor_habituation_trials(curr_dir, 0);
 
