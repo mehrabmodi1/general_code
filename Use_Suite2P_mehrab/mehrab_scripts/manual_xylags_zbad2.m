@@ -14,8 +14,12 @@ if isempty(warping_landmarks) == 1
     warped_ROIs = 0;
 elseif isempty(warping_landmarks) == 0
     warped_ROIs = 1;
-else
+elseif size(ROI_mat, 3) == 1        
+    warped_ROIs = 2;        %case when ROIs are of a single MBON
+    disp('WARNING: current dataset auto-detected as an MBON dataset.')
 end
+
+
 
 trial_n = 0;
 global im_posx1
@@ -47,7 +51,7 @@ while trial_n < size(dataset_stack, 3)
         catch
             keyboard
         end
-        
+    
     elseif warped_ROIs == 0
     else
     end
@@ -124,22 +128,30 @@ while trial_n < size(dataset_stack, 3)
             if x < 0 || x > size(frame1, 2) || y < 0 || y > size(frame1, 1)
                 %pulling up options box to re-do last landmark or mark current
                 %trial as z-drifted
-                choice = listdlg('ListString', {'z-drifted', 'redo landmark', 'make brighter', 'make dimmer'}, 'SelectionMode', 'single');
-                
+                if warped_ROIs == 2 %case where an MBON dataset was detected, allowing manual ROI adjustment due to tissue warping
+                    choice = listdlg('ListString', {'z-drifted', 'redo landmark', 'make brighter', 'make dimmer', 'adjust ROI'}, 'SelectionMode', 'single');
+                else
+                    choice = listdlg('ListString', {'z-drifted', 'redo landmark', 'make brighter', 'make dimmer'}, 'SelectionMode', 'single');
+                end
+                    
                 if choice == 1          %z-drift selected
                     z_drifted = 1;
                     done = 1; 
-                elseif choice == 3      %make dimmer selected
+                elseif choice == 3      %make brighter selected
                     subplot(1, 2, 2)
                     curr_threshm = curr_threshm.*0.85;
                     [frame_obj, ROI_obj] = plot_frame(curr_frame, curr_threshm, [1, 2, 2], ROI_mat);
-                elseif choice == 4      %make brighter selected
+                elseif choice == 4      %make dimmer selected
                     subplot(1, 2, 2)
                     curr_threshm = curr_threshm.*1.15;
                     [frame_obj, ROI_obj] = plot_frame(curr_frame, curr_threshm, [1, 2, 2], ROI_mat);
                 elseif choice == 2      %re-do last landmark selected
                     trial_n = trial_n - 1;
                     continue
+                elseif choice == 5      %adjust ROI selected - used to manually adjust single/MBON ROIs
+                    
+                    keyboard
+                    
                 end
             else
                 
