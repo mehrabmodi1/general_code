@@ -292,7 +292,7 @@ for trial_n = start_trial:n_trials
             imagesc(diff_fr, [-10, 10]);
             colormap('gray')
         end
-    keyboard
+   keyboard
     elseif trial_n == 1
         first_fr = std(stack_reg, [], 3, 'omitnan');
     end
