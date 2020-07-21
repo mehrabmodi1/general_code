@@ -1,4 +1,4 @@
-function [raw_data_mat] = extract_raw_traces_par(direc, ROI_mat, save_path, do_registration, extract_both_channels, subtraction_spec_vec, force_re_extraction)
+function [raw_data_mat] = extract_raw_traces_par(direc, ROI_mat, save_path, do_registration, extract_both_channels, subtraction_spec_vec, force_re_extraction, ROI_mat_adj)
 %syntax: [raw_data_mat] = extract_raw_traces(direc, ROI_mat, save_path)
 %This function extracts raw traces from all the large tif files in direc using 
 %the specified ROI_mat. It saves the extracted raw_data_mat after each trial 
@@ -16,6 +16,12 @@ remove_small_tifs(direc);
 n_cells = size(ROI_mat, 3);
 raw_data_mat = zeros(100, n_cells, n_trials) + nan;
 n_frames = zeros(n_trials, 1);
+
+if isempty(ROI_mat_adj) == 1        %case with a single ROI_mat to be used replicated for all trials
+    ROI_source = 1;        
+elseif size(ROI_mat_adj, 3) > 1     %case where manually re-drawn MBON-like ROIs are to be used
+    ROI_source = 2;
+end
 
 
 %checking if any trials have already been extracted and recovering
@@ -76,6 +82,13 @@ end
 bk_val_vecs = [];
 
 for trial_n = start_trial:n_trials
+    %case where ROIs have been manually re-drawn from trial to trial and
+    %stored in ROI_mat_adj
+    if ROI_source == 2
+        ROI_mat = ROI_mat_adj(:, :, trial_n);
+    else
+    end
+        
     try
         %reading in stack object
         im_obj = ScanImageTiffReader([direc, dir_contents(trial_n).name]);
@@ -119,7 +132,7 @@ for trial_n = start_trial:n_trials
     %within a trial, unless otherwise specified by user
     if start_trial == 1 && trial_n == 1
         ref_im = mean(stack, 3, 'omitnan');
-        %ROI_mat_curr = ROI_mat;
+        
         if do_registration == 1
             saved_lags = zeros(size(stack, 3), 2);
             stack_reg = stack;
@@ -176,8 +189,10 @@ for trial_n = start_trial:n_trials
             
             disp(['registering frames for trial ' int2str(trial_n)])
             try
+                
                 [stack_reg, saved_lags] = slow_xy_motion_correct(stack, ref_im, lag_mat(trial_n, :), detailed_lag_mat, local_registration_type);
                 disp(['registration done. extracting data.'])
+                
             catch
                 keyboard
                 [stack_reg, saved_lags] = slow_xy_motion_correct(stack, ref_im, [0, 0, 0], detailed_lag_mat, local_registration_type);
@@ -206,12 +221,16 @@ for trial_n = start_trial:n_trials
             end
             
             disp(['registering frames for trial ' int2str(trial_n)])
+           
             try
                 [stack_reg, saved_lags] = slow_xy_motion_correct(stack, ref_im, lag_mat(trial_n, :), detailed_lag_mat, local_registration_type);
             catch
-                keyboard
+                
             end
             disp(['registration done. extracting data.'])
+            
+            keyboard
+            
         end
                 
     end
@@ -273,7 +292,7 @@ for trial_n = start_trial:n_trials
 %             imagesc(diff_fr, [-10, 10]);
 %             colormap('gray')
 %         end
-%     keyboard
+%    keyboard
 %     elseif trial_n == 1
 %         first_fr = std(stack_reg, [], 3, 'omitnan');
 %     end
@@ -336,7 +355,8 @@ for trial_n = start_trial:n_trials
             catch
                 keyboard
             end
-                    
+            
+            
             raw_vec(1, ROI_n) = mean(curr_frame(curr_ROI == 1), 'omitnan');
             
         end
