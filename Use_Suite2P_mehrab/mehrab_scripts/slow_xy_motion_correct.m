@@ -25,6 +25,9 @@ function [reg_stack, saved_lags, bk_ROI] = slow_xy_motion_correct(curr_stack, re
 % curr_stack = ScanImageTiffReader(stack2_path).data();
 % ref_im = mean(stack1, 3, 'omitnan');
 
+%testing sign convention of lag mat
+%lag_mat(:, 1:2) = lag_mat(:, 1:2) * -1;
+
 if isempty(lag_mat) == 1
     curr_im = mean(curr_stack, 3, 'omitnan');
     c = xcorr2_fft(curr_im, ref_im); 
@@ -37,8 +40,8 @@ if isempty(lag_mat) == 1
 %case where lags for this trial have been determined by a manually selected
 %landmark
 elseif isempty(lag_mat) == 0
-    col_lag = round(lag_mat(1, 1));
-    row_lag = round(lag_mat(1, 2));
+    col_lag = round(lag_mat(1, 2));
+    row_lag = round(lag_mat(1, 1));
 end
  
 %generating a warning if lags more than 20% of size of frame
@@ -84,7 +87,7 @@ if registration_type == 2
        end
        
        saved_lags(frame_n, :) = [row_lag, col_lag];
-       curr_im = translate_stack(curr_im, [row_lag; col_lag], nan);
+       curr_im = translate_stack(curr_im, [row_lag; col_lag], nan);     %note: for int16, nan is not defined and set to 0 by matlab.
        reg_stack(:, :, frame_n) = curr_im;
 
    end
@@ -112,27 +115,7 @@ end
 
 
 
-% try 
-%     reg_stack = circshift(curr_stack, row_lag, 1);
-%     reg_stack = circshift(reg_stack, col_lag, 2);
-% catch
-%     keyboard
-% end
-% 
-% %replacing circularly shifted pixels with nans
-% if sign(col_lag) == 1
-%     reg_stack(:, 1:col_lag, :) = nan;
-% elseif sign(col_lag) == -1
-%     reg_stack(:, (end + col_lag):end, :) = nan;
-% else
-% end
-% 
-% if sign(row_lag) == 1
-%     reg_stack(1:row_lag, :, :) = nan;
-% elseif sign(row_lag) == -1
-%     reg_stack((end + row_lag):end, :, :) = nan;
-% else
-% end
+
 
 
 %testing plots
