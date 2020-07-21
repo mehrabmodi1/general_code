@@ -55,11 +55,12 @@ direc_lists_mat = [...
                     %{'E:\Data\Raw_Data_Current\dataset_lists\Alpha1_60strace_71C03LxA_MB043CGal4_with_Chrimson_LED.xls'};...
                     %{'E:\Data\Raw_Data_Current\dataset_lists\MBONA1_PaBaEl_handover_starved_halfAra_prehabituated_strongUS.xls'};...
                     %{'E:\Data\Raw_Data_Current\dataset_lists\c739KC_PaBaEl_handover_rtrain_prehabituated.xls'};...
-                    {'E:\Data\Raw_Data_Current\dataset_lists\MBONG2_PaBaEl_handover_starved_halfAra_prehabituated_noLED_control.xls'};...
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\MBONG2_PaBaEl_handover_starved_halfAra_prehabituated_noLED_control.xls'};...
                     %{'E:\Data\Raw_Data_Current\dataset_lists\Alpha1_60strace_71C03LxA_MB043CGal4_with_Chrimson_LED.xls'};...
                     %{'E:\Data\Raw_Data_Current\dataset_lists\Alpha1_10strace_71C03LxA_MB043CGal4_with_Chrimson_LED.xls'};...
-                    {'E:\Data\Raw_Data_Current\dataset_lists\Alpha1_30sCS_60strace_71C03LxA_MB043CGal4_with_Chrimson_LED.xls'};...
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\Alpha1_30sCS_60strace_71C03LxA_MB043CGal4_with_Chrimson_LED.xls'};...
                     %{'E:\Data\Raw_Data_Current\dataset_lists\c305aKC_PaBaEl_handover_rtrain_prehabituated.xls'};...
+                    {'E:\Data\Raw_Data_Current\dataset_lists\test_list.xls'};...
                      ];
                 
 n_direc_lists = size(direc_lists_mat, 1);
@@ -76,8 +77,8 @@ extract_both_channels = 0;
 extract_traces_only = 0; %Enabling this switch makes the program only extract traces from a .tif file using given ROIs. It doesn't look for stim params/PID files of any sort. useful for data acquired on other rigs. 
 do_noisefit_subtraction = 1;    %Enabling this switch makes the pipeline fit slow, row-wise noise and subtract that from each frame.
 do_bk_subtraction = 1;      %Enabling this switch makes the pipeline subtract an estimate of the background offset value computed from the manually drawn background ROI
-force_re_extraction = 0;    %Enabling this switch forces the extraction program to re-extract data without re-doing the manual steps.
-
+force_re_extraction = 1;    %Enabling this switch forces the extraction program to re-extract data without re-doing the manual steps.
+force_re_extr_manual = 0;   %Enabling this switch forces the user to re-do manual alignment, ROI adjustment steps followed by re-extraction of data.
 
 if force_re_extraction == 1
     qstring = 'Are you sure? Force re-extraction of all dataset lists?';
@@ -269,7 +270,7 @@ for do_over = 1:2
                     
                     %re-saving ROIs in easy to load form
                     save([save_path_base, dataset_name, '\ROI_mat.mat'], 'ROI_mat');
-                    
+                                        
                 elseif ROI_type == 1
                     ROI_mat = load([save_path, 'ROI_mat.mat']);
                     ROI_mat = ROI_mat.ROI_mat;
@@ -292,9 +293,11 @@ for do_over = 1:2
                 else
                 end
                 
+                % re-saving ROIs after fusing/dilating as specified by user
+                save([save_path_base, dataset_name, '\ROI_mat.mat'], 'ROI_mat');
                 
                 %if this is a KC dataset, asking user to manually identify
-                %ROI-warping landmarks
+                %ROI-warping landmarks if warping is specified
                 if warp_ROIs == 1
                     
                     tiff_times = load([save_path, 'tif_time_stamps.mat']);
@@ -307,10 +310,14 @@ for do_over = 1:2
                 end
                 
                 %looping through an ave frame for each trial in the
-                %dataset, for the user to click on a fixed landmark in each frame
-                %to correct x-y drift, and also indicate bad z-trials
-                if exist([save_path, '\xy_lags.mat']) == 2
-                    continue
+                %dataset, for the user manually align each frame
+                %to correct x-y drift, redraw ROIs to account for tissue warping, 
+                %and also indicate bad z-trials
+                if force_re_extr_manual == 0
+                    if exist([save_path, '\xy_lags.mat']) == 2
+                        continue
+                    else
+                    end
                 else
                 end
                 
@@ -322,14 +329,15 @@ for do_over = 1:2
                         ROI_mat_s = ROI_mat;
                     end
 %                     [lag_mat, bad_trs, done_marking, bk_ROI] = manual_xylags_zbad2(dataset_stack, ROI_mat_s, ROI_mat_warped, warping_landmarks);
-                    [lag_mat, bad_trs, done_marking, bk_ROI] = manual_xylags_zbad2(dataset_stack, ROI_mat_s, ROI_mat_warped, []);
+                    [lag_mat, bad_trs, done_marking, bk_ROI, ROI_mat_adj] = manual_xylags_zbad2(dataset_stack, ROI_mat_s, ROI_mat_warped, [], dilate_ROIs);
                 end
-                
+               
                 bad_tr_list = 1:1:size(dataset_stack, 3);
                 bad_tr_list(bad_trs == 1) = [];
                 save([save_path, '\xy_lags.mat'], 'lag_mat');
                 save([save_path, '\bad_trial_list.mat'], 'bad_tr_list');        %bad_tr_list is actually the list of good trials.
                 save([save_path, '\bk_ROI.mat'], 'bk_ROI');                     %manually drawn background ROI for background subtraction.
+                save([save_path, '\ROI_mat_adj.mat'], 'ROI_mat_adj');           %matrix of ROIs for each trial, including manually adjusted ROIs to account for tissue warping.
                 clear lag_mat
                 clear bad_trs
                 
@@ -397,21 +405,29 @@ for direc_list_n = 1:n_direc_lists
         %loading in previously saved ROI_mat
         ROI_mat = load([save_path_base, dataset_name, '\ROI_mat.mat']);
         ROI_mat = ROI_mat.ROI_mat;
+        ROI_mat_adj = load([save_path_base, dataset_name, '\ROI_mat_adj.mat']);
+        ROI_mat_adj = ROI_mat_adj.ROI_mat_adj;
         
-        %fusing multiple ROIs
-        if fuse_ROIs == 1
-            ROI_mat = sum(ROI_mat, 3);
-            ROI_mat(ROI_mat > 1) = 1;
-        else
-        end
         
-        %dilating ROIs if specified by user
-        if dilate_ROIs > 0
-            str = strel('disk', dilate_ROIs, 0); 
-            ROI_mat = imdilate(ROI_mat, str);
-
-        else
-        end
+%         %fusing multiple ROIs
+%         if fuse_ROIs == 1
+%             ROI_mat = sum(ROI_mat, 3);
+%             ROI_mat(ROI_mat > 1) = 1;
+%         else
+%         end
+%         
+%         %dilating ROIs if specified by user
+%         if dilate_ROIs > 0
+%             str = strel('disk', dilate_ROIs, 0); 
+%             ROI_mat = imdilate(ROI_mat, str);
+% 
+%         else
+%         end
+       
+        %PICK UP THREAD HERE
+        %1. check if ROI dilation is still working correctly
+        %2. implement ROI_mat_adj, trial by trial ROI referencing in raw_data_extracter
+        
         
         %extracting raw traces
         dataset_namei = findstr(direc, '20');
@@ -432,8 +448,8 @@ for direc_list_n = 1:n_direc_lists
             delete([save_path, 'extracted_raw_data_mat.mat']);
         else
         end
-        
-        [raw_data_mat] = extract_raw_traces_par(direc, ROI_mat, save_path, 1, extract_both_channels, subtraction_spec_vec, force_re_extraction);
+       
+        [raw_data_mat] = extract_raw_traces_par(direc, ROI_mat, save_path, 1, extract_both_channels, subtraction_spec_vec, force_re_extraction, ROI_mat_adj);
         
         
         %copying over files needed for further analysis to results
