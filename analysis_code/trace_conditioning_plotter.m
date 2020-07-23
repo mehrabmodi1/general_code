@@ -6,7 +6,9 @@ dataset_list_paths = [...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_Alpha1_60strace_72D01LxAChr88tdT.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_Alpha1_60strace_71C03LxA_MB043CGal4_noChrisoncontrol.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_Alpha1_60strace_71C03LxA_MB043CGal4_Chrison_noLED_control.xls'};... 
-                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_Alpha1_60strace_71C03LxA_MB043CGal4_with_Chrimson_LED.xls'};... 
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_Alpha1_60strace_71C03LxA_MB043CGal4_with_Chrimson_LED.xls'};...
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Alpha1_10strace_71C03LxA_MB043CGal4_with_Chrimson_LED.xls'};...
+                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Alpha1_30sCS_60strace_71C03LxA_MB043CGal4_with_Chrimson_LED.xls'};...
                       ];
             
 suppress_plots = 0;
@@ -17,8 +19,8 @@ global color_vec;
 a = colormap('bone');
 global greymap
 greymap = flipud(a);
-fly_n = 0;
 script_name = mfilename;
+
 
 for list_n = 1:size(dataset_list_paths, 1)
     curr_dir_list_path = dataset_list_paths{list_n, 1};
@@ -26,12 +28,17 @@ for list_n = 1:size(dataset_list_paths, 1)
     n_dirs = size(dir_list, 1);
     dataset_list_name = findstr(curr_dir_list_path, 'list_');
     dataset_list_name = curr_dir_list_path((dataset_list_name + 5):(end - 4));
-   
+    resp_mat_all = [];
+    max_pairing_tr = 0;
+    fly_n = 0;
+
+    
     %loop to go through all experiment datasets listed in list file
     saved_resps = [];
     for dir_n = 1:n_dirs
         fly_n = fly_n + 1;
-              
+        resp_mat = [];
+        
         saved_an_results.scriptname = mfilename('fullpath');
         curr_dir = [dir_list{dir_n, 1}, '\'];
         curr_dir = manage_base_paths(curr_dir, 2);
@@ -108,14 +115,16 @@ for list_n = 1:size(dataset_list_paths, 1)
         pre_traces = squeeze(dff_data_mat_f(:, 1, curr_trs_pre));
         stim_frs = compute_stim_frs_modular(stim_mat, curr_trs_pre(1), frame_time);
         stim_frs = stim_frs{1};      
-        
+                
         mean_pre_trace = mean(pre_traces, 2, 'omitnan');
-        resp_vec(1, 1) = max(mean_pre_trace(stim_frs(1):(stim_frs(2) + round(2./frame_time))));       %taking max of filtered trace as resp measure
+        resp_vec(1, 1) = mean(mean_pre_trace(stim_frs(1):(stim_frs(2) + round(2./frame_time))));       %taking mean of filtered trace as resp measure
         post_traces = squeeze(dff_data_mat_f(:, 1, curr_trs_post));
         mean_post_trace = mean(post_traces, 2, 'omitnan');
-        resp_vec(1, 2) = max(mean_post_trace(stim_frs(1):(stim_frs(2) + round(2./frame_time))));      %taking max of filtered trace as resp measure
-                
-                    
+        resp_vec(1, 2) = mean(mean_post_trace(stim_frs(1):(stim_frs(2) + round(2./frame_time))));      %taking mean of filtered trace as resp measure
+        pre_resps = mean(pre_traces(stim_frs(1):(stim_frs(2) + round(2./frame_time)), :), 'omitnan');
+        post_resps = mean(post_traces(stim_frs(1):(stim_frs(2) + round(2./frame_time)), :), 'omitnan');
+        curr_prepost_resps = pad_n_concatenate(pre_resps', post_resps', 2, nan);
+        resp_mat = pad_n_concatenate(resp_mat, curr_prepost_resps, 1, nan);        
         
         figure(1)
         plot(pre_traces, 'Color', [0.6, 0.6, 0.6], 'lineWidth', 1.5)
@@ -139,10 +148,15 @@ for list_n = 1:size(dataset_list_paths, 1)
         stim_frs = stim_frs{1};      
         pre_traces = squeeze(dff_data_mat_f(:, 1, curr_trs_pre));
         mean_pre_trace = mean(pre_traces, 2, 'omitnan');
-        resp_vec(1, 3) = max(mean_pre_trace(stim_frs(1):(stim_frs(2) + round(2./frame_time))));       %taking max of filtered trace as resp measure
+        resp_vec(1, 3) = mean(mean_pre_trace(stim_frs(1):(stim_frs(2) + round(2./frame_time))));       %taking mean of filtered trace as resp measure
         post_traces = squeeze(dff_data_mat_f(:, 1, curr_trs_post));
         mean_post_trace = mean(post_traces, 2, 'omitnan');
-        resp_vec(1, 4) = max(mean_post_trace(stim_frs(1):(stim_frs(2) + round(2./frame_time))));      %taking max of filtered trace as resp measure
+        resp_vec(1, 4) = mean(mean_post_trace(stim_frs(1):(stim_frs(2) + round(2./frame_time))));      %taking mean of filtered trace as resp measure
+        pre_resps = mean(pre_traces(stim_frs(1):(stim_frs(2) + round(2./frame_time)), :), 'omitnan');
+        post_resps = mean(post_traces(stim_frs(1):(stim_frs(2) + round(2./frame_time)), :), 'omitnan');
+        curr_prepost_resps = pad_n_concatenate(pre_resps', post_resps', 2, nan);
+        resp_mat = pad_n_concatenate(resp_mat, curr_prepost_resps, 2, nan);        
+        
         
         stim_frs = compute_stim_frs_modular(stim_mat, curr_trs_pre(1), frame_time);
         stim_frs = stim_frs{1};                   
@@ -167,11 +181,14 @@ for list_n = 1:size(dataset_list_paths, 1)
         
         pre_traces = squeeze(dff_data_mat_f(:, 1, curr_trs_pre));
         mean_pre_trace = mean(pre_traces, 2, 'omitnan');
-        resp_vec(1, 3) = max(mean_pre_trace(stim_frs(1):(stim_frs(2) + round(2./frame_time))));       %taking max of filtered trace as resp measure
+        resp_vec(1, 5) = mean(mean_pre_trace(stim_frs(1):(stim_frs(2) + round(2./frame_time))));       %taking mean of filtered trace as resp measure
         post_traces = squeeze(dff_data_mat_f(:, 1, curr_trs_post));
         mean_post_trace = mean(post_traces, 2, 'omitnan');
-        resp_vec(1, 4) = max(mean_post_trace(stim_frs(1):(stim_frs(2) + round(2./frame_time))));      %taking max of filtered trace as resp measure
-        
+        resp_vec(1, 6) = mean(mean_post_trace(stim_frs(1):(stim_frs(2) + round(2./frame_time))));      %taking mean of filtered trace as resp measure
+        pre_resps = mean(pre_traces(stim_frs(1):(stim_frs(2) + round(2./frame_time)), :), 'omitnan');
+        post_resps = mean(post_traces(stim_frs(1):(stim_frs(2) + round(2./frame_time)), :), 'omitnan');
+        curr_prepost_resps = pad_n_concatenate(pre_resps', post_resps', 2, nan);
+        resp_mat = pad_n_concatenate(resp_mat, curr_prepost_resps, 2, nan);       
         stim_frs = compute_stim_frs_modular(stim_mat, curr_trs_pre(1), frame_time);
         stim_frs = stim_frs{1};                   
         
@@ -198,20 +215,29 @@ for list_n = 1:size(dataset_list_paths, 1)
         close figure 3
         
         saved_resps = [saved_resps; resp_vec];
+        resp_vec = [];
+        resp_mat_all = pad_n_concatenate(resp_mat_all, resp_mat, 3, nan);
+        resp_mat = [];
        
+        max_pairing_tr = max([max_pairing_tr, size(curr_trs_pre, 1)]);
     end
-    marker_colors = [color_vec(1, :); color_vec(1, :); color_vec(2, :); color_vec(2, :)];
-    col_pairs = [1, 2; 3, 4];
-    scattered_dot_plot(saved_resps(:, 1:4), 3, 1, 4, 8, marker_colors, 1, col_pairs, [0.75, 0.75, 0.75],...
-                            [{'paired_p_r_e'}, {'paired_p_o_s_t'}, {'unpaired_p_r_e'}, {'unpaired_p_o_s_t'}], 1, [0.35, 0.35, 0.35]);
-    
+    marker_colors = [color_vec(2, :); color_vec(2, :); color_vec(1, :); color_vec(1, :); color_vec(3, :); color_vec(3, :)];
+    line_colors = marker_colors;
+    xlabels = [{'paired_p_r_e'}, {'paired_p_o_s_t'}, {'unpaired_p_r_e'}, {'unpaired_p_o_s_t'}, {'extra od_p_r_e'}, {'extra od_p_o_s_t'}];
+    col_pairs = [1, 2; 3, 4; 5, 6];
+    mean_color = ([0, 49, 152]./256).*1.5;
+    fig_h = scattered_dot_plot_ttest(saved_resps(:, 1:6), 3, 1, 4, 8, marker_colors, 1, col_pairs, line_colors, xlabels, 1, mean_color, 1, 0.05);
+%     scattered_dot_plot(saved_resps(:, 1:4), 3, 1, 4, 8, marker_colors, 1, col_pairs, [0.75, 0.75, 0.75],...
+%                             [{'paired_p_r_e'}, {'paired_p_o_s_t'}, {'unpaired_p_r_e'}, {'unpaired_p_o_s_t'}], 1, [0.35, 0.35, 0.35]);
+%     
     ylabel('response size (mean dF/F)')
     fig_wrapup(3, []);
     
-    %statistical testing
-    [h_paired, p_paired] = ttest(saved_resps(:, 1), saved_resps(:, 2))
-    [h_unpaired, p_unpaired] = ttest(saved_resps(:, 3), saved_resps(:, 4))
-    [h_post_comp, p_post_comp] = ttest(saved_resps(:, 2), saved_resps(:, 4))
-    [h_ratios, p_ratios] = ttest(saved_resps(:, 1)./saved_resps(:, 2), saved_resps(:, 3)./saved_resps(:, 4))
-
+    %calling session response trend plotter
+    plot_session_resp_trend(resp_mat_all, (max_pairing_tr + 0.5), marker_colors([1, 3, 5], :), 5)
+    fig_wrapup(5, []);
+    
+    keyboard
+    close figure 5
 end
+

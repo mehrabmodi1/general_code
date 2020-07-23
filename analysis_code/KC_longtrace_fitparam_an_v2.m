@@ -1,8 +1,7 @@
 clear all
 close all
 
-path_base = 'C:\Data\Data\Analysed_data\data_sharing\KC_long_trace\';
-
+path_base = 'C:\Data\Data\Analysed_data\data_sharing\param_fitting\ABKC_long_trace\';
 n_flies = 4;
 frame_time = 0.0999;    %in s
 
