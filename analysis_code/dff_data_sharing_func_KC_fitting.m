@@ -13,11 +13,16 @@ dataset_list_paths = [%{'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Y
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_KC_c739_PABAEL_201908set.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_KC_d5HT1b_PABAEL_201908set.xls'}...                      
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_MBONG2_PaBaEl_handover_starved_halfAra_prehabituated_strongUS.xls'};...
-                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_c739KC_PaBaEl_handover_prehabituated_trimmed.xls'};...
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_c739KC_PaBaEl_handover_prehabituated_trimmed.xls'};...
+                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\c305aKC_PaBaEl_handover_rtrain_prehabituated.xls'};...
                       ];
 
+%saving stuff for sharing data
+share_path_base = 'C:\Data\Data\Analysed_data\data_sharing\param_fitting\';
+dataset_list_name = 'ApBpKC_hover_rtrain_prehabituated\';    
+
+
 dataset_type = 3; %2 - manualROI, 3 - Suite2P
-suppress_plots = 1;
 [del, odor_names] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList.xls', 1);
 a = colormap('bone');
 global greymap
@@ -28,9 +33,9 @@ for list_n = 1:size(dataset_list_paths, 1)
     curr_dir_list_path = dataset_list_paths{list_n, 1};
     [del, dir_list] = xlsread(curr_dir_list_path, 1);        %list of Suite2P results directories
     n_dirs = size(dir_list, 1);
-    dataset_list_name = findstr(curr_dir_list_path, 'dataset_list');
-    dataset_list_name = curr_dir_list_path((dataset_list_name + 13):(end - 4));
-    dataset_list_name = 'KC_long_trace';    %REMOVE THIS LINE
+%     dataset_list_name = findstr(curr_dir_list_path, 'dataset_list');
+%     dataset_list_name = curr_dir_list_path((dataset_list_name + 13):(end - 4));
+   
    
     
     for dir_n = 1:n_dirs
@@ -89,8 +94,12 @@ for list_n = 1:size(dataset_list_paths, 1)
         raw_data_mat_orig = raw_data_mat;
         stim_mat_orig = stim_mat;
         
+        %replacing NaNs with 0s in stim_mat_simple to do logic operations on
+        %it's elements
+        stim_mat_simple(isnan(stim_mat_simple)) = 0;
+        
         %step1: Getting rid of all trials that aren't single-odor, single-pulse trials.
-        db_od_trs = find(stim_mat_simple(:, dur_olf1_col_n) > 0.1 & stim_mat_simple(:, dur_olf2_col_n) > 0);   %dur_olf1 == 0.1 is just a place-holder, no stim actually delivered on olf_1.
+        db_od_trs = find(stim_mat_simple(:, dur_olf1_col_n) > 0.15 & stim_mat_simple(:, dur_olf2_col_n) > 0);   %dur_olf1 == 0.1 is just a place-holder, no stim actually delivered on olf_1.
         [raw_data_mat, stim_mat, stim_mat_simple, tr_list] = remove_trs(db_od_trs, raw_data_mat, stim_mat, stim_mat_simple, tr_list);         %removing trs with two odors delivered in the same trial
       
         
@@ -128,9 +137,6 @@ for list_n = 1:size(dataset_list_paths, 1)
         filt_time = 0.2;            %in s, the time window for boxcar filter for generating filtered traces
         [dff_data_mat, dff_data_mat_f] = cal_dff_traces_res(raw_data_mat, stim_mat, frame_time, filt_time, curr_dir);
         [dff_data_mat_orig, dff_data_mat_f_orig] = cal_dff_traces_res(raw_data_mat_orig, stim_mat_orig, frame_time, filt_time, curr_dir);
-        
-        %saving stuff for sharing data
-        share_path_base = 'C:\Data\Data\Analysed_data\data_sharing\';
         
         share_path = [share_path_base, dataset_list_name, '\fly', num2str(dir_n)];
         mkdir(share_path);
