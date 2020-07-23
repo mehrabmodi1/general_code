@@ -1,104 +1,124 @@
 clear all
 close all
 
-path_base = 'C:\Data\Data\Analysed_data\data_sharing\KC_long_trace\';
 
-n_flies = 4;
+path_base = 'C:\Data\Data\Analysed_data\data_sharing\param_fitting\';
 frame_time = 0.0999;    %in s
+
+cd(path_base);
+dir_contents = dir;
+dir_contents(1:2) = [];
+cell_type_list = [];
+fly_n_list = [];
+for type_n = 1:size(dir_contents, 1)
+    cell_type_list = [cell_type_list; {dir_contents(type_n).name}];
+    cd([path_base, cell_type_list{type_n}]);
+    n_flies = dir();
+    fly_n_list = [fly_n_list; (size(n_flies, 1) - 2)];
+end
 
 a = colormap('bone');
 greymap = flipud(a);
 model_traces_all = [];
 resp_traces_all = [];
 cell_params_all = [];
-for fly_n = 1:n_flies
-    an_path = [path_base, 'fly', num2str(fly_n), '\'];
+
+for cell_type_n = 1:size(cell_type_list, 1)
+    n_flies = fly_n_list(cell_type_n, 1);
     
-    %reading in KC response params fitted with Herve's program
-    fit_params = readNPY([an_path, 'fit_params.npy']);
+    for fly_n = 1:n_flies
+        an_path = [path_base, cell_type_list{cell_type_n}, '\fly', num2str(fly_n), '\'];
+
+        %reading in KC response params fitted with Herve's program
+        fit_params = readNPY([an_path, 'fit_params.npy']);
+
+        %reading in KC response traces used by python script to generate fits along with other metadata
+        fit_tr_list = load([an_path, 'tr_list.mat']);       %this is the list of trials with only long dur, single od pulse. Used for the KC param fits
+        fit_tr_list = fit_tr_list.tr_list;
+        traces_frompy = readNPY([an_path, 'fit_data.npy']);
+        dff_data_mat = load([an_path, 'dFF_data.mat']);
+        dff_data_mat = dff_data_mat.dff_data_mat_f;
+        stim_mat = load([an_path, 'stim_mat.mat']);
+        stim_mat = stim_mat.stim_mat;
+
+        [stim_mat_simple, column_heads] = generate_stim_mat_simple(stim_mat);
+        dur_olf1_col_n = find_stim_mat_simple_col('duration', column_heads);        %identifying relevant column number in stim_mat_simple
+        dur_olf2_col_n = find_stim_mat_simple_col('duration_olf2', column_heads);   %identifying relevant column number in stim_mat_simple
+        olf1_od_col_n = find_stim_mat_simple_col('odor_n', column_heads);        %identifying relevant column number in stim_mat_simple
+        olf2_od_col_n = find_stim_mat_simple_col('odour_olf2', column_heads);        %identifying relevant column number in stim_mat_simple
+        od_col_ns = [olf1_od_col_n, olf2_od_col_n];
+        dur_col_ns = [dur_olf1_col_n, dur_olf2_col_n];
+
+        [resp_sizes, sig_trace_mat, sig_trace_mat_old, sig_cell_mat, resp_areaundercurves] = cal_sig_responses_res_modular(dff_data_mat, stim_mat, stim_mat_simple, frame_time, od_col_ns, dur_col_ns);
+
+        od_list_olf1 = unique(stim_mat_simple(:, olf1_od_col_n));
+
+
+        %computing fits
+        for od_n = 1:length(od_list_olf1)
+            od_ni = od_list_olf1(od_n);
+            curr_trs = find(stim_mat_simple(:, olf1_od_col_n) == od_ni);      %list of trials with current 
+            param_od_ns = [od_n, nan];      %odor indices for olf1 and olf2; ie not odor numbers, but their positions in odor lists.     
+            try
+                [model_traces, resp_traces, cell_params, stim_frs] = get_fit_traces(curr_trs, stim_mat, od_list_olf1, fit_params, frame_time, dff_data_mat, sig_cell_mat);
+            catch
+                [model_traces, resp_traces, cell_params] = get_fit_traces(curr_trs, stim_mat, od_list_olf1, fit_params, frame_time, dff_data_mat, sig_cell_mat);
+            end
+
+
+            if isempty(resp_traces) == 0
+                model_traces_all = pad_n_concatenate(model_traces_all, model_traces, 2, nan);
+                resp_traces_all = pad_n_concatenate(resp_traces_all, resp_traces, 2, nan);
+                cell_params_all = pad_n_concatenate(cell_params_all, cell_params, 2, nan);
+            else
+            end
+        end   
+
+    end
+
+
     
-    %reading in KC response traces used by python script to generate fits along with other metadata
-    fit_tr_list = load([an_path, 'tr_list.mat']);       %this is the list of trials with only long dur, single od pulse. Used for the KC param fits
-    fit_tr_list = fit_tr_list.tr_list;
-    traces_frompy = readNPY([an_path, 'fit_data.npy']);
-    dff_data_mat = load([an_path, 'dFF_data.mat']);
-    dff_data_mat = dff_data_mat.dff_data_mat_f;
-    stim_mat = load([an_path, 'stim_mat.mat']);
-    stim_mat = stim_mat.stim_mat;
-    
-    [stim_mat_simple, column_heads] = generate_stim_mat_simple(stim_mat);
-    dur_olf1_col_n = find_stim_mat_simple_col('duration', column_heads);        %identifying relevant column number in stim_mat_simple
-    dur_olf2_col_n = find_stim_mat_simple_col('duration_olf2', column_heads);   %identifying relevant column number in stim_mat_simple
-    olf1_od_col_n = find_stim_mat_simple_col('odor_n', column_heads);        %identifying relevant column number in stim_mat_simple
-    olf2_od_col_n = find_stim_mat_simple_col('odour_olf2', column_heads);        %identifying relevant column number in stim_mat_simple
-    od_col_ns = [olf1_od_col_n, olf2_od_col_n];
-    dur_col_ns = [dur_olf1_col_n, dur_olf2_col_n];
-    
-    [resp_sizes, sig_trace_mat, sig_trace_mat_old, sig_cell_mat, resp_areaundercurves] = cal_sig_responses_res_modular(dff_data_mat, stim_mat, stim_mat_simple, frame_time, od_col_ns, dur_col_ns);
-    
-    od_list_olf1 = unique(stim_mat_simple(:, olf1_od_col_n));
-    
-    
-    %computing fits
-    for od_n = 1:length(od_list_olf1)
-        od_ni = od_list_olf1(od_n);
-        curr_trs = find(stim_mat_simple(:, olf1_od_col_n) == od_ni);      %list of trials with current 
-        param_od_ns = [od_n, nan];      %odor indices for olf1 and olf2; ie not odor numbers, but their positions in odor lists.     
-        try
-            [model_traces, resp_traces, cell_params, stim_frs] = get_fit_traces(curr_trs, stim_mat, od_list_olf1, fit_params, frame_time, dff_data_mat, sig_cell_mat);
-        catch
-            [model_traces, resp_traces, cell_params] = get_fit_traces(curr_trs, stim_mat, od_list_olf1, fit_params, frame_time, dff_data_mat, sig_cell_mat);
-        end
-            
-            
-        if isempty(resp_traces) == 0
-            model_traces_all = pad_n_concatenate(model_traces_all, model_traces, 2, nan);
-            resp_traces_all = pad_n_concatenate(resp_traces_all, resp_traces, 2, nan);
-            cell_params_all = pad_n_concatenate(cell_params_all, cell_params, 2, nan);
-        else
-        end
-    end   
-    
+    %sorting traces by centers of mass of model traces
+    centers_of_mass = zeros(size(model_traces_all, 2), 1) + nan;
+    for cell_n = 1:size(model_traces_all, 2)
+        cOm = centerOfMass(model_traces_all(:, cell_n));
+        centers_of_mass(cell_n, 1) = cOm(1, 1);
+    end
+    model_traces_all = [centers_of_mass'; model_traces_all];
+    model_traces_all = sortrows(model_traces_all')';
+    model_traces_all(1, :) = [];
+    resp_traces_all = [centers_of_mass'; resp_traces_all];
+    resp_traces_all = sortrows(resp_traces_all')';
+    resp_traces_all(1, :) = [];
+
+
+    %plotting raw data
+    n_frs = size(model_traces_all, 1) - 10;
+    fig_h1 = figure('Name', 'dF/F response traces');        
+    imagesc(resp_traces_all(1:n_frs, :)')
+    colormap(greymap)
+    set_xlabels_time(fig_h1, frame_time, 20);
+    ylabel('cell-odor pairs');
+    fig_wrapup(fig_h1, []);
+    add_stim_bar(fig_h1, stim_frs, [0.65, 0.65, 0.65]);
+
+    fig_h2 = figure('Name', 'modelled response traces');        
+    imagesc(model_traces_all')
+    colormap(greymap)
+    set_xlabels_time(fig_h2, frame_time, 20);
+    ylabel('cell-odor pairs');
+    fig_wrapup(fig_h2, []);
+    add_stim_bar(fig_h2, stim_frs, [0.65, 0.65, 0.65]);
+    keyboard
 end
-
-%sorting traces by centers of mass of model traces
-centers_of_mass = zeros(size(model_traces_all, 2), 1) + nan;
-for cell_n = 1:size(model_traces_all, 2)
-    cOm = centerOfMass(model_traces_all(:, cell_n));
-    centers_of_mass(cell_n, 1) = cOm(1, 1);
-end
-model_traces_all = [centers_of_mass'; model_traces_all];
-model_traces_all = sortrows(model_traces_all')';
-model_traces_all(1, :) = [];
-resp_traces_all = [centers_of_mass'; resp_traces_all];
-resp_traces_all = sortrows(resp_traces_all')';
-resp_traces_all(1, :) = [];
-
-
-%plotting raw data
-n_frs = size(model_traces_all, 1) - 10;
-fig_h1 = figure('Name', 'dF/F response traces');        
-imagesc(resp_traces_all(1:n_frs, :)')
-colormap(greymap)
-set_xlabels_time(fig_h1, frame_time, 20);
-ylabel('cell-odor pairs');
-fig_wrapup(fig_h1, []);
-add_stim_bar(fig_h1, stim_frs, [0.65, 0.65, 0.65]);
-
-fig_h2 = figure('Name', 'modelled response traces');        
-imagesc(model_traces_all')
-colormap(greymap)
-set_xlabels_time(fig_h2, frame_time, 20);
-ylabel('cell-odor pairs');
-fig_wrapup(fig_h2, []);
-add_stim_bar(fig_h2, stim_frs, [0.65, 0.65, 0.65]);
-
 
 %plotting fit param distribution for off decay time or t3
 fig_h3 = figure('Name', 'distribution of decay taus3');      
 t3_vec = cell_params_all(8, :);         %multiplying by frame time to convert from n_frames to s
 [counts, centers] = hist(t3_vec, 8);
-counts
+counts = counts./sum(counts);
+keyboard
+bar(centers, counts)
 xlabel('tau2 (s)')
 ylabel('fraction of counts')
 fig_wrapup(fig_h3, []);
@@ -106,7 +126,9 @@ fig_wrapup(fig_h3, []);
 %plotting fit param distribution for off decay time or t2
 fig_h4 = figure('Name', 'distribution of decay taus2');      
 t2_vec = cell_params_all(7, :);         %multiplying by frame time to convert from n_frames to s
-histogram(t2_vec, 8);
+[counts, centers] = hist(t2_vec, 8);
+counts = counts./sum(counts);
+bar(centers, counts)
 xlabel('tau2 (s)')
 ylabel('fraction of counts')
 fig_wrapup(fig_h4, []);
