@@ -1,6 +1,11 @@
-clear all
-close all
+im = rand(100, 100);
+figure(3)
+bw = roipoly(im);
+figure(4)
+x = [10, 50, 50, 10];
+y = [10, 10, 50, 50];
 
-path = 'C:\Data\Data\Analysed_data\data_sharing\KC_param_fitting_sandbox\fits_Gamma_fly1\fit_params.npy';
-
-a = readNPY(path);
+bw2 = roipoly(im, x, y);
+%bw3 = poly2mask(x, y, 100, 100);
+figure(5)
+imagesc(bw2)

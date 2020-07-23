@@ -1,4 +1,4 @@
-function [lag_mat, bad_trs, done_marking, bk_ROI] = manual_xylags_zbad(dataset_stack, ROI_mat, ROI_mat_warped, warping_landmarks)
+function [lag_mat, bad_trs, done_marking, bk_ROI, ROI_mat_adj] = manual_xylags_zbad2(dataset_stack, ROI_mat, ROI_mat_warped, warping_landmarks, ROI_dilate)
 %This function displays an averaged image of each frame for the user to
 %click on a fixed landmark to determine x-y lags for slow drift as well as
 %to allow the user to report bad, z-drift trials by clicking outside the
@@ -10,12 +10,20 @@ curr_threshm = 4.5;
 curr_threshm_tr1 = curr_threshm;
 int_ranges = zeros(size(dataset_stack, 3), 2);
 
-if isempty(warping_landmarks) == 1
+if isempty(warping_landmarks) == 1 && size(ROI_mat, 3) ~= 1
     warped_ROIs = 0;
+    ROI_mat_adj = [];   %only applicable to single, large, MBON-like ROIs
 elseif isempty(warping_landmarks) == 0
     warped_ROIs = 1;
+    ROI_mat_adj = [];   %only applicable for single, large, MBON-like ROIs 
+elseif size(ROI_mat, 3) == 1        
+    warped_ROIs = 2;        %case when ROIs are of a single MBON
+    disp('WARNING: current dataset auto-detected as an MBON dataset.')
+    ROI_mat_adj = repmat(ROI_mat, 1, 1, size(dataset_stack, 3));      %creating an ROI matrix with one ROI for each trial and initializing to trial 1 ROI
+    
 else
 end
+
 
 trial_n = 0;
 global im_posx1
@@ -47,20 +55,25 @@ while trial_n < size(dataset_stack, 3)
         catch
             keyboard
         end
-        
+    
     elseif warped_ROIs == 0
+    elseif warped_ROIs == 2
+        ROI_mat = ROI_mat_adj(:, :, trial_n);
     else
     end
     
-    [frame_obj, ROI_obj] = plot_frame(frame1, curr_threshm, [1, 2, 1], ROI_mat);   
-    %recording original position of frame 1 image displayed.
-    im_posx0 = ROI_obj.XData;
-    im_posx0 = im_posx0(1);
-    im_posy0 = ROI_obj.YData;
-    im_posy0 = im_posy0(1);
+    
         
     disp('Slow, manual motion correction beginning...')
     if trial_n == 1
+        [frame_obj, ROI_obj] = plot_frame(frame1, curr_threshm, [1, 2, 1], ROI_mat);      
+        %recording original position of frame 1 image displayed.
+        im_posx0 = ROI_obj.XData;
+        im_posx0 = im_posx0(1);
+        im_posy0 = ROI_obj.YData;
+        im_posy0 = im_posy0(1);
+        
+         
         title('Draw background ROI.')
         bk_ROI = roipoly;
                 
@@ -74,16 +87,16 @@ while trial_n < size(dataset_stack, 3)
                 %pulling up options box to re-do last landmark or mark current
                 %trial as z-drifted
                 choice = listdlg('ListString', {'make brighter', 'make dimmer'}, 'SelectionMode', 'single');
-                
+                ROI_mat_tr1 = ROI_mat;
                 if choice == 1      %make brighter selected
                     subplot(1, 2, 1)
                     curr_threshm_tr1 = curr_threshm_tr1.*0.85;
-                    [frame_obj, ROI_obj] = plot_frame(frame1, curr_threshm_tr1, [1, 2, 1], ROI_mat);
+                    [frame_obj, ROI_obj] = plot_frame(frame1, curr_threshm_tr1, [1, 2, 1], ROI_mat_tr1);
                     
                 elseif choice == 2     %make dimmer selected
                     subplot(1, 2, 1)
                     curr_threshm_tr1 = curr_threshm_tr1.*1.15;
-                    [frame_obj, ROI_obj] = plot_frame(frame1, curr_threshm_tr1, [1, 2, 1], ROI_mat);
+                    [frame_obj, ROI_obj] = plot_frame(frame1, curr_threshm_tr1, [1, 2, 1], ROI_mat_tr1);
                     
                 else
                 end
@@ -124,23 +137,46 @@ while trial_n < size(dataset_stack, 3)
             if x < 0 || x > size(frame1, 2) || y < 0 || y > size(frame1, 1)
                 %pulling up options box to re-do last landmark or mark current
                 %trial as z-drifted
-                choice = listdlg('ListString', {'z-drifted', 'redo landmark', 'make brighter', 'make dimmer'}, 'SelectionMode', 'single');
-                
+               
+                if warped_ROIs == 2 %case where an MBON dataset was detected, allowing manual ROI adjustment due to tissue warping
+                    choice = listdlg('ListString', {'z-drifted', 'redo landmark', 'make brighter', 'make dimmer', 'adjust ROI'}, 'SelectionMode', 'single');
+                else
+                    choice = listdlg('ListString', {'z-drifted', 'redo landmark', 'make brighter', 'make dimmer'}, 'SelectionMode', 'single');
+                end
+                    
                 if choice == 1          %z-drift selected
                     z_drifted = 1;
                     done = 1; 
-                elseif choice == 3      %make dimmer selected
+                elseif choice == 3      %make brighter selected
                     subplot(1, 2, 2)
                     curr_threshm = curr_threshm.*0.85;
                     [frame_obj, ROI_obj] = plot_frame(curr_frame, curr_threshm, [1, 2, 2], ROI_mat);
-                elseif choice == 4      %make brighter selected
+                elseif choice == 4      %make dimmer selected
                     subplot(1, 2, 2)
                     curr_threshm = curr_threshm.*1.15;
                     [frame_obj, ROI_obj] = plot_frame(curr_frame, curr_threshm, [1, 2, 2], ROI_mat);
                 elseif choice == 2      %re-do last landmark selected
                     trial_n = trial_n - 1;
                     continue
+                elseif choice == 5      %adjust ROI selected - used to manually adjust single/MBON ROIs
+                   
+                   
+                    figure(2)
+                    plot_frame(curr_frame, curr_threshm, [], zeros(size(ROI_mat, 1), size(ROI_mat, 2)) );
+                    curr_ROI_adj = roipoly();
+                    if ROI_dilate > 0
+                        str = strel('disk', ROI_dilate, 0); 
+                        curr_ROI_adj = imdilate(curr_ROI_adj, str);
+                    else
+                    end
+                    ROI_mat = curr_ROI_adj;
+                    ROI_mat_adj(:, :, trial_n:end) = repmat(curr_ROI_adj, 1, 1, (size(dataset_stack, 3) - (trial_n - 1) ));
+                    close figure 2
+                else
                 end
+                
+                   
+                
             else
                 
                 z_drifted = 0;
@@ -156,6 +192,7 @@ while trial_n < size(dataset_stack, 3)
                 curr_frame_reg = translate_stack (curr_frame_orig, [y_lag; x_lag], nan);
                 
                 done = 1;
+       
             end
         end
         if z_drifted == 0
@@ -197,8 +234,14 @@ end
 
 %This function creates a subplot with the frame and the ROI on top of it.
 function [frame_obj, ROI_obj] = plot_frame(frame, curr_thresh, subplot_n, ROI_mat)
-    figure(1)
-    subplot(subplot_n(1), subplot_n(2), subplot_n(3))
+    
+    if isempty(subplot_n) ~= 1
+        fig_n = 1;
+        figure(fig_n)
+        subplot(subplot_n(1), subplot_n(2), subplot_n(3))
+    else
+        fig_n = 2;
+    end
     
     if median(reshape(frame, 1, []), 'omitnan') ~= 0
         frame_obj = imagesc(frame, [0, curr_thresh.*median(reshape(frame, 1, []), 'omitnan')]);
@@ -217,7 +260,7 @@ function [frame_obj, ROI_obj] = plot_frame(frame, curr_thresh, subplot_n, ROI_ma
     ROI_obj = imagesc(ROI_mat_sc);
     hold off
     ROI_obj.AlphaData = ROI_mat.*0.5;
-    plot_big_fig(1)
+    plot_big_fig(fig_n)
     
     
 %This function is called by draggable every time the user drags and then
