@@ -21,7 +21,7 @@ dataset_list_paths = [...
                       ];
             
 suppress_plots = 1;
-plotting_quant_no_filt = 1;     %1 - only unfiltered traces used for all analysis and plotting - traces included. 0 - filtered traces used for everything.
+plotting_quant_no_filt = 0;     %1 - only unfiltered traces used for all analysis and plotting - traces included. 0 - filtered traces used for everything.
 
 [del, odor_names1] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList.xls', 1);
 [del, odor_names2] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList_olf2.xls', 1);
@@ -40,7 +40,10 @@ y_ax_fit_traces = 0.6;
 an_save_path = 'C:\Data\Data\Analysed_data\Analysis_results\PaBaEl_Gamma2\';
 force_resave = 1;
 
+n_sec = 2;      %width of moving integration window in s
+
 for list_n = 1:size(dataset_list_paths, 1)
+    
     curr_dir_list_path = dataset_list_paths{list_n, 1};
     [del, dir_list] = xlsread(curr_dir_list_path, 1);        %list of Suite2P results directories
     n_dirs = size(dir_list, 1);
@@ -78,6 +81,9 @@ for list_n = 1:size(dataset_list_paths, 1)
     all_saved_mean_traces_transition_post = [];
     all_tr1_ims = [];
     all_ROI_mats = [];
+    single_tr_resps_tr_all = [];
+    single_tr_resps_s_all = [];
+    
     
     for dir_n = 1:n_dirs
         fly_n = fly_n + 1;
@@ -86,12 +92,16 @@ for list_n = 1:size(dataset_list_paths, 1)
         saved_mean_traces_simple_post = [];
         saved_mean_traces_transition_pre = [];
         saved_mean_traces_transition_post = [];
+        single_tr_resps_tr_crfly = [];
+        single_tr_resps_s_crfly = [];
+        
         
         curr_dir = [dir_list{dir_n, 1}, '\'];
         curr_dir = manage_base_paths(curr_dir, 2);
        
         tif_times = load([curr_dir, 'tif_time_stamps.mat']);           %reading in time stamps for each tif file recorded by raw_data_extracter
         tif_times = tif_times.time_stamps;
+        
         [stim_mat, stim_mat_simple, column_heads, color_vec, good_tr_list, params_orig] = load_params_trains_modular(curr_dir, tif_times);    %reading in trial stimulus parameters after matching time stamps to F traces
         paired_color = color_vec(2, :);
         unpaired_color = color_vec(1, :);
@@ -99,25 +109,41 @@ for list_n = 1:size(dataset_list_paths, 1)
         %mean_color = [0.5, 0.83, 0.98];
         %mean_color = [149, 200, 216]./256;
         mean_color = ([0, 49, 152]./256).*1.5;
-        keyboard
+       
         stim_mat_simple_nonans = stim_mat_simple;
         stim_mat_simple_nonans(isnan(stim_mat_simple)) = 0;
+                
+        %identifying stim_mat_simple col numbers
+        led_on_col_n = find_stim_mat_simple_col('led_on', column_heads);            %identifying relevant column number in stim_mat_simple
+        od_olf1_col_n = find_stim_mat_simple_col('odor_n', column_heads);           %identifying relevant column number in stim_mat_simple
+        od_olf2_col_n = find_stim_mat_simple_col('odour_olf2', column_heads);       %identifying relevant column number in stim_mat_simple
+        dur_olf1_col_n = find_stim_mat_simple_col('duration', column_heads);        %identifying relevant column number in stim_mat_simple
+        dur_olf2_col_n = find_stim_mat_simple_col('duration_olf2', column_heads);   %identifying relevant column number in stim_mat_simple
+        od_col_ns = [od_olf1_col_n, od_olf2_col_n];
+        dur_col_ns = [dur_olf1_col_n, dur_olf2_col_n];
+        od_durs = unique(stim_mat_simple(:, dur_col_ns(2)));
+        od_durs(isnan(od_durs)) = [];
+        odn_list_olf2 = unique(stim_mat_simple(:, od_col_ns(2)));
+        odn_list_olf2(isnan(odn_list_olf2)) = [];
+        
         
         %Reading in experimental parameters
-        odor_list_olf1 = unique(stim_mat_simple(:, 1) );
+        odor_list_olf1 = unique(stim_mat_simple(:, od_col_ns(1) ) );
         n_odors_olf1 = length(odor_list_olf1);
-        odor_dur_list_olf1 = unique(stim_mat_simple(:, 2) );
+        odor_dur_list_olf1 = unique(stim_mat_simple(:, dur_col_ns(1) ) );
         n_od_durs_olf1 = length(odor_dur_list_olf1);
-        n_trains_olf1 = max(stim_mat_simple(:, 8));
-        
-        odor_list_olf2 = unique(stim_mat_simple(:, 9) );
+                
+        odor_list_olf2 = unique(stim_mat_simple(:, od_col_ns(2) ) );
         n_odors_olf2 = length(odor_list_olf2);
-        odor_dur_list_olf2 = unique(stim_mat_simple(:, 10) );
+        odor_dur_list_olf2 = unique(stim_mat_simple(:, dur_col_ns(2) ) );
         n_od_durs_olf2 = length(odor_dur_list_olf2);
-        n_trains_olf2 = max(stim_mat_simple(:, 17));
         
         cd(curr_dir);
         tif_name = dir('*.tif');
+        if isempty(tif_name) == 1
+            continue
+        else
+        end
         stack_obj = ScanImageTiffReader([curr_dir, tif_name(1).name]);
         [frame_time, zoom, n_chans, PMT_offsets] = SI_tif_info(stack_obj);
         
@@ -155,32 +181,24 @@ for list_n = 1:size(dataset_list_paths, 1)
         end
         del = find(dff_data_mat_f < -1);
         dff_data_mat_f(del) = -1;       %forcing crazy values to sane ones
-        
-        %identifying stim_mat_simple col numbers
-        led_on_col_n = find_stim_mat_simple_col('led_on', column_heads);            %identifying relevant column number in stim_mat_simple
-        od_olf1_col_n = find_stim_mat_simple_col('odor_n', column_heads);           %identifying relevant column number in stim_mat_simple
-        od_olf2_col_n = find_stim_mat_simple_col('odour_olf2', column_heads);       %identifying relevant column number in stim_mat_simple
-        dur_olf1_col_n = find_stim_mat_simple_col('duration', column_heads);        %identifying relevant column number in stim_mat_simple
-        dur_olf2_col_n = find_stim_mat_simple_col('duration_olf2', column_heads);   %identifying relevant column number in stim_mat_simple
-        od_col_ns = [od_olf1_col_n, od_olf2_col_n];
-        dur_col_ns = [dur_olf1_col_n, dur_olf2_col_n];
-        od_durs = unique(stim_mat_simple(:, dur_col_ns(2)));
-        od_durs(isnan(od_durs)) = [];
-        odn_list_olf2 = unique(stim_mat_simple(:, od_col_ns(2)));
-        odn_list_olf2(isnan(odn_list_olf2)) = [];
-        
+                
         
         %identifying relevant odor numbers for each olfactometer
         pairing_tr_n = find(stim_mat_simple(:, led_on_col_n) == 1);        
+        paired_od_n_olf2 = stim_mat_simple(pairing_tr_n, od_olf2_col_n);    %paired odor is always an olf2 odor
         if isempty(pairing_tr_n) == 1   %no LED control dataset
             %identifying habituation trials, if any
             n_hab_trs = length(find(stim_mat_simple(:, dur_olf1_col_n) == 20));
             n_hab_trs = n_hab_trs + length(find(stim_mat_simple(:, dur_olf2_col_n) == 20));
-            pairing_tr_n = ((size(stim_mat, 2) - n_hab_trs) - 2)./2 + 1 + n_hab_trs;
+            pairing_tr_n = (((size(stim_mat, 2) - n_hab_trs) - 2)./2 + 1 + n_hab_trs) - 0.5;    %this is for references to the main dff_data_mat matrix
+            
+            %identifying real paired odor in stim_mat_simple_orig
+            stim_mat_simple_orig = generate_stim_mat_simple(params_orig);
+            pairing_tr_n_orig = find(stim_mat_simple_orig(:, dur_olf2_col_n) == 60);         %using duration as criterion in case this is a no LED control dataset
+            paired_od_n_olf2 = stim_mat_simple_orig(pairing_tr_n_orig(1), od_olf2_col_n);    %paired odor is always an olf2 odor
         else
         end        
-        
-        paired_od_n_olf2 = stim_mat_simple(pairing_tr_n, od_olf2_col_n);    %paired odor is always an olf2 odor
+                
         paired_od_name = odor_names2{paired_od_n_olf2};
         paired_od_n_olf1 = od_name_lookup(odor_names1, paired_od_name); 
 
@@ -197,90 +215,100 @@ for list_n = 1:size(dataset_list_paths, 1)
         %plotting and quantifying
                     
         %1. transition trials, unpaired-paired
-        [mean_trace_pre, mean_trace_post] = plot_hover_traces(unpaired_od_n_olf1, paired_od_n_olf2, paired_od_name, unpaired_color, paired_color, 2,...
-            stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr_n, y_ax_lim, plot_means, suppress_plots);
+        [mean_trace_pre, mean_trace_post, single_tr_resps_tr] = plot_hover_traces(unpaired_od_n_olf1, paired_od_n_olf2, paired_od_name, unpaired_color, paired_color, 2,...
+            stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr_n, y_ax_lim, plot_means, suppress_plots, n_sec);
+        
         if isempty(mean_trace_pre) == 0
             saved_mean_traces_transition_pre = pad_n_concatenate(saved_mean_traces_transition_pre, mean_trace_pre, 2, nan);
             saved_mean_traces_transition_post = pad_n_concatenate(saved_mean_traces_transition_post, mean_trace_post, 2, nan);
+            single_tr_resps_tr_crfly = pad_n_concatenate(single_tr_resps_tr_crfly, single_tr_resps_tr, 2, nan);
         else
         end
         
         %2. transition trials, paired-unpaired
-        [mean_trace_pre, mean_trace_post] = plot_hover_traces(paired_od_n_olf1, unpaired_od_n_olf2, unpaired_od_name, paired_color, unpaired_color, 1,...
-            stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr_n, y_ax_lim, plot_means, suppress_plots);
+        [mean_trace_pre, mean_trace_post, single_tr_resps_tr] = plot_hover_traces(paired_od_n_olf1, unpaired_od_n_olf2, unpaired_od_name, paired_color, unpaired_color, 1,...
+            stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr_n, y_ax_lim, plot_means, suppress_plots, n_sec);
         if isempty(mean_trace_pre) == 0
             saved_mean_traces_transition_pre = pad_n_concatenate(saved_mean_traces_transition_pre, mean_trace_pre, 2, nan);
             saved_mean_traces_transition_post = pad_n_concatenate(saved_mean_traces_transition_post, mean_trace_post, 2, nan);
+            single_tr_resps_tr_crfly = pad_n_concatenate(single_tr_resps_tr_crfly, single_tr_resps_tr, 2, nan);
         else
         end        
         
         %3. transition trials, EL-paired
-        [mean_trace_pre, mean_trace_post] = plot_hover_traces(11, paired_od_n_olf2, paired_od_name, EL_color, paired_color, 3,...
-            stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr_n, y_ax_lim, plot_means, suppress_plots);
+        [mean_trace_pre, mean_trace_post, single_tr_resps_tr] = plot_hover_traces(11, paired_od_n_olf2, paired_od_name, EL_color, paired_color, 3,...
+            stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr_n, y_ax_lim, plot_means, suppress_plots, n_sec);
         if isempty(mean_trace_pre) == 0
             saved_mean_traces_transition_pre = pad_n_concatenate(saved_mean_traces_transition_pre, mean_trace_pre, 2, nan);
             saved_mean_traces_transition_post = pad_n_concatenate(saved_mean_traces_transition_post, mean_trace_post, 2, nan);
+            single_tr_resps_tr_crfly = pad_n_concatenate(single_tr_resps_tr_crfly, single_tr_resps_tr, 2, nan);
         else
         end
         
         %4. transition trials, EL-unpaired
-        [mean_trace_pre, mean_trace_post] = plot_hover_traces(11, unpaired_od_n_olf2, unpaired_od_name, EL_color, unpaired_color, 4,...
-            stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr_n, y_ax_lim, plot_means, suppress_plots);
+        [mean_trace_pre, mean_trace_post, single_tr_resps_tr] = plot_hover_traces(11, unpaired_od_n_olf2, unpaired_od_name, EL_color, unpaired_color, 4,...
+            stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr_n, y_ax_lim, plot_means, suppress_plots, n_sec);
         if isempty(mean_trace_pre) == 0
             saved_mean_traces_transition_pre = pad_n_concatenate(saved_mean_traces_transition_pre, mean_trace_pre, 2, nan);
             saved_mean_traces_transition_post = pad_n_concatenate(saved_mean_traces_transition_post, mean_trace_post, 2, nan);
+            single_tr_resps_tr_crfly = pad_n_concatenate(single_tr_resps_tr_crfly, single_tr_resps_tr, 2, nan);
         else
         end
         
         %5. transition trials, paired-EL
-        [mean_trace_pre, mean_trace_post] = plot_hover_traces(paired_od_n_olf1, 4, 'Ethyl lactate', paired_color, EL_color, 5,...
-            stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr_n, y_ax_lim, plot_means, suppress_plots);
+        [mean_trace_pre, mean_trace_post, single_tr_resps_tr] = plot_hover_traces(paired_od_n_olf1, 4, 'Ethyl lactate', paired_color, EL_color, 5,...
+            stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr_n, y_ax_lim, plot_means, suppress_plots, n_sec);
         if isempty(mean_trace_pre) == 0
             saved_mean_traces_transition_pre = pad_n_concatenate(saved_mean_traces_transition_pre, mean_trace_pre, 2, nan);
             saved_mean_traces_transition_post = pad_n_concatenate(saved_mean_traces_transition_post, mean_trace_post, 2, nan);
+            single_tr_resps_tr_crfly = pad_n_concatenate(single_tr_resps_tr_crfly, single_tr_resps_tr, 2, nan);
         else
         end
         
         %6. transition trials, unpaired-EL
-        [mean_trace_pre, mean_trace_post] = plot_hover_traces(unpaired_od_n_olf1, 4, 'Ethyl lactate', unpaired_color, EL_color, 6,...
-            stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr_n, y_ax_lim, plot_means, suppress_plots);
+        [mean_trace_pre, mean_trace_post, single_tr_resps_tr] = plot_hover_traces(unpaired_od_n_olf1, 4, 'Ethyl lactate', unpaired_color, EL_color, 6,...
+            stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr_n, y_ax_lim, plot_means, suppress_plots, n_sec);
         if isempty(mean_trace_pre) == 0
             saved_mean_traces_transition_pre = pad_n_concatenate(saved_mean_traces_transition_pre, mean_trace_pre, 2, nan);
             saved_mean_traces_transition_post = pad_n_concatenate(saved_mean_traces_transition_post, mean_trace_post, 2, nan);
+            single_tr_resps_tr_crfly = pad_n_concatenate(single_tr_resps_tr_crfly, single_tr_resps_tr, 2, nan);
         else
         end
         
         
         %7. simple trials, paired odor
-        [mean_trace_pre, mean_trace_post] = plot_simple_traces([], paired_od_n_olf2, paired_od_name, paired_color, 7,...
+        [mean_trace_pre, mean_trace_post, single_tr_resps_s] = plot_simple_traces([], paired_od_n_olf2, paired_od_name, paired_color, 7,...
             stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr_n, y_ax_lim, plot_means, suppress_plots);
         if isempty(mean_trace_pre) == 0
             saved_mean_traces_simple_pre = pad_n_concatenate(saved_mean_traces_simple_pre, mean_trace_pre, 2, nan);
             saved_mean_traces_simple_post = pad_n_concatenate(saved_mean_traces_simple_post, mean_trace_post, 2, nan);
+            single_tr_resps_s_crfly = pad_n_concatenate(single_tr_resps_s_crfly, single_tr_resps_s, 2, nan);
         else
         end
         
         
         %8. simple trials, unpaired odor
-        [mean_trace_pre, mean_trace_post] = plot_simple_traces(unpaired_od_n_olf1, [], unpaired_od_name, unpaired_color, 8,...
+        [mean_trace_pre, mean_trace_post, single_tr_resps_s] = plot_simple_traces(unpaired_od_n_olf1, [], unpaired_od_name, unpaired_color, 8,...
             stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr_n, y_ax_lim, plot_means, suppress_plots);
         if isempty(mean_trace_pre) == 0
             saved_mean_traces_simple_pre = pad_n_concatenate(saved_mean_traces_simple_pre, mean_trace_pre, 2, nan);
             saved_mean_traces_simple_post = pad_n_concatenate(saved_mean_traces_simple_post, mean_trace_post, 2, nan);
+            single_tr_resps_s_crfly = pad_n_concatenate(single_tr_resps_s_crfly, single_tr_resps_s, 2, nan);
         else
         end
         
         %9. simple trials, EL
-        [mean_trace_pre, mean_trace_post] = plot_simple_traces(11, [], 'Ethyl lactate', EL_color, 9,...
+        [mean_trace_pre, mean_trace_post, single_tr_resps_s] = plot_simple_traces(11, [], 'Ethyl lactate', EL_color, 9,...
             stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr_n, y_ax_lim, plot_means, suppress_plots);
         if isempty(mean_trace_pre) == 0
             saved_mean_traces_simple_pre = pad_n_concatenate(saved_mean_traces_simple_pre, mean_trace_pre, 2, nan);
             saved_mean_traces_simple_post = pad_n_concatenate(saved_mean_traces_simple_post, mean_trace_post, 2, nan);
+            single_tr_resps_s_crfly = pad_n_concatenate(single_tr_resps_s_crfly, single_tr_resps_s, 2, nan);
         else
         end
         
         if suppress_plots == 0
-             
+             keyboard
         else
         end
         close all
@@ -298,6 +326,14 @@ for list_n = 1:size(dataset_list_paths, 1)
         
         all_tr1_ims = cat(3, all_tr1_ims, tr1_im);
         all_ROI_mats = cat(3, all_ROI_mats, ROI_mat);
+        
+        single_tr_resps_tr_all = pad_n_concatenate(single_tr_resps_tr_all, single_tr_resps_tr_crfly, 3, nan);
+        single_tr_resps_s_all = pad_n_concatenate(single_tr_resps_s_all, single_tr_resps_s_crfly, 3, nan);
+        
+        %PICK UP THREAD HERE
+        %make sure single tr responses are being logged correctly and plot
+        %session trend curves.
+        
         
     end
     
@@ -368,7 +404,6 @@ end
 %quantification of responses and statistical testing
 
 %quantifying mean responses from different response time-windows
-n_sec = 2;      %width of moving integration window in s
 transition_trs = find(stim_mat_simple(:, dur_col_ns(1)) == 10 & stim_mat_simple(:, dur_col_ns(2)) == 10);     %list of transition trials
 simple_trs = find(stim_mat_simple(:, dur_col_ns(1)) == 10 & stim_mat_simple(:, dur_col_ns(2)) ~= 10 |...
                     stim_mat_simple(:, dur_col_ns(1)) ~= 10 & stim_mat_simple(:, dur_col_ns(2)) == 10);     %list of simple trials
@@ -955,10 +990,17 @@ fig_wrapup(fig_n, []);
 hold off
 
 
+%calling session response trend plotter
+fig_n = fig_n + 1;
+plot_session_resp_trend(resp_mat_all, (max_pairing_tr + 0.5), marker_colors([1, 3, 5], :), fig_n)
+fig_wrapup(5, []);
+
+
+
 %---------------------------------
 %worker functions
-function [mean_trace_pre, mean_trace_post] = plot_hover_traces(olf1_odn, olf2_odn, od2_name, od1_color, od2_color, fign,...
-    stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr, y_ax_lim, plot_means, suppress_plots)
+function [mean_trace_pre, mean_trace_post, single_tr_resps_tr] = plot_hover_traces(olf1_odn, olf2_odn, od2_name, od1_color, od2_color, fign,...
+    stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr, y_ax_lim, plot_means, suppress_plots, n_sec)
 frame_time = 0.099;
 
 %identifying current trials
@@ -980,6 +1022,13 @@ curr_traces_pre = squeeze(dff_data_mat_f(:, :, curr_trs_pre));
 curr_traces_post = squeeze(dff_data_mat_f(:, :, curr_trs_post));
 mean_trace_pre = mean(curr_traces_pre, 2, 'omitnan');
 mean_trace_post = mean(curr_traces_post, 2, 'omitnan');
+
+%computing single trial responses for transition stimuli at onset of second pulse
+int_win(1) = round((stim_mat(curr_trs_pre(1)).stimLatency + stim_mat(curr_trs_pre(1)).duration)./frame_time);
+int_win(2) = int_win(1) + round(n_sec./frame_time); %4s integration window after pulse1 off
+single_tr_resps_pre = mean(curr_traces_pre(int_win(1):int_win(2), :), 'omitnan');
+single_tr_resps_post = mean(curr_traces_post(int_win(1):int_win(2), :), 'omitnan');
+single_tr_resps_tr = pad_n_concatenate(single_tr_resps_pre, single_tr_resps_post, 2, nan);
 
 if suppress_plots == 0
     stim_frs = compute_stim_frs_modular(stim_mat, curr_trs(1), frame_time);
@@ -1020,7 +1069,7 @@ end
 
 
 
-function [mean_trace_pre, mean_trace_post] = plot_simple_traces(olf1_odn, olf2_odn, od_name, od_color, fign,...
+function [mean_trace_pre, mean_trace_post, single_tr_resps_s] = plot_simple_traces(olf1_odn, olf2_odn, od_name, od_color, fign,...
     stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr, y_ax_lim, plot_means, suppress_plots)
 frame_time = 0.099;
 
@@ -1057,6 +1106,14 @@ curr_traces_pre = squeeze(dff_data_mat_f(:, :, curr_trs_pre));
 curr_traces_post = squeeze(dff_data_mat_f(:, :, curr_trs_post));
 mean_trace_pre = mean(curr_traces_pre, 2, 'omitnan');
 mean_trace_post = mean(curr_traces_post, 2, 'omitnan');
+
+%computing single trial responses for simple stimuli over whole odor pulse
+int_win(1) = round(stim_mat(curr_trs_pre(1)).stimLatency./frame_time);
+int_win(2) = int_win(1) + round((stim_mat(curr_trs_pre(1)).duration)./frame_time);
+single_tr_resps_pre = mean(curr_traces_pre(int_win(1):int_win(2), :), 'omitnan');
+single_tr_resps_post = mean(curr_traces_post(int_win(1):int_win(2), :), 'omitnan');
+single_tr_resps_s = pad_n_concatenate(single_tr_resps_pre, single_tr_resps_post, 2, nan);
+
 
 if suppress_plots == 0
     stim_frs = compute_stim_frs_modular(stim_mat, curr_trs(1), frame_time);
