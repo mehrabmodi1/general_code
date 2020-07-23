@@ -38,7 +38,11 @@ for par_file_n = 1:n_files
 end
 
 [del, last_filen] = max(date_nums);
-par_filename = dir_contents(last_filen).name;
+try
+    par_filename = dir_contents(last_filen).name;
+catch
+    keyboard
+end
 params = load([direc, par_filename]);
 params = params.params_mat;
 params_orig = params;
@@ -62,6 +66,11 @@ if datenum_check == 1
         curr_latency_p = params(trial_n_p).stimLatency;
         for trial_n_t = 1:n_trials_t
             curr_datenum_t = tif_datenums(trial_n_t).tstamp;
+            if isempty(curr_datenum_t) == 1
+                continue
+            else
+            end
+            
             curr_datenum_p = datetime(curr_datenum_p,'ConvertFrom','datenum');
             
             %making sure there's no am-pm error
@@ -71,6 +80,7 @@ if datenum_check == 1
                 match_mat(trial_n_p, trial_n_t) = seconds(abs(curr_datenum_p - curr_datenum_t - hours(12)));      %calculating time elapsed from param time stamp to tif time stamp
             else
             end
+            
         end   
     end
   

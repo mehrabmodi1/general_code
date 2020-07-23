@@ -174,9 +174,10 @@ def dataset_analysis(activity, odor, nonan, param, fold_fit):
     n_odors = odor_list.shape;                        #number of odors presented
     n_odors = n_odors[0];
     stim_long = np.max(dur_list);       #longest stimulus duration delivered
-            
+    
     i_stilong = (stim_durs == stim_long)
     i_stilong = np.squeeze(i_stilong);
+    
     
     logging.info(
         "activity shape (stim index, KC index, trace): %s",
@@ -222,15 +223,16 @@ def main():
     
     from pathlib import Path, PureWindowsPath
     
-    base_path = PureWindowsPath("C:\Data\Data\Analysed_data\data_sharing\KC_long_trace");       #this is the base path specified by the user 
+    base_path = PureWindowsPath("C:\Data\Data\Analysed_data\data_sharing\param_fitting\ApBpKC_hover_rtrain_prehabituated");       #this is the base path specified by the user 
     base_path = Path(base_path);
     obj_list = os.listdir(base_path);
     n_objs = len(obj_list);
     n_dirs = 0;
-    for obj_n in range(0, (n_objs - 1) ):
+    for obj_n in range(0, (n_objs) ):
         curr_path = "{}/{}".format(base_path, obj_list[obj_n]);
         if os.path.isdir(curr_path) == 1:
             n_dirs = n_dirs + 1;
+   
    
     n_flies = n_dirs;
     for fly_n in range(1, (n_flies + 1)):
@@ -254,13 +256,11 @@ def main():
            
         nonan  = np.delete(tr_list, bad_trs, 0);      #getting rid of bd trs from list of good trs
         activity_trimmed = np.delete(activity, np.arange((activity.shape[2] - n_nans_max), activity.shape[2]), 2);
-        
-        
+                
         activity = activity_trimmed[nonan, ...];
         params = io.loadmat(para_fn)['stim_mat'];
         
-        #breakpoint()
-        
+                
         #checking if current fly has already been analysed and recovering if partially analysed
         an_file_path = "{}/fly{}/fit_params.npy".format(base_path, fly_n);
        
@@ -274,6 +274,7 @@ def main():
         
         
         odor = params['odours'][0, nonan]
+        
         
         folder_fit = "{}/fly{}".format(base_path, fly_n)
         

@@ -9,6 +9,7 @@ raw_data_mat_orig = raw_data_mat;
 
 if isempty(trial_n) == 0
     raw_data_mat(:, :, trial_n) = nan;
+    
 elseif isempty(trial_n) == 1    %case where user wants to revert to original, full raw_data_mat
     extracted_raw_data_mat = load([direc, 'extracted_raw_data_mat_orig.mat']);
     raw_data_mat = extracted_raw_data_mat.raw_data_mat_orig;
