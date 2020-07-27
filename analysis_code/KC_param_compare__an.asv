@@ -187,10 +187,9 @@ end
 
 %clustering cell-od pairs based on corrcoefs between parameter vecs
 data_mat = params_saved_all(:, 2:8);
-label_mat = params_saved_all(:, 9:10);  %matrix of cell number and cell type number labels
-[data_mat_sorted, label_mat_sorted, clust_ids_sorted, link_map] = cluster_euc_hier(data_mat, label_mat, 10);
+lab
+[data_mat_sorted, label_mat_sorted, clust_ids_orig, link_map] = cluster_euc_hier(data_mat, 10);
 
-corr_mat = corrcoef(data_mat_sorted');
 
 
 
