@@ -11,7 +11,7 @@ dataset_list_paths = [...
                       {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Alpha1_30sCS_60strace_71C03LxA_MB043CGal4_with_Chrimson_LED.xls'};...
                       ];
             
-suppress_plots = 0;
+suppress_plots = 1;
 [del, odor_names1] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList.xls', 1);
 [del, odor_names2] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList_olf2.xls', 1);
 
@@ -191,7 +191,6 @@ for list_n = 1:size(dataset_list_paths, 1)
         resp_mat = pad_n_concatenate(resp_mat, curr_prepost_resps, 2, nan);       
         stim_frs = compute_stim_frs_modular(stim_mat, curr_trs_pre(1), frame_time);
         stim_frs = stim_frs{1};                   
-        
         figure(3)
         plot(pre_traces, 'Color', [0.6, 0.6, 0.6], 'lineWidth', 1.5)
         hold on

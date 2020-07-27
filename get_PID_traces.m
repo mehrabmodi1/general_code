@@ -32,6 +32,7 @@ for trial_n = 1:n_trials
     n = fr_pt_ratio;
     m = numel(x);
     curr_trace_ds(:, 1) = mean(reshape( [x(:);nan(mod(-m,n),1)],n,[]), 'omitnan');
+   
     x = curr_trace(:, 2);
     n = fr_pt_ratio;
     m = numel(x);
