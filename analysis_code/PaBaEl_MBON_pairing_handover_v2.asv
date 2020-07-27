@@ -225,11 +225,10 @@ for list_n = 1:size(dataset_list_paths, 1)
         %keeping track of what kind of responses are stored where in data matrices
         resp_labels_s = [];
         resp_labels_tr = [];
-        
                     
         %1. transition trials, unpaired-paired
         [mean_trace_pre, mean_trace_post, single_tr_resps_tr] = plot_hover_traces(unpaired_od_n_olf1, paired_od_n_olf2, paired_od_name, unpaired_color, paired_color, 2,...
-            stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr_n, y_ax_lim, plot_means, suppress_plots, n_sec, curr_dir);
+            stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr_n, y_ax_lim, plot_means, suppress_plots, n_sec);
         
         if isempty(mean_trace_pre) == 0
             saved_mean_traces_transition_pre = pad_n_concatenate(saved_mean_traces_transition_pre, mean_trace_pre, 2, nan);
@@ -241,7 +240,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         
         %2. transition trials, paired-unpaired
         [mean_trace_pre, mean_trace_post, single_tr_resps_tr] = plot_hover_traces(paired_od_n_olf1, unpaired_od_n_olf2, unpaired_od_name, paired_color, unpaired_color, 1,...
-            stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr_n, y_ax_lim, plot_means, suppress_plots, n_sec, curr_dir);
+            stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr_n, y_ax_lim, plot_means, suppress_plots, n_sec);
         if isempty(mean_trace_pre) == 0
             saved_mean_traces_transition_pre = pad_n_concatenate(saved_mean_traces_transition_pre, mean_trace_pre, 2, nan);
             saved_mean_traces_transition_post = pad_n_concatenate(saved_mean_traces_transition_post, mean_trace_post, 2, nan);
@@ -252,7 +251,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         
         %3. transition trials, EL-paired
         [mean_trace_pre, mean_trace_post, single_tr_resps_tr] = plot_hover_traces(11, paired_od_n_olf2, paired_od_name, EL_color, paired_color, 3,...
-            stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr_n, y_ax_lim, plot_means, suppress_plots, n_sec, curr_dir);
+            stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr_n, y_ax_lim, plot_means, suppress_plots, n_sec);
         if isempty(mean_trace_pre) == 0
             saved_mean_traces_transition_pre = pad_n_concatenate(saved_mean_traces_transition_pre, mean_trace_pre, 2, nan);
             saved_mean_traces_transition_post = pad_n_concatenate(saved_mean_traces_transition_post, mean_trace_post, 2, nan);
@@ -263,7 +262,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         
         %4. transition trials, EL-unpaired
         [mean_trace_pre, mean_trace_post, single_tr_resps_tr] = plot_hover_traces(11, unpaired_od_n_olf2, unpaired_od_name, EL_color, unpaired_color, 4,...
-            stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr_n, y_ax_lim, plot_means, suppress_plots, n_sec, curr_dir);
+            stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr_n, y_ax_lim, plot_means, suppress_plots, n_sec);
         if isempty(mean_trace_pre) == 0
             saved_mean_traces_transition_pre = pad_n_concatenate(saved_mean_traces_transition_pre, mean_trace_pre, 2, nan);
             saved_mean_traces_transition_post = pad_n_concatenate(saved_mean_traces_transition_post, mean_trace_post, 2, nan);
@@ -274,7 +273,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         
         %5. transition trials, paired-EL
         [mean_trace_pre, mean_trace_post, single_tr_resps_tr] = plot_hover_traces(paired_od_n_olf1, 4, 'Ethyl lactate', paired_color, EL_color, 5,...
-            stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr_n, y_ax_lim, plot_means, suppress_plots, n_sec, curr_dir);
+            stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr_n, y_ax_lim, plot_means, suppress_plots, n_sec);
         if isempty(mean_trace_pre) == 0
             saved_mean_traces_transition_pre = pad_n_concatenate(saved_mean_traces_transition_pre, mean_trace_pre, 2, nan);
             saved_mean_traces_transition_post = pad_n_concatenate(saved_mean_traces_transition_post, mean_trace_post, 2, nan);
@@ -285,7 +284,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         
         %6. transition trials, unpaired-EL
         [mean_trace_pre, mean_trace_post, single_tr_resps_tr] = plot_hover_traces(unpaired_od_n_olf1, 4, 'Ethyl lactate', unpaired_color, EL_color, 6,...
-            stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr_n, y_ax_lim, plot_means, suppress_plots, n_sec, curr_dir);
+            stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr_n, y_ax_lim, plot_means, suppress_plots, n_sec);
         if isempty(mean_trace_pre) == 0
             saved_mean_traces_transition_pre = pad_n_concatenate(saved_mean_traces_transition_pre, mean_trace_pre, 2, nan);
             saved_mean_traces_transition_post = pad_n_concatenate(saved_mean_traces_transition_post, mean_trace_post, 2, nan);
@@ -330,37 +329,28 @@ for list_n = 1:size(dataset_list_paths, 1)
         end
         
         %10. transition trials, paired-paired
-        [mean_trace_pre, mean_trace_post, single_tr_resps_tr, PID_traces_pp] = plot_hover_traces(paired_od_n_olf1, paired_od_n_olf2, paired_od_name, paired_color, paired_color, 10,...
-            stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr_n, y_ax_lim, plot_means, suppress_plots, n_sec, curr_dir);
+        [mean_trace_pre, mean_trace_post, single_tr_resps_tr] = plot_hover_traces(paired_od_n_olf1, paired_od_n_olf2, paired_od_name, paired_color, paired_color, 10,...
+            stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr_n, y_ax_lim, plot_means, suppress_plots, n_sec, direc);
         
         if isempty(mean_trace_pre) == 0
             saved_mean_traces_transition_pre_pp = pad_n_concatenate(saved_mean_traces_transition_pre_pp, mean_trace_pre, 2, nan);
             saved_mean_traces_transition_post_pp = pad_n_concatenate(saved_mean_traces_transition_post_pp, mean_trace_post, 2, nan);
             single_tr_resps_tr_crfly = pad_n_concatenate(single_tr_resps_tr_crfly, single_tr_resps_tr, 2, nan);
             resp_labels_tr = [resp_labels_tr; {'Pr-Pr'}];
-            
-            figure('Name','paired - paired PID traces')
-            
-            keyboard
         else
         end
         
         %11. transition trials, unpaired-unpaired
-        [mean_trace_pre, mean_trace_post, single_tr_resps_tr, PID_traces_uu] = plot_hover_traces(unpaired_od_n_olf1, unpaired_od_n_olf2, unpaired_od_name, unpaired_color, unpaired_color, 11,...
-            stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr_n, y_ax_lim, plot_means, suppress_plots, n_sec, curr_dir);
+        [mean_trace_pre, mean_trace_post, single_tr_resps_tr] = plot_hover_traces(unpaired_od_n_olf1, unpaired_od_n_olf2, unpaired_od_name, unpaired_color, unpaired_color, 11,...
+            stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr_n, y_ax_lim, plot_means, suppress_plots, n_sec, direc);
         if isempty(mean_trace_pre) == 0
             saved_mean_traces_transition_pre_uu = pad_n_concatenate(saved_mean_traces_transition_pre_uu, mean_trace_pre, 2, nan);
             saved_mean_traces_transition_post_uu = pad_n_concatenate(saved_mean_traces_transition_post_uu, mean_trace_post, 2, nan);
             single_tr_resps_tr_crfly = pad_n_concatenate(single_tr_resps_tr_crfly, single_tr_resps_tr, 2, nan);
             resp_labels_tr = [resp_labels_tr; {'Un-Un'}];
-            
-            figure('Name','unpaired - unpaired PID traces')
-            
-            keyboard
-            
         else
         end
-        keyboard
+        
         
         if suppress_plots == 0
              keyboard
@@ -1155,6 +1145,9 @@ frame_time = 0.099;
 curr_trs = find(stim_mat_simple(:, od_col_ns(1)) == olf1_odn & stim_mat_simple(:, dur_col_ns(1)) == 10 ...
     & stim_mat_simple(:, od_col_ns(2)) == olf2_odn & stim_mat_simple(:, dur_col_ns(2)) == 10);
 
+%getting PID traces
+PID_traces = get_PID_traces(direc, curr_trs, frame_time);
+
 %case where current od1-od2 transition isn't part of the dataset
 if isempty(curr_trs) == 1
     mean_trace_pre = [];
@@ -1163,10 +1156,6 @@ if isempty(curr_trs) == 1
     return
 else
 end
-
-keyboard
-%getting PID traces
-PID_traces = get_PID_traces(direc, curr_trs, frame_time);
 
 curr_trs_pre = curr_trs(curr_trs < pairing_tr);
 curr_trs_post = curr_trs(curr_trs > pairing_tr);
