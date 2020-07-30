@@ -1,25 +1,23 @@
 clear all
 close all
 
-direc = 'C:\Data\Data\Analysed_data\Manual_ROI_results\20200716\fly1_G2_PABAEL_handover_noLED_yesdendrites';
-stim_mat = load([direc, '\stim_mat.mat']);
-stim_mat = stim_mat.stim_mat;
+x = zeros(20, 20);
+x1 = [3, 21];
+x2 = [15, 15];
+interp_vals = round([linspace(x1(1), x2(1), 20); linspace(x1(2), x2(2), 20)]);
 
-flip1_count = 0;
-flip2_count = 0;
-for trial_n = 1:size(stim_mat, 2)
-    curr_od2 = stim_mat(trial_n).odours_olf2;
-    
-    if curr_od2 == 1
-        stim_mat(trial_n).odours_olf2 = 3;
-        flip1_count = flip1_count + 1
-    elseif curr_od2 == 3
-        stim_mat(trial_n).odours_olf2 = 1;
-        flip2_count = flip2_count + 1
-    else
-    end
-    
+x(x1(1), x1(2)) = 1;
+x(x2(1), x2(2)) = 1;
+
+y = zeros(20, 20);
+
+for i_val = 1:size(interp_vals, 2)
+    y(interp_vals(1, i_val), interp_vals(2, i_val)) = 1;
     
 end
 
-save([direc, '\stim_mat.mat'], 'stim_mat');
+figure(1)
+imagesc(x)
+
+figure(2)
+imagesc(y)
