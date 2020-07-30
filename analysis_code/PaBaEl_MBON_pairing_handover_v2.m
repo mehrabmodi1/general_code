@@ -1164,9 +1164,10 @@ if isempty(curr_trs) == 1
 else
 end
 
-keyboard
+
 %getting PID traces
-PID_traces = get_PID_traces(direc, curr_trs, frame_time);
+%PID_traces = get_PID_traces(direc, curr_trs, frame_time);
+PID_traces = [];
 
 curr_trs_pre = curr_trs(curr_trs < pairing_tr);
 curr_trs_post = curr_trs(curr_trs > pairing_tr);
