@@ -1,4 +1,4 @@
-function [dff_data_mat, dff_data_mat_f] = cal_dff_traces_res(raw_data_mat, stim_mat, frame_time, filt_time, direc)
+function [dff_data_mat, dff_data_mat_f] = cal_dff_traces_res(raw_data_mat, stim_mat, frame_time, filt_time, direc, good_tr_list)
 %This function takes the extracted raw traces in a 3-D matrix (frames,
 %cells, trials) and the corress 2P data object and gives an output of dF/F
 %traces in a matrix identical in size to raw_data_mat, with an extra dimension for odors.  
@@ -19,19 +19,24 @@ if max_val <=1
 else
 end
 
+if isempty(good_tr_list) == 1
+    good_tr_list = 1:1:size(raw_data_mat, 3);
+else
+end
+
 valve_odor_delay = load('C:\Data\Data\Analysed_data\valve_odor_delay.mat');
 valve_odor_delay = valve_odor_delay.valve_odor_delay;    %in ms
 valve_odor_delay = valve_odor_delay./1000; %in s
 PID_latency = valve_odor_delay;                          %latency from odor onset to arrival at the end of the odor tube measured with a PID (in ms)
-
-if exist([direc, '\bad_trial_list.mat']) == 2
-    bad_tr_list = load([direc, '\bad_trial_list.mat']);
-    good_tr_list = bad_tr_list.bad_tr_list;
-elseif exist([direc, '\good_trial_list.mat']) == 2
-    good_tr_list = load([direc, '\good_trial_list.mat']);
-    good_tr_list = good_tr_list.good_tr_list;
-else
-end
+% 
+% if exist([direc, '\bad_trial_list.mat']) == 2
+%     bad_tr_list = load([direc, '\bad_trial_list.mat']);
+%     good_tr_list = bad_tr_list.bad_tr_list;
+% elseif exist([direc, '\good_trial_list.mat']) == 2
+%     good_tr_list = load([direc, '\good_trial_list.mat']);
+%     good_tr_list = good_tr_list.good_tr_list;
+% else
+% end
 
 n_frames = size(raw_data_mat, 1);                           %this is the maximum number of frames for any trial in this dataset
 n_cells = size(raw_data_mat, 2);
@@ -57,6 +62,7 @@ for trial_n = 1:n_trials
     
     %calculating dF/F for all cells, for current trial
     raw_mat = squeeze(raw_data_mat(:, :, trial_n) );
+    
     try
         baseline_vec = mean(raw_mat((stim_frame - round(5./frame_time)):(stim_frame - round(2./frame_time)), :), 1, 'omitnan');          %vector of F baselines for all cells
     catch
