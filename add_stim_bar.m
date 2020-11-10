@@ -62,3 +62,4 @@ for patch_n = 1:size(stim_frames, 1)        %loop to draw multiple patches if ne
     
     p.EdgeColor = [1, 1, 1];
 end
+axes(a);
