@@ -25,8 +25,8 @@ plus_out_color = [0.5, 0.9, 0.4];
 
 %User-specified Parameters
 t_win = 10;  %trajectory  sampling time window on either side of boundary touch event
-sp_thresh = 2;    %in mm/s, the mean speed at which a fly must move in +/-t_win s around a touch event for it to be considered for analysis
-rem_win = 5;    %in s, the width of the window to ignore new boundary touch events around one already being counted.
+sp_thresh = 2;    %in mm/s, the min mean speed at which a fly must move in +/-t_win s around a touch event for it to be considered for analysis
+rem_win = 2;    %in s, the width of the window to ignore new boundary touch events around one already being counted.
 trans_on = 0;   %this boolean switch is to turn translation-alignment of trajectories on or off.
 c_dist_thresh = 1;    %threshold fractional distance from center above which quadrant transitions are discarded.
 end_t_win = 0.5;  %in s, the time window at the end of the trajectory where mean position is determined to identify returners.
@@ -36,10 +36,7 @@ sp_thresh = sp_thresh.*frame_time;
 rem_win_frs = round(rem_win./frame_time);
 end_t_win_frs = round(end_t_win./frame_time);
 
-all_plus_in_trajs_E = [];
-all_plus_out_trajs_E = [];
-all_plus_in_trajs_B = [];
-all_plus_out_trajs_B = [];
+
 
 set_name_vec = [{'PE'}, {'EP'}, {'PB'}, {'BP'}];
 for base_path_n = 1:2
@@ -51,6 +48,16 @@ for base_path_n = 1:2
     end
     
     if exist([base_path, 'plus_in_traces_aligned_E.mat']) ~= 1
+        all_plus_in_trajs_E = [];
+        all_plus_out_trajs_E = [];
+        all_plus_in_trajs_B = [];
+        all_plus_out_trajs_B = [];
+        all_plus_in_cross_counts_E = [];
+        all_plus_out_cross_counts_E = [];
+        all_plus_in_cross_counts_B = [];
+        all_plus_out_cross_counts_B = [];
+        
+        
         for set_n = 1:4
             set_name = set_name_vec{1, set_n};
             %identifying current set's CS+ odor
@@ -108,31 +115,46 @@ for base_path_n = 1:2
 
             %reading in or sampling trajectories near boundary touches
             if exist([base_path, set_name, '_samp_trajs.mat']) ~= 2
-                trajectory_samples = sample_crossing_trajs(data_matXY, t_win_frs, sp_thresh, rem_win_frs, dist_mat, c_dist_thresh, data_struc.od_is(1));
+                [trajectory_samples, cross_counts_mat] = sample_crossing_trajs(data_matXY, t_win_frs, sp_thresh, rem_win_frs, dist_mat, c_dist_thresh, data_struc.od_is(1));
                 eval(['save([base_path, ''', set_name, '_samp_trajs.mat''], ''trajectory_samples'');']);
+                eval(['save([base_path, ''', set_name, '_cross_counts.mat''], ''cross_counts_mat'');']);
             else
                 trajectory_samples = load([base_path, set_name, '_samp_trajs.mat']);
                 trajectory_samples = trajectory_samples.trajectory_samples;
+                cross_counts_mat = load([base_path, set_name, '_cross_counts.mat']);
+                cross_counts_mat = cross_counts_mat.cross_counts_mat;
             end
 
             %Pooling and aligning CS+ to CS- transition trajectories and CS- to CS+ transition trajectories 
-            [plus_in_trajs, plus_out_trajs] = pool_align_trajs(trajectory_samples, P_plus, (t_win_frs + 1), trans_on);
+            [plus_in_trajs, plus_out_trajs, plus_in_counts, plus_out_counts] = pool_align_trajs(trajectory_samples, P_plus, (t_win_frs + 1), trans_on, cross_counts_mat);
 
             if E_set == 1
                 %coarse discrimination case, where counter odor was EL
                 all_plus_in_trajs_E = [all_plus_in_trajs_E; plus_in_trajs];
                 all_plus_out_trajs_E = [all_plus_out_trajs_E; plus_out_trajs];
+                all_plus_in_cross_counts_E = [all_plus_in_cross_counts_E; plus_in_counts];  %pooling boundary cross counts per fly into CS+ to CS- and CS- to CS+ boundary cross events        
+                all_plus_out_cross_counts_E = [all_plus_out_cross_counts_E; plus_out_counts];  
             elseif E_set == 0
                 %fine discrimination case, where counter odor was BA
                 all_plus_in_trajs_B = [all_plus_in_trajs_B; plus_in_trajs];
                 all_plus_out_trajs_B = [all_plus_out_trajs_B; plus_out_trajs];
+                all_plus_in_cross_counts_B = [all_plus_in_cross_counts_B; plus_in_counts];
+                all_plus_out_cross_counts_B = [all_plus_out_cross_counts_B; plus_out_counts]; 
             else
             end
+            
+                     
         end
+        
         save([base_path, 'plus_in_traces_aligned_E.mat'], 'all_plus_in_trajs_E');
         save([base_path, 'plus_out_traces_aligned_E.mat'], 'all_plus_out_trajs_E');
         save([base_path, 'plus_in_traces_aligned_B.mat'], 'all_plus_in_trajs_B');
         save([base_path, 'plus_out_traces_aligned_B.mat'], 'all_plus_out_trajs_B');
+        
+        save([base_path, 'plus_in_cross_counts_B.mat'], 'all_plus_in_cross_counts_B');
+        save([base_path, 'plus_out_cross_counts_B.mat'], 'all_plus_out_cross_counts_B');
+        save([base_path, 'plus_in_cross_counts_E.mat'], 'all_plus_in_cross_counts_E');
+        save([base_path, 'plus_out_cross_counts_E.mat'], 'all_plus_out_cross_counts_E');
     else
         all_plus_in_trajs_E = load([base_path, 'plus_in_traces_aligned_E.mat']);
         all_plus_in_trajs_E = all_plus_in_trajs_E.all_plus_in_trajs_E;
@@ -143,9 +165,19 @@ for base_path_n = 1:2
         all_plus_out_trajs_E = all_plus_out_trajs_E.all_plus_out_trajs_E;
         all_plus_out_trajs_B = load([base_path, 'plus_out_traces_aligned_B.mat']);
         all_plus_out_trajs_B = all_plus_out_trajs_B.all_plus_out_trajs_B;
+        
+        all_plus_in_cross_counts_E = load([base_path, 'plus_in_cross_counts_E.mat']);
+        all_plus_in_cross_counts_E = all_plus_in_cross_counts_E.all_plus_in_cross_counts_E;
+        all_plus_in_cross_counts_B = load([base_path, 'plus_in_cross_counts_B.mat']);
+        all_plus_in_cross_counts_B = all_plus_in_cross_counts_B.all_plus_in_cross_counts_B;
+
+        all_plus_out_cross_counts_E = load([base_path, 'plus_out_cross_counts_E.mat']);
+        all_plus_out_cross_counts_E = all_plus_out_cross_counts_E.all_plus_out_cross_counts_E;
+        all_plus_out_cross_counts_B = load([base_path, 'plus_out_cross_counts_B.mat']);
+        all_plus_out_cross_counts_B = all_plus_out_cross_counts_B.all_plus_out_cross_counts_B;
 
     end
-keyboard
+    
     %plotting all boundary-touch trajectories
     plot_trajectories(all_plus_out_trajs_E, 'Leaving CS+ quadrant, coarse', 1, 0)
     plot_trajectories(all_plus_in_trajs_E, 'Entering CS+ quadrant, coarse', 1, 0)
@@ -245,7 +277,7 @@ keyboard
     line_colors = zeros(4, 3) + 1;    %no lines needed as these are not paired samples
     xlabels = [{'coarse'}, {'fine'}, {'coarse'}, {'fine'}];
     mean_color = [0, 0, 0];
-    fig_h = scattered_dot_plot_ttest(data_mat_time, fig_h, 2, 4, 8, marker_colors, 1, col_pairs, line_colors, xlabels, 1, mean_color, 2, 0.05);
+    fig_h = scattered_dot_plot_ttest(data_mat_time, fig_h, 2, 4, 8, marker_colors, 0, col_pairs, line_colors, xlabels, 1, mean_color, 2, 0.05);
     ylabel('time to return (s)');
     ax_vals = axis;
     ax_vals(1, 4) = 11.5;
@@ -263,7 +295,7 @@ keyboard
     line_colors = zeros(4, 3) + 1;    %no lines needed as these are not paired samples
     xlabels = [{'coarse'}, {'fine'}, {'coarse'}, {'fine'}];
     mean_color = [0, 0, 0];
-    fig_h = scattered_dot_plot_ttest(data_mat_dist, fig_h, 2, 4, 8, marker_colors, 1, col_pairs, line_colors, xlabels, 1, mean_color, 2, 0.05);
+    fig_h = scattered_dot_plot_ttest(data_mat_dist, fig_h, 2, 4, 8, marker_colors, 0, col_pairs, line_colors, xlabels, 1, mean_color, 2, 0.05);
     ylabel('max excursion dist (mm)');
     ax_vals = axis;
     ax_vals(1, 4) = 47;
@@ -283,13 +315,31 @@ keyboard
     line_colors = zeros(4, 3) + 1;    %no lines needed as these are not paired samples
     xlabels = [{'coarse'}, {'fine'}, {'coarse'}, {'fine'}];
     mean_color = [0, 0, 0];
-    fig_h = scattered_dot_plot_ttest(data_mat_time_ex, fig_h, 2, 4, 8, marker_colors, 1, col_pairs, line_colors, xlabels, 1, mean_color, 2, 0.05);
+    fig_h = scattered_dot_plot_ttest(data_mat_time_ex, fig_h, 2, 4, 8, marker_colors, 0, col_pairs, line_colors, xlabels, 1, mean_color, 2, 0.05);
     ylabel('time to max exc. (s)');
     ax_vals = axis;
     ax_vals(1, 4) = 11;
     axis(ax_vals);
     fig_wrapup_handle(fig_h, []);
 
+    
+    %4. numbers of plus entries and exits by each fly
+    data_mat_cross_counts = all_plus_in_cross_counts_E;
+    data_mat_cross_counts = pad_n_concatenate(data_mat_cross_counts, all_plus_in_cross_counts_B, 2, nan);
+    data_mat_cross_counts = pad_n_concatenate(data_mat_cross_counts, all_plus_out_cross_counts_E, 2, nan);
+    data_mat_cross_counts = pad_n_concatenate(data_mat_cross_counts, all_plus_out_cross_counts_B, 2, nan);
+    fig_h = figure('Name',['number of quadrant crossings ', base_name]);
+    marker_colors = [plus_in_color; plus_in_color; plus_out_color; plus_out_color];
+    col_pairs = [];
+    line_colors = zeros(4, 3) + 1;    %no lines needed as these are not paired samples
+    xlabels = [{'coarse'}, {'fine'}, {'coarse'}, {'fine'}];
+    mean_color = [0, 0, 0];
+    fig_h = scattered_dot_plot_ttest(data_mat_cross_counts, fig_h, 2, 4, 8, marker_colors, 0, col_pairs, line_colors, xlabels, 1, mean_color, 2, 0.05);
+    ylabel('cross counts');
+    ax_vals = axis;
+    ax_vals(1, 4) = 11;
+    axis(ax_vals);
+    fig_wrapup_handle(fig_h, []);
     
     keyboard
 
@@ -519,7 +569,7 @@ for fly_n = 1:n_flies
 end
 end
 
-function [trajectory_samples] = sample_crossing_trajs(data_matXY, t_win_frs, sp_thresh, rem_win_frs, dist_mat, c_dist_thresh, od_oni)
+function [trajectory_samples, cross_count_mat] = sample_crossing_trajs(data_matXY, t_win_frs, sp_thresh, rem_win_frs, dist_mat, c_dist_thresh, od_oni)
     V_mean_speeds = [];
     H_mean_speeds = [];
 
@@ -534,8 +584,11 @@ function [trajectory_samples] = sample_crossing_trajs(data_matXY, t_win_frs, sp_
     q21_events = [];
     q34_events = [];    %touch events originating in quardant3, towards 4 (bottom right to bottom left)
     q43_events = [];
-       
-       
+    
+    %initialising a nflies x nboundaries matrix to count how many times each fly crosses each cpt boundary, in each direction
+    cross_count_mat = zeros(size(x_rows, 1), 8);    %the eight boundaries are 12, 23, 34, 41, 14, 43, 32, 21
+    
+    
     for pt_n = 1:size(V_fly_ns, 1)
         curr_fly_n = V_fly_ns(pt_n);
         curr_fr_n = V_frame_ns(pt_n);
@@ -599,8 +652,10 @@ function [trajectory_samples] = sample_crossing_trajs(data_matXY, t_win_frs, sp_
             %case where trajectory started on left
             if mean(x_pts((t_win_frs - 10):t_win_frs)) < 0      %computing mean position in 1s before touch event     
                 q12_events = [q12_events; x_pts; y_pts; speed_vec];
+                cross_count_mat(V_fly_ns(pt_n), 1) = cross_count_mat(V_fly_ns(pt_n), 1) + 1;
             elseif mean(x_pts((t_win_frs - 10):t_win_frs)) > 0    %case where trajectory started on the right
                 q21_events = [q21_events; x_pts; y_pts; speed_vec];
+                cross_count_mat(V_fly_ns(pt_n), 8) = cross_count_mat(V_fly_ns(pt_n), 8) + 1;
             else
             end
 
@@ -608,8 +663,10 @@ function [trajectory_samples] = sample_crossing_trajs(data_matXY, t_win_frs, sp_
             %case where trajectory started on left
             if mean(x_pts((t_win_frs - 10):t_win_frs)) < 0      %computing mean position in 1s before touch event     
                 q43_events = [q43_events; x_pts; y_pts; speed_vec];
+                cross_count_mat(V_fly_ns(pt_n), 6) = cross_count_mat(V_fly_ns(pt_n), 6) + 1;
             elseif mean(x_pts((t_win_frs - 10):t_win_frs)) > 0    %case where trajectory started on the right
                 q34_events = [q34_events; x_pts; y_pts; speed_vec];
+                cross_count_mat(V_fly_ns(pt_n), 3) = cross_count_mat(V_fly_ns(pt_n), 3) + 1;
             else
             end
         end
@@ -619,22 +676,24 @@ function [trajectory_samples] = sample_crossing_trajs(data_matXY, t_win_frs, sp_
     x_rows = data_matXY(1:2:end, :);
     y_rows = data_matXY(2:2:end, :);
     y_rows_mk = y_rows;
-    [H_fly_ns, H_frame_ns] = find(abs(y_rows) <0.5);   %horixontal boundary transitions
+    [H_fly_ns, H_frame_ns] = find(abs(y_rows) <0.5);   %horizontal boundary transitions
     %classifying boundary touch events and sampling trajectories for +/- t_win seconds
-    curr_fly_n = V_fly_ns(pt_n);
-    curr_fr_n = V_frame_ns(pt_n);
+    
     q14_events = [];    %touch events originating in quadrant1, towards 2 (top left to top right)
     q41_events = [];
     q23_events = [];    %touch events originating in quardant3, towards 4 (bottom right to bottom left)
     q32_events = [];
     for pt_n = 1:size(H_fly_ns, 1)
+        curr_fly_n = H_fly_ns(pt_n);
+        curr_fr_n = H_frame_ns(pt_n);
+        
         if (H_frame_ns(pt_n) + t_win_frs) > size(x_rows, 2)
             %case where boundary touch happened too close to end of data, discarding touch event.
             continue
         elseif (H_frame_ns(pt_n) - t_win_frs) < 1
             %case where boundary touch happened too close to beginning of data, discarding touch event.
             continue
-            elseif dist_mat(curr_fly_n, curr_fr_n) > (45.5).*c_dist_thresh
+        elseif dist_mat(curr_fly_n, curr_fr_n) > (45.5).*c_dist_thresh
             %case where boundary touch happened too close to arena edge.
             continue
         else
@@ -648,7 +707,7 @@ function [trajectory_samples] = sample_crossing_trajs(data_matXY, t_win_frs, sp_
             continue
         end
         %removing trajectories that never cross 0 as ambiguous cross-events
-        y_pts_s = x_pts;
+        y_pts_s = y_pts;
         y_pts_s(y_pts_s == 0) = [];
         sign_vec = unique(sign(y_pts_s));
         sign_vec(isnan(sign_vec)) = [];
@@ -681,10 +740,12 @@ function [trajectory_samples] = sample_crossing_trajs(data_matXY, t_win_frs, sp_
         %checking if fly started on top or bottom
         if x_rows(H_fly_ns(pt_n), H_frame_ns(pt_n)) < 0     %case where boundary touch happened right of center
             %case where trajectory started on top
-            if mean(y_pts((t_win_frs - 10):t_win_frs)) > 0      %computing mean position in 1s before touch event     
+            if mean(y_pts((t_win_frs - 10):t_win_frs)) > 0      %computing mean position in 1s before touch event  
                 q14_events = [q14_events; x_pts; y_pts; speed_vec];
+                cross_count_mat(H_fly_ns(pt_n), 5) = cross_count_mat(H_fly_ns(pt_n), 5) + 1;
             elseif mean(y_pts((t_win_frs - 10):t_win_frs)) < 0    %case where trajectory started on the right
                 q41_events = [q41_events; x_pts; y_pts; speed_vec];
+                cross_count_mat(H_fly_ns(pt_n), 4) = cross_count_mat(H_fly_ns(pt_n), 4) + 1;
             else
             end
 
@@ -692,8 +753,10 @@ function [trajectory_samples] = sample_crossing_trajs(data_matXY, t_win_frs, sp_
             %case where trajectory started on top
             if mean(y_pts((t_win_frs - 10):t_win_frs)) > 0      %computing mean position in 1s before touch event     
                 q23_events = [q23_events; x_pts; y_pts; speed_vec];
+                cross_count_mat(H_fly_ns(pt_n), 2) = cross_count_mat(H_fly_ns(pt_n), 2) + 1;
             elseif mean(y_pts((t_win_frs - 10):t_win_frs)) < 0    %case where trajectory started on the bottom
                 q32_events = [q32_events; x_pts; y_pts; speed_vec];
+                cross_count_mat(H_fly_ns(pt_n), 7) = cross_count_mat(H_fly_ns(pt_n), 7) + 1;
             else
             end
         end
@@ -740,43 +803,52 @@ function speed_mat = calc_speed(data_mat)
     end
 end
 
-function [plus_in_trajs, plus_out_trajs] = pool_align_trajs(trajectory_samples, P_plus, ref_fr, trans_on)
+function [plus_in_trajs, plus_out_trajs, plus_in_counts, plus_out_counts] = pool_align_trajs(trajectory_samples, P_plus, ref_fr, trans_on, cross_counts_mat)
     P_out_trajs = [];
     P_in_trajs = [];
+    
     %applying transformations to align 
     %assuming PA is CS+ and correcting appropriately at the end
     q12_trajs = trajectory_samples.q12;
     trajs_adj = apply_rot_trans(q12_trajs, 0, 0, ref_fr, trans_on);
     P_out_trajs = [P_out_trajs; trajs_adj];
+    P_out_counts = cross_counts_mat(:, 1);
     
     q14_trajs = trajectory_samples.q14;
     trajs_adj = apply_rot_trans(q14_trajs, 90, 1, ref_fr, trans_on);
     P_out_trajs = [P_out_trajs; trajs_adj];
+    P_out_counts = P_out_counts + cross_counts_mat(:, 5);
     
     q32_trajs = trajectory_samples.q32;
     trajs_adj = apply_rot_trans(q32_trajs, -90, 1, ref_fr, trans_on);
     P_out_trajs = [P_out_trajs; trajs_adj];
+    P_out_counts = P_out_counts + cross_counts_mat(:, 7);
     
     q34_trajs = trajectory_samples.q34;
     trajs_adj = apply_rot_trans(q34_trajs, -180, 0, ref_fr, trans_on);
     P_out_trajs = [P_out_trajs; trajs_adj];
+    P_out_counts = P_out_counts + cross_counts_mat(:, 3);
 
     
     q21_trajs = trajectory_samples.q21;
     trajs_adj = apply_rot_trans(q21_trajs, 0, 0, ref_fr, trans_on);
     P_in_trajs = [P_in_trajs; trajs_adj];
+    P_in_counts = cross_counts_mat(:, 8);
      
     q23_trajs = trajectory_samples.q23;
     trajs_adj = apply_rot_trans(q23_trajs, -90, 1, ref_fr, trans_on);
     P_in_trajs = [P_in_trajs; trajs_adj];
+    P_in_counts = P_in_counts + cross_counts_mat(:, 2);
     
     q41_trajs = trajectory_samples.q41;
     trajs_adj = apply_rot_trans(q41_trajs, 90, 1, ref_fr, trans_on);
     P_in_trajs = [P_in_trajs; trajs_adj];
+    P_in_counts = P_in_counts + cross_counts_mat(:, 4);
     
     q43_trajs = trajectory_samples.q43;
     trajs_adj = apply_rot_trans(q43_trajs, -180, 0, ref_fr, trans_on);
     P_in_trajs = [P_in_trajs; trajs_adj];
+    P_in_counts = P_in_counts + cross_counts_mat(:, 6);
     
     %flipping y co-ords if PA was CS- to ensure CS + is the quadrant above
     if P_plus == 0
@@ -790,9 +862,13 @@ function [plus_in_trajs, plus_out_trajs] = pool_align_trajs(trajectory_samples, 
         
         plus_in_trajs = P_out_trajs;
         plus_out_trajs = P_in_trajs;
+        plus_in_counts = P_out_counts;
+        plus_out_counts = P_in_counts;
     else
         plus_in_trajs = P_in_trajs;
         plus_out_trajs = P_out_trajs;
+        plus_in_counts = P_in_counts;
+        plus_out_counts = P_out_counts;
     end
     
 %     %testing lines

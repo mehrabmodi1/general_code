@@ -20,7 +20,7 @@ else
         good_tr_list = good_tr_list.bad_tr_list;
     catch
         disp('no z-drift tr list found.')
-        keyboard
+        %keyboard
         good_tr_list = [];
     end
     

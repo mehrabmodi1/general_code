@@ -1,5 +1,5 @@
 function [diff_fr, sig_resp_frame, sig_resp_frame_n, smple_fr] = highlight_resp_pix(fig_n, stack, stim_frs, n_channels, frame_time, suppress_plot)
-%syntax: [diff_fr, sig_resp_frame, sig_resp_frame_n, smple_fr] = highlight_resp_pix(fig_n, stack, stim_frs, frame_time, suppress_plot)
+%syntax: [diff_fr, sig_resp_frame, sig_resp_frame_n, smple_fr] = highlight_resp_pix(fig_n, stack, stim_frs, n_channels, frame_time, suppress_plot)
 %This function identifies pixels whose dF/F response is in the top
 %cutoff_pc percent of all pixels in the mean response frame. It then plots
 %the mean response frame with the responsive pixels highlighted.
@@ -17,7 +17,11 @@ end
 for pulse_n = 1:size(stim_frs, 1)
     stim_fr = stim_frs(pulse_n, 1);
     stim_end_fr = stim_frs(pulse_n, 2);
-    baseline_frs = stack(:, :, (stim_fr - round(4./frame_time) ):(stim_fr - 1) );
+    try
+        baseline_frs = stack(:, :, (stim_fr - round(4./frame_time) ):(stim_fr - 1) );
+    catch
+        keyboard
+    end
     baseline_frs = double(baseline_frs);
     if pulse_n == 1
         baseline_fr = mean(baseline_frs, 3);

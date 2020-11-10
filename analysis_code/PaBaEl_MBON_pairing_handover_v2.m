@@ -13,10 +13,10 @@ dataset_list_paths = [...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_MBONG2_PaBaEl_handover_starved36_halfAra.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_MBONG2_PaBaEl_handover_starved_halfAra.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_MBONG2_PaBaEl_handover_starved_halfAra_prehabituated.xls'};...
-                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_MBONG2_PaBaEl_handover_starved_halfAra_prehabituated_strongUS.xls'};...
+                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_MBONG2_PaBaEl_handover_starved_halfAra_prehabituated_strongUS.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_MBONG2_PaBaEl_handover_starved_halfAra_prehabituated_strongUS_EL_handover.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_MBONG2_PaBaEl_handover_starved_halfAra_prehabituated_strongUS_EL_second.xls'};...
-                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_starved_halfAra_prehabituated_noLED_control.xls'};...
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_starved_halfAra_prehabituated_noLED_control.xls'};...
                       
                       ];
             
@@ -164,18 +164,18 @@ for list_n = 1:size(dataset_list_paths, 1)
         
         %inserting dummy trials (all nans) into raw_data_mat for pairing trials for
         %which no corress .tifs were acquired
-        raw_data_mat = match_up_rawmat_matchedtrs(raw_data_mat, stim_mat_simple, tif_n_col_n);
+        [raw_data_mat, good_tr_list] = match_up_rawmat_matchedtrs(raw_data_mat, stim_mat_simple, tif_n_col_n, good_tr_list);
         
         %dumping data from manually identified, z-drifted trials
-        bad_tr_list = 1:size(raw_data_mat, 3);
-        bad_tr_list(good_tr_list) = [];
-        raw_data_mat(:, :, bad_tr_list) = nan;
+%         bad_tr_list = 1:size(raw_data_mat, 3);
+%         bad_tr_list(good_tr_list) = [];
+%         raw_data_mat(:, :, bad_tr_list) = nan;
         
         n_cells = size(raw_data_mat, 2);
         
         %calculating dF/F traces from raw data
         filt_time = 0.2;            %in s, the time window for boxcar filter for generating filtered traces
-        [dff_data_mat, dff_data_mat_f] = cal_dff_traces_res(raw_data_mat, stim_mat, frame_time, filt_time, curr_dir);
+        [dff_data_mat, dff_data_mat_f] = cal_dff_traces_res(raw_data_mat, stim_mat, frame_time, filt_time, curr_dir, good_tr_list);
         if plotting_quant_no_filt == 1
             dff_data_mat_f = dff_data_mat;
         else
@@ -194,6 +194,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         %identifying relevant odor numbers for each olfactometer
         pairing_tr_n = find(stim_mat_simple(:, led_on_col_n) == 1);        
         paired_od_n_olf2 = stim_mat_simple(pairing_tr_n, od_olf2_col_n);    %paired odor is always an olf2 odor
+        
         if isempty(pairing_tr_n) == 1   %no LED control dataset
             %identifying habituation trials, if any
             n_hab_trs = length(find(stim_mat_simple(:, dur_olf1_col_n) == 20));
@@ -330,7 +331,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         end
         
         %10. transition trials, paired-paired
-        [mean_trace_pre, mean_trace_post, single_tr_resps_tr, PID_traces_pp] = plot_hover_traces(paired_od_n_olf1, paired_od_n_olf2, paired_od_name, paired_color, paired_color, 10,...
+        [mean_trace_pre, mean_trace_post, single_tr_resps_tr] = plot_hover_traces(paired_od_n_olf1, paired_od_n_olf2, paired_od_name, paired_color, paired_color, 10,...
             stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr_n, y_ax_lim, plot_means, suppress_plots, n_sec, curr_dir);
         
         if isempty(mean_trace_pre) == 0
@@ -346,7 +347,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         end
         
         %11. transition trials, unpaired-unpaired
-        [mean_trace_pre, mean_trace_post, single_tr_resps_tr, PID_traces_uu] = plot_hover_traces(unpaired_od_n_olf1, unpaired_od_n_olf2, unpaired_od_name, unpaired_color, unpaired_color, 11,...
+        [mean_trace_pre, mean_trace_post, single_tr_resps_tr] = plot_hover_traces(unpaired_od_n_olf1, unpaired_od_n_olf2, unpaired_od_name, unpaired_color, unpaired_color, 11,...
             stim_mat, stim_mat_simple, od_col_ns, dur_col_ns, dff_data_mat_f, pairing_tr_n, y_ax_lim, plot_means, suppress_plots, n_sec, curr_dir);
         if isempty(mean_trace_pre) == 0
             saved_mean_traces_transition_pre_uu = pad_n_concatenate(saved_mean_traces_transition_pre_uu, mean_trace_pre, 2, nan);
@@ -360,7 +361,7 @@ for list_n = 1:size(dataset_list_paths, 1)
             
         else
         end
-        keyboard
+        
         
         if suppress_plots == 0
              keyboard

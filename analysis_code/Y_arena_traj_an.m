@@ -1,7 +1,8 @@
 clear all
 close all
 
-base_dir = 'C:\Data\Data\Adithya_Yarena_data\5sLED\';
+%base_dir = 'C:\Data\Data\Adithya_Yarena_data\5sLED\center_on\';
+base_dir = 'C:\Data\Data\Adithya_Yarena_data\5sLED\periph_on\';
 
 dir_contents = dir(base_dir);
 dir_contents(1:2) = [];

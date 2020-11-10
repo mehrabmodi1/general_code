@@ -1,23 +1,10 @@
 clear all
 close all
+path1 = 'C:\Users\Mehrab\Dropbox (HHMI)\data_sharing\Data_for_Herve\discrimination_data_Herve\Gamma\fly3\';
+path2 = 'C:\Users\Mehrab\Dropbox (HHMI)\data_sharing\Data_for_Herve\KC_Gamma_PABAEL_201908set\fly1\';
 
-x = zeros(20, 20);
-x1 = [3, 21];
-x2 = [15, 15];
-interp_vals = round([linspace(x1(1), x2(1), 20); linspace(x1(2), x2(2), 20)]);
-
-x(x1(1), x1(2)) = 1;
-x(x2(1), x2(2)) = 1;
-
-y = zeros(20, 20);
-
-for i_val = 1:size(interp_vals, 2)
-    y(interp_vals(1, i_val), interp_vals(2, i_val)) = 1;
-    
-end
-
-figure(1)
-imagesc(x)
-
-figure(2)
-imagesc(y)
+stim_mat1 = load([path1, 'stim_mat.mat']);
+stim_mat1 = stim_mat1.stim_mat;
+stim_mat2 = load([path2, 'stim_mat.mat']);
+stim_mat2 = stim_mat2.stim_mat;
+stim_mat_simple_2 = generate_stim_mat_simple(stim_mat2);

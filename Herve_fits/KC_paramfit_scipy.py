@@ -223,7 +223,7 @@ def main():
     
     from pathlib import Path, PureWindowsPath
     
-    base_path = PureWindowsPath("C:\Data\Data\Analysed_data\data_sharing\param_fitting\ApBpKC_hover_rtrain_prehabituated");       #this is the base path specified by the user 
+    base_path = PureWindowsPath("C:\Data\Data\Analysed_data\data_sharing\param_fitting\ABKC_hover_rtrain_prehabituated");       #this is the base path specified by the user 
     base_path = Path(base_path);
     obj_list = os.listdir(base_path);
     n_objs = len(obj_list);
@@ -283,7 +283,7 @@ def main():
         mes = "done extracting params for fly {} of {} flies".format(fly_n,  n_flies);
         print(mes)
     
-    breakpoint()
+    
 if __name__ == "__main__":
     # execute only if run as a script
     main()
