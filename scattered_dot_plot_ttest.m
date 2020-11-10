@@ -14,6 +14,12 @@ function fig_h = scattered_dot_plot_ttest(mat, fig_n, col_width, col_spacing, ma
 % markercolor = [0.5, 0.5, 0.5];
 
 n_cols = size(mat, 2);
+violin_cutoff = 100;    %if n points in any column crosses this thresh, all columns rendered as violins
+if size(mat, 1) > violin_cutoff
+    plot_violins = 1;
+else
+    plot_violins = 0;
+end
 
 %allowing for explicitly defined colors for each column, or just one color
 %for all
@@ -35,19 +41,26 @@ end
 
 saved_col_centers = zeros(1, n_cols);
 if isempty(with_lines) == 1
+    x_vec = [];
     for col_n = 1:n_cols
         curr_vec = mat(:, col_n);
         col_center = ( (col_n-1).*(col_width + (col_spacing)) + 0.5) + col_width./2;
         saved_col_centers(col_n) = col_center;
         r_vec = rand(length(curr_vec), 1).*col_width + ( (col_n-1).*(col_width + (col_spacing)) + 0.5);
-
-        if marker_filled == 0
-            plot(r_vec, curr_vec, 'O', 'markerSize', markersize, 'markerEdgeColor', markercolor(col_n, :))
-        elseif marker_filled == 1
-            plot(r_vec, curr_vec, 'O', 'markerSize', markersize, 'markerEdgeColor', markercolor(col_n, :), 'markerFaceColor', (markercolor(col_n, :)) )
-        else
+        r_vec_center = 0.5.*col_width + ( (col_n-1).*(col_width + (col_spacing)) + 0.5);    %for use with a violin plot, if needed
+        
+        if plot_violins == 1
+            x_vec = [x_vec, r_vec_center];
+            hold on
+        elseif plot_violins == 0
+            if marker_filled == 0
+                plot(r_vec, curr_vec, 'O', 'markerSize', markersize, 'markerEdgeColor', markercolor(col_n, :))
+            elseif marker_filled == 1
+                plot(r_vec, curr_vec, 'O', 'markerSize', markersize, 'markerEdgeColor', markercolor(col_n, :), 'markerFaceColor', (markercolor(col_n, :)) )
+            else
+            end
+            hold on
         end
-        hold on
         
         %adding p val label
         if rem(col_n, 2) == 0
@@ -89,7 +102,17 @@ if isempty(with_lines) == 1
         else
         end
     end
+    
+    if plot_violins == 1
+        try
 
+            violin(mat, 'x', x_vec, 'facecolor', markercolor, 'edgecolor','none', 'mc', [],'medc', [], 'width_multiplier', col_spacing, 'bw', 0.2, 'facealpha', 1);
+            
+        catch
+            keyboard
+        end
+    else
+    end
     
 elseif isempty(with_lines) == 0
     %generating random offsets
