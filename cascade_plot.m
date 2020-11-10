@@ -1,97 +1,84 @@
-function [] = cascade_plot(fig_n, data_mat, plot_vs, ydim, norm, offset_mult, linew, line_colour)
-%cascade_plot syntax: cascade_plot(data_mat, ydim, offset, linew) cascade_plot plots 
-%multiple traces in one window with a y-displacement for each row. 
-%Each row is individually normalised to its maximum value. cascade_plot can 
-%only recieve a 2-D matrix as input, and will consider 
-%ydim as the y axis for the cascade plot. 'offset' is a multiplicative
-%factor that changes the y-offset between traces. 'linew' sets the
-%thickness of the lines used to make the plot.
+function cascade_plot(figure_n, data_mat, linecolour, linewidth, x_offset_multiplier, y_offset_multiplier, ypatch_height, max_y_ax)
+%Syntax: cascade_plot(figure_n, data_mat, linecolour, linewidth, x_offset_multiplier, y_offset_multiplier, ypatch_height, max_y_ax)
+%This function creates a cascade plot of multiple traces, offset in y, and
+%x to make all the traces visible. Line colour can be specified. 
+%data_mat dims should be time, cells, trials.
 
-%testing inputs
-% fig_n = 1;
-% data_mat = rand(100, 10);
-% plot_vs = 1:1:100;
-% ydim = 2;
-% norm = 0;
-% offset_mult = 1.1;
-% linew = 2;
-% line_colour = [.6, .6, .6];
+figure(figure_n)
 
+%computing max y range of all the vectors
+max_vals = max(data_mat, [], 1, 'omitnan');
+min_vals = min(data_mat, [], 1, 'omitnan');
+yrange = max(max_vals - min_vals);
+sing_vec = mean(data_mat, 2, 'omitnan');
+n_nans = sum(isnan(sing_vec));
+x_range = size(data_mat, 1) - n_nans;
 
-if length(size(data_mat)) > 2
-    error('Data_mat has > 2 dimensions. Only 2-D matrix input to cascade_plot.')
+if isempty(max_y_ax) ~= 1
+    yrange = max_y_ax;
 else
 end
+y_offset = yrange.*y_offset_multiplier;
 
-curr_handle = figure(fig_n);
+if sign(x_offset_multiplier) ~= 0
+    x_offset = round(x_range.*x_offset_multiplier);
+    x_pad = zeros((abs(x_offset).*size(data_mat, 2)), size(data_mat, 2)) + nan;
 
-if ydim == 2
-    data_mat = data_mat';
-else
-end
-
-max_max_val = max(max(data_mat));
-
-for row_no = 1:size(data_mat, 1)
-    max_val = max(data_mat(row_no, :));
-    if norm == 1
-        data_mat(row_no, :) = data_mat(row_no, :)./max_val + row_no.*1.2.*offset_mult;
-    elseif norm ~= 1
-        data_mat(row_no, :) = data_mat(row_no, :) + row_no.*max_max_val.*offset_mult;
+    if sign(x_offset_multiplier) == 1
+        data_mat = [data_mat; x_pad];
+    elseif sign(x_offset_multiplier) == -1
+        data_mat = [x_pad; data_mat];
+    else
     end
+else
 end
 
-plot(plot_vs, data_mat', 'LineWidth', linew, 'Color', line_colour)
+for vec_n = 1:size(data_mat, 2)
+    if sign(x_offset_multiplier) ~= 0
+        data_mat(:, vec_n) = circshift(data_mat(:, vec_n), ((vec_n - 1).*x_offset ), 1);
+    else
+    end
+    data_mat(:, vec_n) = data_mat(:, vec_n) + ((vec_n - 1) .* y_offset);
+end
 
-%wrapping up figure and getting rid of the y axis markers
-disp('Dont call fig_wrapup after this function.')
-plot_height = 200;
-plot_width = 280;
-axis_font_size = 15;
-line_widths = 2;
-marker_sizes = 1;
-marker_sizes_f = 4;
+plot(data_mat, 'Color', linecolour, 'lineWidth', linewidth);
 
-fig_h = figure(fig_n);
-set(fig_h, 'Position', [100, 100, 100 + plot_width, 100 + plot_height]);
-ax_handle = gca;
-ax_handle.FontSize = axis_font_size;
-ax_handle.TickLength = [0.005, 0];
-ax_handle.Box = 'off';
-ax_handle.TickDir = 'out';
-ytickmin = get(ax_handle, 'YTick');
-ytickmin = ytickmin(2);
-disp(['y-bar height: ' int2str(ytickmin)])
-set(gca,'YTick',[], 'YColor', [1, 1, 1])
-    
-%adding patch of height ytickmin
-figure(fig_n);
+
+grid off
+set(gca,'ytick',[])
+set(gca,'yticklabel',[])
+set(gca,'ycolor', 'none')
+
+ax_vals = axis;
+% ax_vals(5) = ax_vals(5) + (ax_vals(6) - ax_vals(5) )./5; %getting rid of lines at the bottom of patches
+% ax_vals(6) = max_y_ax;
+% ax_vals(1) = ax_vals(1) + 2;
+% ax_vals(2) = data_vec_length - 2;
+axis(ax_vals);
+
+%adding y-scale patch
 a = gca;
 orig_ax = axis;
-new_ax = [0, 0.3, 0, orig_ax(4)];
+new_ax = [4.8, 15, orig_ax(3:4)];
 orig_pos = a.Position;
-new_pos = [(orig_pos(1) - orig_pos(1).*0.5), orig_pos(2), .05, orig_pos(4) ];
+new_pos = [(orig_pos(1) - (orig_pos(2).*0.25) ), orig_pos(1), orig_pos(3), orig_pos(4)];
 ax2 = axes('Position', new_pos);    %created new axes object in same figure
 axis(new_ax);
 set(ax2, 'Color', 'none', 'Visible', 'off');
 
-%patch height
-y1 = 0;
-y2 = ytickmin;
-disp(['bar height = ' num2str(ytickmin)])
+x1 = .1;
+x2 = 5;
 
 %patch width
-x1 = 0.1;
-x2 = 0.2;
+y1 = ax_vals(3);
+y2 = ypatch_height + ax_vals(3);
 
 %drawing patch
 y_vec = [y1, y2, y2, y1];
 x_vec = [x1, x1, x2, x2];
-p = patch(x_vec', y_vec', [0, 0, 0]);
+
+p = patch(x_vec', y_vec', [0, 0, 0] );
+
 p.EdgeColor = [1, 1, 1];
 
-children = allchild(curr_handle);
-axes(children(size(children, 1)));
-
-
-                        
+axes(a)
