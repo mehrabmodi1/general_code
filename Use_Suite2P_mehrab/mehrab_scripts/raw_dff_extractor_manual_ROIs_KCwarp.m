@@ -55,13 +55,26 @@ direc_lists_mat = [...
                     %{'E:\Data\Raw_Data_Current\dataset_lists\Alpha1_60strace_71C03LxA_MB043CGal4_with_Chrimson_LED.xls'};...
                     %{'E:\Data\Raw_Data_Current\dataset_lists\MBONA1_PaBaEl_handover_starved_halfAra_prehabituated_strongUS.xls'};...
                     %{'E:\Data\Raw_Data_Current\dataset_lists\c739KC_PaBaEl_handover_rtrain_prehabituated.xls'};...
-                    {'E:\Data\Raw_Data_Current\dataset_lists\MBONG2_PaBaEl_handover_starved_halfAra_prehabituated_noLED_control.xls'};...
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\MBONG2_PaBaEl_handover_starved_halfAra_prehabituated_noLED_control.xls'};...
                     %{'E:\Data\Raw_Data_Current\dataset_lists\Alpha1_60strace_71C03LxA_MB043CGal4_with_Chrimson_LED.xls'};...
                     %{'E:\Data\Raw_Data_Current\dataset_lists\Alpha1_10strace_71C03LxA_MB043CGal4_with_Chrimson_LED.xls'};...
                     %{'E:\Data\Raw_Data_Current\dataset_lists\Alpha1_30sCS_60strace_71C03LxA_MB043CGal4_with_Chrimson_LED.xls'};...
                     %{'E:\Data\Raw_Data_Current\dataset_lists\c305aKC_PaBaEl_handover_rtrain_prehabituated.xls'};...
                     %{'E:\Data\Raw_Data_Current\dataset_lists\test_list.xls'};...
-                     ];
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\MBONG2_PaBaEl_simp_pairing_Berry.xls'};...
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\MBONG2_PaBaEl_handover_pairing_Berry.xls'};...
+                    {'E:\Data\Raw_Data_Current\dataset_lists\MBONG2_PaBaEl_handover_pairing_Berry_ELsecond.xls'};...
+%                     {'E:\Data\Raw_Data_Current\dataset_lists\MBONG2_PaBaEl_handover_pairing_Berry_15s_ipi.xls'};...
+%                     {'E:\Data\Raw_Data_Current\dataset_lists\MBONA1_Berry_simple_trace0.xls'};...
+                    
+%                     {'E:\Data\Raw_Data_Current\dataset_lists\Alpha1_60strace_71C03LxA_MB043CGal4_arena_trained.xls'};...
+%                     {'E:\Data\Raw_Data_Current\dataset_lists\c739KC_PaBaEl_handover_rtrain_prehabituated.xls'};...
+%                     {'E:\Data\Raw_Data_Current\dataset_lists\KCd5HT1b_Gamma_PaBaEl_handover_rtrain_prehabituated.xls'};...
+                        %{'E:\Data\Raw_Data_Current\dataset_lists\KC_AB_c739_vertlobe_longtrace.xls'};...
+                        %{'E:\Data\Raw_Data_Current\dataset_lists\vGlut_MBON_GCaMP.xls'};...
+%                         {'E:\Data\Raw_Data_Current\dataset_lists\13F02Gal4_x_ACh3_choline_sensor.xls'};...
+
+                                            ];
                 
 n_direc_lists = size(direc_lists_mat, 1);
 
@@ -69,7 +82,7 @@ save_path_base_manual = 'E:\Data\Analysed_data\Manual_ROIs\';
 save_path_base_Suite2P = 'E:\Data\Analysed_data\Suite2p\Results\';
 
 
-fuse_ROIs = 1;          %0-no, 1-yes. This flattens dim3 of ROI_mat in case there is a multi-patch neuron that needs to be considered as a single object.
+fuse_ROIs = 0;          %0-no, 1-yes. This flattens dim3 of ROI_mat in case there is a multi-patch neuron that needs to be considered as a single object.
 dilate_ROIs = 15; %15;        %This is the number of pixels by which the manually drawn ROIs are dilated before data extraction.
 remove_ROI_ovlap = 1;    %enabling this switch gets rid of an overlapping pixels between ROIs from all ROIs.   
 warp_ROIs = 0;           %typically used for KC datasets - user-specified landmarks used to warp ROI matrix to align ROIs with cells as tissue distorts over session.
@@ -77,8 +90,8 @@ extract_both_channels = 0;
 extract_traces_only = 0; %Enabling this switch makes the program only extract traces from a .tif file using given ROIs. It doesn't look for stim params/PID files of any sort. useful for data acquired on other rigs. 
 do_noisefit_subtraction = 1;    %Enabling this switch makes the pipeline fit slow, row-wise noise and subtract that from each frame.
 do_bk_subtraction = 1;      %Enabling this switch makes the pipeline subtract an estimate of the background offset value computed from the manually drawn background ROI
-force_re_extraction = 1;    %Enabling this switch forces the extraction program to re-extract data without re-doing the manual steps.
-force_re_extr_manual = 1;   %Enabling this switch forces the user to re-do manual alignment, ROI adjustment steps followed by re-extraction of data.
+force_re_extraction = 0;    %Enabling this switch forces the extraction program to re-extract data without re-doing the manual steps.
+force_re_extr_manual = 0;   %Enabling this switch forces the user to re-do manual alignment, ROI adjustment steps followed by re-extraction of data.
 
 if force_re_extraction == 1
     qstring = 'Are you sure? Force re-extraction of all dataset lists?';
@@ -257,20 +270,13 @@ for do_over = 1:2
                         curr_ROI = ReadImageJROI([direc, 'ROIs\', curr_name]);
                         ROI_mat(:, :, ROI_n) = poly2mask(curr_ROI.mnCoordinates(:, 1), curr_ROI.mnCoordinates(:, 2), size(ref_im, 1), size(ref_im, 2));
                     end
-                    
-                    %getting rid of ROI overlap pixels if manually specified
-                    if remove_ROI_ovlap == 1
-                        sum_mat = sum(ROI_mat, 3);
-                        sum_mat = repmat(sum_mat, 1, 1, size(ROI_mat, 3));
-                        ovlapi = find(sum_mat > 1);
-                        ROI_mat(ovlapi) = 0;
+                     
+                    if n_ROIs > 1 && fuse_ROIs == 0
+                        mult_ROIs = 1;
                     else
+                        mult_ROIs = 0;
                     end
                     
-                    
-                    %re-saving ROIs in easy to load form
-                    save([save_path_base, dataset_name, '\ROI_mat.mat'], 'ROI_mat');
-                                        
                 elseif ROI_type == 1
                     ROI_mat = load([save_path, 'ROI_mat.mat']);
                     ROI_mat = ROI_mat.ROI_mat;
@@ -292,6 +298,16 @@ for do_over = 1:2
 
                 else
                 end
+                
+                %getting rid of ROI overlap pixels if manually specified
+                if remove_ROI_ovlap == 1
+                    sum_mat = sum(ROI_mat, 3);
+                    sum_mat = repmat(sum_mat, 1, 1, size(ROI_mat, 3));
+                    ovlapi = find(sum_mat > 1);
+                    ROI_mat(ovlapi) = 0;
+                else
+                end
+                    
                 
                 % re-saving ROIs after fusing/dilating as specified by user
                 save([save_path_base, dataset_name, '\ROI_mat.mat'], 'ROI_mat');
@@ -331,7 +347,7 @@ for do_over = 1:2
 %                     [lag_mat, bad_trs, done_marking, bk_ROI] = manual_xylags_zbad2(dataset_stack, ROI_mat_s, ROI_mat_warped, warping_landmarks);
                     [lag_mat, bad_trs, done_marking, bk_ROI, ROI_mat_adj] = manual_xylags_zbad2(dataset_stack, ROI_mat_s, ROI_mat_warped, [], dilate_ROIs);
                 end
-               
+              
                 bad_tr_list = 1:1:size(dataset_stack, 3);
                 bad_tr_list(bad_trs == 1) = [];
                 save([save_path, '\xy_lags.mat'], 'lag_mat');
@@ -405,29 +421,20 @@ for direc_list_n = 1:n_direc_lists
         %loading in previously saved ROI_mat
         ROI_mat = load([save_path_base, dataset_name, '\ROI_mat.mat']);
         ROI_mat = ROI_mat.ROI_mat;
-        ROI_mat_adj = load([save_path_base, dataset_name, '\ROI_mat_adj.mat']);
-        ROI_mat_adj = ROI_mat_adj.ROI_mat_adj;
         
-        
-%         %fusing multiple ROIs
-%         if fuse_ROIs == 1
-%             ROI_mat = sum(ROI_mat, 3);
-%             ROI_mat(ROI_mat > 1) = 1;
-%         else
-%         end
-%         
-%         %dilating ROIs if specified by user
-%         if dilate_ROIs > 0
-%             str = strel('disk', dilate_ROIs, 0); 
-%             ROI_mat = imdilate(ROI_mat, str);
-% 
-%         else
-%         end
-       
-        %PICK UP THREAD HERE
-        %1. check if ROI dilation is still working correctly
-        %2. implement ROI_mat_adj, trial by trial ROI referencing in raw_data_extracter
-        
+        %if this is a KC dataset, no question of re-drawn ROIs
+        if ROI_type == 0    %case where ROIs are manual and not Suite2P
+            if mult_ROI == 0
+                ROI_mat_adj = load([save_path_base, dataset_name, '\ROI_mat_adj.mat']);
+                ROI_mat_adj = ROI_mat_adj.ROI_mat_adj;
+            elseif mult_ROI == 1
+                ROI_mat_adj = [];
+            else
+            end
+        else
+            ROI_mat_adj = [];
+        end
+                
         
         %extracting raw traces
         dataset_namei = findstr(direc, '20');

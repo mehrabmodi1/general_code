@@ -163,6 +163,7 @@ for trial_n = start_tr:n_trials
        
     %communicating stimulus parameters to LED/elec controlling arduino
     disp('warning: The LED_power param doesn''t actually control LED power. This is currently adjusted manually to 5% with a V-divider.')
+   
     stim_arduino_serial_comm(LED_elec, init_delay_ms, duration_ms, freq_hz, duty_cyc_percent);
     
     %program_pulsepal_LED_elec(LED_elec, init_delay, duration_ms, freq_hz, duty_cyc_percent, LED_power);
@@ -255,7 +256,10 @@ for trial_n = start_tr:n_trials
     %% delivering odor
     %Setting up PID acuisition, 
     s = daq.createSession('ni');
-    addAnalogInputChannel(s,'Dev3', [0, 2], 'Voltage');
+    ch = addAnalogInputChannel(s,'Dev3', [0, 2], 'Voltage');        %line used for regular PID acqn
+    %ch = addAnalogInputChannel(s,'PXI2Slot2_chs2', [2, 3], 'Voltage');
+    ch(1).Coupling = 'DC';
+    
     acq_rate = 2000;        %Hz
     s.Rate = acq_rate;
     s.DurationInSeconds = tot_tr_dur;
@@ -405,6 +409,11 @@ release(s)
 close_serial_port(19);   %LED_arduino
 close_serial_port(13);   %olf2_arduino
 turn_off_olf2 = input('turn off olf2, 0 - no, 1 - yes');
+if turn_off_olf2 == 1
+    sleep_olf2              %opens NO valve and closes empty vial valves.
+    pause(3);
+else
+end
 
 
 %defining clean up function

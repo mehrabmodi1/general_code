@@ -1,4 +1,4 @@
-function [params_struc1] = setup_params_trace_pairing_expt(trace_interval, n_pairings, LED_on)
+function [params_struc1] = setup_params_trace_pairing_expt(CS_dur, trace_interval, n_pairings, LED_on)
 %syntax: [params_spec1] = setup_params_trace_pairing_expt(trace_interval, n_pairings, no_LED_control)
 %This function sets up a detailed stimulus specification structure and saves
 %it into curr_aq_direc to set up stimulus delivery for a pre, pairing and
@@ -34,7 +34,7 @@ params_struc_pre = params_struc1;
 params_spec2 = set_ADO_params_fore_distracter_HepIAA;
 params_spec2.odours = od_to_pair;
 params_spec2.n_od_pulses = 1;
-params_spec2.duration = 10;
+params_spec2.duration = CS_dur;
 params_spec2.isi = (params_spec2.stim_dur + trace_interval) + 120;
 params_spec2.stimLatency = 10;
 params_spec2.post_od_scan_dur = 10;
@@ -55,7 +55,7 @@ params_struc2 = setUpStimuli_modular(params_spec2);
 
 %step2.2: Setting up the CS- trial
 params_spec3 = params_spec1;
-params_spec3.duration = 10;
+params_spec3.duration = CS_dur;
 params_spec3.isi = params_spec3.duration + 120;
 if od_to_pair == 3
     params_spec3.odours = 11;

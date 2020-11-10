@@ -41,7 +41,7 @@ params_struc = append_params(params_struc1, params_struc1_2, 1);  %combining and
 
 %setting up handover trials olf1_od to olf2_od
 params_spec2 = params_spec1;
-params_spec2.reps = n_reps;
+params_spec2.reps = 3;
 params_spec2.odours_olf2 = olf2_od;
 params_spec2.duration = 10;
 params_spec2.duration_olf2 = 10;
@@ -66,7 +66,7 @@ params_struc2_2 = setUpStimuli_modular(params_spec2_2);
 
 %setting up rand train trials olf1
 params_spec3 = params_spec1;
-params_spec3.reps = n_reps;
+params_spec3.reps = 3;
 params_spec3.isi = 120;
 params_spec3.duration = 60;
 params_spec3.rand_trains = 1;

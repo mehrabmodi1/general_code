@@ -30,7 +30,7 @@ elseif strcmp(mode, 'plot') == 1
     %loading and plotting PID traces
     curr_path = curr_aq_direc;
     curr_trs = 1;
-    traces = get_PID_traces(curr_path, curr_trs, 0.1, 1);
+    traces = get_PID_traces(curr_path, curr_trs, 0.1, 0);
     
     plot(traces)
     

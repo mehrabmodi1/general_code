@@ -18,7 +18,7 @@ for trial_n = 1:n_trials
     curr_trace = curr_trace.PID_data;
       
     if trial_n == 1
-        acqn_time = mean(diff(curr_trace(:, 3)));
+        acqn_time = mean(diff(curr_trace(:, 3)));       %computing Analog acqn time; column 3 is time of each sample in this case
         fr_pt_ratio = round(frame_time./acqn_time);
     else
     end
