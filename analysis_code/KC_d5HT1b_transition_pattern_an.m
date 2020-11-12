@@ -17,7 +17,7 @@ dataset_list_paths = [...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_MBONG2_PaBaEl_handover_starved_halfAra_prehabituated_strongUS_EL_handover.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_MBONG2_PaBaEl_handover_starved_halfAra_prehabituated_strongUS_EL_second.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_c739KC_PaBaEl_handover_prehabituated.xls'};...
-                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\KCd5HT1b_Gamma_PaBaEl_handover_rtrain_prehabituated.xls'};...
+                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\d5HT1b_similar_od_handovers.xls'};...
                       
                       ];
             
@@ -124,27 +124,28 @@ for list_n = 1:size(dataset_list_paths, 1)
         odn_list_olf2(isnan(odn_list_olf2)) = [];
         odn_list_olf1 = unique(stim_mat_simple(:, od_col_ns(1)));
         
-        %replacing Nans in stim_mat_simple's od_n_olf2 column with zeroes
-        del = isnan(stim_mat_simple(:, od_col_ns(2)));
-        del = find(del == 1);
-        stim_mat_simple(del, od_col_ns(2)) = 0;
+        %replacing Nans in stim_mat_simple with zeroes
+        stim_mat_simple_orig = stim_mat_simple;
+        del = isnan(stim_mat_simple);
+        stim_mat_simple(del) = 0;
        
-        [resp_sizes, sig_trace_mat, sig_trace_mat_old, sig_cell_mat, resp_areaundercurves] = cal_sig_responses_res_modular(dff_data_mat, stim_mat, stim_mat_simple, frame_time, od_col_ns, dur_col_ns);
-                
-        %KCpop_odor_resp_plotter(dff_data_mat_f, stim_mat_simple, stim_mat, sig_cell_mat, frame_time, 1, [], od_col_ns, dur_col_ns)
+        [resp_sizes, sig_trace_mat, sig_cell_mat, resp_areaundercurves] = cal_sig_responses_res_modular(dff_data_mat, stim_mat, stim_mat_simple, frame_time, od_col_ns, dur_col_ns);
         
+        %identifying all transition odor trials
+        all_handover_trs = find(stim_mat_simple(:, dur_col_ns(1)) > 1 & stim_mat_simple(:, dur_col_ns(2)) > 1);
+                
         %computing mean response trace for each simple odor stimulus presented
-       
-     
-        keyboard
         for od_n = 1:length(odn_list_olf1)
             od_ni = odn_list_olf1(od_n);
             curr_sig_cells = find(sig_cell_mat(:, od_ni, 2) == 1);
-            curr_trs = find(stim_mat_simple(:, od_col_ns(1)) == od_ni & stim_mat_simple(:, od_col_ns(2)) == 0 & stim_mat_simple(:, 22) == 70);
+            curr_trs = find(stim_mat_simple(:, od_col_ns(1)) == od_ni);
+            [del1, del2] = intersect(curr_trs, all_handover_trs);
+            curr_trs(del2) = [];
             if isempty(curr_trs) == 1
                 continue
             else
             end
+            
             curr_mean_traces = squeeze(mean(dff_data_mat_f(:, curr_sig_cells, curr_trs), 3, 'omitnan'));
             del = curr_mean_traces < 0;
             curr_mean_traces(del) = 0;
@@ -152,9 +153,9 @@ for list_n = 1:size(dataset_list_paths, 1)
             stim_frs = stim_frs{1};    
             curr_sds = std(curr_mean_traces((stim_frs(1) - round(10./frame_time)):(stim_frs(1) - 2), :), [], 1, 'omitnan');
             curr_means = mean(curr_mean_traces((stim_frs(1) - round(5./frame_time)):(stim_frs(1) - 2), :), 1, 'omitnan');
-            curr_threshes = curr_means + 2.33.*curr_sds;
+            keyboard
             
-           
+            
         end
     end
 end
