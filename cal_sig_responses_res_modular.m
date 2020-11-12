@@ -34,14 +34,19 @@ sig_trace_mat = zeros(n_cells, n_trials);
 
 gp_list = [];
 %builing list of odor, odor-dur pairs
-for olf1_od_n = 1:length(od_list_olf1)
-    olf1_od_ni = od_list_olf1(olf1_od_n);
-    for olf1_dur_n = 1:length(dur_list_olf1)
-        olf1_dur_ni = dur_list_olf1(olf1_dur_n);
-        for olf2_od_n = 1:length(od_list_olf2)
-            olf2_od_ni = od_list_olf2(olf2_od_n);
-            for olf2_dur_n = 1:length(dur_list_olf2)
-                olf2_dur_ni = dur_list_olf2(olf2_dur_n);
+
+for olf1_dur_n = 1:length(dur_list_olf1)
+    olf1_dur_ni = dur_list_olf1(olf1_dur_n);
+    
+    for olf2_dur_n = 1:length(dur_list_olf2)
+            olf2_dur_ni = dur_list_olf2(olf2_dur_n);
+        
+        for olf1_od_n = 1:length(od_list_olf1)
+            olf1_od_ni = od_list_olf1(olf1_od_n);
+        
+            for olf2_od_n = 1:length(od_list_olf2)
+                olf2_od_ni = od_list_olf2(olf2_od_n);
+             
                 gp_list = [gp_list; olf1_od_ni, olf1_dur_ni, olf2_od_ni, olf2_dur_ni];
             end
         end
