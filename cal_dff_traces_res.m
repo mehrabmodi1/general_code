@@ -64,7 +64,7 @@ for trial_n = 1:n_trials
     raw_mat = squeeze(raw_data_mat(:, :, trial_n) );
     
     try
-        baseline_vec = mean(raw_mat((stim_frame - round(5./frame_time)):(stim_frame - round(2./frame_time)), :), 1, 'omitnan');          %vector of F baselines for all cells
+        baseline_vec = mean(raw_mat(1:(stim_frame - round(2./frame_time)), :), 1, 'omitnan');          %vector of F baselines for all cells
     catch
         keyboard
     end
