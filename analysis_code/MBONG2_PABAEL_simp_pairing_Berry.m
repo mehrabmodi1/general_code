@@ -6,7 +6,7 @@ dataset_list_paths = [...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_15s_ipi.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_ELsecond.xls'};...
-                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_longpulse2.xls'};...
+                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_longpulse2.xls'};...
                       
                       ];
             
@@ -31,6 +31,8 @@ an_save_path = 'C:\Data\Data\Analysed_data\Analysis_results\PaBaEl_Gamma2\';
 force_resave = 1;
 
 n_sec = 2;      %width of moving integration window in s
+
+integ_win_s = 5;        %width of pulse integration window for response quantification
 
 for list_n = 1:size(dataset_list_paths, 1)
     
@@ -110,6 +112,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         stack_obj = ScanImageTiffReader([curr_dir, tif_name(1).name]);
         [frame_time, zoom, n_chans, PMT_offsets] = SI_tif_info(stack_obj);
         
+        integ_win = round(integ_win_s./frame_time); %integration window for response quantification in frames
        
         %loading extracted raw fluorescence data matrices written by raw_dff_extractor
         raw_data_mat = load([curr_dir 'extracted_raw_data_mat.mat']);
@@ -228,7 +231,7 @@ for list_n = 1:size(dataset_list_paths, 1)
             curr_tr = tr_list(curr_tr);
             
             curr_trace = squeeze(dff_data_mat_f(:, :, curr_tr));
-            resp_vec(1, 1) = mean(mean(curr_trace(stim_frs(1):(stim_frs(2) + round(3./frame_time)) )));
+            resp_vec(1, 1) = mean(mean(curr_trace(stim_frs(1):((stim_frs(1) + integ_win) + round(3./frame_time)) )));
             saved_traces_curr(:, 1, tr_type_n) = curr_trace;
             
             figure(1)
@@ -247,7 +250,7 @@ for list_n = 1:size(dataset_list_paths, 1)
             
             curr_tr = tr_list(curr_tr);
             curr_trace = squeeze(dff_data_mat_f(:, :, curr_tr));
-            resp_vec(1, 2) = mean(mean(curr_trace(stim_frs(1):(stim_frs(2) + round(3./frame_time)) )));
+            resp_vec(1, 2) = mean(mean(curr_trace(stim_frs(1):((stim_frs(1) + integ_win) + round(3./frame_time)) )));
             saved_traces_curr(:, 2, tr_type_n) = curr_trace;
             figure(2)
             plot(curr_trace, 'lineWidth', 1.5, 'Color', unpaired_color.*col_multiplier);
@@ -258,11 +261,13 @@ for list_n = 1:size(dataset_list_paths, 1)
                 curr_tr = find(stim_mat_simple(tr_list, od_olf1_col_n) == 11);
                 curr_tr = tr_list(curr_tr);
                 curr_trace = squeeze(dff_data_mat_f(:, :, curr_tr));
-                resp_vec(1, 3) = mean(mean(curr_trace(stim_frs_EL(1):(stim_frs_EL(2) + round(2./frame_time)) )));
+                resp_vec(1, 3) = mean(mean(curr_trace(stim_frs_EL(1):((stim_frs_EL(1) + integ_win) + round(3./frame_time)) )));
             else
                 curr_trace = zeros(size(dff_data_mat_f, 1), 1) + nan;    %since EL alone trials don't exist, padding
                 resp_vec(1, 3) = nan; 
             end
+            stim_frs_bar_EL = compute_stim_frs_modular(stim_mat, curr_tr(1), frame_time);
+            stim_frs_bar_EL = stim_frs_bar_EL{2};
             saved_traces_curr(:, 3, tr_type_n) = curr_trace;
             figure(3)
             plot(curr_trace, 'lineWidth', 1.5, 'Color', EL_color.*col_multiplier);
@@ -295,10 +300,10 @@ for list_n = 1:size(dataset_list_paths, 1)
     
     if set_list_type > 0
         stim_frs_bar = [stim_frs_paired{1}; stim_frs_paired{2}];
-        stim_frs_bar_EL = stim_frs_paired{1};
+        %stim_frs_bar_EL = stim_frs_paired{2};
     elseif set_list_type == 0
         stim_frs_bar = stim_frs_paired{1};
-        stim_frs_bar_EL = stim_frs_paired{1};
+        %stim_frs_bar_EL = stim_frs_paired{2};
     end
     
     for tr_type = 1:2
@@ -456,12 +461,12 @@ for list_n = 1:size(dataset_list_paths, 1)
         xlabel('frame n')
         figure(12)
         imagesc(squeeze(saved_traces_all(:, 2, 1, :))', [0, 3])
-        title('paired post')
+        title('unpaired pre')
         ylabel('fly n')
         xlabel('frame n')
         figure(13)
         imagesc(squeeze(saved_traces_all(:, 2, 2, :))', [0, 3])
-        title('paired post')
+        title('unpaired post')
         ylabel('fly n')
         xlabel('frame n')
     else
