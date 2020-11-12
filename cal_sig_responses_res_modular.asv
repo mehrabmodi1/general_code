@@ -1,4 +1,4 @@
-function [resp_sizes, sig_trace_mat, sig_cell_mat, sig_cell_mat_key, resp_areaundercurves] = cal_sig_responses_res_modular(dff_data_mat, stim_mat_struc, stim_mat_simple, frame_time, od_col_ns, dur_col_ns)
+function [resp_sizes, sig_trace_mat, sig_cell_struc, resp_areaundercurves] = cal_sig_responses_res_modular(dff_data_mat, stim_mat_struc, stim_mat_simple, frame_time, od_col_ns, dur_col_ns)
 %This function takes as inputs, the 3-D dff_data_mat that contains dF/F traces stored
 %by frame_n, cell_n, trial_n and odor_n; and stim_mat which contains
 %stimulus delivery information for each trial. The outputs are three 2D
@@ -49,8 +49,7 @@ for olf1_od_n = 1:length(od_list_olf1)
     end
 end
 
-sig_cell_mat = [];
-sig_cell_mat_key = [];
+
 for rep_gp = 1:size(gp_list, 1)               %a rep_gp is a group of repeats of the same stimulus types
     curr_gp = gp_list(rep_gp, :);       %stimuli delivered in current group of repeats
     
@@ -66,7 +65,6 @@ for rep_gp = 1:size(gp_list, 1)               %a rep_gp is a group of repeats of
         continue
     else
     end
-    sig_cell_mat_key = [sig_cell_mat_key; curr_gp];
     
     %identifying odor stimulus periods for olf1 and olf2, and including
     %beginning of first pulse to end of last pulse as analysis period.
@@ -128,18 +126,18 @@ for rep_gp = 1:size(gp_list, 1)               %a rep_gp is a group of repeats of
                 sig_trace_mat(cell_n, rep_tr_list(rep_n)) = 1;
                 
 %                 %visualising current trace to check if its a sig resp
-%                 figure(1)
-%                 curr_trace = curr_traces_f(:, rep_n);
-%                 plot(curr_trace)
-%                 hold on
-%                 thresh_vec = repmat(threshes(rep_n), size(curr_traces, 1), 1);
-%                 plot(thresh_vec, 'r')
-%                 plot(base_traces(:, rep_n), 'g')
-%                 plot((ave_pk_fr + length(base_traces)), curr_pk, 'Or')
-%                 ave_trace = nanmean(curr_traces_f, 2);
-%                 plot(ave_trace, 'k', 'LineWidth', 2)
-%                 hold off
-%                 keyboard
+                figure(1)
+                curr_trace = curr_traces_f(:, rep_n);
+                plot(curr_trace)
+                hold on
+                thresh_vec = repmat(threshes(rep_n), size(curr_traces, 1), 1);
+                plot(thresh_vec, 'r')
+                plot(base_traces(:, rep_n), 'g')
+                plot((ave_pk_fr + length(base_traces)), curr_pk, 'Or')
+                ave_trace = nanmean(curr_traces_f, 2);
+                plot(ave_trace, 'k', 'LineWidth', 2)
+                hold off
+                keyboard
 %                 
             else
                 
@@ -192,6 +190,8 @@ for rep_gp = 1:size(gp_list, 1)               %a rep_gp is a group of repeats of
 %         else
 %         end
     end
-    sig_cell_mat = [sig_cell_mat, sig_cell_vec];    
+    sig_cell_struc()    
     
 end
+
+%sig_cell_1s_mat = squeeze(sig_cell_mat(:, :, 1));
