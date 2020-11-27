@@ -16,13 +16,14 @@ dataset_list_paths = [%{'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Y
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_c739KC_PaBaEl_handover_prehabituated_trimmed.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\c305aKC_PaBaEl_handover_rtrain_prehabituated.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\KCd5HT1b_Gamma_PaBaEl_handover_rtrain_prehabituated.xls'};...
-                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\c739KC_PaBaEl_handover_rtrain_prehabituated.xls'};...
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\c739KC_PaBaEl_handover_rtrain_prehabituated.xls'};...
+                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\d5HT1b_similar_od_handovers.xls'};...
                       
                       ];
 
 %saving stuff for sharing data
 share_path_base = 'C:\Data\Data\Analysed_data\data_sharing\param_fitting\';
-dataset_list_name = 'ABKC_hover_rtrain_prehabituated\';    
+dataset_list_name = 'GammaKC_20201113\';    
 
 
 dataset_type = 3; %2 - manualROI, 3 - Suite2P
@@ -31,6 +32,8 @@ a = colormap('bone');
 global greymap
 greymap = flipud(a);
 script_name = mfilename;
+
+share_all_trials = 1;       %if 0, only longest, simple stim trials will be shared
 
 for list_n = 1:size(dataset_list_paths, 1)
     curr_dir_list_path = dataset_list_paths{list_n, 1};
@@ -103,8 +106,10 @@ for list_n = 1:size(dataset_list_paths, 1)
         
         %step1: Getting rid of all trials that aren't single-odor, single-pulse trials.
         db_od_trs = find(stim_mat_simple(:, dur_olf1_col_n) > 0.15 & stim_mat_simple(:, dur_olf2_col_n) > 0);   %dur_olf1 == 0.1 is just a place-holder, no stim actually delivered on olf_1.
-        [raw_data_mat, stim_mat, stim_mat_simple, tr_list] = remove_trs(db_od_trs, raw_data_mat, stim_mat, stim_mat_simple, tr_list);         %removing trs with two odors delivered in the same trial
-      
+        if share_all_trials == 0
+            [raw_data_mat, stim_mat, stim_mat_simple, tr_list] = remove_trs(db_od_trs, raw_data_mat, stim_mat, stim_mat_simple, tr_list);         %removing trs with two odors delivered in the same trial
+        else
+        end
         
         %identifying multi-pulse train trials
         multi_pulse_trs = [];
@@ -115,8 +120,10 @@ for list_n = 1:size(dataset_list_paths, 1)
             else
             end
         end
-        [raw_data_mat, stim_mat, stim_mat_simple, tr_list] = remove_trs(multi_pulse_trs, raw_data_mat, stim_mat, stim_mat_simple, tr_list);   %removing trials with more than one long odor pulse
-        
+        if share_all_trials == 0
+            [raw_data_mat, stim_mat, stim_mat_simple, tr_list] = remove_trs(multi_pulse_trs, raw_data_mat, stim_mat, stim_mat_simple, tr_list);   %removing trials with more than one long odor pulse
+        else
+        end
         
         %step2: Getting rid of all trials that aren't longest duration,
         %single pulse trials for all odors
@@ -124,7 +131,10 @@ for list_n = 1:size(dataset_list_paths, 1)
         dur_list_olf2 = unique(stim_mat_simple(:, dur_olf2_col_n));
         max_dur = max([dur_list_olf1; dur_list_olf2], [], 'omitnan');       %this is the longest duration stimulus, across olfactometers 
         short_dur_trs = find(stim_mat_simple(:, dur_olf1_col_n) < max_dur & stim_mat_simple(:, dur_olf2_col_n) < max_dur);
-        [raw_data_mat, stim_mat, stim_mat_simple, tr_list] = remove_trs(short_dur_trs, raw_data_mat, stim_mat, stim_mat_simple, tr_list);   %removing trials with more shorter than max_dur odor pulses
+        if share_all_trials == 0
+            [raw_data_mat, stim_mat, stim_mat_simple, tr_list] = remove_trs(short_dur_trs, raw_data_mat, stim_mat, stim_mat_simple, tr_list);   %removing trials with more shorter than max_dur odor pulses
+        else
+        end
         
         %combining odor numbers and durations for olf1 and olf2 so as not
         %to confuse the fitting program, which expects only one
@@ -138,8 +148,8 @@ for list_n = 1:size(dataset_list_paths, 1)
         end
         %calculating dF/F traces from raw data
         filt_time = 0.2;            %in s, the time window for boxcar filter for generating filtered traces
-        [dff_data_mat, dff_data_mat_f] = cal_dff_traces_res(raw_data_mat, stim_mat, frame_time, filt_time, curr_dir);
-        [dff_data_mat_orig, dff_data_mat_f_orig] = cal_dff_traces_res(raw_data_mat_orig, stim_mat_orig, frame_time, filt_time, curr_dir);
+        [dff_data_mat, dff_data_mat_f] = cal_dff_traces_res(raw_data_mat, stim_mat, frame_time, filt_time, curr_dir, []);
+        [dff_data_mat_orig, dff_data_mat_f_orig] = cal_dff_traces_res(raw_data_mat_orig, stim_mat_orig, frame_time, filt_time, curr_dir, []);
         
         share_path = [share_path_base, dataset_list_name, '\fly', num2str(dir_n)];
         mkdir(share_path);
@@ -149,6 +159,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         save([share_path, '\tr_list.mat'], 'tr_list');
         save([share_path, '\dff_data_mat_orig.mat'], 'dff_data_mat_f_orig');
         save([share_path, '\stim_mat_orig.mat'], 'stim_mat_orig');
+        save([share_path, '\frame_time.mat'], 'frame_time');
         
     end
     
