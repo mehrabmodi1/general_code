@@ -57,7 +57,6 @@ for list_n = 1:size(dataset_list_paths, 1)
     
     
     saved_traces_all = [];
-    saved_PID_traces_all = [];
     %loop to go through all experiment datasets listed in list file
     for dir_n = 1:n_dirs
         fly_n = fly_n + 1;
@@ -258,7 +257,6 @@ for list_n = 1:size(dataset_list_paths, 1)
             curr_trace = squeeze(dff_data_mat_f(:, :, curr_tr));
             resp_vec(1, 2) = mean(mean(curr_trace(stim_frs(1):((stim_frs(1) + integ_win) + round(3./frame_time)) )));
             saved_traces_curr(:, 2, tr_type_n) = curr_trace;
-            saved_PID_traces_curr(:, 2, tr_type_n) = PID_traces(:, curr_tr);
             subplot(1, 3, 2)
             plot(curr_trace, 'lineWidth', 1.5, 'Color', unpaired_color.*col_multiplier);
             hold on
@@ -276,7 +274,6 @@ for list_n = 1:size(dataset_list_paths, 1)
             stim_frs_bar_EL = compute_stim_frs_modular(stim_mat, curr_tr(1), frame_time);
             stim_frs_bar_EL = stim_frs_bar_EL{2};
             saved_traces_curr(:, 3, tr_type_n) = curr_trace;
-            saved_PID_traces_curr(:, 3, tr_type_n) = PID_traces(:, curr_tr);
             subplot(1, 3, 3)
             plot(curr_trace, 'lineWidth', 1.5, 'Color', EL_color.*col_multiplier);
             hold on
@@ -284,7 +281,6 @@ for list_n = 1:size(dataset_list_paths, 1)
         end
         
         saved_traces_all = pad_n_concatenate(saved_traces_all, saved_traces_curr, 4, nan);
-        saved_PID_traces_all = pad_n_concatenate(saved_PID_traces_all, saved_PID_traces_curr, 4, nan);
         resp_mat_all(:, :, dir_n) = resp_mat;
         
         if suppress_plots == 0
@@ -465,7 +461,6 @@ for list_n = 1:size(dataset_list_paths, 1)
     for od_type = 1:2   %paired-unpaired loop
         for stim_type = 1:2 %pre-post loop
             curr_mat = squeeze(saved_traces_all(:, od_type, stim_type, :))';
-            curr_PID_mat = squeeze(saved_PID_traces_all(:, od_type, stim_type, :))';
             
             %plotting diff traces with mean diff trace
             fig_h = figure('Name', [od_type_names{od_type}, stim_type_names{stim_type}, ' diff']);
@@ -496,19 +491,16 @@ for list_n = 1:size(dataset_list_paths, 1)
             other_type(other_type == od_type) = [];
             add_stim_bar(fig_h, stim_frs_bar, [color_vecs(other_type, :); color_vecs(od_type, :)] );
             
-            %plotting single PID traces with mean
-            del = find(curr_mat(:, 1) == 1);
-            clust1_mat = curr_mat(del, :);
-            fig_h = figure('Name', [od_type_names{od_type}, stim_type_names{stim_type}, 'PID']);
-            plot(curr_PID_mat', 'Color', [0.6, 0.6, 0.6]);
-            hold on
-            plot(mean(curr_PID_mat, 1), 'k', 'lineWidth', 2.5)
-            set_xlabels_time(fig_h, frame_time, 10);
-            ylabel('response size (dF/F)');
-            fig_wrapup(fig_h, []);
-            other_type = [1, 2];
-            other_type(other_type == od_type) = [];
-            add_stim_bar(fig_h, stim_frs_bar, [color_vecs(other_type, :); color_vecs(od_type, :)] );
+            %highlighting each dF/F trace around point of min diff value (highest rate of fall of dF/F)
+%             for trace_n = 1:size(curr_mat, 1)
+%                 curr_diff_fr = min_fr(trace_n) + stim_frs_bar(2, 1);
+%                 curr_frs = (curr_diff_fr - 20):1:(curr_diff_fr + 20);
+%                 plot(curr_frs, curr_mat(trace_n, curr_frs), 'Color', [0.6, 0.6, 0.6], 'lineWidth', 2.5);
+%             end
+            %PICK UP THREAD HERE
+            %figure out the meaning of the spreading min diff points, and
+            %if possible check for sudden drop-offs in dF/F trace as
+            %predicted by Herve
             
                         
             figure
