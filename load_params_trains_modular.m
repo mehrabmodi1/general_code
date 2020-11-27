@@ -1,4 +1,4 @@
-function [stim_mat, stim_mat_simple, column_heads, color_vec, good_tr_list, params_orig] = load_params_trains_modular(direc, tif_datenums, match_tifs)
+function [stim_mat, stim_mat_simple, column_heads, color_vec, good_tr_list, params_orig, PID_traces_matched] = load_params_trains_modular(direc, tif_datenums, frame_time)
 %syntax: [stim_mat, stim_mat_simple, column_heads, color_vec, bad_tr_list] = load_params_trains(direc, tif_datenums, match_tifs)
 %This function compares the time stamps of the tiff files in a dataset with
 %those saved for each trial in the params file and aligns the two sets of
@@ -54,6 +54,20 @@ if datenum_check == 1
     else
     end    
     
+    %reading in PID traces for all trials actually acquired (trs_done > 0)
+    for tr_n = 1:n_trials_p
+        if params(tr_n).trs_done == 0
+            break
+        else
+        end
+    end
+    
+    PID_traces_acq = get_PID_traces(direc, 1:tr_n, frame_time, 1);
+    PID_traces_acq = PID_traces_acq(:, 1:2:end);    %getting rid of LED stim traces
+    %padding with nans for un-acquired traces
+    PID_traces = zeros(size(PID_traces_acq, 1), n_trials_p) + nan;
+    PID_traces(:, 1:tr_n) = PID_traces_acq;
+        
     %reading in manually determined list of bad (z-drifted) trials
     good_tr_list = load([direc, 'bad_trial_list.mat']);
     good_tr_list = good_tr_list.bad_tr_list;
@@ -187,7 +201,9 @@ for trial_n = 1:n_matched_trials
     curr_tr_p = par_num(trial_n);
     curr_tr_t = tif_num(trial_n);
     
-    stim_mat(trial_n) = params(curr_tr_p);    
+    stim_mat(trial_n) = params(curr_tr_p);
+    
+    PID_traces_matched(:, trial_n) = PID_traces(:, curr_tr_p);
    
     stim_mat_simple(trial_n, :) = [params(curr_tr_p).odours, params(curr_tr_p).duration, params(curr_tr_p).pulse_type, params(curr_tr_p).n_od_pulses, params(curr_tr_p).inter_pulse_interval, params(curr_tr_p).rand_trains, params(curr_tr_p).mean_rand_pulse_dur, params(curr_tr_p).pulse_train_n, ...
     params(curr_tr_p).odours_olf2, params(curr_tr_p).duration_olf2, params(curr_tr_p).rel_stimLatency_olf2, params(curr_tr_p).pulse_type_olf2, params(curr_tr_p).n_od_pulses_olf2, params(curr_tr_p).inter_pulse_interval_olf2, ...
@@ -196,6 +212,7 @@ end
 
 %adding on match tiff_n
 for trial_n = 1:n_matched_trials
+    curr_tr_t = tif_num(trial_n);
     stim_mat(trial_n).matched_tif_n = curr_tr_t;
 end
 
