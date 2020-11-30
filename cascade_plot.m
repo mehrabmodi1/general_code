@@ -1,4 +1,4 @@
-function cascade_plot(figure_n, data_mat, linecolour, linewidth, x_offset_multiplier, y_offset_multiplier, ypatch_height, max_y_ax)
+function cascade_plot(figure_n, data_mat, linecolour, linewidth, x_offset_multiplier, y_offset_multiplier, ypatch_height, max_y_ax, highlight_pks, indicate_zeros)
 %Syntax: cascade_plot(figure_n, data_mat, linecolour, linewidth, x_offset_multiplier, y_offset_multiplier, ypatch_height, max_y_ax)
 %This function creates a cascade plot of multiple traces, offset in y, and
 %x to make all the traces visible. Line colour can be specified. 
@@ -43,6 +43,24 @@ end
 
 plot(data_mat, 'Color', linecolour, 'lineWidth', linewidth);
 
+%highlighting peaks with red circles
+if highlight_pks == 1
+    [pk_vals, pk_locs] = max(data_mat, [], 1, 'omitnan');
+    hold on
+    plot(pk_locs, pk_vals, 'rO');
+else
+end
+
+%indicating 0 for each trace with a dotted line
+if indicate_zeros == 1
+    zeros_vec = (0:(size(data_mat, 2)) - 1) .* y_offset;
+    zeros_mat = repmat(zeros_vec, size(data_mat, 1), 1);
+    hold on
+    plot(zeros_mat, ':', 'Color', [0.6, 0.6, 0.6], 'lineWidth', 0.75)
+    hold off
+else
+end
+
 
 grid off
 set(gca,'ytick',[])
@@ -50,11 +68,6 @@ set(gca,'yticklabel',[])
 set(gca,'ycolor', 'none')
 
 ax_vals = axis;
-% ax_vals(5) = ax_vals(5) + (ax_vals(6) - ax_vals(5) )./5; %getting rid of lines at the bottom of patches
-% ax_vals(6) = max_y_ax;
-% ax_vals(1) = ax_vals(1) + 2;
-% ax_vals(2) = data_vec_length - 2;
-axis(ax_vals);
 
 %adding y-scale patch
 a = gca;
