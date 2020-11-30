@@ -462,63 +462,71 @@ for list_n = 1:size(dataset_list_paths, 1)
     stim_type_names = [{'pre'}, {'post'}];
     color_vecs = [paired_color; unpaired_color];
 
+    %sorting single traces by total activity in the unpaired, post response
+    %dataset
+    curr_mat = squeeze(saved_traces_all(:, 2, 2, :))';
+    tot_act = sum(curr_mat, 2, 'omitnan');
+    
     for od_type = 1:2   %paired-unpaired loop
         for stim_type = 1:2 %pre-post loop
             curr_mat = squeeze(saved_traces_all(:, od_type, stim_type, :))';
             curr_PID_mat = squeeze(saved_PID_traces_all(:, od_type, stim_type, :))';
             
-            %plotting diff traces with mean diff trace
-            fig_h = figure('Name', [od_type_names{od_type}, stim_type_names{stim_type}, ' diff']);
-            curr_mat_diff = diff(curr_mat, 2);
-            plot(curr_mat_diff', 'Color', [0.6, 0.6, 0.6]);
-            hold on
-            %identifying min dif after pulse2 onset
-            [min_amp, min_fr] = min(curr_mat(:, stim_frs_bar(2, 1):(stim_frs_bar(2, 2) + 20)), [], 2);
-            plot((min_fr + stim_frs_bar(2, 1)), min_amp, 'Or');
-            set_xlabels_time(fig_h, frame_time, 10);
-            ylabel('diff. response size');
-            fig_wrapup(fig_h, []);
-            other_type = [1, 2];
-            other_type(other_type == od_type) = [];
-            add_stim_bar(fig_h, stim_frs_bar, [color_vecs(other_type, :); color_vecs(od_type, :)] );
-            
-            %plotting single traces with mean
-            del = find(curr_mat(:, 1) == 1);
-            clust1_mat = curr_mat(del, :);
-            fig_h = figure('Name', [od_type_names{od_type}, stim_type_names{stim_type}]);
-            plot(curr_mat', 'Color', [0.6, 0.6, 0.6]);
-            hold on
-            plot(mean(curr_mat, 1), 'k', 'lineWidth', 2.5)
-            set_xlabels_time(fig_h, frame_time, 10);
-            ylabel('response size (dF/F)');
-            fig_wrapup(fig_h, []);
-            other_type = [1, 2];
-            other_type(other_type == od_type) = [];
-            add_stim_bar(fig_h, stim_frs_bar, [color_vecs(other_type, :); color_vecs(od_type, :)] );
-            
-            %plotting single PID traces with mean
-            del = find(curr_mat(:, 1) == 1);
-            clust1_mat = curr_mat(del, :);
-            fig_h = figure('Name', [od_type_names{od_type}, stim_type_names{stim_type}, 'PID']);
-            plot(curr_PID_mat', 'Color', [0.6, 0.6, 0.6]);
-            hold on
-            plot(mean(curr_PID_mat, 1), 'k', 'lineWidth', 2.5)
-            set_xlabels_time(fig_h, frame_time, 10);
-            ylabel('response size (dF/F)');
-            fig_wrapup(fig_h, []);
-            other_type = [1, 2];
-            other_type(other_type == od_type) = [];
-            add_stim_bar(fig_h, stim_frs_bar, [color_vecs(other_type, :); color_vecs(od_type, :)] );
-            
+%             %plotting diff traces with mean diff trace
+%             fig_h = figure('Name', [od_type_names{od_type}, stim_type_names{stim_type}, ' diff']);
+%             curr_mat_diff = diff(curr_mat, 2);
+%             plot(curr_mat_diff', 'Color', [0.6, 0.6, 0.6]);
+%             hold on
+%             %identifying min dif after pulse2 onset
+%             [min_amp, min_fr] = min(curr_mat_diff(:, stim_frs_bar(2, 1):(stim_frs_bar(2, 2) + 20)), [], 2);
+%             plot((min_fr + stim_frs_bar(2, 1)), min_amp, 'Or');
+%             set_xlabels_time(fig_h, frame_time, 10);
+%             ylabel('diff. response size');
+%             fig_wrapup(fig_h, []);
+%             other_type = [1, 2];
+%             other_type(other_type == od_type) = [];
+%             add_stim_bar(fig_h, stim_frs_bar, [color_vecs(other_type, :); color_vecs(od_type, :)] );
+%             
+%             %plotting single traces with mean
+%             del = find(curr_mat(:, 1) == 1);
+%             clust1_mat = curr_mat(del, :);
+%             fig_h = figure('Name', [od_type_names{od_type}, stim_type_names{stim_type}]);
+%             plot(curr_mat', 'Color', [0.6, 0.6, 0.6]);
+%             hold on
+%             %plot(mean(curr_mat, 1), 'k', 'lineWidth', 2.5)
+%             set_xlabels_time(fig_h, frame_time, 10);
+%             ylabel('response size (dF/F)');
+%             fig_wrapup(fig_h, []);
+%             other_type = [1, 2];
+%             other_type(other_type == od_type) = [];
+%             add_stim_bar(fig_h, stim_frs_bar, [color_vecs(other_type, :); color_vecs(od_type, :)] );
+%             
+%             %plotting single PID traces with mean
+%             del = find(curr_mat(:, 1) == 1);
+%             clust1_mat = curr_mat(del, :);
+%             fig_h = figure('Name', [od_type_names{od_type}, stim_type_names{stim_type}, 'PID']);
+%             plot(curr_PID_mat', 'Color', [0.6, 0.6, 0.6]);
+%             hold on
+%             plot(mean(curr_PID_mat, 1), 'k', 'lineWidth', 2.5)
+%             set_xlabels_time(fig_h, frame_time, 10);
+%             ylabel('response size (dF/F)');
+%             fig_wrapup(fig_h, []);
+%             other_type = [1, 2];
+%             other_type(other_type == od_type) = [];
+%             add_stim_bar(fig_h, stim_frs_bar, [color_vecs(other_type, :); color_vecs(od_type, :)] );
+%             
                         
-            figure
+            fig_h = figure('Name', [od_type_names{od_type}, stim_type_names{stim_type}, ' single traces']);
+            curr_mat = [tot_act, curr_mat];
             curr_mat = sortrows(curr_mat);
             curr_mat(:, 1) = [];
-            imagesc(curr_mat, [0, 3]);
-            title([od_type_names{od_type}, stim_type_names{stim_type}])
-            ylabel('fly n')
-            xlabel('frame n')
-            
+            cascade_plot(fig_h, curr_mat', [0.6, 0.6, 0.6], 1, 0, 1, 3, 3, 1, 1);
+            set_xlabels_time(fig_h, frame_time, 10);
+            other_type = [1, 2];
+            other_type(other_type == od_type) = [];
+            %fig_wrapup(fig_h, []);
+            add_stim_bar(fig_h, stim_frs_bar, [color_vecs(other_type, :); color_vecs(od_type, :)] );
+
             
         end
     end
