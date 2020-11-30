@@ -57,6 +57,7 @@ if datenum_check == 1
     %reading in PID traces for all trials actually acquired (trs_done > 0)
     for tr_n = 1:n_trials_p
         if params(tr_n).trs_done == 0
+            tr_n = tr_n - 1;
             break
         else
         end
