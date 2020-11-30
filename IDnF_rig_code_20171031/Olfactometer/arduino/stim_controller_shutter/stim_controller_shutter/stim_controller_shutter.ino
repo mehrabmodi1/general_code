@@ -25,6 +25,7 @@ void setup() {
     
     pinMode(led_pin, OUTPUT);
     pinMode(elec_pin, OUTPUT);
+    pinMode(led_warning_pin, OUTPUT);
     pinMode(trig_pin, INPUT);
     Serial.begin(9600);
     Serial.println("<Arduino is ready>");
@@ -174,5 +175,3 @@ void showNewData() {
         
     }
 }
-
-
