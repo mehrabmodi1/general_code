@@ -1,4 +1,4 @@
-function [stim_mat, stim_mat_simple, column_heads, color_vec, good_tr_list, params_orig, PID_traces_matched] = load_params_trains_modular(direc, tif_datenums, frame_time)
+function [stim_mat, stim_mat_simple, column_heads, color_vec, good_tr_list, params_orig, PID_traces_matched, PID_traces_orig] = load_params_trains_modular(direc, tif_datenums, frame_time)
 %syntax: [stim_mat, stim_mat_simple, column_heads, color_vec, bad_tr_list] = load_params_trains(direc, tif_datenums, match_tifs)
 %This function compares the time stamps of the tiff files in a dataset with
 %those saved for each trial in the params file and aligns the two sets of
@@ -64,10 +64,15 @@ if datenum_check == 1
     end
     
     PID_traces_acq = get_PID_traces(direc, 1:tr_n, frame_time, 1);
+    LED_traces_acq = PID_traces_acq(:, 2:2:end);    %getting rid of LED stim traces
     PID_traces_acq = PID_traces_acq(:, 1:2:end);    %getting rid of LED stim traces
+    PID_traces_orig = pad_n_concatenate(PID_traces_acq, LED_traces_acq, 3, nan);
     %padding with nans for un-acquired traces
     PID_traces = zeros(size(PID_traces_acq, 1), n_trials_p) + nan;
     PID_traces(:, 1:tr_n) = PID_traces_acq;
+    
+    LED_traces = zeros(size(LED_traces_acq, 1), n_trials_p) + nan;
+    LED_traces(:, 1:tr_n) = LED_traces_acq;
         
     %reading in manually determined list of bad (z-drifted) trials
     good_tr_list = load([direc, 'bad_trial_list.mat']);
@@ -205,11 +210,13 @@ for trial_n = 1:n_matched_trials
     stim_mat(trial_n) = params(curr_tr_p);
     
     PID_traces_matched(:, trial_n) = PID_traces(:, curr_tr_p);
+    LED_traces_matched(:, trial_n) = LED_traces(:, curr_tr_p);
    
     stim_mat_simple(trial_n, :) = [params(curr_tr_p).odours, params(curr_tr_p).duration, params(curr_tr_p).pulse_type, params(curr_tr_p).n_od_pulses, params(curr_tr_p).inter_pulse_interval, params(curr_tr_p).rand_trains, params(curr_tr_p).mean_rand_pulse_dur, params(curr_tr_p).pulse_train_n, ...
     params(curr_tr_p).odours_olf2, params(curr_tr_p).duration_olf2, params(curr_tr_p).rel_stimLatency_olf2, params(curr_tr_p).pulse_type_olf2, params(curr_tr_p).n_od_pulses_olf2, params(curr_tr_p).inter_pulse_interval_olf2, ...
     params(curr_tr_p).rand_trains_olf2, params(curr_tr_p).mean_rand_pulse_dur_olf2,  params(curr_tr_p).pulse_train_n_olf2, params(curr_tr_p).led_on, params(curr_tr_p).elec_on, params(curr_tr_p).isi, params(curr_tr_p).stimLatency, params(curr_tr_p).post_od_scan_dur, params(curr_tr_p).firstDilution, params(curr_tr_p).secondDilution, curr_tr_t];
 end
+PID_traces_matched = pad_n_concatenate(PID_traces_matched, LED_traces_matched, 3, nan);
 
 %adding on match tiff_n
 for trial_n = 1:n_matched_trials
