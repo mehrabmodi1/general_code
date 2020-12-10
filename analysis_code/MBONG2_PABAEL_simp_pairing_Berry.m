@@ -6,11 +6,13 @@ dataset_list_paths = [...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_15s_ipi.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_ELsecond.xls'};...
-                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_longpulse2.xls'};...
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_longpulse2.xls'};...
+                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_MB298B_MBONG4-G1G2_GcaMP6f_starved.xls'};...
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_13F02_gcaMP6f_starved.xls'};...
                       
                       ];
             
-suppress_plots = 1;
+suppress_plots = 0;
 plotting_quant_no_filt = 0;     %1 - only unfiltered traces used for all analysis and plotting - traces included. 0 - filtered traces used for everything.
 
 [del, odor_names1] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList.xls', 1);
@@ -239,8 +241,9 @@ for list_n = 1:size(dataset_list_paths, 1)
             saved_traces_curr(:, 1, tr_type_n) = curr_trace;
             saved_PID_traces_curr(:, 1, tr_type_n) = PID_traces(:, curr_tr);
             
-            figure(1)
-            subplot(1, 3, 1)
+            fig_h = figure(1);
+            set(fig_h, 'Position', [100, 100, 1200, 350]);
+            subplot(1, 3, 1);
             plot(curr_trace, 'lineWidth', 1.5, 'Color', paired_color.*col_multiplier);
             hold on
 
