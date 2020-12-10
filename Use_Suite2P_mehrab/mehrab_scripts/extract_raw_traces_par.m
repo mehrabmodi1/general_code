@@ -88,7 +88,7 @@ for trial_n = start_trial:n_trials
         ROI_mat = ROI_mat_adj(:, :, trial_n);
     else
     end
-        
+    
     try
         %reading in stack object
         im_obj = ScanImageTiffReader([direc, dir_contents(trial_n).name]);
@@ -406,7 +406,7 @@ for trial_n = start_trial:n_trials
     catch
         keyboard
     end
-        
+       
 end
 
 

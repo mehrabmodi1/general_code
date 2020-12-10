@@ -14,10 +14,10 @@ extract_both_channels = 0;
 %direc_list = 'E:\Data\Raw_Data_Current\dataset_lists\c739KC_PaBaEl_handover_prehabituated.xls';
 %direc_list = 'E:\Data\Raw_Data_Current\dataset_lists\c739KC_PaBaEl_handover_rtrain_prehabituated.xls';
 %direc_list = 'E:\Data\Raw_Data_Current\dataset_lists\KCd5HT1b_Gamma_PaBaEl_handover_rtrain_prehabituated.xls';
-direc_list = 'E:\Data\Raw_Data_Current\dataset_lists\c305aKC_PaBaEl_handover_rtrain_prehabituated.xls';
+%direc_list = 'E:\Data\Raw_Data_Current\dataset_lists\c305aKC_PaBaEl_handover_rtrain_prehabituated.xls';
 %direc_list = 'E:\Data\Raw_Data_Current\dataset_lists\KC_AB_c739_vertlobe_longtrace.xls';
 %direc_list = 'E:\Data\Raw_Data_Current\dataset_lists\vGlut_MBON_GCaMP.xls';
-
+direc_list = 'E:\Data\Raw_Data_Current\dataset_lists\d5HT1b_similar_od_handovers.xls';
 
 [del, raw_direc_list] = xlsread(direc_list, 1);
 raw_direc_list_copy = raw_direc_list;
