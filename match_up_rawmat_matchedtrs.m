@@ -15,7 +15,12 @@ if isempty(nan_trs) == 0
     for nan_tr_n = 1:length(nan_trs)
         nan_tr_n2 = nan_trs(nan_tr_n);          %current NaN trial
         curr_matched_tif_list = matched_tif_ns( (nan_tr_n1 + 1):(nan_tr_n2 - 1) );     %list of matched .tif numbers from previous NaN trial to current NaN trial in stim_mat 
-        raw_data_mat_padded = cat(3, raw_data_mat_padded, raw_data_mat(:, :, curr_matched_tif_list) );    %concatenating real data trials
+        try
+            raw_data_mat_padded = cat(3, raw_data_mat_padded, raw_data_mat(:, :, curr_matched_tif_list) );    %concatenating real data trials
+        catch
+            keyboard
+        end
+        
         raw_data_mat_padded = cat(3, raw_data_mat_padded, pad);                                 %concatenating dummy trial
         
         try

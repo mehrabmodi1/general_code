@@ -224,7 +224,6 @@ for trial_n = 1:n_matched_trials
     stim_mat(trial_n).matched_tif_n = curr_tr_t;
 end
 
-
 save([direc, '\stim_mat.mat'], 'stim_mat')
 
 %setting up the standard color vector to use for plotting depending on how

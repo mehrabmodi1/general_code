@@ -76,7 +76,7 @@ if datenum_check == 1
     tif_num = saved_matches(:, 2);
     par_num = saved_matches(:, 3);    
     n_matched_trials = length(par_num);
-    
+    keyboard
 %     figure(1)
 %     imagesc(match_mat)
 %     xlabel('tif trial n');
