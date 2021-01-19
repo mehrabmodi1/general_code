@@ -31,7 +31,6 @@ end
 
 [p_vec_out, effect_sizes_out, min_difs_out] = stat_testing(mat, st_test_type, plot_mean, p_val); 
 
-
 curr_class = whos('fig_n');
 if strcmp(curr_class.class, 'double') == 1
     fig_h = figure(fig_n);
@@ -235,7 +234,17 @@ end
 
 
 function [p_vec_out, effect_sizes_out, min_dif_out] = stat_testing(plot_mat, test_type, plot_mean, p_val)
+    if rem(size(plot_mat, 2), 2) == 0
+        
+    else
+        %odd number of columns, no pair-wise comparisons being made.
+        p_vec_out = zeros(size(plot_mat, 2)) + nan;
+        effect_sizes_out = p_vec_out;
+        min_dif_out = zeros(size(plot_mat, 2), 4) + nan;
+        return
+    end
     n_col_pairs = size(plot_mat, 2)./2;
+    
     p_vec_out = zeros(n_col_pairs, 1) + nan;
     effect_sizes_out = zeros(n_col_pairs, 1) + nan;
     for col_pair_n = 0:(n_col_pairs - 1)
