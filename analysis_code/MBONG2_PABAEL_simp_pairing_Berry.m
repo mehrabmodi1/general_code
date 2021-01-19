@@ -7,13 +7,16 @@ dataset_list_paths = [...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_15s_ipi.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_ELsecond.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_longpulse2.xls'};...
-                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_MB298B_MBONG4-G1G2_GcaMP6f_starved.xls'};...
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_MB298B_MBONG4-G1G2_GcaMP6f_starved.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_13F02_gcaMP6f_starved.xls'};...
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_GH146_GCaMP6f_fed.xls'};...
+                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_SS01240_DPM_starved.xls'};...
                       
                       ];
             
-suppress_plots = 0;
+suppress_plots = 1;
 plotting_quant_no_filt = 0;     %1 - only unfiltered traces used for all analysis and plotting - traces included. 0 - filtered traces used for everything.
+cell_n = 4;
 
 [del, odor_names1] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList.xls', 1);
 [del, odor_names2] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList_olf2.xls', 1);
@@ -79,7 +82,6 @@ for list_n = 1:size(dataset_list_paths, 1)
         stack_obj = ScanImageTiffReader([curr_dir, tif_name(1).name]);
         [frame_time, zoom, n_chans, PMT_offsets] = SI_tif_info(stack_obj);
         
-        
         [stim_mat, stim_mat_simple, column_heads, color_vec, good_tr_list, params_orig, PID_traces] = load_params_trains_modular(curr_dir, tif_times, frame_time);    %reading in trial stimulus parameters after matching time stamps to F traces
         paired_color = color_vec(2, :);
         unpaired_color = color_vec(1, :);
@@ -125,15 +127,24 @@ for list_n = 1:size(dataset_list_paths, 1)
         raw_data_mat = raw_data_mat.raw_data_mat;           %raw F traces extracted from ROIs
         raw_data_mat_orig = raw_data_mat;
         tif_n_col_n = find_stim_mat_simple_col('matched_tif_n', column_heads);
+        n_cells = size(raw_data_mat, 2);
+        if cell_n > n_cells
+            cell_n = 1;
+            disp('WARNING! specified cell_n not valid, reassigning cell_n = 1.');
+        else
+        end
         
         %inserting dummy trials (all nans) into raw_data_mat for pairing trials for
         %which no corress .tifs were acquired
         [raw_data_mat, good_tr_list] = match_up_rawmat_matchedtrs(raw_data_mat, stim_mat_simple, tif_n_col_n, good_tr_list);
         
-        %dumping data from manually identified, z-drifted trials
-%         bad_tr_list = 1:size(raw_data_mat, 3);
-%         bad_tr_list(good_tr_list) = [];
-%         raw_data_mat(:, :, bad_tr_list) = nan;
+        %if weird EL trial1 exists, getting rid of it
+        if stim_mat_simple(1, od_olf1_col_n) == 11
+            stim_mat(1) = [];
+            stim_mat_simple(1, :) = [];
+            raw_data_mat(:, :, 1) = [];
+        else
+        end
         
         n_cells = size(raw_data_mat, 2);
         
@@ -144,12 +155,14 @@ for list_n = 1:size(dataset_list_paths, 1)
             dff_data_mat_f = dff_data_mat;
         else
         end
-            
-        if size(dff_data_mat, 2) > 1
-            dff_data_mat = mean(dff_data_mat, 2, 'omitnan');
-            dff_data_mat_f = mean(dff_data_mat_f, 2, 'omitnan');
-        else
-        end
+          
+%         if size(dff_data_mat, 2) > 1
+%             dff_data_mat = mean(dff_data_mat, 2, 'omitnan');
+%             dff_data_mat_f = mean(dff_data_mat_f, 2, 'omitnan');
+%         else
+%         end
+        dff_data_mat = dff_data_mat(:, cell_n, :);
+        dff_data_mat_f  = dff_data_mat_f(:, cell_n, :);
         del = find(dff_data_mat_f < -1);
         dff_data_mat_f(del) = -1;       %forcing crazy values to sane ones
                 
@@ -215,17 +228,17 @@ for list_n = 1:size(dataset_list_paths, 1)
             
             %paired odor response
             if set_list_type == 0
-                curr_tr = find(stim_mat_simple(tr_list, od_olf1_col_n) == paired_od_n_olf1);
+                curr_tr = find(stim_mat_simple(tr_list, od_olf1_col_n) == paired_od_n_olf1 & stim_mat_simple(tr_list, led_on_col_n) == 0);
                 stim_frs_paired = compute_stim_frs_modular(stim_mat, curr_tr(1), frame_time);
                 stim_frs = stim_frs_paired{1};      %integrating over entire pulse1 odor period for simple stim protocols
                 stim_frs_EL = stim_frs_paired{1};
             elseif set_list_type == 1 || set_list_type == 2     %for handover without EL or handover EL first trials
-                curr_tr = find(stim_mat_simple(tr_list, od_olf2_col_n) == paired_od_n_olf2);
+                curr_tr = find(stim_mat_simple(tr_list, od_olf2_col_n) == paired_od_n_olf2 & stim_mat_simple(tr_list, led_on_col_n) == 0);
                 stim_frs_paired = compute_stim_frs_modular(stim_mat, curr_tr(1), frame_time);
                 stim_frs = stim_frs_paired{2};      %integrating over entire pulse2 odor period for simple stim protocols
                 stim_frs_EL = stim_frs_paired{1};
             elseif set_list_type == 3       %for handover, EL second trials
-                curr_tr = find(stim_mat_simple(tr_list, od_olf1_col_n) == paired_od_n_olf1);
+                curr_tr = find(stim_mat_simple(tr_list, od_olf1_col_n) == paired_od_n_olf1 & stim_mat_simple(tr_list, led_on_col_n) == 0);
                 stim_frs_paired = compute_stim_frs_modular(stim_mat, curr_tr(1), frame_time);
                 stim_frs = stim_frs_paired{2};      %integrating over entire pulse2 odor period for simple stim protocols
                 stim_frs_EL = stim_frs_paired{1};
@@ -238,7 +251,13 @@ for list_n = 1:size(dataset_list_paths, 1)
             
             curr_trace = squeeze(dff_data_mat_f(:, :, curr_tr));
             resp_vec(1, 1) = mean(mean(curr_trace(stim_frs(1):((stim_frs(1) + integ_win) + round(3./frame_time)) )));
-            saved_traces_curr(:, 1, tr_type_n) = curr_trace;
+            try
+                saved_traces_curr(:, 1, tr_type_n) = curr_trace;
+            catch
+                keyboard
+            end
+                
+                
             saved_PID_traces_curr(:, 1, tr_type_n) = PID_traces(:, curr_tr);
             
             fig_h = figure(1);
