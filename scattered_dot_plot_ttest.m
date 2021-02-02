@@ -1,4 +1,4 @@
-function fig_h = scattered_dot_plot_ttest(mat, fig_n, col_width, col_spacing, markersize, markercolor, marker_filled, with_lines, linecolor, xlabels, plot_mean, mean_color, st_test_type, p_val)
+function [fig_h, r_vecs_saved] = scattered_dot_plot_ttest(mat, fig_n, col_width, col_spacing, markersize, markercolor, marker_filled, with_lines, linecolor, xlabels, plot_mean, mean_color, st_test_type, p_val)
 %syntax: fig_h = scattered_dot_plot_ttest(mat, fig_n, col_width, col_spacing, markersize, markercolor, marker_filled, with_lines, linecolor, xlabels, plot_mean, mean_color, st_test_type, p_val)
 %This function plots the values in each column of mat as dots separated
 %with a random scatter of width col_width and inter-column spacing as
@@ -41,11 +41,13 @@ end
 saved_col_centers = zeros(1, n_cols);
 if isempty(with_lines) == 1
     x_vec = [];
+    r_vecs_saved = [];
     for col_n = 1:n_cols
         curr_vec = mat(:, col_n);
         col_center = ( (col_n-1).*(col_width + (col_spacing)) + 0.5) + col_width./2;
         saved_col_centers(col_n) = col_center;
         r_vec = rand(length(curr_vec), 1).*col_width + ( (col_n-1).*(col_width + (col_spacing)) + 0.5);
+        r_vecs_saved = [r_vecs_saved, r_vec];
         r_vec_center = 0.5.*col_width + ( (col_n-1).*(col_width + (col_spacing)) + 0.5);    %for use with a violin plot, if needed
         
         if plot_violins == 1
@@ -163,6 +165,7 @@ elseif isempty(with_lines) == 0
         else
         end
     end
+    r_vecs_saved = r_vecs;
     
     %plotting lines for pairs of cols as specified in with_lines
     for row_n = 1:size(mat, 1)
@@ -269,7 +272,11 @@ function [p_vec_out, effect_sizes_out, min_dif_out] = stat_testing(plot_mat, tes
                     mean1 = mean(plot_mat(:, col1), 'omitnan');
                     ac_mean2 = mean(plot_mat(:, col2), 'omitnan');
                     sd1 = std(plot_mat(:, col1), [], 'omitnan');
-                    mean2 = sampsizepwr('t2',[mean1 sd1],[],(1 - p_val.*2), n);        %two-tailed test
+                    try
+                        mean2 = sampsizepwr('t2',[mean1 sd1],[],(1 - p_val.*2), n);        %two-tailed test
+                    catch
+                        keyboard
+                    end
                     needed_n = sampsizepwr('t',[0 sd1], mean1, (1 - p_val.*2), []);
                     min_dif = abs(mean2 - mean1);
                     ac_dif = abs(ac_mean2 - mean1);
