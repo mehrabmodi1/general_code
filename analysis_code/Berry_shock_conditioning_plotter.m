@@ -349,13 +349,15 @@ add_stim_bar(3, stim_frs{1}, [EL_color]);
 
 %2. Plotting by odor identity
 %PA
-mean_PA_traces1 = mean(saved_traces_all(:, 1, :, 1), 3, 'omitnan');
-mean_PA_traces2 = mean(saved_traces_all(:, 2, :, 2), 3, 'omitnan');
-mean_PA_traces = mean([mean_PA_traces1, mean_PA_traces2], 2, 'omitnan');
+mean_PA_traces1 = mean(saved_traces_all(:, 1, :, 1), 3, 'omitnan');     %PA paired
+mean_PA_traces2 = mean(saved_traces_all(:, 2, :, 2), 3, 'omitnan');     %PA not paired
+%mean_PA_traces = mean([mean_PA_traces1, mean_PA_traces2], 2, 'omitnan');
 var_PA_traces1 = var(saved_traces_all(:, 1, :, 1), 0, 3, 'omitnan');
+se_PA_traces1 = sqrt(var_PA_traces1)./sqrt(n_flies(1));
 var_PA_traces2 = var(saved_traces_all(:, 1, :, 1), 0, 3, 'omitnan');
-var_PA_traces = mean([var_PA_traces1, var_PA_traces2], 2, 'omitnan');
-se_PA_traces = sqrt(var_PA_traces)./sqrt(n_flies(1) + n_flies(2));
+se_PA_traces2 = sqrt(var_PA_traces2)./sqrt(n_flies(2));
+% var_PA_traces = mean([var_PA_traces1, var_PA_traces2], 2, 'omitnan');
+% se_PA_traces = sqrt(var_PA_traces)./sqrt(n_flies(1) + n_flies(2));
 
 mean_PA_traces_ct = mean(saved_traces_all(:, 1, :, 3), 3, 'omitnan');   %note, for indexing the ctrl datasets, PA was treated as the 'paired odor'
 var_PA_traces_ct = var(saved_traces_all(:, 1, :, 3), 0, 3, 'omitnan');
@@ -363,13 +365,15 @@ se_PA_traces_ct = sqrt(var_PA_traces_ct)./sqrt(n_flies(3));
 
 
 %BA
-mean_BA_traces1 = mean(saved_traces_all(:, 2, :, 1), 3, 'omitnan');
-mean_BA_traces2 = mean(saved_traces_all(:, 1, :, 2), 3, 'omitnan');
-mean_BA_traces = mean([mean_BA_traces1, mean_BA_traces2], 2, 'omitnan');
-var_BA_traces1 = var(saved_traces_all(:, 1, :, 1), 0, 3, 'omitnan');
-var_BA_traces2 = var(saved_traces_all(:, 1, :, 1), 0, 3, 'omitnan');
-var_BA_traces = mean([var_BA_traces1, var_BA_traces2], 2, 'omitnan');
-se_BA_traces = sqrt(var_BA_traces)./sqrt(n_flies(1) + n_flies(2));
+mean_BA_traces1 = mean(saved_traces_all(:, 1, :, 2), 3, 'omitnan');     %BA paired
+mean_BA_traces2 = mean(saved_traces_all(:, 2, :, 1), 3, 'omitnan');     %BA not paired
+%mean_BA_traces = mean([mean_BA_traces1, mean_BA_traces2], 2, 'omitnan');
+var_BA_traces1 = var(saved_traces_all(:, 1, :, 2), 0, 3, 'omitnan');
+se_BA_traces1 = sqrt(var_BA_traces1)./sqrt(n_flies(2));
+var_BA_traces2 = var(saved_traces_all(:, 2, :, 1), 0, 3, 'omitnan');
+se_BA_traces2 = sqrt(var_BA_traces2)./sqrt(n_flies(1));
+% var_BA_traces = mean([var_BA_traces1, var_BA_traces2], 2, 'omitnan');
+% se_BA_traces = sqrt(var_BA_traces)./sqrt(n_flies(1) + n_flies(2));
 
 mean_BA_traces_ct = mean(saved_traces_all(:, 2, :, 3), 3, 'omitnan');   %note, for indexing the ctrl datasets, PA was treated as the 'paired odor'
 var_BA_traces_ct = var(saved_traces_all(:, 2, :, 3), 0, 3, 'omitnan');
@@ -395,7 +399,8 @@ se_EL_traces_ct = sqrt(var_EL_traces_ct)./sqrt(n_flies(3));
 figure(4)
 shadedErrorBar([], mean_PA_traces_ct, se_PA_traces_ct, {'Color', [0.6, 0.6, 0.6]}, 1);
 hold on
-shadedErrorBar([], mean_PA_traces, se_PA_traces, {'Color', [0, 0, 0]}, 1);
+shadedErrorBar([], mean_PA_traces1, se_PA_traces1, {'Color', [0, 0, 0]}, 1);
+shadedErrorBar([], mean_PA_traces2, se_PA_traces2, {'--', 'Color', [0, 0, 0]}, 1);
 hold off
 ylabel('PA responses (dF/F)')
 set_xlabels_time(4, frame_time, 10)
@@ -410,7 +415,8 @@ add_stim_bar(4, stim_frs_bar, [BA_color; PA_color]);
 figure(5)
 shadedErrorBar([], mean_BA_traces_ct, se_BA_traces_ct, {'Color', [0.6, 0.6, 0.6]}, 1);
 hold on
-shadedErrorBar([], mean_BA_traces, se_BA_traces, {'Color', [0, 0, 0]}, 1);
+shadedErrorBar([], mean_BA_traces1, se_BA_traces1, {'Color', [0, 0, 0]}, 1);
+shadedErrorBar([], mean_BA_traces2, se_BA_traces2, {'--', 'Color', [0, 0, 0]}, 1);
 hold off
 ylabel('BA responses (dF/F)')
 set_xlabels_time(5, frame_time, 10)
@@ -422,20 +428,89 @@ fig_wrapup(5, [])
 add_stim_bar(5, stim_frs_bar, [PA_color; BA_color]);
 
 
-%EL
-figure(6)
-shadedErrorBar([], mean_EL_traces_ct, se_EL_traces_ct, {'Color', [0.6, 0.6, 0.6]}, 1);
-hold on
-shadedErrorBar([], mean_EL_traces, se_EL_traces, {'Color', [0, 0, 0]}, 1);
-hold off
-ylabel('EL responses (dF/F)')
-set_xlabels_time(6, frame_time, 10)
-ax_vals = axis;
-ax_vals(4) = 6;
-ax_vals(3) = -2;
-axis(ax_vals);
-fig_wrapup(6, [])
-add_stim_bar(6, stim_frs{1}, [EL_color]);
-
+%STATISTICAL TESTING
 %computing response sizes for statistical testing
-keyboard
+%defining frame integration windows to compute response sizes
+win1 = stim_frs{1};
+win2 = stim_frs{2};
+win2(2) = win2(2) + round(3./frame_time);
+
+saved_resps_all1 = squeeze(mean(saved_traces_all(win1(1):win1(2), :, :, :), 1, 'omitnan'));      %mean responses during pulse1 time
+saved_resps_all2 = squeeze(mean(saved_traces_all(win2(1):win2(2), :, :, :), 1, 'omitnan'));      %mean responses during pulse2 time
+
+
+%saved_traces_all dim1: time, dim2: [paired_od, unpaired_od, EL], dim3: fly_n, dim4: [BApaired, PApaired, unpairedctrl]
+
+%Plotting
+%1. by pairing status
+paired_resps = [saved_resps_all2(1, :, 1)'; saved_resps_all2(1, :, 2)'];
+unpaired_resps = [saved_resps_all2(2, :, 1)'; saved_resps_all2(2, :, 2)'];
+sim_resps_ctrl = [saved_resps_all2(1, :, 3)'; saved_resps_all2(2, :, 3)'];
+EL_resps = [saved_resps_all1(3, :, 1)'; saved_resps_all1(3, :, 2)'];
+EL_resps_ctrl = [saved_resps_all1(3, :, 3)'];
+
+plot_mat = [sim_resps_ctrl, paired_resps, unpaired_resps];
+plot_mat = pad_n_concatenate(plot_mat, EL_resps_ctrl, 2, nan);
+plot_mat = pad_n_concatenate(plot_mat, EL_resps, 2, nan);
+
+paired_multiplier = 0.65;
+marker_colors = [[0.6, 0.6, 0.6]; paired_color.*paired_multiplier; unpaired_color.*paired_multiplier; EL_color; EL_color.*paired_multiplier];
+line_colors = [];
+col_pairs = [];
+xlabels = [{'ctrlsim'}, {'CSpl'}, {'CSmin'}, {'ctrldsim'}, {'dsim'}];
+figure(7)
+[fig_h, r_vecs_saved] = scattered_dot_plot_ttest(plot_mat, 7, 2.5, 4, 6.5, marker_colors, 1, col_pairs, line_colors, xlabels, 1, mean_color, 2, 0.05);
+%adding marker colors for each odor in col1 
+hold on
+curr_markersx = r_vecs_saved(1:n_flies(1), 1);
+curr_markersy = plot_mat(1:n_flies(1), 1);
+plot(curr_markersx, curr_markersy, 'O', 'markerFaceColor', paired_color, 'markerEdgeColor', paired_color, 'markerSize', 6.5);
+curr_markersx = r_vecs_saved( (n_flies(1) + 1):end, 1);
+curr_markersy = plot_mat((n_flies(1) + 1):end, 1);
+plot(curr_markersx, curr_markersy, 'O', 'markerFaceColor', unpaired_color, 'markerEdgeColor', unpaired_color, 'markerSize', 6.5);
+mean_val = mean(plot_mat(:, 1), 'omitnan');
+se_val = std(plot_mat(:, 1), [], 'omitnan')./sqrt(size(plot_mat, 1));
+errorbar(1.75, mean_val, se_val, 'O', 'markerSize', 6.5, 'markerEdgeColor', mean_color, 'markerFaceColor', mean_color, 'Color', mean_color, 'lineWidth', 2)
+hold off
+ax_vals = axis;
+ax_vals(3) = -0.5;
+axis(ax_vals)
+ylabel('response size (dF/F)');
+fig_wrapup(fig_h, []);
+%testing
+[hpaired, ppaired] = ttest(plot_mat(:, 1), plot_mat(:, 2))
+[hunpaired, punpaired] = ttest(plot_mat(:, 1), plot_mat(:, 3))
+[hEL, pEL] = ttest(plot_mat(:, 4), plot_mat(:, 5))
+
+%2. by odor identity
+PA_resps_paired = saved_resps_all2(1, :, 1)';
+PA_resps_unpaired = saved_resps_all2(1, :, 2)';
+PA_resps_ctrl = saved_resps_all2(1, :, 3)';
+BA_resps_paired = saved_resps_all2(2, :, 2)';
+BA_resps_unpaired = saved_resps_all2(2, :, 1)';
+BA_resps_ctrl = saved_resps_all2(2, :, 3)';
+
+plot_mat2 = pad_n_concatenate(PA_resps_ctrl, PA_resps_paired, 2, nan);
+plot_mat2 = pad_n_concatenate(plot_mat2, PA_resps_unpaired, 2, nan);
+plot_mat2 = pad_n_concatenate(plot_mat2, BA_resps_ctrl, 2, nan);
+plot_mat2 = pad_n_concatenate(plot_mat2, BA_resps_paired, 2, nan);
+plot_mat2 = pad_n_concatenate(plot_mat2, BA_resps_unpaired, 2, nan);
+
+paired_multiplier = 0.65;
+marker_colors = [PA_color; PA_color.*paired_multiplier; PA_color.*paired_multiplier;...
+    BA_color; BA_color.*paired_multiplier; BA_color.*paired_multiplier];
+line_colors = [];
+col_pairs = [];
+xlabels = [{'PA_c_t_r_l'}, {'PA_C_S_p_l'}, {'PA_C_S_m_n'}, {'BA_c_t_r_l'}, {'BA_C_S_p_l'}, {'BA_C_S_m_n'}];
+figure(8)
+[fig_h, r_vecs_saved] = scattered_dot_plot_ttest(plot_mat2, 8, 2.5, 4, 6.5, marker_colors, 1, col_pairs, line_colors, xlabels, 1, mean_color, 2, 0.05);
+ax_vals = axis;
+ax_vals(3) = -0.5;
+axis(ax_vals)
+ylabel('response size (dF/F)');
+fig_wrapup(fig_h, []);
+
+[hpairedPA, ppairedPA] = ttest(plot_mat2(:, 1), plot_mat2(:, 2))
+[hunpairedPA, punpairedPA] = ttest(plot_mat2(:, 1), plot_mat2(:, 3))
+[hpairedBA, ppairedBA] = ttest(plot_mat2(:, 4), plot_mat2(:, 5))
+[hunpairedBA, punpairedBA] = ttest(plot_mat2(:, 4), plot_mat2(:, 6))
