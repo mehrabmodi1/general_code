@@ -10,13 +10,13 @@ dataset_list_paths = [...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_MB298B_MBONG4-G1G2_GcaMP6f_starved.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_13F02_gcaMP6f_starved.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_GH146_GCaMP6f_fed.xls'};...
-                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_SS01240_DPM_starved.xls'};...
-                      
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_SS01240_DPM_starved.xls'};...
+                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_noLEDctrl.xls'};...
                       ];
             
-suppress_plots = 1;
+suppress_plots = 0;
 plotting_quant_no_filt = 0;     %1 - only unfiltered traces used for all analysis and plotting - traces included. 0 - filtered traces used for everything.
-cell_n = 4;
+cell_n = 1;
 
 [del, odor_names1] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList.xls', 1);
 [del, odor_names2] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList_olf2.xls', 1);
@@ -178,21 +178,25 @@ for list_n = 1:size(dataset_list_paths, 1)
                 paired_od_n_olf1 = 3;
             elseif paired_od_n_olf2 == 3
                 paired_od_n_olf1 = 10;
-            else
+            elseif isempty(paired_od_n_olf2) == 1       %case for no LED ctrl datasets
+                r_num = rand(1, 1);
+                if r_num > 0.5
+                    paired_od_n_olf2 = 1;
             end
         else
         end
+        keyboard
         paired_od_name = odor_names1{paired_od_n_olf1};
       
-        
-        if paired_od_n_olf1 == 3
-            paired_od_n_olf2 = 1;
-            unpaired_od_n_olf2 = 3;
-        elseif paired_od_n_olf1 == 10
-            paired_od_n_olf2 = 3;
-            unpaired_od_n_olf2 = 1;
-        else
-        end
+%         
+%         if paired_od_n_olf1 == 3
+%             paired_od_n_olf2 = 1;
+%             unpaired_od_n_olf2 = 3;
+%         elseif paired_od_n_olf1 == 10
+%             paired_od_n_olf2 = 3;
+%             unpaired_od_n_olf2 = 1;
+%         else
+%         end
             
         %if paired odor is PA, unpaired odor must be BA or vice versa
         unpaired_od_n_olf1 = [3, 10];
