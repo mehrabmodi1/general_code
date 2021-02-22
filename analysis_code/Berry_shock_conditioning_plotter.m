@@ -1,19 +1,31 @@
 clear all
 close all
 
+
+%MBONA3 imaging
+%dataset_list_paths = [...
+%                       {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_WTalpha3_fedshock_PAplus.xls'};...
+%                       {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_WTalpha3_fedshock_BAplus.xls'};...
+%                       {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_WTalpha3_fedshock_unpairedctrl.xls'};...
+%                       ];
+                  
+
+%MBONG2A'1 imaging (1x pairing)                 
 dataset_list_paths = [...
-                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_WTalpha3_fedshock_PAplus.xls'};...
-                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_WTalpha3_fedshock_BAplus.xls'};...
-                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_WTalpha3_fedshock_unpairedctrl.xls'};...
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_WTalpha3_fedshock_PAplus.xls'};...       %NOTE: this is a DUMMY set list to be replaced with real list once acquired
+                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_WTG2Ap1_fedshock_BAplus_1x.xls'};...
+                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_WTG2Ap1_fedshock_unpairedctrl_1x.xls'};...
+    
                       ];
             
 suppress_plots = 1;
 plotting_quant_no_filt = 0;     %1 - only unfiltered traces used for all analysis and plotting - traces included. 0 - filtered traces used for everything.
-cell_n = 4;
 
 % [del, odor_names1] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList.xls', 1);
 % [del, odor_names2] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList_olf2.xls', 1);
 % odor_names2{3} = 'Butyl acetate';
+
+cell_n = 1;
 
 global color_vec;                
 a = colormap('bone');
@@ -256,8 +268,8 @@ if exist(['C:\Data\Data\Analysed_data\Analysis_results\fine_discr_shock_cond\', 
 
         end
         saved_traces_all = pad_n_concatenate(saved_traces_all, saved_traces_list, 4, nan);
-
     end
+    mkdir(['C:\Data\Data\Analysed_data\Analysis_results\fine_discr_shock_cond\', list_set_name]);
     save(['C:\Data\Data\Analysed_data\Analysis_results\fine_discr_shock_cond\', list_set_name,'\saved_traces_all.mat'], 'saved_traces_all');
     save(['C:\Data\Data\Analysed_data\Analysis_results\fine_discr_shock_cond\', list_set_name,'\stim_frs.mat'], 'stim_frs');
     save(['C:\Data\Data\Analysed_data\Analysis_results\fine_discr_shock_cond\', list_set_name,'\frame_time.mat'], 'frame_time');
@@ -463,11 +475,11 @@ figure(7)
 %adding marker colors for each odor in col1 
 hold on
 curr_markersx = r_vecs_saved(1:n_flies(1), 1);
-curr_markersy = plot_mat(1:n_flies(1), 1);
-plot(curr_markersx, curr_markersy, 'O', 'markerFaceColor', paired_color, 'markerEdgeColor', paired_color, 'markerSize', 6.5);
+curr_markersy = plot_mat(1:n_flies(1), 1);              %Note: the ctrl column consists of ctrl PA resps with ctrl BA resps appended beneath
+plot(curr_markersx, curr_markersy, 'O', 'markerFaceColor', PA_color, 'markerEdgeColor', PA_color, 'markerSize', 6.5);
 curr_markersx = r_vecs_saved( (n_flies(1) + 1):end, 1);
-curr_markersy = plot_mat((n_flies(1) + 1):end, 1);
-plot(curr_markersx, curr_markersy, 'O', 'markerFaceColor', unpaired_color, 'markerEdgeColor', unpaired_color, 'markerSize', 6.5);
+curr_markersy = plot_mat((n_flies(1) + 1):end, 1);      %Note: the ctrl column consists of ctrl PA resps with ctrl BA resps appended beneath
+plot(curr_markersx, curr_markersy, 'O', 'markerFaceColor', BA_color, 'markerEdgeColor', BA_color, 'markerSize', 6.5);
 mean_val = mean(plot_mat(:, 1), 'omitnan');
 se_val = std(plot_mat(:, 1), [], 'omitnan')./sqrt(size(plot_mat, 1));
 errorbar(1.75, mean_val, se_val, 'O', 'markerSize', 6.5, 'markerEdgeColor', mean_color, 'markerFaceColor', mean_color, 'Color', mean_color, 'lineWidth', 2)
