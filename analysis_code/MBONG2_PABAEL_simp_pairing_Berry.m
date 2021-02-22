@@ -6,21 +6,21 @@ dataset_list_paths = [...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_15s_ipi.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_ELsecond.xls'};...
-                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_longpulse2.xls'};...
+                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_longpulse2.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_MB298B_MBONG4-G1G2_GcaMP6f_starved.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_13F02_gcaMP6f_starved.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_GH146_GCaMP6f_fed.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_SS01240_DPM_starved.xls'};...
-                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_noLEDctrl.xls'};...
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_noLEDctrl.xls'};...
                       ];
             
-suppress_plots = 0;
+suppress_plots = 1;
 plotting_quant_no_filt = 0;     %1 - only unfiltered traces used for all analysis and plotting - traces included. 0 - filtered traces used for everything.
 cell_n = 1;
 
-[del, odor_names1] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList.xls', 1);
-[del, odor_names2] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList_olf2.xls', 1);
-odor_names2{3} = 'Butyl acetate';
+% [del, odor_names1] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList.xls', 1);
+% [del, odor_names2] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList_olf2.xls', 1);
+% odor_names2{3} = 'Butyl acetate';
 
 global color_vec;                
 a = colormap('bone');
@@ -83,6 +83,14 @@ for list_n = 1:size(dataset_list_paths, 1)
         [frame_time, zoom, n_chans, PMT_offsets] = SI_tif_info(stack_obj);
         
         [stim_mat, stim_mat_simple, column_heads, color_vec, good_tr_list, params_orig, PID_traces] = load_params_trains_modular(curr_dir, tif_times, frame_time);    %reading in trial stimulus parameters after matching time stamps to F traces
+        
+        odor_names1 = stim_mat.odourNames;
+        odor_names2 = stim_mat.odourNames_olf2;
+        PA_odn_olf1 = od_name_lookup(odor_names1, 'Pentyl acetate');
+        PA_odn_olf2 = od_name_lookup(odor_names2, 'Pentyl acetate');
+        BA_odn_olf1 = od_name_lookup(odor_names1, 'Butyl acetate');
+        BA_odn_olf2 = od_name_lookup(odor_names2, 'Butyl acetate');
+        
         paired_color = color_vec(2, :);
         unpaired_color = color_vec(1, :);
         EL_color = color_vec(3, :);
@@ -169,45 +177,47 @@ for list_n = 1:size(dataset_list_paths, 1)
         
         %identifying relevant odor numbers for each olfactometer
         pairing_tr_n = find(stim_mat_simple(:, led_on_col_n) == 1);
-        
+        ctrl_set = 0;       %keeping track if this is a no LED ctrl dataset
         if set_list_type == 0
             paired_od_n_olf1 = unique(stim_mat_simple(pairing_tr_n, od_olf1_col_n));    
         elseif set_list_type > 0
             paired_od_n_olf2 = unique(stim_mat_simple(pairing_tr_n, od_olf2_col_n));
-            if paired_od_n_olf2 == 1
-                paired_od_n_olf1 = 3;
-            elseif paired_od_n_olf2 == 3
-                paired_od_n_olf1 = 10;
-            elseif isempty(paired_od_n_olf2) == 1       %case for no LED ctrl datasets
+            if paired_od_n_olf2 == PA_odn_olf2
+                paired_od_n_olf1 = PA_odn_olf1;
+            elseif paired_od_n_olf2 == BA_odn_olf2
+                paired_od_n_olf1 = BA_odn_olf1;
+            elseif isempty(paired_od_n_olf2) == 1       %case for no LED ctrl datasets; paired odor assigned at random
                 r_num = rand(1, 1);
                 if r_num > 0.5
-                    paired_od_n_olf2 = 1;
+                    paired_od_n_olf2 = PA_odn_olf2;
+                    paired_od_n_olf1 = PA_odn_olf1;
+                elseif r_num <= 0.5
+                    paired_od_n_olf2 = BA_odn_olf2;
+                    paired_od_n_olf1 = BA_odn_olf1;
+                else
+                end
+                ctrl_set = 1;
             end
         else
         end
-        keyboard
+        
         paired_od_name = odor_names1{paired_od_n_olf1};
       
-%         
-%         if paired_od_n_olf1 == 3
-%             paired_od_n_olf2 = 1;
-%             unpaired_od_n_olf2 = 3;
-%         elseif paired_od_n_olf1 == 10
-%             paired_od_n_olf2 = 3;
-%             unpaired_od_n_olf2 = 1;
-%         else
-%         end
+         
+        if paired_od_n_olf1 == PA_odn_olf1
+            unpaired_od_n_olf1 = BA_odn_olf1;
+            unpaired_od_n_olf2 = BA_odn_olf2;
+        elseif paired_od_n_olf1 == BA_odn_olf1
+            unpaired_od_n_olf1 = PA_odn_olf1;
+            unpaired_od_n_olf2 = PA_odn_olf2;
+        else
+        end
             
-        %if paired odor is PA, unpaired odor must be BA or vice versa
-        unpaired_od_n_olf1 = [3, 10];
-        [del, deli] = intersect(unpaired_od_n_olf1, paired_od_n_olf1);
-        unpaired_od_n_olf1(deli)= [];
-        unpaired_od_name = odor_names1{unpaired_od_n_olf1};        
         
         y_ax_lim = [];
         plot_means = 1;
         
-        %plotting, quantifying resps
+        %manually specifying sets of pre and post pairing trial numbers
         if set_list_type <= 1
             tr_lists = [1:3; 6:8; 11:13];   %cases where EL alone trials exist
         elseif set_list_type > 1
@@ -220,6 +230,10 @@ for list_n = 1:size(dataset_list_paths, 1)
         else
         end
         
+        if ctrl_set == 1
+            tr_lists = [1:3; 4:6; 7:9];        %no LED stim, so no dummy, pairing trials inserted into stim_mat_simple
+        else
+        end
        
         
         %looping through pre, post1 and post2 trial types
@@ -261,9 +275,12 @@ for list_n = 1:size(dataset_list_paths, 1)
                 keyboard
             end
                 
+            try
+                saved_PID_traces_curr(:, 1, tr_type_n) = PID_traces(:, curr_tr);
+            catch
+                keyboard
+            end
                 
-            saved_PID_traces_curr(:, 1, tr_type_n) = PID_traces(:, curr_tr);
-            
             fig_h = figure(1);
             set(fig_h, 'Position', [100, 100, 1200, 350]);
             subplot(1, 3, 1);
@@ -311,6 +328,8 @@ for list_n = 1:size(dataset_list_paths, 1)
         
         saved_traces_all = pad_n_concatenate(saved_traces_all, saved_traces_curr, 4, nan);
         saved_PID_traces_all = pad_n_concatenate(saved_PID_traces_all, saved_PID_traces_curr, 4, nan);
+        clear saved_traces_curr
+        clear saved_PID_traces_curr
         resp_mat_all(:, :, dir_n) = resp_mat;
         
         if suppress_plots == 0
