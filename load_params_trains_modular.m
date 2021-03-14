@@ -63,16 +63,35 @@ if datenum_check == 1
         end
     end
     
-    PID_traces_acq = get_PID_traces(direc, 1:tr_n, frame_time, 1);
-    LED_traces_acq = PID_traces_acq(:, 2:2:end);    %getting rid of LED stim traces
-    PID_traces_acq = PID_traces_acq(:, 1:2:end);    %getting rid of LED stim traces
+    try
+        [PID_traces, del, n_PIDdata_dims] = get_PID_traces(direc, 1:tr_n, frame_time, 1);
+    catch
+        %NOTE: check if frame_time input was given to
+        %load_params_trains_modular
+        keyboard
+    end
+    
+    PID_traces_acq = PID_traces(:, 1:n_PIDdata_dims:end);    
+    LED_traces_acq = PID_traces(:, 2:n_PIDdata_dims:end);    
+    
+    if n_PIDdata_dims > 2
+        elec_traces_acq = PID_traces(:, 3:n_PIDdata_dims:end);    
+    else
+        elec_traces_acq = LED_traces_acq.*nan;
+    end
+    
     PID_traces_orig = pad_n_concatenate(PID_traces_acq, LED_traces_acq, 3, nan);
+    PID_traces_orig = pad_n_concatenate(PID_traces_acq, elec_traces_acq, 3, nan);
+    
     %padding with nans for un-acquired traces
     PID_traces = zeros(size(PID_traces_acq, 1), n_trials_p) + nan;
     PID_traces(:, 1:tr_n) = PID_traces_acq;
     
     LED_traces = zeros(size(LED_traces_acq, 1), n_trials_p) + nan;
     LED_traces(:, 1:tr_n) = LED_traces_acq;
+    
+    elec_traces = zeros(size(elec_traces_acq, 1), n_trials_p) + nan;
+    elec_traces(:, 1:tr_n) = elec_traces_acq;
         
     %reading in manually determined list of bad (z-drifted) trials
     good_tr_list = load([direc, 'bad_trial_list.mat']);
