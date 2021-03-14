@@ -3,15 +3,17 @@ close all
 
 dataset_list_paths = [...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_simp_pairing_Berry.xls'};...
-                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry.xls'};...
+                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_15s_ipi.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_ELsecond.xls'};...
-                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_longpulse2.xls'};...
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_longpulse2.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_MB298B_MBONG4-G1G2_GcaMP6f_starved.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_13F02_gcaMP6f_starved.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_GH146_GCaMP6f_fed.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_SS01240_DPM_starved.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_noLEDctrl.xls'};...
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_WTG2Ap1_onrig_fedshock.xls'};...
+                      
                       ];
             
 suppress_plots = 1;
@@ -97,7 +99,6 @@ for list_n = 1:size(dataset_list_paths, 1)
         %mean_color = [0.5, 0.83, 0.98];
         %mean_color = [149, 200, 216]./256;
         mean_color = ([0, 49, 152]./256).*1.5;
-        
         stim_mat_simple_nonans = stim_mat_simple;
         stim_mat_simple_nonans(isnan(stim_mat_simple)) = 0;
                 
@@ -147,7 +148,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         [raw_data_mat, good_tr_list] = match_up_rawmat_matchedtrs(raw_data_mat, stim_mat_simple, tif_n_col_n, good_tr_list);
         
         %if weird EL trial1 exists, getting rid of it
-        if stim_mat_simple(1, od_olf1_col_n) == 11
+        if stim_mat_simple(1, od_olf1_col_n) == 11 & set_list_type ~= 0
             stim_mat(1) = [];
             stim_mat_simple(1, :) = [];
             raw_data_mat(:, :, 1) = [];
@@ -300,7 +301,12 @@ for list_n = 1:size(dataset_list_paths, 1)
             curr_tr = tr_list(curr_tr);
             curr_trace = squeeze(dff_data_mat_f(:, :, curr_tr));
             resp_vec(1, 2) = mean(mean(curr_trace(stim_frs(1):((stim_frs(1) + integ_win) + round(3./frame_time)) )));
-            saved_traces_curr(:, 2, tr_type_n) = curr_trace;
+            try
+                saved_traces_curr(:, 2, tr_type_n) = curr_trace;
+            catch
+                keyboard
+            end
+            
             saved_PID_traces_curr(:, 2, tr_type_n) = PID_traces(:, curr_tr);
             subplot(1, 3, 2)
             plot(curr_trace, 'lineWidth', 1.5, 'Color', unpaired_color.*col_multiplier);
@@ -316,8 +322,14 @@ for list_n = 1:size(dataset_list_paths, 1)
                 curr_trace = zeros(size(dff_data_mat_f, 1), 1) + nan;    %since EL alone trials don't exist, padding
                 resp_vec(1, 3) = nan; 
             end
-            stim_frs_bar_EL = compute_stim_frs_modular(stim_mat, curr_tr(1), frame_time);
-            stim_frs_bar_EL = stim_frs_bar_EL{2};
+            if set_list_type > 0
+                stim_frs_bar_EL = compute_stim_frs_modular(stim_mat, curr_tr(1), frame_time);
+                stim_frs_bar_EL = stim_frs_bar_EL{2};
+            else
+                stim_frs_bar_EL = compute_stim_frs_modular(stim_mat, curr_tr(1), frame_time);
+                stim_frs_bar_EL = stim_frs_bar_EL{1};       %for simple stimulus dataset
+            end
+              
             saved_traces_curr(:, 3, tr_type_n) = curr_trace;
             saved_PID_traces_curr(:, 3, tr_type_n) = PID_traces(:, curr_tr);
             subplot(1, 3, 3)

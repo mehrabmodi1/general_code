@@ -52,8 +52,14 @@ for list_n = 1:size(dataset_list_paths, 1)
         curr_dir = [curr_dir, '\'];
         tif_times = load([curr_dir, 'tif_time_stamps.mat']);           %reading in time stamps for each tif file recorded by raw_data_extracter
         tif_times = tif_times.time_stamps;
-        [stim_mat, stim_mat_simple, column_heads, color_vec, good_tr_list, params_orig] = load_params_trains_modular(curr_dir, tif_times);    %reading in trial stimulus parameters after matching time stamps to F traces%[stim_mat, stim_mat_simple, column_heads, color_vec, g_tr_list] = load_params_trains(curr_dir, tif_times);    %reading in trial stimulus parameters after matching time stamps to F traces
         
+        cd(curr_dir);
+        tif_name = dir('*.tif');
+        stack_obj = ScanImageTiffReader([curr_dir, tif_name(1).name]);
+        [frame_time, zoom, n_chans, PMT_offsets] = SI_tif_info(stack_obj);
+        
+        
+        [stim_mat, stim_mat_simple, column_heads, color_vec, good_tr_list, params_orig, PID_traces_matched, PID_traces_orig] = load_params_trains_modular(curr_dir, tif_times, frame_time);    %reading in trial stimulus parameters after matching time stamps to F traces%[stim_mat, stim_mat_simple, column_heads, color_vec, g_tr_list] = load_params_trains(curr_dir, tif_times);    %reading in trial stimulus parameters after matching time stamps to F traces
         %Reading in experimental parameters
         odor_list = unique(stim_mat_simple(:, 2) );
         n_odors = length(odor_list);
@@ -63,12 +69,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         saved_an_results.odor_list = odor_list;
         saved_an_results.odor_dur_list = odor_dur_list;
         
-        cd(curr_dir);
-        tif_name = dir('*.tif');
-        stack_obj = ScanImageTiffReader([curr_dir, tif_name(1).name]);
-        [frame_time, zoom, n_chans, PMT_offsets] = SI_tif_info(stack_obj);
-
-       
+        
         %loading extracted raw fluorescence data matrices written by raw_dff_extractor
         raw_data_mat = load([curr_dir 'extracted_raw_data_mat.mat']);
         raw_data_mat = raw_data_mat.raw_data_mat;           %raw F traces extracted from ROIs
@@ -164,7 +165,7 @@ for list_n = 1:size(dataset_list_paths, 1)
     end
     
 end
-
+keyboard
 function [raw_data_mat, stim_mat, stim_mat_simple, tr_list] = remove_trs(rem_tr_list, raw_data_mat, stim_mat, stim_mat_simple, tr_list)
     raw_data_mat(:, :, rem_tr_list) = [];
     stim_mat_simple(rem_tr_list, :) = [];

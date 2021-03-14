@@ -23,7 +23,8 @@ if isempty(good_tr_list) == 1
     good_tr_list = 1:1:size(raw_data_mat, 3);
 else
 end
-
+    
+    
 valve_odor_delay = load('C:\Data\Data\Analysed_data\valve_odor_delay.mat');
 valve_odor_delay = valve_odor_delay.valve_odor_delay;    %in ms
 valve_odor_delay = valve_odor_delay./1000; %in s

@@ -4,7 +4,8 @@ function [fig_h, r_vecs_saved] = scattered_dot_plot_ttest(mat, fig_n, col_width,
 %with a random scatter of width col_width and inter-column spacing as
 %specified. Line spec can be used to specify marker style, color and size.
 %With_lines if not [], is a list of pairs of columns to be connected by
-%lines.
+%lines. st_test_type = 1, paired-samples. st_test_type = 2, independent
+%samples.
 
 % col_width = 1;
 % col_spacing = 1;
@@ -115,7 +116,7 @@ if isempty(with_lines) == 1
     else
     end
     
-elseif isempty(with_lines) == 0
+elseif isempty(with_lines) == 0 | with_lines == 0
     %generating random offsets
     r_vec = rand(size(mat, 1), 1);
     for col_n = 1:n_cols

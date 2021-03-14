@@ -44,7 +44,12 @@ for list_n = 1:size(dataset_list_paths, 1)
        
         tif_times = load([curr_dir, 'tif_time_stamps.mat']);           %reading in time stamps for each tif file recorded by raw_data_extracter
         tif_times = tif_times.time_stamps;
-        [stim_mat, stim_mat_simple, column_heads, color_vec, good_tr_list, params_orig] = load_params_trains_modular(curr_dir, tif_times);    %reading in trial stimulus parameters after matching time stamps to F traces
+        cd(curr_dir);
+        tif_name = dir('*.tif');
+        stack_obj = ScanImageTiffReader([curr_dir, tif_name(1).name]);
+        [frame_time, zoom, n_chans, PMT_offsets] = SI_tif_info(stack_obj);
+        
+        [stim_mat, stim_mat_simple, column_heads, color_vec, good_tr_list, params_orig] = load_params_trains_modular(curr_dir, tif_times, frame_time);    %reading in trial stimulus parameters after matching time stamps to F traces
         
        
         %Reading in experimental parameters
@@ -60,10 +65,9 @@ for list_n = 1:size(dataset_list_paths, 1)
         n_od_durs_olf2 = length(odor_dur_list_olf2);
         n_trains_olf2 = max(stim_mat_simple(:, 17));
         
-        cd(curr_dir);
-        tif_name = dir('*.tif');
-        stack_obj = ScanImageTiffReader([curr_dir, tif_name(1).name]);
-        [frame_time, zoom, n_chans, PMT_offsets] = SI_tif_info(stack_obj);
+        
+        
+        
         
         
         %loading extracted raw fluorescence data matrices written by raw_dff_extractor
