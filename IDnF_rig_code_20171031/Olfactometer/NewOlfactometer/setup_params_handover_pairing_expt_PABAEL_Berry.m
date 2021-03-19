@@ -1,16 +1,17 @@
-function [params_spec1] = setup_params_handover_pairing_expt_PABAEL_Berry(LED_on, EL_type)
+function [params_spec1] = setup_params_handover_pairing_expt_PABAEL_Berry(LED_elec_on, EL_type, int_pulse_int, pulse2_dur, image_stim_trs)
 %syntax: [params_spec1] = setup_params_simp_pairing_expt_PABAEL(LED_on, EL_type)
 %This function sets up a detailed stimulus specification structure and saves
 %it into curr_aq_direc to set up stimulus delivery for a protocol matching
 %the Berry et al. 2018 paper. EL_type controls EL in handover trials. 0 -
 %no EL in handover trials; 1 - EL is the first odor in handover trials; 2 -
-%EL is the second odor in handover trials.
+%EL is the second odor in handover trials. pulse2_dur determines the
+%duration of pulse2 in handover trials.
 
 %%Reading in last paired odour to ensure alternate paired odours in each session for reciprocal analysis.
 log_file_path = 'E:\Turner lab\Bitbucket_repos\general_code\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\reciprocal_expt_logs\pairing_expt_PABAEL_handover_presentation_Berry.mat';
 last_paired_od = load(log_file_path);
 last_paired_od = last_paired_od.last_paired_od;
-odors_to_switch = [10, 3];     %PA and BA on olf2
+odors_to_switch = [9, 4];     %PA and BA on olf2
 od_remi = find(odors_to_switch == intersect(last_paired_od, odors_to_switch));
 odors_to_switch(od_remi) = [];
 CSplus_od = odors_to_switch;    %on olf1
@@ -18,7 +19,7 @@ CSminus_od = last_paired_od;    %on olf1
 last_paired_od = CSplus_od;     %swapping to log for next expt.
 save(log_file_path, 'last_paired_od');
 
-od_lookup_table = [3, 1; 10, 3; 11, 4];     %table of corress od numbers on olf1 and olf2.
+od_lookup_table = [4, 1; 9, 3; 11, 4];     %table of corress od numbers on olf1 and olf2.
 plusi = find(od_lookup_table(:, 1) == CSplus_od);
 CS_plus_od_olf2 = od_lookup_table(plusi, 2);
 minusi = find(od_lookup_table(:, 1) == CSminus_od);
@@ -46,9 +47,9 @@ else
 end 
 params_spec1.duration = 5;
 params_spec1.reps = 1;
-params_spec1.isi = 45;
-params_spec1.rel_stimLatency_olf2 = params_spec1.duration;
-params_spec1.duration_olf2 = 5;
+params_spec1.isi = 45 + int_pulse_int + pulse2_dur;
+params_spec1.rel_stimLatency_olf2 = params_spec1.duration + int_pulse_int;
+params_spec1.duration_olf2 = pulse2_dur;
 params_spec1.trigger_scan = 0;
 
 params_struc1 = setUpStimuli_modular(params_spec1);
@@ -83,7 +84,7 @@ end
     
 %step1.2 setting up pre trials - with imaging
 params_struc_pre_im = params_struc_pre_noim;
-for tr_n = 1:3
+for tr_n = 1:size(params_struc_pre_im, 2)
     params_struc_pre_im(tr_n).trigger_scan = 1;
 end
 params_struc_pre_all = append_params(params_struc_pre_noim, params_struc_pre_im, 0);     %this has first the no-imaging trials and then the imaging trials
@@ -98,18 +99,30 @@ params_spec2.odours_olf2 = CS_plus_od_olf2;
 params_spec2.duration_olf2 = 5;
 params_spec2.rel_stimLatency_olf2 = 0;
 params_spec2.n_od_pulses_olf2 = 1;
-if LED_on == 0
+if LED_elec_on == 0
     params_spec2.led_odours = [];
-else
+elseif LED_elec_on == 1 %case where US is delivered as LED pulses
     params_spec2.led_odours = CSplus_od;
+    params_spec2.elec_odors = [];
+    params_spec2.stim_dur = 3;
+    params_spec2.stim_freq = 1;
+    params_spec2.st_duty_cyc = 100;
+    params_spec2.rel_stim_init_delay = 2;
+
+elseif LED_elec_on == 2 %case where US is delivered as shock pulses
+    params_spec2.elec_odours = CSplus_od;
+    params_spec2.led_odours = [];
+    
+    params_spec2.n_od_pulses = 1;
+    params_spec2.stim_dur = 3;
+    params_spec2.stim_freq = 5;
+    params_spec2.st_duty_cyc = 50;  %10 percent of 200 ms (20 ms)
+    params_spec2.rel_stim_init_delay = 2;
+    
 end
-params_spec2.n_od_pulses = 1;
-params_spec2.stim_dur = 3;
-params_spec2.stim_freq = 1;
-params_spec2.st_duty_cyc = 100;
-params_spec2.rel_stim_init_delay = 2;
+
 params_spec2.isi = 45;     
-params_spec2.trigger_scan = 0;
+params_spec2.trigger_scan = image_stim_trs;
 
 params_struc_pairing = setUpStimuli_modular(params_spec2);         %detailed, trial-by-trial parameter specification structure.
 
