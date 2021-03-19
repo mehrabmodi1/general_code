@@ -109,7 +109,11 @@ for trial_n = start_tr:n_trials
     n_od_pulses = params_mat(trial_n).n_od_pulses;
     inter_pulse_interval = params_mat(trial_n).inter_pulse_interval;
     stim_latency = params_mat(trial_n).stimLatency;
-    od_name = params_mat(trial_n).odourNames{odor_n};
+    try
+        od_name = params_mat(trial_n).odourNames{odor_n};
+    catch
+        keyboard
+    end
     post_od_scan_dur = params_mat(trial_n).post_od_scan_dur;
     pulse_train = params_mat(trial_n).pulse_train;
     pulse_type = params_mat(trial_n).pulse_type;
@@ -140,7 +144,7 @@ for trial_n = start_tr:n_trials
     elseif params_mat(trial_n).elec_on == 1
         LED_elec = 1;
     else
-        LED_elec = 1;
+        LED_elec = 2; %niether LED nor elec stim to be delivered
     end
     
     
@@ -163,7 +167,6 @@ for trial_n = start_tr:n_trials
        
     %communicating stimulus parameters to LED/elec controlling arduino
     disp('warning: The LED_power param doesn''t actually control LED power. This is currently adjusted manually to 5% with a V-divider.')
-   
     stim_arduino_serial_comm(LED_elec, init_delay_ms, duration_ms, freq_hz, duty_cyc_percent);
     
     %program_pulsepal_LED_elec(LED_elec, init_delay, duration_ms, freq_hz, duty_cyc_percent, LED_power);
@@ -256,7 +259,7 @@ for trial_n = start_tr:n_trials
     %% delivering odor
     %Setting up PID acuisition, 
     s = daq.createSession('ni');
-    ch = addAnalogInputChannel(s,'Dev3', [0, 2], 'Voltage');        %line used for regular PID acqn
+    ch = addAnalogInputChannel(s,'Dev3', [0, 2, 3], 'Voltage');        %line used for regular PID acqn
     %ch = addAnalogInputChannel(s,'PXI2Slot2_chs2', [2, 3], 'Voltage');
     ch(1).Coupling = 'DC';
     
