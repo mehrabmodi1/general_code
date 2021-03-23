@@ -3,7 +3,7 @@ close all
 
 dataset_list_paths = [...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_simp_pairing_Berry.xls'};...
-                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry.xls'};...
+                       {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_15s_ipi.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_ELsecond.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_longpulse2.xls'};...
@@ -19,6 +19,8 @@ dataset_list_paths = [...
 suppress_plots = 1;
 plotting_quant_no_filt = 0;     %1 - only unfiltered traces used for all analysis and plotting - traces included. 0 - filtered traces used for everything.
 cell_n = 1;
+
+plot_diff_traces = 0;   %doesn't plot dF/F response traces, but post - pre response traces
 
 % [del, odor_names1] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList.xls', 1);
 % [del, odor_names2] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList_olf2.xls', 1);
@@ -254,11 +256,13 @@ for list_n = 1:size(dataset_list_paths, 1)
             elseif set_list_type == 1 || set_list_type == 2     %for handover without EL or handover EL first trials
                 curr_tr = find(stim_mat_simple(tr_list, od_olf2_col_n) == paired_od_n_olf2 & stim_mat_simple(tr_list, led_on_col_n) == 0);
                 stim_frs_paired = compute_stim_frs_modular(stim_mat, curr_tr(1), frame_time);
+                stim_frs_pulse1 = stim_frs_paired{1};
                 stim_frs = stim_frs_paired{2};      %integrating over entire pulse2 odor period for simple stim protocols
                 stim_frs_EL = stim_frs_paired{1};
             elseif set_list_type == 3       %for handover, EL second trials
                 curr_tr = find(stim_mat_simple(tr_list, od_olf1_col_n) == paired_od_n_olf1 & stim_mat_simple(tr_list, led_on_col_n) == 0);
                 stim_frs_paired = compute_stim_frs_modular(stim_mat, curr_tr(1), frame_time);
+                stim_frs_pulse1 = stim_frs_paired{1};
                 stim_frs = stim_frs_paired{2};      %integrating over entire pulse2 odor period for simple stim protocols
                 stim_frs_EL = stim_frs_paired{1};
             else
@@ -270,6 +274,7 @@ for list_n = 1:size(dataset_list_paths, 1)
             
             curr_trace = squeeze(dff_data_mat_f(:, :, curr_tr));
             resp_vec(1, 1) = mean(mean(curr_trace(stim_frs(1):((stim_frs(1) + integ_win) + round(3./frame_time)) )));
+            resp_vec_pulse1(1, 1) = mean(mean(curr_trace(stim_frs_pulse1(1):((stim_frs_pulse1(2))) )));
             try
                 saved_traces_curr(:, 1, tr_type_n) = curr_trace;
             catch
@@ -301,6 +306,7 @@ for list_n = 1:size(dataset_list_paths, 1)
             curr_tr = tr_list(curr_tr);
             curr_trace = squeeze(dff_data_mat_f(:, :, curr_tr));
             resp_vec(1, 2) = mean(mean(curr_trace(stim_frs(1):((stim_frs(1) + integ_win) + round(3./frame_time)) )));
+            resp_vec_pulse1(1, 2) = mean(mean(curr_trace(stim_frs_pulse1(1):((stim_frs_pulse1(2))) )));
             try
                 saved_traces_curr(:, 2, tr_type_n) = curr_trace;
             catch
@@ -318,9 +324,11 @@ for list_n = 1:size(dataset_list_paths, 1)
                 curr_tr = tr_list(curr_tr);
                 curr_trace = squeeze(dff_data_mat_f(:, :, curr_tr));
                 resp_vec(1, 3) = mean(mean(curr_trace(stim_frs_EL(1):((stim_frs_EL(1) + integ_win) + round(3./frame_time)) )));
+                
             else
                 curr_trace = zeros(size(dff_data_mat_f, 1), 1) + nan;    %since EL alone trials don't exist, padding
-                resp_vec(1, 3) = nan; 
+                resp_vec(1, 3) = nan;
+                
             end
             if set_list_type > 0
                 stim_frs_bar_EL = compute_stim_frs_modular(stim_mat, curr_tr(1), frame_time);
@@ -336,6 +344,8 @@ for list_n = 1:size(dataset_list_paths, 1)
             plot(curr_trace, 'lineWidth', 1.5, 'Color', EL_color.*col_multiplier);
             hold on
             resp_mat(tr_type_n, :) = resp_vec;
+            resp_mat_pulse1(tr_type_n, :) = resp_vec_pulse1;
+            
         end
         
         saved_traces_all = pad_n_concatenate(saved_traces_all, saved_traces_curr, 4, nan);
@@ -343,6 +353,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         clear saved_traces_curr
         clear saved_PID_traces_curr
         resp_mat_all(:, :, dir_n) = resp_mat;
+        resp_mat_all_pulse1(:, :, dir_n) = resp_mat_pulse1;
         
         if suppress_plots == 0
             keyboard
@@ -372,14 +383,27 @@ for list_n = 1:size(dataset_list_paths, 1)
     end
     
     for tr_type = 1:2
-        mean_trace = squeeze(mean(saved_traces_all(1:(end - 5), 1, tr_type, :), 4, 'omitnan')); 
-        se_trace = squeeze(std(saved_traces_all(1:(end - 5), 1, tr_type, :), [], 4, 'omitnan')./sqrt(size(saved_traces_all, 3)));
-        col_mult = 0.6.^(tr_type - 1);
+        if plot_diff_traces == 1
+            diff_traces = saved_traces_all(1:(end - 5), 1, 2, :) - saved_traces_all(1:(end - 5), 1, 1, :);      %post traces - pre traces
+            mean_trace = squeeze(mean(diff_traces, 4, 'omitnan'));
+            se_trace = squeeze(std(diff_traces, [], 4, 'omitnan')./sqrt(size(saved_traces_all, 3)));
+        else
+            mean_trace = squeeze(mean(saved_traces_all(1:(end - 5), 1, tr_type, :), 4, 'omitnan')); 
+            se_trace = squeeze(std(saved_traces_all(1:(end - 5), 1, tr_type, :), [], 4, 'omitnan')./sqrt(size(saved_traces_all, 3)));
+        end
         shadedErrorBar([], mean_trace, se_trace, {'Color', color_vecs(tr_type, :)}, 1);
-        hold on
+        if plot_diff_traces == 1
+            break
+        else
+            hold on
+        end
     end
     hold off
-    ylabel('paired odor responses (dF/F)')
+    if plot_diff_traces == 1
+        ylabel('paired odor responses (post - pre)')
+    else
+        ylabel('paired odor responses (dF/F)')
+    end
     set_xlabels_time(1, frame_time, 10)
     ax_vals = axis;
     ax_vals(4) = 6;
@@ -397,14 +421,25 @@ for list_n = 1:size(dataset_list_paths, 1)
     else
     end
     
+    
     %unpaired odor
     figure(2)
     for tr_type = 1:2
-        mean_trace = squeeze(mean(saved_traces_all(1:(end - 5), 2, tr_type, :), 4, 'omitnan')); 
-        se_trace = squeeze(std(saved_traces_all(1:(end - 5), 2, tr_type, :), [], 4, 'omitnan')./sqrt(size(saved_traces_all, 3)));
-        col_mult = 0.6.^(tr_type - 1);
+        if plot_diff_traces == 1
+            diff_traces = saved_traces_all(1:(end - 5), 2, 2, :) - saved_traces_all(1:(end - 5), 2, 1, :);
+            mean_trace = squeeze(mean(diff_traces, 4, 'omitnan')); 
+            se_trace = squeeze(std(diff_traces, [], 4, 'omitnan')./sqrt(size(saved_traces_all, 3)));
+        else
+            mean_trace = squeeze(mean(saved_traces_all(1:(end - 5), 2, tr_type, :), 4, 'omitnan')); 
+            se_trace = squeeze(std(saved_traces_all(1:(end - 5), 2, tr_type, :), [], 4, 'omitnan')./sqrt(size(saved_traces_all, 3)));
+        end
+        
         shadedErrorBar([], mean_trace, se_trace, {'Color', color_vecs(tr_type, :)}, 1);
-        hold on
+        if plot_diff_traces == 1
+            break
+        else
+            hold on
+        end
     end
     hold off
     ylabel('unpaired odor responses (dF/F)')
@@ -423,7 +458,8 @@ for list_n = 1:size(dataset_list_paths, 1)
     elseif set_list_type == 3
         add_stim_bar(2, stim_frs_bar, [unpaired_color; EL_color]);
     end
-
+    
+    keyboard
     
     %EL
     figure(3)
@@ -512,6 +548,23 @@ for list_n = 1:size(dataset_list_paths, 1)
     fig_h = scattered_dot_plot_ttest(resp_mat_small, 6, 1, 4, 8, marker_colors, 1, col_pairs, line_colors, xlabels, 1, mean_color, 1, 0.05);
     ylabel('response size (dF/F)');
     fig_wrapup(fig_h, []);
+    
+    
+    
+    %Plotting a contrast score (pulse2 - pulse1 response) for transition
+    %trials
+    contrast_scores = resp_mat_all(1:2, 1:2, :) - resp_mat_all_pulse1;
+    cscore_mat = [squeeze(contrast_scores(1, 1, :)), squeeze(contrast_scores(1, 2, :)), squeeze(contrast_scores(2, 1, :)), squeeze(contrast_scores(2, 2, :))];
+    paired_multiplier = 0.65;
+    marker_colors = [ paired_color; unpaired_color; paired_color.*paired_multiplier;  unpaired_color.*paired_multiplier];
+    line_colors = repmat([0.6, 0.6, 0.6], 4, 1);
+    col_pairs = [1, 2; 3, 4];
+    xlabels = [{'prd pre'}, {'unprd pre'}, {'prd post'}, {'unprd post'}];
+    figure(7)
+    fig_h = scattered_dot_plot_ttest(cscore_mat, 7, 1, 4, 8, marker_colors, 1, col_pairs, line_colors, xlabels, 1, mean_color, 1, 0.05);
+    ylabel('contrast at transition (dF/F)');
+    fig_wrapup(fig_h, []);
+    
     
     
     %plotting individual traces
