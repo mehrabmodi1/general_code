@@ -12,6 +12,7 @@ function [PID_traces, traces_orig, n_data_dims] = get_PID_traces(direc, curr_trs
 n_trials = length(curr_trs);
 PID_traces = [];
 traces_orig = [];
+
 for trial_n = 1:n_trials
     trial_ni = curr_trs(trial_n);
     curr_trace = load([direc, 'PID_trace_tr-', num2str(trial_ni)]);
