@@ -3,10 +3,10 @@ close all
 
 dataset_list_paths = [...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_simp_pairing_Berry.xls'};...
-                       {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry.xls'};...
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_15s_ipi.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_ELsecond.xls'};...
-                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_longpulse2.xls'};...
+                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_longpulse2.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_MB298B_MBONG4-G1G2_GcaMP6f_starved.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_13F02_gcaMP6f_starved.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_GH146_GCaMP6f_fed.xls'};...
@@ -381,7 +381,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         stim_frs_bar = stim_frs_paired{1};
         %stim_frs_bar_EL = stim_frs_paired{2};
     end
-    
+        
     for tr_type = 1:2
         if plot_diff_traces == 1
             diff_traces = saved_traces_all(1:(end - 5), 1, 2, :) - saved_traces_all(1:(end - 5), 1, 1, :);      %post traces - pre traces
@@ -459,8 +459,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         add_stim_bar(2, stim_frs_bar, [unpaired_color; EL_color]);
     end
     
-    keyboard
-    
+       
     %EL
     figure(3)
     for tr_type = 1:2
@@ -479,8 +478,28 @@ for list_n = 1:size(dataset_list_paths, 1)
     axis(ax_vals);
     fig_wrapup(3, [])
     add_stim_bar(3, stim_frs_bar_EL(1, :), EL_color);
-           
     
+    %plotting difference traces
+    figure(8)
+    diff_traces = saved_traces_all(1:(end - 5), 2, 2, :) - saved_traces_all(1:(end - 5), 1, 2, :);      %Unpaired Post - Paired post
+    mean_trace = squeeze(mean(diff_traces, 4, 'omitnan'));
+    se_trace = squeeze(std(diff_traces, [], 4, 'omitnan')./sqrt(size(saved_traces_all, 3)));
+    plot([0, size(mean_trace, 1)], [0, 0], ':', 'lineWidth', 2, 'Color', [0.6, 0.6, 0.6]);
+    hold on
+    shadedErrorBar([], mean_trace, se_trace, {'Color', color_vecs(tr_type, :)}, 1);
+    hold off
+    ylabel('unpaired - paired response (dF/F)')
+    set_xlabels_time(2, frame_time, 10)
+    ax_vals = axis;
+    ax_vals(4) = 6;
+    ax_vals(3) = -2;
+    axis(ax_vals);
+    ax_vals = axis();
+    
+    fig_wrapup(8, [])
+    add_stim_bar(8, stim_frs_bar, [0.6, 0.6, 0.6; 0, 0, 0]);
+   
+    keyboard
     %quantification and statistical testing
     
     %comparing pre with post
