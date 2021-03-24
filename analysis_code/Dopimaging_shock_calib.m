@@ -263,6 +263,16 @@ for list_n = 1:size(dataset_list_paths, 1)
         
         saved_odor_resps_all = pad_n_concatenate(saved_odor_resps_all, saved_od_resps, 4, nan);
         
+        stim_frs = compute_stim_frs_modular(stim_mat, curr_trs(1), frame_time);
+        figure(3)
+        plot(curr_traces)
+        ylabel('EL response (dF/F)')
+        set_xlabels_time(3, frame_time, 10)
+        fig_wrapup(3, []);
+        stim_frs_bar = stim_frs{2};
+        add_stim_bar(3, stim_frs_bar, [0.6, 0.6, 0.6]);
+        
+        keyboard
     end
     
     %plotting elec pulse resps
