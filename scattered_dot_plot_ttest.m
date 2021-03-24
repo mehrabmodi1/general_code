@@ -228,6 +228,10 @@ else
     end
 end
 
+hold on
+ax_vals = axis();
+plot([ax_vals(1), ax_vals(2)], [0, 0], ':', 'lineWidth', 2, 'Color', [0.6, 0.6, 0.6]);
+
 
 ax = gca;
 ax.XTick = saved_col_centers;
