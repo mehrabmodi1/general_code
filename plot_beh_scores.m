@@ -5,6 +5,7 @@ path = 'C:\Users\Mehrab\Google Drive\Backup\Stuff\Janelia\Talks\DIG\20201009\MB0
 gen_path = 'C:\Users\Mehrab\Google Drive\Backup\Stuff\Janelia\Talks\Labmeeting talks\20201218\MB099C_generalization_data.xls'; %Aditya's generalization dataset    
 scr_path = 'C:\Users\Mehrab\Google Drive\Backup\Stuff\Janelia\Talks\Labmeeting talks\20201218\Yoshi_cpt_screen.xls';    %Yoshi's US-subst screen across cpts
 MB296B_genpath = 'C:\Users\Mehrab\Google Drive\Backup\Stuff\Janelia\Talks\Labmeeting talks\20201218\MB296B_generalization_data.xls';
+TH_rescue_discrpath = 'C:\Users\Mehrab\Google Drive\Backup\Stuff\Janelia\Talks\Labmeeting talks\20201218\THRescue_fine_discr.xls';
 
 %Plotting fine discr and coarse discr for multiple compartments
 [scr_data] = xlsread(scr_path, 1).*-1;
@@ -39,6 +40,9 @@ fig_wrapup(fig_h, []);
 ax_vals = axis;
 ax_vals(4) = 1.1;
 axis(ax_vals);
+[p, h] = ranksum(beh_data(:, 1), beh_data(:, 2))
+
+[p, h] = ranksum(beh_data(:, 2), beh_data(:, 3))
 
 
 %Plotting fine discr and generalization for MB296B data (only G2A'1)
@@ -56,6 +60,28 @@ ax_vals = axis;
 ax_vals(4) = 1.1;
 axis(ax_vals);
 
+
+%Plotting TH-rescue, fine discr for MB296B data (only G2A'1)
+[rescue_data] = xlsread(TH_rescue_discrpath, 1);
+marker_colors = repmat([0.65, 0.65, 0.65], 3, 1);
+line_colors = [];
+col_pairs = [];
+xlabels = [{'G2Ap1rescue'}, {'dbl knckout'}, {'heterozygote'}];
+figure(4)
+fig_h = scattered_dot_plot_ttest(rescue_data, 4, 1, 4, 8, marker_colors, 1, col_pairs, line_colors, xlabels, 1, [0.8, 0.4, 0.4], 2, 0.05);
+ylabel('performance index');
+fig_wrapup(fig_h, []);
+
+[p, h] = ranksum(rescue_data(:, 1), rescue_data(:, 2))
+
+
+ax_vals = axis;
+ax_vals(4) = 1.1;
+axis(ax_vals);
+
+keyboard
 %one-sample ttesting
-[h, p] = ttest(beh_data)    %checking if different from 0
-[h, p] = ttest(scr_data) 
+[p] = signrank_batch(beh_data)    %checking if different from 0
+[p] = signrank_batch(scr_data) 
+[p] = signrank_batch(rescue_data) 
+[p] = signrank_batch(gen_data) 
