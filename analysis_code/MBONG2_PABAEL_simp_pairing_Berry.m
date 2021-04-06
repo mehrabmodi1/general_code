@@ -3,10 +3,10 @@ close all
 
 dataset_list_paths = [...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_simp_pairing_Berry.xls'};...
-                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry.xls'};...
+                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_15s_ipi.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_ELsecond.xls'};...
-                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_longpulse2.xls'};...
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_longpulse2.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_MB298B_MBONG4-G1G2_GcaMP6f_starved.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_13F02_gcaMP6f_starved.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_GH146_GCaMP6f_fed.xls'};...
@@ -459,7 +459,37 @@ for list_n = 1:size(dataset_list_paths, 1)
         add_stim_bar(2, stim_frs_bar, [unpaired_color; EL_color]);
     end
     
-       
+    
+    %fitting an exponential decay to mean and individual boosted resps
+    [del pki] = max(mean_trace(stim_frs(1):(stim_frs(2) + round(5./frame_time)) ));
+    pki = pki + stim_frs(1);
+    end_pt = min([(stim_frs(2) + round(20./frame_time)), size(mean_trace, 1)]);
+    trace_sample = mean_trace(pki:end_pt);
+    [x_vec, fit_params] = fit_exp_simple(trace_sample, frame_time);
+    
+    modelled_trace = exp(fit_params(2)).*exp(fit_params(1).*x_vec);
+    disp(['tau = ',  num2str(-1.*(1./fit_params(1))), ' s']);
+    
+    figure(15)
+    shadedErrorBar([], mean_trace, se_trace, {'Color', color_vecs(tr_type, :)}, 1);
+    hold on
+    x_vec = pki:1:(pki + size(modelled_trace, 1) - 1)';
+    plot(x_vec, modelled_trace, ':r', 'lineWidth', 2);
+    ax_vals = [0, 490, -1, 2];
+    axis(ax_vals);
+    ylabel('unpaired odor responses (dF/F)')
+    set_xlabels_time(15, frame_time, 10)
+    fig_wrapup(15, [])
+    if set_list_type == 0
+        add_stim_bar(15, stim_frs_bar, unpaired_color);
+    elseif set_list_type == 1
+        add_stim_bar(15, stim_frs_bar, [paired_color; unpaired_color]);
+    elseif set_list_type == 2
+        add_stim_bar(15, stim_frs_bar, [EL_color; unpaired_color]);
+    elseif set_list_type == 3
+        add_stim_bar(15, stim_frs_bar, [unpaired_color; EL_color]);
+    end
+        
     %EL
     figure(3)
     for tr_type = 1:2
@@ -499,7 +529,6 @@ for list_n = 1:size(dataset_list_paths, 1)
     fig_wrapup(8, [])
     add_stim_bar(8, stim_frs_bar, [0.6, 0.6, 0.6; 0, 0, 0]);
    
-    keyboard
     %quantification and statistical testing
     
     %comparing pre with post
