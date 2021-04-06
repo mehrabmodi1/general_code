@@ -1,4 +1,5 @@
-function [error, img] = vennX( data, resolution, colors, text_on, fig_n, hold_on )
+function [error, img] = vennX_MM( data, resolution, colors, text_on, fig_n, hold_on )
+%syntax: function [error, img] = vennX( data, resolution, colors, text_on, fig_n, hold_on)
 %
 % function error = vennX( data, resolution )
 %
