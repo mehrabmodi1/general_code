@@ -11,7 +11,14 @@ suppress_plots = [];
 [del, odor_names2] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList_olf2.xls', 1);
 odor_names2{3} = 'Butyl acetate';
 od_names = [{'PA'}, {'BA'}, {'EL'}];
-            
+           
+paired_color = [0.851, 0.3725, 0.0078];
+unpaired_color = [0.1059, 0.6196, 0.4667];
+EL_color = [0.4588, 0.4392, 0.7020];
+PA_color = [0.2667, 0.9569, 0.9255].*0.8;
+BA_color = [0.5549, 0.9686, 0.433].*0.8;
+mean_color = ([0, 49, 152]./256).*1.5;
+
 
 global color_vec;                
 a = colormap('bone');
@@ -34,6 +41,7 @@ for list_n = 1:size(dataset_list_paths, 1)
     
     %loop to go through all experiment datasets listed in list file
     all_resp_traces = [];
+    sig_cell_mat_all = [];
     for dir_n = 1:n_dirs
         fly_n = fly_n + 1;
               
@@ -49,8 +57,8 @@ for list_n = 1:size(dataset_list_paths, 1)
         stack_obj = ScanImageTiffReader([curr_dir, tif_name(1).name]);
         [frame_time, zoom, n_chans, PMT_offsets] = SI_tif_info(stack_obj);
         
-        [stim_mat, stim_mat_simple, column_heads, color_vec, good_tr_list, params_orig] = load_params_trains_modular(curr_dir, tif_times, frame_time);    %reading in trial stimulus parameters after matching time stamps to F traces
-        
+        [stim_mat, stim_mat_simple, column_heads, color_vec, good_tr_list, params_orig, PID_traces_matched, PID_traces_orig] = load_params_trains_modular(curr_dir, tif_times, frame_time);    %reading in trial stimulus parameters after matching time stamps to F traces
+        color_vec = [PA_color; BA_color; EL_color];
        
         %Reading in experimental parameters
         odor_list_olf1 = unique(stim_mat_simple(:, 1) );
@@ -64,9 +72,6 @@ for list_n = 1:size(dataset_list_paths, 1)
         odor_dur_list_olf2 = unique(stim_mat_simple(:, 10) );
         n_od_durs_olf2 = length(odor_dur_list_olf2);
         n_trains_olf2 = max(stim_mat_simple(:, 17));
-        
-        
-        
         
         
         
@@ -95,7 +100,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         del = find(dff_data_mat_f < -1);
         dff_data_mat_f(del) = -1;       %forcing crazy values to sane ones
         
-       
+        
         %identifying stim_mat_simple col numbers
         led_on_col_n = find_stim_mat_simple_col('led_on', column_heads);            %identifying relevant column number in stim_mat_simple
         od_olf1_col_n = find_stim_mat_simple_col('odor_n', column_heads);           %identifying relevant column number in stim_mat_simple
@@ -121,9 +126,15 @@ for list_n = 1:size(dataset_list_paths, 1)
        
         [resp_sizes, sig_trace_mat, sig_cell_mat, sig_cell_mat_key, resp_areaundercurves] = cal_sig_responses_res_modular(dff_data_mat, stim_mat, stim_mat_simple, frame_time, od_col_ns, dur_col_ns);
         
+        %sanity-checking KC data
+        [del, all_bad_trs] = cell_data_quality_control(dff_data_mat_f, stim_mat, stim_mat_simple, column_heads, sig_cell_mat, sig_cell_mat_key, 1, frame_time);
+                
         union_sig_cell_vec = sum(sig_cell_mat, 2);
         union_sig_cell_vec = sign(union_sig_cell_vec);
         union_sig_cells = find(union_sig_cell_vec == 1);
+        sum(sig_cell_mat)./size(sig_cell_mat, 1)
+        
+        sig_cell_mat_all = [sig_cell_mat_all; sig_cell_mat(:, 1:3)];
         
         %computing mean response trace for each simple odor stimulus presented
         resp_trace_mat = [];
@@ -148,6 +159,9 @@ for list_n = 1:size(dataset_list_paths, 1)
             curr_trs = find(stim_mat_simple(:, od_col_ns(1)) == olf1_od_n & stim_mat_simple(:, dur_col_ns(1)) == olf1_dur &... 
                                 stim_mat_simple(:, od_col_ns(2)) == olf2_od_n & stim_mat_simple(:, dur_col_ns(2)) == olf2_dur);
             
+             
+%             olf2_od_n
+%             plot(squeeze(PID_traces_matched(:, curr_trs, 1)))
             stim_frs = compute_stim_frs_modular(stim_mat, curr_trs(1), frame_time);  %computing stimulus on and off frame numbers for olf1 and olf2
             
             curr_mean_traces = squeeze(mean(dff_data_mat_f(:, union_sig_cells, curr_trs), 3, 'omitnan'));
@@ -291,6 +305,38 @@ for list_n = 1:size(dataset_list_paths, 1)
         end
         text(x_val, y_val, ['r ', r_val, ', p ', p_val])
         fig_wrapup(fig_h, []);
+    end
+    
+    
+    
+    %generating venn diagram of significant responders to each odor (simple stimuli)
+    %computing counts
+    PA_ct = sum(sig_cell_mat_all(:, 1));
+    BA_ct = sum(sig_cell_mat_all(:, 2));
+    EL_ct = sum(sig_cell_mat_all(:, 3));
+    PABA_ct = sum(sig_cell_mat_all(:, 1:2), 2);
+    PABA_ct = length(find(PABA_ct == 2));
+    PAEL_ct = sum(sig_cell_mat_all(:, [1, 3]), 2);
+    PAEL_ct = length(find(PAEL_ct == 2));
+    BAEL_ct = sum(sig_cell_mat_all(:, 2:3), 2);
+    BAEL_ct = length(find(BAEL_ct == 2));
+    PABAEL_ct = sum(sig_cell_mat_all(:, 1:3), 2); 
+    PABAEL_ct = length(find(PABAEL_ct == 3));
+    venn_vec = [PA_ct, BA_ct, EL_ct, PABA_ct, BAEL_ct, PAEL_ct, PABAEL_ct];
+    
+    fig_h = figure('Name', 'Sig responder Venn diagram');
+    [H, S] = venn(venn_vec, 'FaceColor', {PA_color, BA_color, EL_color}, 'EdgeColor', 'none');  
+    axis square
+    set(gca,'Visible','off')
+    %Now label each zone 
+    name_vec = [{'PA'}, {'BA'}, {'EL'}];
+    for i = 1:7
+        if i < 4
+            curr_name = name_vec{i};
+        else
+            curr_name = '';
+        end
+        text(S.ZoneCentroid(i,1), S.ZoneCentroid(i,2), curr_name)
     end
     
     
