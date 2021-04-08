@@ -21,6 +21,10 @@ end
 
 modelfun = @(b,x) b(1).*x + b(2);  %fitting a simple line
 beta0 = [0.1, 1]; % Guess values to start with.  Just make your best guess.
-mdl = fitnlm(tbl, modelfun, beta0);
+try
+    mdl = fitnlm(tbl, modelfun, beta0);
+catch
+    keyboard
+end
 fit_params = mdl.Coefficients{:, 'Estimate'};
 fit_params(2) = exp(fit_params(2));     %converting proportionality paramter for use in linear space

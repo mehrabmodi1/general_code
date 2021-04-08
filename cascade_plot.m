@@ -1,5 +1,5 @@
 function cascade_plot(figure_n, data_mat, linecolour, linewidth, x_offset_multiplier, y_offset_multiplier, ypatch_height, max_y_ax, highlight_pks, indicate_zeros)
-%Syntax: cascade_plot(figure_n, data_mat, linecolour, linewidth, x_offset_multiplier, y_offset_multiplier, ypatch_height, max_y_ax)
+%Syntax: cascade_plot(figure_n, data_mat, linecolour, linewidth, x_offset_multiplier, y_offset_multiplier, ypatch_height, max_y_ax, highlight_pks, indicate_zeros)
 %This function creates a cascade plot of multiple traces, offset in y, and
 %x to make all the traces visible. Line colour can be specified. 
 %data_mat dims should be time, cells, trials.
