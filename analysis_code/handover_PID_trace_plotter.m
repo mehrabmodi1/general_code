@@ -6,11 +6,13 @@ curr_dir = 'C:\Data\Data\Raw_data\20200203\handover_PID_traces_set2\';
 [del, odor_names1] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList.xls', 1);
 [del, odor_names2] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList_olf2.xls', 1);
 odor_names2{3} = 'Butyl acetate';
+frame_time = 0.099;
+[stim_mat, stim_mat_simple, column_heads, color_vec, good_tr_list, params_orig] = load_params_trains_modular(curr_dir, [], frame_time);    %reading in trial stimulus parameters after matching time stamps to F traces
 
-[stim_mat, stim_mat_simple, column_heads, color_vec, good_tr_list, params_orig] = load_params_trains_modular(curr_dir, []);    %reading in trial stimulus parameters after matching time stamps to F traces
-PA_color = color_vec(2, :);
-BA_color = color_vec(1, :);
-EL_color = color_vec(3, :);
+EL_color = [0.4588, 0.4392, 0.7020];
+PA_color = [0.2667, 0.9569, 0.9255].*0.8;
+BA_color = [0.5549, 0.9686, 0.433].*0.8;
+
 
 y_ax_lim = 0.04;
 

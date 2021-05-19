@@ -1,4 +1,4 @@
-function [fig_h, r_vecs_saved] = scattered_dot_plot_ttest(mat, fig_n, col_width, col_spacing, markersize, markercolor, marker_filled, with_lines, linecolor, xlabels, plot_mean, mean_color, st_test_type, p_val)
+function [fig_h, r_vecs_saved] = scattered_dot_plot_ttest(mat, fig_n, col_width, col_spacing, markersize, markercolor, marker_filled, with_lines, linecolor, xlabels, plot_mean, mean_color, st_test_type, p_val, coh_d)
 %syntax: fig_h = scattered_dot_plot_ttest(mat, fig_n, col_width, col_spacing, markersize, markercolor, marker_filled, with_lines, linecolor, xlabels, plot_mean, mean_color, st_test_type, p_val)
 %This function plots the values in each column of mat as dots separated
 %with a random scatter of width col_width and inter-column spacing as
@@ -108,10 +108,13 @@ if isempty(with_lines) == 1
                 n_label = [];
             else
             end
-            x_pos = mean(r_vec) - col_spacing;
+            x_pos = mean(r_vec) - col_spacing.*1.2;
             y_pos = max(curr_vec) + (max(max(mat)).*0.1);
-            text(x_pos, y_pos, p_label);
-            text(x_pos, (y_pos + (max(max(mat)).*0.1)), d_label);
+            text(x_pos, y_pos, p_label, 'FontName', 'Arial');
+            if coh_d == 1
+                text(x_pos, (y_pos + (max(max(mat)).*0.1)), d_label, 'FontName', 'Arial');
+            else
+            end
 %             text(x_pos, (y_pos + 2.*(max(max(mat)).*0.1)), dif_label);
 %             text(x_pos, (y_pos + 3.*(max(max(mat)).*0.1)), n_label);
         else
@@ -168,10 +171,13 @@ elseif isempty(with_lines) == 0 | with_lines == 0
                 n_label = [];
             else
             end
-            x_pos = mean(r_vecs(:, col_n)) - col_spacing;
+            x_pos = mean(r_vecs(:, col_n)) - col_spacing.*1.2;
             y_pos = max(curr_vec) + (max(max(mat)).*0.1);
-            text(x_pos, y_pos, p_label);
-            text(x_pos, (y_pos + (max(max(mat)).*0.1)), d_label);
+            text(x_pos, y_pos, p_label, 'FontName', 'Arial');
+            if coh_d == 1
+                text(x_pos, (y_pos + (max(max(mat)).*0.1)), d_label, 'FontName', 'Arial');
+            else
+            end
 %             text(x_pos, (y_pos + 2.*(max(max(mat)).*0.1)), dif_label);
 %             text(x_pos, (y_pos + 3.*(max(max(mat)).*0.1)), n_label);
             hold on

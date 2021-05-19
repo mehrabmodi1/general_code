@@ -4,7 +4,7 @@ close all
 path = 'C:\Data\Data\Raw_data\20200803_anemometer\anemometer_acqn\';
 frame_time = 0.099;
 [traces, traces_orig] = get_PID_traces(path, [1:15], frame_time, 0);
-[stim_mat, stim_mat_simple, column_heads, color_vec, good_tr_list, params_orig] = load_params_trains_modular(path, []);
+[stim_mat, stim_mat_simple, column_heads, color_vec, good_tr_list, params_orig] = load_params_trains_modular(path, [], frame_time);
 
 stim_latency = stim_mat(1).stimLatency;
 acqn_time = abs(mean(diff(traces_orig(:, 3)), 'omitnan'));  %computing the PID acquisition rate from the time-stamp vector
@@ -39,7 +39,7 @@ shadedErrorBar([], mean_trace(1000:end), se_trace(1000:end), {'Color', [0, 0, 0]
 ylabel('norm. air flow');
 set_xlabels_time(1, acqn_time, 10);
 ax_vals = axis;
-ax_vals(4) = 0.3;
+ax_vals(4) = 0.17;
 axis(ax_vals);
 fig_wrapup(1, []);
 od_color = olf1_color;

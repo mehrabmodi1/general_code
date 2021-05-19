@@ -13,18 +13,20 @@ dataset_list_paths = [%{'C:\Data\Data\Analysed_data\dataset_lists\dataset_list_Y
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_KC_c739_PABAEL_201908set.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_KC_d5HT1b_PABAEL_201908set.xls'}...                      
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\dataset_list_MBONG2_PaBaEl_handover_starved_halfAra_prehabituated_strongUS.xls'};...
-                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\d5HT1b_similar_od_handovers.xls'};...
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\d5HT1b_similar_od_handovers.xls'};...
+                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\c305a_similar_od_handovers.xls'};...
                       ];
 
                   
                   
 share_path_base = 'C:\Data\Data\Analysed_data\data_sharing\';
-dataset_list_name = 'Gamma_similar_od_transitions\';
+%dataset_list_name = 'Gamma_similar_od_transitions\';
+dataset_list_name = 'ApBp_similar_od_transitions\';
 
 dataset_type = 3; %2 - manualROI, 3 - Suite2P
 
 
-suppress_plots = 1;
+suppress_plots = 0;
 [del, odor_names] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList.xls', 1);
 a = colormap('bone');
 global greymap
@@ -90,12 +92,15 @@ for list_n = 1:size(dataset_list_paths, 1)
         
         
         %Running data quality control checks
-%         sig_cell_mat_old = sig_cell_mat;
-%         [sig_cell_mat, all_bad_trs] = cell_data_quality_control(dff_data_mat_f, stim_mat, stim_mat_simple, sig_cell_mat, 1, frame_time);
-%         dff_data_mat(:, :, all_bad_trs) = nan;
-        %disp([num2str((length(all_bad_trs)./size(dff_data_mat, 3)).*100) ' percent of trials were auto-identified as bad and removed.']);
-        %sig_cells = find(sum(sum(sig_cell_mat, 3), 2) > 0);         %list of all cells significant for any odor for any duration
-       
+%         if suppress_plots == 0
+%             sig_cell_mat_old = sig_cell_mat;
+%             [sig_cell_mat, all_bad_trs] = cell_data_quality_control(dff_data_mat_f, stim_mat, stim_mat_simple, sig_cell_mat, 1, frame_time);
+%             dff_data_mat(:, :, all_bad_trs) = nan;
+%             disp([num2str((length(all_bad_trs)./size(dff_data_mat, 3)).*100) ' percent of trials were auto-identified as bad and removed.']);
+%             sig_cells = find(sum(sum(sig_cell_mat, 3), 2) > 0);         %list of all cells significant for any odor for any duration
+%         else
+%         end
+        
         %saving stuff for sharing data
         share_path = [share_path_base, dataset_list_name, '\fly', num2str(dir_n)];
         mkdir(share_path);

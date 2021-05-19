@@ -3,20 +3,20 @@ close all
 
 
 %MBONA3 imaging
-%dataset_list_paths = [...
-%                       {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_WTalpha3_fedshock_PAplus.xls'};...
-%                       {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_WTalpha3_fedshock_BAplus.xls'};...
-%                       {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_WTalpha3_fedshock_unpairedctrl.xls'};...
-%                       ];
+dataset_list_paths = [...
+                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_WTalpha3_fedshock_PAplus.xls'};...
+                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_WTalpha3_fedshock_BAplus.xls'};...
+                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_WTalpha3_fedshock_unpairedctrl.xls'};...
+                      ];
                   
 
 %MBONG2A'1 imaging (1x pairing)                 
-dataset_list_paths = [...
+%dataset_list_paths = [...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_WTalpha3_fedshock_PAplus.xls'};...       %NOTE: this is a DUMMY set list to be replaced with real list once acquired
-                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_WTG2Ap1_fedshock_BAplus_1x.xls'};...
-                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_WTG2Ap1_fedshock_unpairedctrl_1x.xls'};...
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_WTG2Ap1_fedshock_BAplus_1x.xls'};...
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_WTG2Ap1_fedshock_unpairedctrl_1x.xls'};...
     
-                      ];
+ %                     ];
             
 suppress_plots = 1;
 plotting_quant_no_filt = 0;     %1 - only unfiltered traces used for all analysis and plotting - traces included. 0 - filtered traces used for everything.
@@ -495,32 +495,32 @@ fig_wrapup(fig_h, []);
 [hEL, pEL] = ttest(plot_mat(:, 4), plot_mat(:, 5))
 
 %2. by odor identity
-PA_resps_paired = saved_resps_all2(1, :, 1)';
-PA_resps_unpaired = saved_resps_all2(1, :, 2)';
-PA_resps_ctrl = saved_resps_all2(1, :, 3)';
-BA_resps_paired = saved_resps_all2(2, :, 2)';
-BA_resps_unpaired = saved_resps_all2(2, :, 1)';
-BA_resps_ctrl = saved_resps_all2(2, :, 3)';
-
-plot_mat2 = pad_n_concatenate(PA_resps_ctrl, PA_resps_paired, 2, nan);
-plot_mat2 = pad_n_concatenate(plot_mat2, PA_resps_unpaired, 2, nan);
-plot_mat2 = pad_n_concatenate(plot_mat2, BA_resps_ctrl, 2, nan);
-plot_mat2 = pad_n_concatenate(plot_mat2, BA_resps_paired, 2, nan);
-plot_mat2 = pad_n_concatenate(plot_mat2, BA_resps_unpaired, 2, nan);
-
-paired_multiplier = 0.65;
-marker_colors = [PA_color; PA_color.*paired_multiplier; PA_color.*paired_multiplier;...
-    BA_color; BA_color.*paired_multiplier; BA_color.*paired_multiplier];
-line_colors = [];
-col_pairs = [];
-xlabels = [{'PA_c_t_r_l'}, {'PA_C_S_p_l'}, {'PA_C_S_m_n'}, {'BA_c_t_r_l'}, {'BA_C_S_p_l'}, {'BA_C_S_m_n'}];
-figure(8)
-[fig_h, r_vecs_saved] = scattered_dot_plot_ttest(plot_mat2, 8, 2.5, 4, 6.5, marker_colors, 1, col_pairs, line_colors, xlabels, 1, mean_color, 2, 0.05);
-ax_vals = axis;
-ax_vals(3) = -0.5;
-axis(ax_vals)
-ylabel('response size (dF/F)');
-fig_wrapup(fig_h, []);
+% PA_resps_paired = saved_resps_all2(1, :, 1)';
+% PA_resps_unpaired = saved_resps_all2(1, :, 2)';
+% PA_resps_ctrl = saved_resps_all2(1, :, 3)';
+% BA_resps_paired = saved_resps_all2(2, :, 2)';
+% BA_resps_unpaired = saved_resps_all2(2, :, 1)';
+% BA_resps_ctrl = saved_resps_all2(2, :, 3)';
+% 
+% plot_mat2 = pad_n_concatenate(PA_resps_ctrl, PA_resps_paired, 2, nan);
+% plot_mat2 = pad_n_concatenate(plot_mat2, PA_resps_unpaired, 2, nan);
+% plot_mat2 = pad_n_concatenate(plot_mat2, BA_resps_ctrl, 2, nan);
+% plot_mat2 = pad_n_concatenate(plot_mat2, BA_resps_paired, 2, nan);
+% plot_mat2 = pad_n_concatenate(plot_mat2, BA_resps_unpaired, 2, nan);
+% 
+% paired_multiplier = 0.65;
+% marker_colors = [PA_color; PA_color.*paired_multiplier; PA_color.*paired_multiplier;...
+%     BA_color; BA_color.*paired_multiplier; BA_color.*paired_multiplier];
+% line_colors = [];
+% col_pairs = [];
+% xlabels = [{'PA_c_t_r_l'}, {'PA_C_S_p_l'}, {'PA_C_S_m_n'}, {'BA_c_t_r_l'}, {'BA_C_S_p_l'}, {'BA_C_S_m_n'}];
+% figure(8)
+% [fig_h, r_vecs_saved] = scattered_dot_plot_ttest(plot_mat2, 8, 2.5, 4, 6.5, marker_colors, 1, col_pairs, line_colors, xlabels, 1, mean_color, 2, 0.05);
+% ax_vals = axis;
+% ax_vals(3) = -0.5;
+% axis(ax_vals)
+% ylabel('response size (dF/F)');
+% fig_wrapup(fig_h, []);
 
 [hpairedPA, ppairedPA] = ttest(plot_mat2(:, 1), plot_mat2(:, 2))
 [hunpairedPA, punpairedPA] = ttest(plot_mat2(:, 1), plot_mat2(:, 3))

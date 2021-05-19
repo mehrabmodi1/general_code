@@ -1,5 +1,5 @@
 function [sig_cell_mat, all_bad_trs] = cell_data_quality_control(dff_data_mat, stim_mat, stim_mat_simple, column_heads, sig_cell_mat, sig_cell_mat_key, suppress_plots, frame_time)
-%Syntax: [sig_cell_mat, all_bad_trs] = cell_data_quality_control(dff_data_mat, stim_mat, stim_mat_simple, column_heads, sig_cell_mat, manual_inspec)
+%Syntax: [sig_cell_mat, all_bad_trs] = cell_data_quality_control(dff_data_mat, stim_mat, stim_mat_simple, column_heads, sig_cell_mat, sig_cell_mat_key, suppress_plots, frame_time)
 %This function plots a number of useful visualisations of reliability of
 %cell responses. It forces to 0, cells in sig_cell_mat that were found
 %significant, but show > 25% variability in more than half the trials.
