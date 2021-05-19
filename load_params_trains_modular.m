@@ -70,7 +70,7 @@ if datenum_check == 1
         %load_params_trains_modular
         keyboard
     end
-    
+   
     PID_traces_acq = PID_traces(:, 1:n_PIDdata_dims:end);    
     LED_traces_acq = PID_traces(:, 2:n_PIDdata_dims:end);    
     
@@ -155,6 +155,15 @@ if datenum_check == 1
             saved_matches = [saved_matches; [delay, matched_t, trial_n_p]];
         end
         
+        %getting rid of saved_matches where the delay between tif and trial timestamps is > 5s.
+        long_delay_trs = find(saved_matches(:, 1) > 5);
+        for long_delay_n = 1:length(long_delay_trs)
+            curr_delayed_tr = long_delay_trs(long_delay_n);
+            if isnan(saved_matches(curr_delayed_tr, 2)) == 0
+                saved_matches(curr_delayed_tr, :) = [];
+            else
+            end
+        end        
         
         %accounting for case when no tif was acquired on the pairing trial
         %within the matching loop
@@ -216,6 +225,41 @@ else
     n_matched_trials = n_trials_t;
     par_num = 1:1:n_trials_t;
     tif_num = 1:1:n_trials_t;
+    
+    tr_n = n_trials_t;
+    n_trials_p = n_trials_t;
+    try
+        [PID_traces, del, n_PIDdata_dims] = get_PID_traces(direc, 1:tr_n, frame_time, 1);
+    catch
+        %NOTE: check if frame_time input was given to
+        %load_params_trains_modular
+        keyboard
+    end
+   
+    PID_traces_acq = PID_traces(:, 1:n_PIDdata_dims:end);    
+    LED_traces_acq = PID_traces(:, 2:n_PIDdata_dims:end);    
+    
+    if n_PIDdata_dims > 2
+        elec_traces_acq = PID_traces(:, 3:n_PIDdata_dims:end);    
+    else
+        elec_traces_acq = LED_traces_acq.*nan;
+    end
+    
+    PID_traces_orig = pad_n_concatenate(PID_traces_acq, LED_traces_acq, 3, nan);
+    PID_traces_orig = pad_n_concatenate(PID_traces_acq, elec_traces_acq, 3, nan);
+    
+    %padding with nans for un-acquired traces
+    PID_traces = zeros(size(PID_traces_acq, 1), n_trials_p) + nan;
+    PID_traces(:, 1:tr_n) = PID_traces_acq;
+    
+    LED_traces = zeros(size(LED_traces_acq, 1), n_trials_p) + nan;
+    LED_traces(:, 1:tr_n) = LED_traces_acq;
+    
+    elec_traces = zeros(size(elec_traces_acq, 1), n_trials_p) + nan;
+    elec_traces(:, 1:tr_n) = elec_traces_acq;
+    
+    
+    
 end
 
 column_heads = [{'odor_n'}, {'duration'}, {'pulse_type'}, {'n_odor_pulses'}, {'inter_pulse_interval'}, {'rand_trains'}, {'mean_rand_pulse_dur'}, {'pulse_train_n'}, {'odour_olf2'}, {'duration_olf2'}, {'rel_stim_latency_olf2'}, {'pulse_type_olf2'}, {'n_od_pulses_olf2'}, {'inter_pulse_interval_olf2'}, {'rand_trains_olf2'}, {'mean_rand_pulse_dur_olf2'}, {'pulse_train_n_olf2'}, {'led_on'}, {'elec_on'}, {'isi'}, {'stim_latency'}, {'post_od_scan_dur'}, {'first_dilution'}, {'second_dilution'}, {'matched_tif_n'}];
@@ -235,6 +279,8 @@ for trial_n = 1:n_matched_trials
     params(curr_tr_p).odours_olf2, params(curr_tr_p).duration_olf2, params(curr_tr_p).rel_stimLatency_olf2, params(curr_tr_p).pulse_type_olf2, params(curr_tr_p).n_od_pulses_olf2, params(curr_tr_p).inter_pulse_interval_olf2, ...
     params(curr_tr_p).rand_trains_olf2, params(curr_tr_p).mean_rand_pulse_dur_olf2,  params(curr_tr_p).pulse_train_n_olf2, params(curr_tr_p).led_on, params(curr_tr_p).elec_on, params(curr_tr_p).isi, params(curr_tr_p).stimLatency, params(curr_tr_p).post_od_scan_dur, params(curr_tr_p).firstDilution, params(curr_tr_p).secondDilution, curr_tr_t];
 end
+
+
 PID_traces_matched = pad_n_concatenate(PID_traces_matched, LED_traces_matched, 3, nan);
 
 %adding on match tiff_n
