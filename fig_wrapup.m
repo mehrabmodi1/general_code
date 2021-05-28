@@ -1,4 +1,4 @@
-function [] = fig_wrapup(fig_n, script_name)
+function [] = fig_wrapup(fig_n, script_name, varargin)
 %Syntax: [] = fig_wrapup(fig_n, script_name)
 %This function changes figure window size, gets rid of top and right side
 %grid lines, adjusts ticklabel font size, and changes size, orientation of
@@ -11,10 +11,16 @@ function [] = fig_wrapup(fig_n, script_name)
 % fig_n = 1;
 % plot(vec)
 
+plot_height = 100;
+plot_width = 125;
+%allowing custom-specified plot height and width
+if isempty(varargin) == 0
+    plot_height = varargin{1}(1);
+    plot_width = varargin{1}(2);
+else
+end
 
-plot_height = 200;
-plot_width = 250;
-axis_font_size = 15;
+axis_font_size = 7.5;
 tick_length = [0.02, 0.05];
 line_widths = 2;
 marker_sizes = 1;
