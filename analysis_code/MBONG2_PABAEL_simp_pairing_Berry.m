@@ -2,16 +2,18 @@ clear all
 close all
 
 dataset_list_paths = [...
-                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_simp_pairing_Berry.xls'};...
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_simp_pairing_Berry.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_15s_ipi.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_ELsecond.xls'};...
-                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_longpulse2.xls'};...
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_noLEDctrl.xls'};...
+                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_longpulse2.xls'};...
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_generalizatin'};....
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_MB298B_MBONG4-G1G2_GcaMP6f_starved.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_13F02_gcaMP6f_starved.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_GH146_GCaMP6f_fed.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_SS01240_DPM_starved.xls'};...
-                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_noLEDctrl.xls'};...
+                      
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_WTG2Ap1_onrig_fedshock.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_WTG2Ap1_onrig_fedshock_45V.xls'};
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_WTG2Ap1_onrig_fedshock_30V.xls'};
@@ -49,6 +51,7 @@ integ_win_s = 5;        %width of pulse integration window for response quantifi
 for list_n = 1:size(dataset_list_paths, 1)
     
     curr_dir_list_path = dataset_list_paths{list_n, 1};
+    curr_dir_list_path = update_list_path(curr_dir_list_path);
     [del, dir_list] = xlsread(curr_dir_list_path, 1);        %list of Suite2P results directories
     n_dirs = size(dir_list, 1);
     dataset_list_name = findstr(curr_dir_list_path, 'list_');
@@ -59,8 +62,10 @@ for list_n = 1:size(dataset_list_paths, 1)
             set_list_type = 2;  %handover stimulus with EL on pulse1 case
         elseif isempty(findstr(curr_dir_list_path, 'ELsecond')) == 0
             set_list_type = 3;  %handover stimulus with EL on pulse2 case
-        elseif isempty(findstr(curr_dir_list_path, 'ELfirst')) == 1 && isempty(findstr(curr_dir_list_path, 'ELsecond')) == 1
+        elseif isempty(findstr(curr_dir_list_path, 'ELfirst')) == 1 && isempty(findstr(curr_dir_list_path, 'ELsecond')) == 1 && isempty(findstr(curr_dir_list_path, 'generaliz')) == 1
             set_list_type = 1;  %handover stimulus with no EL pulses
+        elseif isempty(findstr(curr_dir_list_path, 'generaliz')) == 0
+            set_list_type = 4;  %handover, generalization experiment stimuli (CS- with EL first or second)
         else
         end
     else 
@@ -101,6 +106,9 @@ for list_n = 1:size(dataset_list_paths, 1)
         PA_odn_olf2 = od_name_lookup(odor_names2, 'Pentyl acetate');
         BA_odn_olf1 = od_name_lookup(odor_names1, 'Butyl acetate');
         BA_odn_olf2 = od_name_lookup(odor_names2, 'Butyl acetate');
+        EL_odn_olf1 = od_name_lookup(odor_names1, 'Ethyl lactate');
+        EL_odn_olf2 = od_name_lookup(odor_names2, 'Ethyl lactate');
+        
         if dir_n == 1
             ctrst_t_win = round(ctrst_t_win./frame_time);
         else
@@ -212,7 +220,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         ctrl_set = 0;       %keeping track if this is a no LED ctrl dataset
         if set_list_type == 0
             paired_od_n_olf1 = unique(stim_mat_simple(pairing_tr_n, od_olf1_col_n));    
-        elseif set_list_type > 0
+        elseif set_list_type > 0 && set_list_type < 4
             paired_od_n_olf2 = unique(stim_mat_simple(pairing_tr_n, od_olf2_col_n));
             if paired_od_n_olf2 == PA_odn_olf2
                 paired_od_n_olf1 = PA_odn_olf1;
@@ -230,22 +238,36 @@ for list_n = 1:size(dataset_list_paths, 1)
                 end
                 ctrl_set = 1;
             end
+        elseif set_list_type == 4 %generalization dataset
+            paired_od_n_olf2_orig = unique(stim_mat_simple(pairing_tr_n, od_olf2_col_n));
+            if paired_od_n_olf2_orig == PA_odn_olf2
+                paired_od_n_olf2 = BA_odn_olf2;     %this is actually the CS- odor, assigned here to make subsequent parts of the script work
+                paired_od_n_olf1 = BA_odn_olf1;
+            elseif paired_od_n_olf2_orig == BA_odn_olf2
+                paired_od_n_olf2 = PA_odn_olf2;     %this is actually the CS- odor, assigned here to make subsequent parts of the script work
+                paired_od_n_olf1 = PA_odn_olf1;     %this is actually the CS- odor, assigned here to make subsequent parts of the script work
+            else
+            end
         else
         end
         
         paired_od_name = odor_names1{paired_od_n_olf1};
       
-         
-        if paired_od_n_olf1 == PA_odn_olf1
-            unpaired_od_n_olf1 = BA_odn_olf1;
-            unpaired_od_n_olf2 = BA_odn_olf2;
-        elseif paired_od_n_olf1 == BA_odn_olf1
-            unpaired_od_n_olf1 = PA_odn_olf1;
-            unpaired_od_n_olf2 = PA_odn_olf2;
+        if set_list_type ~= 4 
+            if paired_od_n_olf1 == PA_odn_olf1
+                unpaired_od_n_olf1 = BA_odn_olf1;
+                unpaired_od_n_olf2 = BA_odn_olf2;
+            elseif paired_od_n_olf1 == BA_odn_olf1
+                unpaired_od_n_olf1 = PA_odn_olf1;
+                unpaired_od_n_olf2 = PA_odn_olf2;
+            else
+            end
+        elseif set_list_type == 4
+           unpaired_od_n_olf1 = EL_odn_olf1;
+           unpaired_od_n_olf2 = EL_odn_olf2;
         else
         end
-            
-        
+       
         y_ax_lim = [];
         plot_means = 1;
         
@@ -476,7 +498,7 @@ for list_n = 1:size(dataset_list_paths, 1)
     ax_vals(4) = 6;
     ax_vals(3) = -2;
     axis(ax_vals);
-    fig_wrapup(1, [])
+    fig_wrapup(1, [], [100, 120])
     if set_list_type == 0
         add_stim_bar(1, stim_frs_bar, paired_color);
     elseif set_list_type == 1
@@ -515,7 +537,7 @@ for list_n = 1:size(dataset_list_paths, 1)
     ax_vals(4) = 6;
     ax_vals(3) = -2;
     axis(ax_vals);
-    fig_wrapup(2, [])
+    fig_wrapup(2, [], [100, 120])
     if set_list_type == 0
         add_stim_bar(2, stim_frs_bar, unpaired_color);
     elseif set_list_type == 1
@@ -537,7 +559,7 @@ for list_n = 1:size(dataset_list_paths, 1)
 
         modelled_trace = exp(fit_params(2)).*exp(fit_params(1).*x_vec);
         disp(['tau = ',  num2str(-1.*(1./fit_params(1))), ' s']);
-
+        keyboard
         figure(15)
         shadedErrorBar([], mean_trace, se_trace, {'Color', color_vecs(tr_type, :)}, 1);
         hold on
@@ -547,7 +569,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         axis(ax_vals);
         ylabel('unpaired odor responses (dF/F)')
         set_xlabels_time(15, frame_time, 10)
-        fig_wrapup(15, [])
+        fig_wrapup(15, [], [100, 120])
         if set_list_type == 0
             add_stim_bar(15, stim_frs_bar, unpaired_color);
         elseif set_list_type == 1
@@ -576,7 +598,7 @@ for list_n = 1:size(dataset_list_paths, 1)
     ax_vals(4) = 6;
     ax_vals(3) = -2;
     axis(ax_vals);
-    fig_wrapup(3, [])
+    fig_wrapup(3, [], [100, 120])
     add_stim_bar(3, stim_frs_bar_EL(1, :), EL_color);
     
     %plotting difference traces
@@ -596,7 +618,7 @@ for list_n = 1:size(dataset_list_paths, 1)
     axis(ax_vals);
     ax_vals = axis();
     
-    fig_wrapup(8, [])
+    fig_wrapup(8, [], [100, 120])
     add_stim_bar(8, stim_frs_bar, [0.6, 0.6, 0.6; 0, 0, 0]);
    
     %quantification and statistical testing
@@ -619,17 +641,27 @@ for list_n = 1:size(dataset_list_paths, 1)
     end
     
     paired_multiplier = 1;
-    marker_colors = [paired_color; paired_color.*paired_multiplier; unpaired_color; unpaired_color.*paired_multiplier; EL_color; EL_color.*paired_multiplier];
-    marker_colors = marker_colors(1:(n_ods.*2), :);
+    if set_list_type <=2            %including EL first
+        marker_colors = [paired_color; paired_color.*paired_multiplier; unpaired_color; unpaired_color.*paired_multiplier; EL_color; EL_color.*paired_multiplier];
+        marker_colors = marker_colors(1:(n_ods.*2), :);
+    elseif set_list_type == 3       %EL second
+        marker_colors = repmat(EL_color, 6, 1);       %using grey markers because EL is always the second pulse
+        marker_colors = marker_colors(1:(n_ods.*2), :);
+    elseif set_list_type == 4       %generalization experiment
+        marker_colors = [unpaired_color; unpaired_color.*paired_multiplier; EL_color; EL_color.*paired_multiplier];       
+        marker_colors = marker_colors(1:(n_ods.*2), :);
+    else
+    end
+        
     line_colors = zeros(size(marker_colors, 1), size(marker_colors, 2)) + 0.7;
     col_pairs = [1, 2; 3, 4; 5, 6];
     col_pairs = col_pairs(1:n_ods, :);
     xlabels = [{'prd pre'}, {'prd post'}, {'unprd pre'}, {'unprd post'}, {'EL pre'}, {'EL post'}];
     xlabels = xlabels(1:(n_ods.*2));
     figure(4)
-    fig_h = scattered_dot_plot_ttest(resp_mat_small, 4, 1, 4, 8, marker_colors, 0, col_pairs, line_colors, xlabels, 1, mean_color, 1, 0.05, 0);
+    fig_h = scattered_dot_plot_ttest(resp_mat_small, 4, 1, 4, 4, marker_colors, 0, col_pairs, line_colors, xlabels, 2, mean_color, 1, 0.05, 0);
     ylabel('response size (dF/F)');
-    fig_wrapup(fig_h, []);
+    fig_wrapup(fig_h, [], [100, 120]);
     
     
     %comparing paired odor resps with unpaired odor resps
@@ -638,9 +670,9 @@ for list_n = 1:size(dataset_list_paths, 1)
     col_pairs = [1, 2; 3, 4];
     xlabels = [{'prd pre'}, {'unprd pre'}, {'prd post'}, {'unprd post'}];
     figure(5)
-    fig_h = scattered_dot_plot_ttest(resp_mat_small_sw, 5, 1, 4, 8, marker_colors_sw, 0, col_pairs, line_colors(1:4, :), xlabels, 1, mean_color, 1, 0.05, 0);
+    fig_h = scattered_dot_plot_ttest(resp_mat_small_sw, 5, 1, 4, 4, marker_colors_sw, 0, col_pairs, line_colors(1:4, :), xlabels, 2, mean_color, 1, 0.05, 0);
     ylabel('response size (dF/F)');
-    fig_wrapup(fig_h, []);
+    fig_wrapup(fig_h, [], [100, 80]);
     
     
     
@@ -663,7 +695,7 @@ for list_n = 1:size(dataset_list_paths, 1)
     xlabels = [{'prd post'}, {'prd unlrn'}, {'unprd post'}, {'unprd unlrn'}, {'EL post'}, {'EL unlrn'}];
     x_labels = xlabels(1:(n_ods.*2));
     figure(6)
-    fig_h = scattered_dot_plot_ttest(resp_mat_small, 6, 1, 4, 8, marker_colors, 0, col_pairs, line_colors, xlabels, 1, mean_color, 1, 0.05, 0);
+    fig_h = scattered_dot_plot_ttest(resp_mat_small, 6, 1, 4, 4, marker_colors, 0, col_pairs, line_colors, xlabels, 2, mean_color, 1, 0.05, 0);
     ylabel('response size (dF/F)');
     fig_wrapup(fig_h, []);
     
@@ -679,9 +711,9 @@ for list_n = 1:size(dataset_list_paths, 1)
     col_pairs = [1, 2; 3, 4];
     xlabels = [{'prd pre'}, {'unprd pre'}, {'prd post'}, {'unprd post'}];
     figure(7)
-    fig_h = scattered_dot_plot_ttest(cscore_mat, 7, 1, 4, 8, marker_colors, 0, col_pairs, line_colors, xlabels, 1, mean_color, 1, 0.05, 0);
+    fig_h = scattered_dot_plot_ttest(cscore_mat, 7, 1, 4, 4, marker_colors, 0, col_pairs, line_colors, xlabels, 2, mean_color, 1, 0.05, 0);
     ylabel('contrast at transition (dF/F)');
-    fig_wrapup(fig_h, []);
+    fig_wrapup(fig_h, [], [100, 80]);
     
     
     
