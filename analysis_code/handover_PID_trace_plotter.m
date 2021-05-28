@@ -1,17 +1,17 @@
 clear all
 close all
 
-curr_dir = 'C:\Data\Data\Raw_data\20200203\handover_PID_traces_set2\';
+curr_dir = 'C:\Data\Data\Raw_data\20200203_PID\handover_PID_traces_set2\';
 
-[del, odor_names1] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList.xls', 1);
-[del, odor_names2] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList_olf2.xls', 1);
+[del, odor_names1] = xlsread('C:\Data\Code\general_code\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList.xls', 1);
+[del, odor_names2] = xlsread('C:\Data\Code\general_code\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList_olf2.xls', 1);
 odor_names2{3} = 'Butyl acetate';
 frame_time = 0.099;
 [stim_mat, stim_mat_simple, column_heads, color_vec, good_tr_list, params_orig] = load_params_trains_modular(curr_dir, [], frame_time);    %reading in trial stimulus parameters after matching time stamps to F traces
 
-EL_color = [0.4588, 0.4392, 0.7020];
-PA_color = [0.2667, 0.9569, 0.9255].*0.8;
-BA_color = [0.5549, 0.9686, 0.433].*0.8;
+EL_color = [123,50,148]./256;
+PA_color = [0,136,55]./256;
+BA_color = [166,219,160]./256;
 
 
 y_ax_lim = 0.04;
@@ -77,14 +77,16 @@ curr_traces = curr_traces(1:(end - 5), 1:2:end);  %getting rid of LED traces
 stim_frs = compute_stim_frs_modular(stim_mat, curr_trs(1), frame_time);
 stim_frs = [stim_frs{1}]; 
 figure(fign1)
-plot(curr_traces, 'lineWidth', 2, 'Color', [0.65, 0.65, 0.65]);
+mean_tr = mean(curr_traces, 2, 'omitnan');
+se_tr = std(curr_traces, [], 2, 'omitnan')./sqrt(size(curr_traces, 2));
+shadedErrorBar([], mean_tr, se_tr, {'Color', [0.6, 0.6, 0.6]}, 1);
+hold on
+
 ylabel('PID signal (V)');
 ax_vals = axis;
 ax_vals(4) = y_ax_lim;
 axis(ax_vals);
 set_xlabels_time(fign1, frame_time, 10);
-fig_wrapup(fign1, []);
-add_stim_bar(fign1, stim_frs, od_color);
 
 %plotting olf2 traces
 curr_trs = find(stim_mat_simple(:, od_col_ns(2)) == olf2_odn & stim_mat_simple(:, dur_col_ns(2)) == 10);
@@ -96,15 +98,11 @@ curr_traces(:, 1:2:end) = curr_traces(:, 1:2:end) - curr_traces(:, 2:2:end);
 curr_traces = curr_traces(:, 1:2:end);  %getting rid of LED traces
 stim_frs = compute_stim_frs_modular(stim_mat, curr_trs(1), frame_time);
 stim_frs = [stim_frs{2}]; 
-figure(fign2)
-plot(curr_traces, 'lineWidth', 2, 'Color', [0.65, 0.65, 0.65]);
-ylabel('PID signal (V)');
-ax_vals = axis;
-ax_vals(4) = y_ax_lim;
-axis(ax_vals);
-set_xlabels_time(fign2, frame_time, 10);
-fig_wrapup(fign2, []);
-add_stim_bar(fign2, stim_frs, od_color);
+mean_tr = mean(curr_traces, 2, 'omitnan');
+se_tr = std(curr_traces, [], 2, 'omitnan')./sqrt(size(curr_traces, 2));
+shadedErrorBar([], mean_tr, se_tr, {'Color', [0, 0, 0]}, 1);
+fig_wrapup(fign1, [], [50, 60]);
+add_stim_bar(fign1, stim_frs, od_color);
 
 end
 
@@ -124,13 +122,13 @@ curr_traces = curr_traces(:, 1:2:end);  %getting rid of LED traces
 stim_frs = compute_stim_frs_modular(stim_mat, curr_trs(1), frame_time);
 stim_frs = [stim_frs{1}; stim_frs{2}]; 
 figure(fign)
-plot(curr_traces, 'lineWidth', 2, 'Color', [0.65, 0.65, 0.65]);
+plot(curr_traces, 'lineWidth', 1, 'Color', [0.65, 0.65, 0.65]);
 ylabel('PID signal (V)');
 ax_vals = axis;
 ax_vals(4) = y_ax_lim;
 axis(ax_vals);
 set_xlabels_time(fign, frame_time, 10);
-fig_wrapup(fign, []);
+fig_wrapup(fign, [], [50, 60]);
 add_stim_bar(fign, stim_frs, [od1_color; od2_color]);
 end
 

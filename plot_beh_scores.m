@@ -24,7 +24,7 @@ xlabels = [{'PA-EL (G1pedc)'}, {'PA-BA'}, {'PA-EL (G2A''1)'}, {'PA-BA'}, {'PA-EL
 % scr_data = scr_data./repmat(median_vec, size(scr_data, 1), 1);
 
 figure(1)
-fig_h = scattered_dot_plot_ttest(scr_data, 1, 1, 4, 8, marker_colors, 1, col_pairs, line_colors, xlabels, 2, [0.8, 0.4, 0.4], 2, 0.05, 0);
+fig_h = scattered_dot_plot_ttest(scr_data, 1, 1, 4, 4, marker_colors, 1, col_pairs, line_colors, xlabels, 2, [0.8, 0.4, 0.4], 2, 0.05, 0);
 hold on
 ax_vals = axis;
 ax_vals(3) = -0.8;
@@ -34,10 +34,10 @@ plot([0, ax_vals(2)], [0, 0], 'Color', [0.65, 0.65, 0.65]);
 ylabel('immediate discrimination (PI)');
 fig_wrapup(fig_h, []);
 
-%plotting only G2A'1
-xlabels = [{'PA-EL (G2A''1)'}, {'PA-BA'}];
+%plotting only aversive cpts
+xlabels = [{'PA-EL (G1pedc)'}, {'PA-BA'}, {'PA-EL (G2A''1)'}, {'PA-BA'}];
 figure(6)
-fig_h = scattered_dot_plot_ttest(scr_data(:, 3:4), 6, 1, 4, 8, marker_colors, 1, col_pairs, line_colors, xlabels, 2, [0.8, 0.4, 0.4], 2, 0.05, 0);
+fig_h = scattered_dot_plot_ttest(scr_data(:, 1:4), 6, 1, 4, 4, marker_colors, 1, col_pairs, line_colors, xlabels, 2, [0.8, 0.4, 0.4], 2, 0.05, 0);
 hold on
 ax_vals = axis;
 ax_vals(3) = -0.2;
@@ -45,7 +45,7 @@ ax_vals(4) = 1;
 axis(ax_vals);
 plot([0, ax_vals(2)], [0, 0], 'Color', [0.65, 0.65, 0.65]);
 ylabel('immediate discrimination (PI)');
-fig_wrapup(fig_h, []);
+fig_wrapup(fig_h, [], [100, 80]);
 
 %Plotting fine, coarse discr data for Alpha3, 3x training, 1 day memory
 [alpha3_data] = xlsread(A3_path, 1).*-1;
@@ -56,7 +56,7 @@ col_pairs = [];
 xlabels = [{'PA-EL (A3)'}, {'PA-BA'}] ;
 
 figure(2)
-fig_h = scattered_dot_plot_ttest(alpha3_data, 2, 1, 4, 8, marker_colors, 1, col_pairs, line_colors, xlabels, 2, [0.8, 0.4, 0.4], 2, 0.05, 0);
+fig_h = scattered_dot_plot_ttest(alpha3_data, 2, 1, 4, 4, marker_colors, 1, col_pairs, line_colors, xlabels, 2, [0.8, 0.4, 0.4], 2, 0.05, 0);
 hold on
 ax_vals = axis;
 ax_vals(3) = -0.2;
@@ -64,7 +64,7 @@ ax_vals(4) = 1;
 axis(ax_vals);
 plot([0, ax_vals(2)], [0, 0], 'Color', [0.65, 0.65, 0.65]);
 ylabel('1 day memory PI');
-fig_wrapup(fig_h, []);
+fig_wrapup(fig_h, [], [100, 60]);
 
 %Plotting fine discr and generalization for MB099C data (G2A'1 + others)
 [beh_data] = xlsread(MB099C_fine_path, 1).*-1;
@@ -81,7 +81,7 @@ line_colors = [];
 col_pairs = [];
 xlabels = [{'PA-EL'}, {'PA-BA'}, {'PA-EL'}, {'BA-EL'}];
 figure(3)
-fig_h = scattered_dot_plot_ttest(beh_data, 3, 1, 4, 8, marker_colors, 1, col_pairs, line_colors, xlabels, 2, [0.8, 0.4, 0.4], 2, 0.05, 0);
+fig_h = scattered_dot_plot_ttest(beh_data, 3, 1, 4, 4, marker_colors, 1, col_pairs, line_colors, xlabels, 2, [0.8, 0.4, 0.4], 2, 0.05, 0);
 ylabel('discrimination score');
 ax_vals = axis;
 ax_vals(4) = 1.1;
@@ -113,7 +113,7 @@ line_colors = [];
 col_pairs = [];
 xlabels = [{'PA-EL'}, {'PA-BA'}, {'PA-EL'}, {'BA-EL'}];
 figure(4)
-fig_h = scattered_dot_plot_ttest(MB296B_data, 4, 1, 4, 8, marker_colors, 1, col_pairs, line_colors, xlabels, 2, [0.8, 0.4, 0.4], 2, 0.05, 0);
+fig_h = scattered_dot_plot_ttest(MB296B_data, 4, 1, 4, 4, marker_colors, 1, col_pairs, line_colors, xlabels, 2, [0.8, 0.4, 0.4], 2, 0.05, 0);
 ylabel('discrimination score (3x)');
 ax_vals = axis;
 ax_vals(4) = 1.1;
@@ -139,9 +139,9 @@ line_colors = [];
 col_pairs = [];
 xlabels = [{'G2Ap1rescue'}, {'dbl knckout'}];
 figure(5)
-fig_h = scattered_dot_plot_ttest(rescue_data(:, [1:2]), 5, 1, 4, 8, marker_colors, 1, col_pairs, line_colors, xlabels, 2, [0.8, 0.4, 0.4], 2, 0.05, 0);
+fig_h = scattered_dot_plot_ttest(rescue_data(:, [1:2]), 5, 1, 4, 4, marker_colors, 1, col_pairs, line_colors, xlabels, 2, [0.8, 0.4, 0.4], 2, 0.05, 0);
 ylabel('performance index');
-fig_wrapup(fig_h, []);
+fig_wrapup(fig_h, [], [100, 60]);
 
 [p, h] = ranksum(rescue_data(:, 1), rescue_data(:, 2))
 

@@ -26,8 +26,8 @@ traces_dbkbk = (traces_orig - bk_repmat)./bk_repmat;
 traces_f = movmean(traces_dbkbk, fr_acq_ratio, 1);
 
 %Plotting
-olf1_color = [0.5, 0.7, 0.9];
-olf2_color = [0.4, 0.8, 0.4];
+olf1_color = [0, 0, 0];
+olf2_color = [0.65, 0.65, 0.65];
 
 %olf1 trace
 mean_trace = mean(traces_f(:, 2:5), 2, 'omitnan');
@@ -41,7 +41,7 @@ set_xlabels_time(1, acqn_time, 10);
 ax_vals = axis;
 ax_vals(4) = 0.17;
 axis(ax_vals);
-fig_wrapup(1, []);
+fig_wrapup(1, [], [50, 60]);
 od_color = olf1_color;
 add_stim_bar(1, stim_frs, od_color);
 
@@ -57,7 +57,7 @@ shadedErrorBar([], mean_trace(1000:end), se_trace(1000:end), {'Color', [0, 0, 0]
 ylabel('norm. air flow');
 set_xlabels_time(2, acqn_time, 10);
 axis(ax_vals);
-fig_wrapup(2, []);
+fig_wrapup(2, [], [50, 60]);
 od_color = olf2_color;
 add_stim_bar(2, stim_frs, od_color);
 
@@ -75,7 +75,7 @@ ylabel('norm. air flow');
 set_xlabels_time(3, acqn_time, 10);
 ax_vals(2) = 100000;
 axis(ax_vals);
-fig_wrapup(3, []);
+fig_wrapup(3, [], [50, 60]);
 od_color = [olf1_color; olf2_color];
 add_stim_bar(3, stim_frs, od_color);
 

@@ -6,20 +6,21 @@ dataset_list_paths = [ ...
                          {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\c305a_similar_od_handovers.xls'};...
                       ];
             
-[del, odor_names1] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList.xls', 1);
-[del, odor_names2] = xlsread('C:\Data\Code\general_code_old\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList_olf2.xls', 1);
+[del, odor_names1] = xlsread('C:\Data\Code\general_code\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList.xls', 1);
+[del, odor_names2] = xlsread('C:\Data\Code\general_code\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList_olf2.xls', 1);
 odor_names2{3} = 'Butyl acetate';
 od_names = [{'PA'}, {'BA'}, {'EL'}];
            
-paired_color = [0.851, 0.3725, 0.0078];
-unpaired_color = [0.1059, 0.6196, 0.4667];
-EL_color = [0.4588, 0.4392, 0.7020];
-PA_color = [0.2667, 0.9569, 0.9255].*0.8;
-BA_color = [0.5549, 0.9686, 0.433].*0.8;
-mean_color = ([0, 49, 152]./256).*1.5;
+paired_color = [0,136,55]./256;
+unpaired_color = [166,219,160]./256;
+EL_color = [123,50,148]./256;
+PA_color = [0,136,55]./256;
+BA_color = [166,219,160]./256;
+mean_color = [0.8, 0.4, 0.4];
 
 
 suppress_QC_plots = 1;
+pool_flies_traces = 0;
 
 global color_vec;                
 a = colormap('bone');
@@ -32,9 +33,11 @@ y_ax_traces = 0.8;
 y_ax_fit_traces = 0.6;
 saved_long_traces = 0;
 all_sig_frs = [];
-pause_PCAs = 0;
+pause_PCAs = 1;
+single_fly_n = 5;   %G KCs - 5, A'\B' KCs - 5
 for list_n = 1:size(dataset_list_paths, 1)
     curr_dir_list_path = dataset_list_paths{list_n, 1};
+    curr_dir_list_path = update_list_path(curr_dir_list_path);
     [del, dir_list] = xlsread(curr_dir_list_path, 1);        %list of Suite2P results directories
     n_dirs = size(dir_list, 1);
     dataset_list_name = findstr(curr_dir_list_path, 'list_');
@@ -201,7 +204,13 @@ for list_n = 1:size(dataset_list_paths, 1)
         bad_cells_all = [];
         
         %pooling sig cells across flies
-        all_resp_traces = pad_n_concatenate(all_resp_traces, resp_trace_mat, 2, nan);
+        if pool_flies_traces == 1
+            all_resp_traces = pad_n_concatenate(all_resp_traces, resp_trace_mat, 2, nan);
+        elseif pool_flies_traces == 0 && dir_n == single_fly_n     %GKCs 5, A'\B' KCs 5, 
+            all_resp_traces = pad_n_concatenate(all_resp_traces, resp_trace_mat, 2, nan);            
+        else
+        end
+        
         saved_resp_sizes_all = [saved_resp_sizes_all; saved_resp_sizes];
         n_cells_all = [n_cells_all; n_cells];
         disp(curr_dir)
@@ -231,7 +240,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         ylabel('PC2')
         hold off
         fig_wrapup(14, [])
-        if pause_PCAs == 1
+        if pause_PCAs == 1 && dir_n == single_fly_n
             keyboard
         else
         end
@@ -406,6 +415,7 @@ for list_n = 1:size(dataset_list_paths, 1)
     end
     
     %plotting Euclidean distances
+    figure(13)
     marker_colors = repmat([0.6, 0.6, 0.6], 4, 1);
     col_pairs = [];
     line_colors = marker_colors;
@@ -413,6 +423,9 @@ for list_n = 1:size(dataset_list_paths, 1)
     xlabels = [{'PA-BA', 'PA-EL', 'BA-EL', 'BAPA-PABA'}];
     fig_h = scattered_dot_plot_ttest(dists_saved(:, 1:3), 13, 2.5, 4, 6.5, marker_colors, 1, col_pairs, line_colors, xlabels, 2, mean_color, 2, 0.05, 0);
     ylabel('norm. Euclidean dist.')
+    ax_vals = axis;
+    ax_vals(4) = 4;
+    axis(ax_vals);
     fig_wrapup(fig_h, []);
     
     %plotting Euclidean distances with transition resp distances
@@ -422,8 +435,11 @@ for list_n = 1:size(dataset_list_paths, 1)
     line_colors = marker_colors;
     mean_color = [0.8, 0.4, 0.4];
     xlabels = [{'PA-BA', 'BAPA-PABA'}];
-    fig_h = scattered_dot_plot_ttest(dists_saved(:, [1,4]), 13, 2.5, 4, 6.5, marker_colors, 1, col_pairs, line_colors, xlabels, 2, mean_color, 2, 0.05, 0);
+    fig_h = scattered_dot_plot_ttest(dists_saved(:, [1,4]), 15, 2.5, 4, 6.5, marker_colors, 1, col_pairs, line_colors, xlabels, 2, mean_color, 2, 0.05, 0);
     ylabel('norm. Euclidean dist.')
+    ax_vals = axis;
+    ax_vals(4) = 2;
+    axis(ax_vals);
     fig_wrapup(fig_h, []);
    
     

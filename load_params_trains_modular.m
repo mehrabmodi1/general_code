@@ -110,8 +110,11 @@ if datenum_check == 1
             else
             end
             
-            curr_datenum_p = datetime(curr_datenum_p,'ConvertFrom','datenum');
-            
+            try
+                curr_datenum_p = datetime(curr_datenum_p,'ConvertFrom','datenum');
+            catch
+                curr_datenum_p = datetime(curr_datenum_p);
+            end
             %making sure there's no am-pm error
             if (curr_datenum_p - curr_datenum_t) < hours(11)
                 match_mat(trial_n_p, trial_n_t) = seconds(curr_datenum_p - curr_datenum_t);      %calculating time elapsed from param time stamp to tif time stamp

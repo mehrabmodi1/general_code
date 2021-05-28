@@ -11,18 +11,18 @@ function [] = fig_wrapup_mod(fig_n, type, script_name)
 % plot(vec)
 
 if isempty(type) == 1
-    plot_height = 200;
-    plot_width = 280;
+    plot_height = 100;
+    plot_width = 125;
 elseif strcmp(type, 'tall') == 1
-    plot_height = 200;
-    plot_width = 90;
+    plot_height = 100;
+    plot_width = 45;
 elseif strcmp(type, 'flat') == 1
-    plot_height = 90;
-    plot_width = 280;
+    plot_height = 45;
+    plot_width = 125;
 else
 end
     
-axis_font_size = 15;
+axis_font_size = 7.5;
 tick_length = [0.02, 0.05];
 line_widths = 2;
 marker_sizes = 1;

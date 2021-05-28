@@ -110,9 +110,9 @@ if isempty(with_lines) == 1
             end
             x_pos = mean(r_vec) - col_spacing.*1.2;
             y_pos = max(curr_vec) + (max(max(mat)).*0.1);
-            text(x_pos, y_pos, p_label, 'FontName', 'Arial');
+            text(x_pos, y_pos, p_label, 'FontName', 'Arial', 'FontSize', 7.5);
             if coh_d == 1
-                text(x_pos, (y_pos + (max(max(mat)).*0.1)), d_label, 'FontName', 'Arial');
+                text(x_pos, (y_pos + (max(max(mat)).*0.1)), d_label, 'FontName', 'Arial', 'FontSize', 7.5);
             else
             end
 %             text(x_pos, (y_pos + 2.*(max(max(mat)).*0.1)), dif_label);
@@ -145,10 +145,18 @@ elseif isempty(with_lines) == 0 | with_lines == 0
             curr_vec = [mat(:, col_n); mat(:, (col_n - 1))];
             curr_p_val = round(p_vec_out(col_n./2, 1), 3);
             curr_d = round(effect_sizes_out(col_n./2, 1), 3);
-            curr_dif = round(min_difs_out(col_n./2, 1), 3);
-            curr_ac_dif = round(min_difs_out(col_n./2, 2), 3);
-            min_n = min_difs_out(col_n./2, 3);
-            ac_n = min_difs_out(col_n./2, 4);
+            if plot_mean == 1
+                curr_dif = round(min_difs_out(col_n./2, 1), 3);
+                curr_ac_dif = round(min_difs_out(col_n./2, 2), 3);
+                min_n = min_difs_out(col_n./2, 3);
+                ac_n = min_difs_out(col_n./2, 4);
+            else
+                curr_dif = [];
+                curr_ac_dif = [];
+                min_n = [];
+                ac_n = [];
+            end
+            
             if curr_p_val ~= 0
                 p_label = ['p = ', num2str(curr_p_val)];
             elseif curr_p_val == 0
@@ -173,9 +181,9 @@ elseif isempty(with_lines) == 0 | with_lines == 0
             end
             x_pos = mean(r_vecs(:, col_n)) - col_spacing.*1.2;
             y_pos = max(curr_vec) + (max(max(mat)).*0.1);
-            text(x_pos, y_pos, p_label, 'FontName', 'Arial');
+            text(x_pos, y_pos, p_label, 'FontName', 'Arial', 'FontSize', 7.5);
             if coh_d == 1
-                text(x_pos, (y_pos + (max(max(mat)).*0.1)), d_label, 'FontName', 'Arial');
+                text(x_pos, (y_pos + (max(max(mat)).*0.1)), d_label, 'FontName', 'Arial', 'FontSize', 7.5);
             else
             end
 %             text(x_pos, (y_pos + 2.*(max(max(mat)).*0.1)), dif_label);
@@ -277,7 +285,7 @@ function [p_vec_out, effect_sizes_out, min_dif_out] = stat_testing(plot_mat, tes
     for col_pair_n = 0:(n_col_pairs - 1)
         col1 = (col_pair_n.*2) + 1;
         col2 = col1 + 1;
-            n = size(plot_mat, 1);
+        n = size(plot_mat, 1);
             
             if plot_mean == 1   %means, assume normal distributions
                 if test_type == 1       %paired samples
@@ -329,9 +337,9 @@ function [p_vec_out, effect_sizes_out, min_dif_out] = stat_testing(plot_mat, tes
         try
             p_vec_out((col_pair_n + 1), 1) = p;
             effect_sizes_out((col_pair_n + 1), 1) = effect_size;
-            if test_type == 1
+            if test_type == 1 && plot_mean == 1
                 min_dif_out((col_pair_n + 1), 1:4) = [min_dif, ac_dif, needed_n, n];
-            elseif test_type == 2
+            else
                 min_dif_out = [];
             end
         catch
