@@ -41,6 +41,11 @@ PA_color = [0.2667, 0.9569, 0.9255].*0.8;
 BA_color = [0.5549, 0.9686, 0.433].*0.8;
 mean_color = ([0, 49, 152]./256).*1.5;
 
+paired_color = [0,136,55]./256;
+unpaired_color = [166,219,160]./256;
+EL_color = [123,50,148]./256;
+mean_color = [0.8, 0.4, 0.4];
+
 y_ax_traces = 0.8;
 y_ax_fit_traces = 0.6;
 
@@ -230,7 +235,7 @@ if exist(['C:\Data\Data\Analysed_data\Analysis_results\fine_discr_shock_cond\', 
                 ax_vals(4) = 6;
                 ax_vals(3) = -2;
                 axis(ax_vals);
-                fig_wrapup(1, [])
+                fig_wrapup(1, [], [50, 60])
                 add_stim_bar(1, stim_frs_bar, [unpaired_color; paired_color]);
 
 
@@ -243,7 +248,7 @@ if exist(['C:\Data\Data\Analysed_data\Analysis_results\fine_discr_shock_cond\', 
                 ax_vals(4) = 6;
                 ax_vals(3) = -2;
                 axis(ax_vals);
-                fig_wrapup(2, [])
+                fig_wrapup(2, [], [50, 60])
                 add_stim_bar(2, stim_frs_bar, [paired_color; unpaired_color]);
 
 
@@ -256,7 +261,7 @@ if exist(['C:\Data\Data\Analysed_data\Analysis_results\fine_discr_shock_cond\', 
                 ax_vals(4) = 6;
                 ax_vals(3) = -2;
                 axis(ax_vals);
-                fig_wrapup(3, []) 
+                fig_wrapup(3, [], [50, 60]) 
                 add_stim_bar(3, stim_frs{1}, EL_color);
 
                  keyboard
@@ -327,7 +332,7 @@ ax_vals = axis;
 ax_vals(4) = 6;
 ax_vals(3) = -2;
 axis(ax_vals);
-fig_wrapup(1, [])
+fig_wrapup(1, [], [50, 60])
 add_stim_bar(1, stim_frs_bar, [unpaired_color; paired_color]);
 
 figure(2)
@@ -341,7 +346,7 @@ ax_vals = axis;
 ax_vals(4) = 6;
 ax_vals(3) = -2;
 axis(ax_vals);
-fig_wrapup(2, [])
+fig_wrapup(2, [], [50, 60])
 add_stim_bar(2, stim_frs_bar, [paired_color; unpaired_color]);
 
 figure(3)
@@ -355,7 +360,7 @@ ax_vals = axis;
 ax_vals(4) = 6;
 ax_vals(3) = -2;
 axis(ax_vals);
-fig_wrapup(3, [])
+fig_wrapup(3, [], [50, 60])
 add_stim_bar(3, stim_frs{1}, [EL_color]);
 
 
@@ -420,7 +425,7 @@ ax_vals = axis;
 ax_vals(4) = 6;
 ax_vals(3) = -2;
 axis(ax_vals);
-fig_wrapup(4, [])
+fig_wrapup(4, [], [50, 60])
 add_stim_bar(4, stim_frs_bar, [BA_color; PA_color]);
 
 %BA
@@ -436,7 +441,7 @@ ax_vals = axis;
 ax_vals(4) = 6;
 ax_vals(3) = -2;
 axis(ax_vals);
-fig_wrapup(5, [])
+fig_wrapup(5, [], [50, 60])
 add_stim_bar(5, stim_frs_bar, [PA_color; BA_color]);
 
 
@@ -445,10 +450,14 @@ add_stim_bar(5, stim_frs_bar, [PA_color; BA_color]);
 %defining frame integration windows to compute response sizes
 win1 = stim_frs{1};
 win2 = stim_frs{2};
+win2_orig = win2;
 win2(2) = win2(2) + round(3./frame_time);
 
 saved_resps_all1 = squeeze(mean(saved_traces_all(win1(1):win1(2), :, :, :), 1, 'omitnan'));      %mean responses during pulse1 time
 saved_resps_all2 = squeeze(mean(saved_traces_all(win2(1):win2(2), :, :, :), 1, 'omitnan'));      %mean responses during pulse2 time
+
+ctrst_sc_resps_all1 = squeeze(min(saved_traces_all(win1(1):win1(2), :, :, :), [], 1, 'omitnan'));      %mean responses during pulse1 time
+ctrst_sc_resps_all2 = squeeze(max(saved_traces_all(win2_orig(1):win2_orig(2), :, :, :), [], 1, 'omitnan'));      %mean responses during pulse1 time
 
 
 %saved_traces_all dim1: time, dim2: [paired_od, unpaired_od, EL], dim3: fly_n, dim4: [BApaired, PApaired, unpairedctrl]
@@ -457,6 +466,10 @@ saved_resps_all2 = squeeze(mean(saved_traces_all(win2(1):win2(2), :, :, :), 1, '
 %1. by pairing status
 paired_resps = [saved_resps_all2(1, :, 1)'; saved_resps_all2(1, :, 2)'];
 unpaired_resps = [saved_resps_all2(2, :, 1)'; saved_resps_all2(2, :, 2)'];
+
+paired_ctrst_scores = [ctrst_sc_resps_all2(1, :, 1)'; ctrst_sc_resps_all2(1, :, 2)'] - [ctrst_sc_resps_all1(1, :, 1)'; ctrst_sc_resps_all1(1, :, 2)'];
+unpaired_ctrst_scores = [ctrst_sc_resps_all2(2, :, 1)'; ctrst_sc_resps_all2(2, :, 2)'] - [ctrst_sc_resps_all1(2, :, 1)'; ctrst_sc_resps_all1(2, :, 2)'];
+
 sim_resps_ctrl = [saved_resps_all2(1, :, 3)'; saved_resps_all2(2, :, 3)'];
 EL_resps = [saved_resps_all1(3, :, 1)'; saved_resps_all1(3, :, 2)'];
 EL_resps_ctrl = [saved_resps_all1(3, :, 3)'];
@@ -465,34 +478,52 @@ plot_mat = [sim_resps_ctrl, paired_resps, unpaired_resps];
 plot_mat = pad_n_concatenate(plot_mat, EL_resps_ctrl, 2, nan);
 plot_mat = pad_n_concatenate(plot_mat, EL_resps, 2, nan);
 
-paired_multiplier = 0.65;
-marker_colors = [[0.6, 0.6, 0.6]; paired_color.*paired_multiplier; unpaired_color.*paired_multiplier; EL_color; EL_color.*paired_multiplier];
+paired_multiplier = 1;
+marker_colors = [[0.65, 0.65, 0.65]; paired_color.*paired_multiplier; unpaired_color.*paired_multiplier; EL_color; EL_color.*paired_multiplier];
 line_colors = [];
 col_pairs = [];
 xlabels = [{'ctrlsim'}, {'CSpl'}, {'CSmin'}, {'ctrldsim'}, {'dsim'}];
 figure(7)
-[fig_h, r_vecs_saved] = scattered_dot_plot_ttest(plot_mat, 7, 2.5, 4, 6.5, marker_colors, 1, col_pairs, line_colors, xlabels, 1, mean_color, 2, 0.05);
+[fig_h, r_vecs_saved] = scattered_dot_plot_ttest(plot_mat, 7, 1, 4, 4, marker_colors, 0, col_pairs, line_colors, xlabels, 2, mean_color, 2, 0.05, 0);
 %adding marker colors for each odor in col1 
 hold on
 curr_markersx = r_vecs_saved(1:n_flies(1), 1);
 curr_markersy = plot_mat(1:n_flies(1), 1);              %Note: the ctrl column consists of ctrl PA resps with ctrl BA resps appended beneath
-plot(curr_markersx, curr_markersy, 'O', 'markerFaceColor', PA_color, 'markerEdgeColor', PA_color, 'markerSize', 6.5);
-curr_markersx = r_vecs_saved( (n_flies(1) + 1):end, 1);
-curr_markersy = plot_mat((n_flies(1) + 1):end, 1);      %Note: the ctrl column consists of ctrl PA resps with ctrl BA resps appended beneath
-plot(curr_markersx, curr_markersy, 'O', 'markerFaceColor', BA_color, 'markerEdgeColor', BA_color, 'markerSize', 6.5);
-mean_val = mean(plot_mat(:, 1), 'omitnan');
-se_val = std(plot_mat(:, 1), [], 'omitnan')./sqrt(size(plot_mat, 1));
-errorbar(1.75, mean_val, se_val, 'O', 'markerSize', 6.5, 'markerEdgeColor', mean_color, 'markerFaceColor', mean_color, 'Color', mean_color, 'lineWidth', 2)
+% plot(curr_markersx, curr_markersy, 'O', 'markerFaceColor', 'none', 'markerEdgeColor', [.65, .65, .65], 'markerSize', 4);
+% curr_markersx = r_vecs_saved( (n_flies(1) + 1):end, 1);
+% curr_markersy = plot_mat((n_flies(1) + 1):end, 1);      %Note: the ctrl column consists of ctrl PA resps with ctrl BA resps appended beneath
+% plot(curr_markersx, curr_markersy, 'O', 'markerFaceColor', 'none', 'markerEdgeColor', [.65, .65, .65], 'markerSize', 4);
+% mean_val = mean(plot_mat(:, 1), 'omitnan');
+% se_val = std(plot_mat(:, 1), [], 'omitnan')./sqrt(size(plot_mat, 1));
+% errorbar(1.75, mean_val, se_val, 'O', 'markerSize', 4, 'markerEdgeColor', mean_color, 'markerFaceColor', mean_color, 'Color', mean_color, 'lineWidth', 2)
 hold off
 ax_vals = axis;
 ax_vals(3) = -0.5;
 axis(ax_vals)
 ylabel('response size (dF/F)');
-fig_wrapup(fig_h, []);
+fig_wrapup(fig_h, [], [100, 120]);
 %testing
-[hpaired, ppaired] = ttest(plot_mat(:, 1), plot_mat(:, 2))
-[hunpaired, punpaired] = ttest(plot_mat(:, 1), plot_mat(:, 3))
-[hEL, pEL] = ttest(plot_mat(:, 4), plot_mat(:, 5))
+[hpaired, ppaired] = ranksum(plot_mat(:, 1), plot_mat(:, 2))
+[hunpaired, punpaired] = ranksum(plot_mat(:, 1), plot_mat(:, 3))
+[hEL, pEL] = ranksum(plot_mat(:, 4), plot_mat(:, 5))
+
+
+%plotting contrast scores
+paired_multiplier = 1;
+marker_colors = [paired_color; unpaired_color];
+line_colors = [];
+col_pairs = [];
+xlabels = [{'CSpl'}, {'CSmin'}];
+figure(7)
+[fig_h, r_vecs_saved] = scattered_dot_plot_ttest([paired_ctrst_scores, unpaired_ctrst_scores], 7, 1, 4, 4, marker_colors, 0, col_pairs, line_colors, xlabels, 2, mean_color, 2, 0.05, 0);
+
+ax_vals = axis;
+ax_vals(3) = -0.5;
+ax_vals(4) = 5;
+axis(ax_vals)
+ylabel('contrast score (dF/F)');
+fig_wrapup(fig_h, [], [100, 60]);
+
 
 %2. by odor identity
 % PA_resps_paired = saved_resps_all2(1, :, 1)';
@@ -508,7 +539,7 @@ fig_wrapup(fig_h, []);
 % plot_mat2 = pad_n_concatenate(plot_mat2, BA_resps_paired, 2, nan);
 % plot_mat2 = pad_n_concatenate(plot_mat2, BA_resps_unpaired, 2, nan);
 % 
-% paired_multiplier = 0.65;
+% paired_multiplier = 1;
 % marker_colors = [PA_color; PA_color.*paired_multiplier; PA_color.*paired_multiplier;...
 %     BA_color; BA_color.*paired_multiplier; BA_color.*paired_multiplier];
 % line_colors = [];
