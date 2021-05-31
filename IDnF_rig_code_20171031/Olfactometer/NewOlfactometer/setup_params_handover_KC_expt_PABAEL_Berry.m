@@ -42,6 +42,9 @@ elseif EL_type == 1
 elseif EL_type == 2
     params_spec1.odours = CSplus_od;
     params_spec1.odours_olf2 = 4;
+elseif EL_type == 3     %Generalization experiment, setting up EL-minus trial
+    params_spec1.odours = 11;
+    params_spec1.odours_olf2 = CS_minus_od_olf2;
 else
 end 
 params_spec1.duration = 5;
@@ -61,6 +64,9 @@ elseif EL_type == 1
     params_spec1.odours = 11;
     params_spec1.odours_olf2 = CS_plus_od_olf2;
 elseif EL_type == 2
+    params_spec1.odours = CSminus_od;
+    params_spec1.odours_olf2 = 4;
+elseif EL_type == 3     %Generalization experiment, setting up minus-EL trial
     params_spec1.odours = CSminus_od;
     params_spec1.odours_olf2 = 4;
 else

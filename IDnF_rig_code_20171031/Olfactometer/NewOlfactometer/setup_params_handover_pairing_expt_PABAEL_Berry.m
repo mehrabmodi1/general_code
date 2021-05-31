@@ -43,6 +43,9 @@ elseif EL_type == 1
 elseif EL_type == 2
     params_spec1.odours = CSplus_od;
     params_spec1.odours_olf2 = 4;
+elseif EL_type == 3     %Generalization experiment, setting up EL-minus trial
+    params_spec1.odours = 11;
+    params_spec1.odours_olf2 = CS_minus_od_olf2;
 else
 end 
 params_spec1.duration = 5;
@@ -64,6 +67,9 @@ elseif EL_type == 1
 elseif EL_type == 2
     params_spec1.odours = CSminus_od;
     params_spec1.odours_olf2 = 4;
+elseif EL_type == 3     %Generalization experiment, setting up minus-EL trial
+    params_spec1.odours = CSminus_od;
+    params_spec1.odours_olf2 = 4;
 else
 end
 params_struc1_1 = setUpStimuli_modular(params_spec1);
@@ -77,10 +83,16 @@ if EL_type == 0
     params_spec1.odours_olf2 = 4;
     params_spec1.rel_stimLatency_olf2 = 0;
     params_struc1_2 = setUpStimuli_modular(params_spec1);
-
-    params_struc_pre_noim = append_params(params_struc_pre_noim, params_struc1_2, 0);     %this has the no-imaging trials
+elseif EL_type == 3     %Generalization experiment, setting up paired_odor alone trial
+    params_spec1.odours = 11;
+    params_spec1.duration = 0.05;
+    params_spec1.odours_olf2 = CS_plus_od_olf2;
+    params_spec1.rel_stimLatency_olf2 = 0;
+    params_struc1_2 = setUpStimuli_modular(params_spec1);
 else
 end
+
+params_struc_pre_noim = append_params(params_struc_pre_noim, params_struc1_2, 0);     %this has the no-imaging trials
     
 %step1.2 setting up pre trials - with imaging
 params_struc_pre_im = params_struc_pre_noim;
