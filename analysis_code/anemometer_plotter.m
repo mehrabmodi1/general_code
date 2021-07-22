@@ -21,8 +21,9 @@ traces_orig = traces_orig + 0.155;  %155 mV
 bk_vec = mean(traces_orig(1:round((stim_latency - 1)./acqn_time), :), 'omitnan');
 bk_repmat = repmat(bk_vec, size(traces_orig, 1), 1);
 
-%computing anemometer 'dF/F' traces
-traces_dbkbk = (traces_orig - bk_repmat)./bk_repmat;
+%computing anemometer 'dF/F' or norm. traces
+%traces_dbkbk = (traces_orig - bk_repmat)./bk_repmat;
+traces_dbkbk = (traces_orig)./bk_repmat;
 traces_f = movmean(traces_dbkbk, fr_acq_ratio, 1);
 
 %Plotting
@@ -35,11 +36,15 @@ stim_frs = compute_stim_frs_modular(stim_mat, 2, acqn_time);
 stim_frs = stim_frs{1} - 1000;
 se_trace = std(traces_f(:, 2:5), [], 2, 'omitnan')./sqrt(4);
 figure(1)
-shadedErrorBar([], mean_trace(1000:end), se_trace(1000:end), {'Color', [0, 0, 0]});
+%shadedErrorBar([], mean_trace(1000:end), se_trace(1000:end), {'Color', [0, 0, 0]});
+plot(traces_f(:, 2:5), 'Color', [0.65, 0.65, 0.65]);
+hold on
 ylabel('norm. air flow');
 set_xlabels_time(1, acqn_time, 10);
 ax_vals = axis;
-ax_vals(4) = 0.17;
+plot([0, ax_vals(2)], [1, 1], '--', 'Color', [0.65, 0.65, 0.65])
+ax_vals(3) = 0;
+ax_vals(4) = 1.2;
 axis(ax_vals);
 fig_wrapup(1, [], [50, 60]);
 od_color = olf1_color;
@@ -51,12 +56,15 @@ add_stim_bar(1, stim_frs, od_color);
 mean_trace = mean(traces_f(:, 6:10), 2, 'omitnan');
 stim_frs = compute_stim_frs_modular(stim_mat, 6, acqn_time);
 stim_frs = stim_frs{2} - 1000;
-se_trace = std(traces_f(:, 2:5), [], 2, 'omitnan')./sqrt(4);
+se_trace = std(traces_f(:, 6:10), [], 2, 'omitnan')./sqrt(4);
 figure(2)
-shadedErrorBar([], mean_trace(1000:end), se_trace(1000:end), {'Color', [0, 0, 0]});
+%shadedErrorBar([], mean_trace(1000:end), se_trace(1000:end), {'Color', [0, 0, 0]});
+plot(traces_f(:, 6:10), 'Color', [0.65, 0.65, 0.65]);
 ylabel('norm. air flow');
 set_xlabels_time(2, acqn_time, 10);
 axis(ax_vals);
+hold on
+plot([0, ax_vals(2)], [1, 1], '--', 'Color', [0.65, 0.65, 0.65])
 fig_wrapup(2, [], [50, 60]);
 od_color = olf2_color;
 add_stim_bar(2, stim_frs, od_color);
@@ -68,12 +76,15 @@ add_stim_bar(2, stim_frs, od_color);
 mean_trace = mean(traces_f(:, 11:15), 2, 'omitnan');
 stim_frs = compute_stim_frs_modular(stim_mat, 11, acqn_time);
 stim_frs = [stim_frs{1}; stim_frs{2}] - 1000;
-se_trace = std(traces_f(:, 2:5), [], 2, 'omitnan')./sqrt(4);
+se_trace = std(traces_f(:, 11:15), [], 2, 'omitnan')./sqrt(4);
 figure(3)
-shadedErrorBar([], mean_trace(1000:end), se_trace(1000:end), {'Color', [0, 0, 0]});
+%shadedErrorBar([], mean_trace(1000:end), se_trace(1000:end), {'Color', [0, 0, 0]});
+plot(traces_f(:, 11:15), 'Color', [0.65, 0.65, 0.65]);
 ylabel('norm. air flow');
 set_xlabels_time(3, acqn_time, 10);
 ax_vals(2) = 100000;
+hold on
+plot([0, ax_vals(2)], [1, 1], '--', 'Color', [0.65, 0.65, 0.65])
 axis(ax_vals);
 fig_wrapup(3, [], [50, 60]);
 od_color = [olf1_color; olf2_color];
