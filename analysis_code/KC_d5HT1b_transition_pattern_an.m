@@ -2,8 +2,9 @@ clear all
 close all
 
 dataset_list_paths = [ ...
-                         %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\d5HT1b_similar_od_handovers.xls'};...
-                         {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\c305a_similar_od_handovers.xls'};...
+                         {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\d5HT1b_similar_od_handovers.xls'};...
+                         %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\c305a_similar_od_handovers.xls'};...
+                         %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\c739_similar_od_handovers.xls'};...
                       ];
             
 [del, odor_names1] = xlsread('C:\Data\Code\general_code\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList.xls', 1);
@@ -33,8 +34,8 @@ y_ax_traces = 0.8;
 y_ax_fit_traces = 0.6;
 saved_long_traces = 0;
 all_sig_frs = [];
-pause_PCAs = 1;
-single_fly_n = 5;   %G KCs - 5, A'\B' KCs - 5
+pause_PCAs = 0;
+single_fly_n = 5;   %G KCs - 5, A'\B' KCs - 5, A/B KCs - 3
 for list_n = 1:size(dataset_list_paths, 1)
     curr_dir_list_path = dataset_list_paths{list_n, 1};
     curr_dir_list_path = update_list_path(curr_dir_list_path);
@@ -48,6 +49,7 @@ for list_n = 1:size(dataset_list_paths, 1)
     sig_cell_mat_all = [];
     saved_resp_sizes_all = [];
     n_cells_all = [];
+    all_fly_accuracy_mat = [];
     for dir_n = 1:n_dirs
         fly_n = fly_n + 1;
               
@@ -145,6 +147,8 @@ for list_n = 1:size(dataset_list_paths, 1)
         resp_trace_mat = [];
         bad_cells_all = [];
         saved_resp_sizes = [];
+        single_traces_mat = [];
+        n_reps_vec = [];
         for stim_type_n = 1:size(sig_cell_mat_key, 1)
             curr_stim_vec = sig_cell_mat_key(stim_type_n, :);
             
@@ -165,9 +169,15 @@ for list_n = 1:size(dataset_list_paths, 1)
             curr_trs = find(stim_mat_simple(:, od_col_ns(1)) == olf1_od_n & stim_mat_simple(:, dur_col_ns(1)) == olf1_dur &... 
                                 stim_mat_simple(:, od_col_ns(2)) == olf2_od_n & stim_mat_simple(:, dur_col_ns(2)) == olf2_dur);
             
-             
-%             olf2_od_n
-%             plot(squeeze(PID_traces_matched(:, curr_trs, 1)))
+            %logging traces sorted by stim type to use for logistic regression decoding.
+            single_traces_mat = pad_n_concatenate(single_traces_mat, dff_data_mat_f(:, :, curr_trs), 3, nan); 
+            
+            %keeping track of n_reps for current trial type
+            n_reps_vec = [n_reps_vec; length(curr_trs)];
+            
+                            
+%           olf2_od_n
+%           plot(squeeze(PID_traces_matched(:, curr_trs, 1)))
             stim_frs = compute_stim_frs_modular(stim_mat, curr_trs(1), frame_time);  %computing stimulus on and off frame numbers for olf1 and olf2
             
             curr_mean_traces = squeeze(mean(dff_data_mat_f(:, union_sig_cells, curr_trs), 3, 'omitnan'));
@@ -215,7 +225,72 @@ for list_n = 1:size(dataset_list_paths, 1)
         n_cells_all = [n_cells_all; n_cells];
         disp(curr_dir)
         
-        
+        %training logistic regression decoders
+        %calling logistic regression main_function
+        stim_frs_plt = stim_frs{1};
+        try
+            [decoder_resp_traces, pred_accuracy_mat] = do_log_regression(single_traces_mat, n_reps_vec, sig_cell_mat_key, stim_frs_plt);        
+        catch
+            keyboard
+        end
+        decoder_resp_traces = movmean(decoder_resp_traces, 5, 1);
+        all_fly_accuracy_mat = [all_fly_accuracy_mat; mean(pred_accuracy_mat, 'omitnan')];
+        %Plotting prob traces for single fly
+        %Plotting mean decoder prediction probability traces as a function of time (all leave-one-out test predictions)
+        color_vecs_decoders = [0, 0, 0; 0.65, 0.65, 0.65; [123,50,148]./256];
+        for stim_type = 1:size(sig_cell_mat_key, 1)
+            curr_resp_mat = decoder_resp_traces(:, :, stim_type);
+            if stim_type <=3    %case for single pulse stimuli
+                stim_type_n = stim_type;
+                fig_n = 96 + stim_type_n;
+                for trace_type = 1:3 
+                    curr_od_traces = curr_resp_mat(:, ((trace_type - 1).*8 + 1):(trace_type.*8));
+                    mean_prob_trace = mean(curr_od_traces, 2, 'omitnan');
+                    se_prob_trace = std(curr_od_traces, [], 2, 'omitnan')./sqrt(size(curr_od_traces, 2));
+                    figure(fig_n)                    
+                    shadedErrorBar([], mean_prob_trace, se_prob_trace, {'Color', color_vecs_decoders(trace_type, :)});
+                    hold on 
+                end
+                ylabel(['probability odor ' num2str(stim_type_n)]);
+                set_xlabels_time(fig_n, frame_time, 10);
+                fig_wrapup(fig_n, [], [25, 30], .6);
+                add_stim_bar(fig_n, stim_frs_plt, color_vecs_decoders(stim_type_n, :));
+                ax_vals = axis;
+                plot([0, ax_vals(2)], [.5, .5], 'Color', [.8, .2, .2]);
+                hold off
+            elseif stim_type > 3    %case for transition stimuli
+                stim_type_n = stim_type - 3;
+                fig_n = 100 + stim_type_n;
+                for trace_type = 1:2
+                    trace_type_plt = [1, 2];
+                    trace_type_plt(trace_type_plt == trace_type) = [];
+                    curr_od_traces = curr_resp_mat(:, ((trace_type - 1).*8 + 1):(trace_type.*8));
+                    mean_prob_trace = mean(curr_od_traces, 2, 'omitnan');
+                    se_prob_trace = std(curr_od_traces, [], 2, 'omitnan')./sqrt(size(curr_od_traces, 2));
+                    figure(fig_n)                    
+                    shadedErrorBar([], mean_prob_trace, se_prob_trace, {'Color', color_vecs_decoders(trace_type_plt, :)});
+                    hold on 
+                end
+                ylabel(['probability odor ' num2str(stim_type_n)]);
+                set_xlabels_time(fig_n, frame_time, 10);
+                fig_wrapup(fig_n, [], [25, 30], .6);
+                stim_frs_plt = [stim_frs{1}; stim_frs{2}];
+                if stim_type == 4
+                    curr_color_vecs = [color_vecs_decoders(1, :); color_vecs_decoders(2, :)];
+                elseif stim_type == 5
+                    curr_color_vecs = [color_vecs_decoders(2, :); color_vecs_decoders(1, :)];
+                else
+                end
+                add_stim_bar(fig_n, stim_frs_plt, curr_color_vecs);
+                ax_vals = axis;
+                plot([0, ax_vals(2)], [.5, .5], 'Color', [.8, .2, .2]);
+                hold off                                                                                                                                                      
+                
+            else
+            end
+            
+        end
+               
         %computing and plotting PC representations for current fly
         ave_resp_mat = squeeze(mean(saved_resps_pca, 2, 'omitnan'));
         all_data_mat = reshape(saved_resps_pca, size(saved_resps_pca, 1), (size(saved_resps_pca, 2).*size(saved_resps_pca, 3)));
@@ -246,10 +321,17 @@ for list_n = 1:size(dataset_list_paths, 1)
         end
         saved_resps_pca = [];
         
-     end
+    end
      
+         
      od_name_vec = [];
      q_resp_mat = [];
+     
+     %making sure BA-PA trials are analyzed before PA-BA trials
+     sig_cell_mat_key_orig = sig_cell_mat_key;
+     sig_cell_mat_key(4, :) = sig_cell_mat_key_orig(5, :);
+     sig_cell_mat_key(5, :) = sig_cell_mat_key_orig(4, :);
+     
      for stim_type_n = 1:size(sig_cell_mat_key, 1)
         curr_stim_vec = sig_cell_mat_key(stim_type_n, :);
 
@@ -282,7 +364,7 @@ for list_n = 1:size(dataset_list_paths, 1)
 
         if curr_stim_type == 0  %simple stimulus on olf1
             curr_stim_name = [olf1_od_name, ' - single pulse'];
-            stim_frs = stim_frs{1};
+            stim_frs = stim_frs{1};z                      
             curr_color = color_vec(olf1_od_ind, :);
         elseif curr_stim_type == 1 %simple stimulus on olf2
             curr_stim_name = [olf2_od_name, ' - single pulse'];
@@ -298,7 +380,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         curr_mean_traces = squeeze(all_resp_traces(:, :, stim_type_n));
         
         %sorting cells by response size to first stim_type
-        if stim_type_n == 1
+        if stim_type_n == 1 || stim_type_n == 4
             wt_vec = mean(curr_mean_traces(stim_frs(1):stim_frs(2), :), 1, 'omitnan');     %response sizes on stim_type 1
         else
         end
@@ -326,6 +408,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         set_xlabels_time(fig_h, frame_time, 15);
         ylabel('cell number');
         fig_wrapup_mod(fig_h, 'tall', []);
+        fig_wrapup(1, [], [50, 30], 0.6)
         add_stim_bar(fig_h, stim_frs, curr_color);
     end
     
@@ -347,7 +430,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         plot(q_resp_mat(curr_pair(1), :), q_resp_mat(curr_pair(2), :), 'O', 'MarkerSize', 4, 'MarkerEdgeColor', [0.65, 0.65, 0.65])
         xlabel([od_name_vec{curr_pair(1)}, ' responses']);
         ylabel([od_name_vec{curr_pair(2)}, ' responses']);
-        axis([-0.2, 3, -0.2, 3]);
+        %axis([-0.2, 3, -0.2, 3]);
         ax_vals = axis;
         x_val = ax_vals(1) + ax_vals(2).*0.05;
         y_val = ax_vals(4).*0.95;
@@ -358,7 +441,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         else
         end
         text(x_val, y_val, ['r ', r_val, ', p ', p_val])
-        fig_wrapup(fig_h, []);
+        fig_wrapup(fig_h, [], [25, 30]);
     end
     
         
@@ -419,29 +502,69 @@ for list_n = 1:size(dataset_list_paths, 1)
     marker_colors = repmat([0.6, 0.6, 0.6], 4, 1);
     col_pairs = [];
     line_colors = marker_colors;
-    mean_color = [0.8, 0.4, 0.4];
+    mean_color = [0 ,0, 0];
     xlabels = [{'PA-BA', 'PA-EL', 'BA-EL', 'BAPA-PABA'}];
-    fig_h = scattered_dot_plot_ttest(dists_saved(:, 1:3), 13, 2.5, 4, 6.5, marker_colors, 1, col_pairs, line_colors, xlabels, 2, mean_color, 2, 0.05, 0);
+    fig_h = scattered_dot_plot_ttest(dists_saved(:, 1:3), 13, 2.5, 4, 4, marker_colors, 1, col_pairs, line_colors, xlabels, 2, mean_color, 2, 0.05, 0, 1, 'force_mean');
     ylabel('norm. Euclidean dist.')
     ax_vals = axis;
     ax_vals(4) = 4;
     axis(ax_vals);
-    fig_wrapup(fig_h, []);
+    fig_wrapup(fig_h, [], [25, 25], 0.6);
+    
+    p_simdif1 = signrank(dists_saved(:, 1), dists_saved(:, 2))
+    p_simdif2 = signrank(dists_saved(:, 1), dists_saved(:, 3))
+    p_simdif1_2_corr = bonf_holm([p_simdif1, p_simdif2], 0.05)
+    
+    
     
     %plotting Euclidean distances with transition resp distances
     figure(15)
     marker_colors = repmat([0.6, 0.6, 0.6], 4, 1);
     col_pairs = [];
     line_colors = marker_colors;
-    mean_color = [0.8, 0.4, 0.4];
-    xlabels = [{'PA-BA', 'BAPA-PABA'}];
-    fig_h = scattered_dot_plot_ttest(dists_saved(:, [1,4]), 15, 2.5, 4, 6.5, marker_colors, 1, col_pairs, line_colors, xlabels, 2, mean_color, 2, 0.05, 0);
+    mean_color = [0, 0, 0];
+    xlabels = [{'PA-BA', 'BP-PB'}];
+    fig_h = scattered_dot_plot_ttest(dists_saved(:, [1,4]), 15, 2.5, 4, 4, marker_colors, 1, col_pairs, line_colors, xlabels, 2, mean_color, 2, 0.05, 0, 1, 'force_mean');
     ylabel('norm. Euclidean dist.')
     ax_vals = axis;
     ax_vals(4) = 2;
     axis(ax_vals);
-    fig_wrapup(fig_h, []);
+    fig_wrapup(fig_h, [], [25, 25], 0.6);
+    
+    p_simdiftr = signrank(dists_saved(:, 1), dists_saved(:, 4))
+    
+    
+    %plotting logistic regression decoder accuracies for simple trials
+    xlabels = [{'PA', 'BA', 'EL'}];
+    fig_h = scattered_dot_plot_ttest(all_fly_accuracy_mat(:, 1:3).*100, 16, 2.5, 4, 4, marker_colors, 1, col_pairs, line_colors, xlabels, 2, mean_color, 2, 0.05, 0, 1, 'force_mean');
+    ylabel('decoder accuracy')
+    ax_vals = axis;
+    ax_vals(4) = 100;
+    axis(ax_vals);
+    hold on
+    plot([0, ax_vals(2)], [50, 50], 'Color', [1, 0, 0]);
+    fig_wrapup(fig_h, [], [15, 30], 0.6);
+    p_decoder_s_PAEL = signrank(all_fly_accuracy_mat(:, 1), all_fly_accuracy_mat(:, 3))
+    p_decoder_s_BAEL = signrank(all_fly_accuracy_mat(:, 2), all_fly_accuracy_mat(:, 3))
    
+    p_decoder_s_corr = bonf_holm([p_decoder_s_PAEL, p_decoder_s_BAEL], 0.05)
+    
+    %plotting logistic regression decoder accuracies for simple and transition trials
+    xlabels = [{'PA', 'BA', 'BA-PA', 'PA-BA'}];
+    fig_h = scattered_dot_plot_ttest(all_fly_accuracy_mat(:, [1, 2, 5, 4]).*100, 17, 2.5, 4, 4, marker_colors, 1, col_pairs, line_colors, xlabels, 2, mean_color, 2, 0.05, 0, 1, 'force_mean');
+    ylabel('decoder accuracy')
+    ax_vals = axis;
+    ax_vals(4) = 100;
+    axis(ax_vals);
+    hold on
+    plot([0, ax_vals(2)], [50, 50], 'Color', [1, 0, 0]);
+    fig_wrapup(fig_h, [], [25, 50], 0.6);
+    
+    p_decoder_trtr = signrank(all_fly_accuracy_mat(:, 4), all_fly_accuracy_mat(:, 5))
+    p_decoder_simtrPA = signrank(all_fly_accuracy_mat(:, 1), all_fly_accuracy_mat(:, 5))
+    p_decoder_simtrBA = signrank(all_fly_accuracy_mat(:, 2), all_fly_accuracy_mat(:, 4))
+    p_decoder_tr_corr = bonf_holm([p_decoder_simtrPA, p_decoder_simtrBA], 0.05)
+    
     
 end
 
