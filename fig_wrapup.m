@@ -17,12 +17,18 @@ plot_width = 125;
 if isempty(varargin) == 0
     plot_height = varargin{1}(1);
     plot_width = varargin{1}(2);
+    if length(varargin) > 1
+        line_widths = varargin{2};
+    else
+        line_widths = 2;
+    end
 else
+    line_widths = 2;
 end
 
 axis_font_size = 7.5;
 tick_length = [0.02, 0.05];
-line_widths = 2;
+
 marker_sizes = 1;
 marker_sizes_f = 4;
 
@@ -33,7 +39,7 @@ ax_handle.FontSize = axis_font_size;
 ax_handle.TickLength = [0.005, 0.005];
 ax_handle.Box = 'off';
 ax_handle.TickDir = 'out';
-ax_handle.LineWidth = 1.2;
+ax_handle.LineWidth = line_widths;
 set(gca, 'fontname', 'Arial');
 
 %adding script name to figure
