@@ -1,229 +1,135 @@
-%  ARROWH   Draws a solid 2D arrow head in current plot.
+function handles = plot_arrow( x1,y1,x2,y2,varargin )
 %
-%	 ARROWH(X,Y,COLOR,SIZE,LOCATION) draws a  solid arrow  head into
-%	 the current plot to indicate a direction.  X and Y must contain
-%	 a pair of x and y coordinates ([x1 x2],[y1 y2]) of two points:
+% plot_arrow - plots an arrow to the current plot
 %
-%	 The first  point is only used to tell  (in conjunction with the
-%	 second one)  the direction  and orientation of  the arrow -- it
-%	 will point from the first towards the second.
+% format:   handles = plot_arrow( x1,y1,x2,y2 [,options...] )
 %
-%	 The head of the arrow  will be located in the second point.  An
-%	 example of use is	plot([0 2],[0 4]); ARROWH([0 1],[0 2],'b')
+% input:    x1,y1   - starting point
+%           x2,y2   - end point
+%           options - come as pairs of "property","value" as defined for "line" and "patch"
+%                     controls, see matlab help for listing of these properties.
+%                     note that not all properties where added, one might add them at the end of this file.
+%                     
+%                     additional options are:
+%                     'headwidth':  relative to complete arrow size, default value is 0.07
+%                     'headheight': relative to complete arrow size, default value is 0.15
+%                     (encoded are maximal values if pixels, for the case that the arrow is very long)
 %
-%	 You may also give  two vectors of same length > 2.  The routine
-%	 will then choose two consecutive points from "about" the middle
-%	 of each vectors.  Useful if you  don't want to worry  each time
-%	 about  where to  put the arrows on  a trajectory.  If x1 and x2
-%	 are the vectors x1(t) and x2(t), simply put   ARROWH(x1,x2,'r')
-%	 to have the right  direction indicated in your x2 = f(x1) phase
-%	 plane.
+% output:   handles - handles of the graphical elements building the arrow
 %
-%            (x2,y2)
-%            --o
-%            \ |
-%	            \|
-%
-%
-%		  o
-%	  (x1,y1)
-%
-%	 Please note  that the following  optional arguments  need -- if
-%	 you want  to use them -- to  be given in that exact order.  You
-%	 may pass on empty vectors "[]" to skip arguments you don't want
-%	 to set (if you want to access "later" arguments...).
-%
-%	 The COLOR argument is quite the same as for plots,  i.e. either
-%  a string like  'r' or an RGB value vector like  [1 0 0]. If you
-%  only want the outlines of the head  (in other words a non-solid
-%  arrow head), prefix the color string by 'e' or the color vector
-%  by 0, e.g. to get only a red outline use 'er' or [0 1 0 0].
-%
-%	 The SIZE argument allows you to tune the size of the arrows. If
-%	 SIZE is a scalar, it scales the arrow proportionally.  SIZE can
-%	 also be  a two element vector,  where the first element  is the
-%	 overall  scale (in percent),  the second one controls the width
-%	 of the arrow head (again, in percent).
-%
-%	 The LOCAITON argument can be used to tweak the position  of the
-%  arrow head.  If a time series of x and y coordinates are given,
-%  you can use this argument  to place the arrow head for instance
-%  at 20% along the line.  It can be a vector, if you want to have
-%  more than one arrow head drawn.
-%
-%	 Both SIZE and LOCATION arguments must also be given in percent,
-%	 where 100 means standard size, 50 means half size, respectively
-%	 100 means end of the vector, 0 beginning of it. Note that those
-%	 "locations" correspond to the cardinal position "inside" the
-%	 vector, in other words the "index-wise" position.
-%
-%	 This little tool is mainely intended  to be used for indicating
-%	 "directions" on trajectories -- just give two consecutive times
-%	 and the corresponding values of a flux and the proper direction
-%	 of the trajectory will be shown on the plot.  You may also pass
-%	 on two solution vectors, as described above.
-%
-%	 Note, that the arrow  heads only look good in the original axis
-%	 settings (as in when the routine was actually started).  If you
-%	 zoom in afterwards, the triangle will get distorted.
-%
-%  HANDLES = ARROWH(...)  will give you a vector with  the handles
-%  to the patches created by this function  (if you want to modify
-%  them later on, for instance).
-%
-%	 Examples of use:
-% 	 x1 = [0:.2:2]; x2 = [0:.2:2]; plot(x1,x2); hold on;
-% 	 arrowh(x1,x2,'r',[],20);            % passing entire vectors
-% 	 arrowh([0 1],[0 1],'eb',[300,75]);  % passing 2 points
-% 	 arrowh([0 1],[0 1],'eb',[300,75],25); % head closer to (x1,y1)
-%	 Author:     Florian Knorn
-%	 Email:      florian@knorn.org
-%	 Version:    1.14
-%	 Filedate:   Jun 18th, 2008
-%
-%	 History:    1.14 - LOCATION now also works with lines
-%              1.13 - Allow for non-solid arrow heads
-%              1.12 - Return handle(s) of created patches
-%              1.11 - Possibility to change width
-%	             1.10 - Buxfix
-%	             1.09 - Possibility to chose *several* locations
-%	             1.08 - Possibility to chose location
-%	             1.07 - Choice of color
-%	             1.06 - Bug fixes
-%	             1.00 - Release
-%
-%	 ToDos:      - Keep proportions when zooming or resizing; has to
-%	               be done with callback functions, I guess.
-%
-%	 Bugs:       None discovered yet, those discovered were fixed
-%
-%	 Thanks:     Thanks  also  to Oskar Vivero  for using  my humble
-%	             little program in his great MIMO-Toolbox.
-%
-%	 If you have  suggestions for  this program,  if it doesn't work
-%	 for your "situation" or if you change something in it -- please
-%	 send me an email!  This is my very  first "public" program  and
-%	 I'd  like to  improve it where  I can -- your  help is  kindely
-%	 appreciated! Thank you!
-function handle = plot_arrow(x,y,clr,ArSize,Where)
-%-- errors
-if nargin < 2
-	error('Please give enough coordinates !');
+% Example:  plot_arrow( -1,-1,15,12,'linewidth',2,'color',[0.5 0.5 0.5],'facecolor',[0.5 0.5 0.5] );
+%           plot_arrow( 0,0,5,4,'linewidth',2,'headwidth',0.25,'headheight',0.33 );
+%           plot_arrow;   % will launch demo
+
+% =============================================
+% for debug - demo - can be erased
+% =============================================
+if (nargin==0)
+    figure;
+    axis;
+    set( gca,'nextplot','add' );
+    for x = 0:0.3:2*pi
+        color = [rand rand rand];
+        h = plot_arrow( 1,1,50*rand*cos(x),50*rand*sin(x),...
+            'color',color,'facecolor',color,'edgecolor',color );
+        set( h,'linewidth',2 );
+    end
+    hold off;
+    return
 end
-if (length(x) < 2) || (length(y) < 2),
-	error('X and Y vectors must each have "length" >= 2 !');
+% =============================================
+% end of for debug
+% =============================================
+
+
+% =============================================
+% constants (can be edited)
+% =============================================
+alpha       = 3;   % head length
+beta        = 1.5;   % head width
+max_length  = 22;
+max_width   = 10;
+
+% =============================================
+% check if head properties are given
+% =============================================
+% if ratio is always fixed, this section can be removed!
+if ~isempty( varargin )
+    for c = 1:floor(length(varargin)/2)
+        try
+            switch lower(varargin{c*2-1})
+                % head properties - do nothing, since handled above already
+            case 'headheight',alpha = max( min( varargin{c*2},1 ),0.01 );
+            case 'headwidth', beta = max( min( varargin{c*2},1 ),0.01 );
+            case 'rel_sizing', rel_sizing = varargin{c*2};
+            end
+        catch
+            fprintf( 'unrecognized property or value for: %s\n',varargin{c*2-1} );
+        end
+    end
 end
-if (x(1) == x(2)) && (y(1) == y(2)),
-	error('Points superimposed - cannot determine direction !');
-end
-if nargin <= 2
-	clr = 'b';
-end
-if nargin <= 3
-	ArSize = [100,100];
-end
-handle = [];
-%-- check if variables left empty, deal width ArSize and Color
-if isempty(clr)
-	clr = 'b'; nonsolid = false;
-elseif ischar(clr)
-	if strncmp('e',clr,1) % for non-solid arrow heads
-		nonsolid = true; clr = clr(2);
-	else
-		nonsolid = false;
-	end
-elseif isvector(clr)
-	if length(clr) == 4 && clr(1) == 0  % for non-solid arrow heads
-		nonsolid = true;
-		clr = clr(2:end);
-	else
-		nonsolid = false;
-	end
+
+% =============================================
+% calculate the arrow head coordinates
+% =============================================
+den         = x2 - x1 + eps;                                % make sure no devision by zero occurs
+teta        = atan( (y2-y1)/den ) + pi*(x2<x1) - pi/2;      % angle of arrow
+cs          = cos(teta);                                    % rotation matrix
+ss          = sin(teta);
+R           = [cs -ss;ss cs];
+line_length = sqrt( (y2-y1)^2 + (x2-x1)^2 );                % sizes
+if rel_sizing == 1
+    head_length = min( line_length*alpha,max_length );
+    head_width  = min( line_length*beta,max_length );
 else
-	error('COLOR argument of wrong type (must be either char or vector)');
+    head_length = min( 1*alpha,max_length );
+    head_width  = min( 1*beta,max_length );
 end
-if nargin <= 4
-	if (length(x) == length(y)) && (length(x) == 2)
-		Where = 100;
-	else
-		Where = 50;
-	end
+x0          = x2*cs + y2*ss;                                % build head coordinats
+y0          = -x2*ss + y2*cs;
+coords      = R*[x0 x0+head_width/2 x0-head_width/2; y0 y0-head_length y0-head_length];
+
+% =============================================
+% plot arrow  (= line + patch of a triangle)
+% =============================================
+h1          = plot( [x1,x2],[y1,y2],'k' );
+h2          = patch( coords(1,:),coords(2,:),[0 0 0] );
+    
+% =============================================
+% return handles
+% =============================================
+handles = [h1 h2];
+
+% =============================================
+% check if styling is required 
+% =============================================
+% if no styling, this section can be removed!
+if ~isempty( varargin )
+    for c = 1:floor(length(varargin)/2)
+        try
+            switch lower(varargin{c*2-1})
+
+             % only patch properties    
+            case 'edgecolor',   set( h2,'EdgeColor',varargin{c*2} );
+            case 'facecolor',   set( h2,'FaceColor',varargin{c*2} );
+            case 'facelighting',set( h2,'FaceLighting',varargin{c*2} );
+            case 'edgelighting',set( h2,'EdgeLighting',varargin{c*2} );
+                
+            % only line properties    
+            case 'color'    , set( h1,'Color',varargin{c*2} );
+               
+            % shared properties    
+            case 'linestyle', set( handles,'LineStyle',varargin{c*2} );
+            case 'linewidth', set( handles,'LineWidth',varargin{c*2} );
+            case 'parent',    set( handles,'parent',varargin{c*2} );
+                
+            % head properties - do nothing, since handled above already
+            case 'headwidth',;
+            case 'headheight',;
+                
+            end
+        catch
+            fprintf( 'unrecognized property or value for: %s\n',varargin{c*2-1} );
+        end
+    end
 end
-if isempty(ArSize)
-	ArSize = [100,100];
-end
-if length(ArSize) == 2
-	ArWidth = 0.75*ArSize(2)/100; % .75 to make arrows it a bit slimmer
-else
-	ArWidth = 0.75;
-end
-ArSize = ArSize(1);
-%-- determine and remember the hold status, toggle if necessary
-if ishold,
-	WasHold = 1;
-else
-	WasHold = 0;
-	hold on;
-end
-%-- start for-loop in case several arrows are wanted
-for Loop = 1:length(Where),
-	%-- if vectors "longer" then 2 are given we're dealing with time series
-	if (length(x) == length(y)) && (length(x) > 2),
-		j = floor(length(x)*Where(Loop)/100); %-- determine that location
-		if j >= length(x), j = length(x) - 1; end
-		if j == 0, j = 1; end
-		x1 = x(j); x2 = x(j+1); y1 = y(j); y2 = y(j+1);
-	else %-- just two points given - take those
-		x1 = x(1); x2 = (1-Where/100)*x(1)+Where/100*x(2);
-		y1 = y(1); y2 = (1-Where/100)*y(1)+Where/100*y(2);
-	end
-	%-- get axe ranges and their norm
-	OriginalAxis = axis;
-	Xextend = abs(OriginalAxis(2)-OriginalAxis(1));
-	Yextend = abs(OriginalAxis(4)-OriginalAxis(3));
-	%-- determine angle for the rotation of the triangle
-	if x2 == x1, %-- line vertical, no need to calculate slope
-		if y2 > y1,
-			p = pi/2;
-		else
-			p= -pi/2;
-		end
-	else %-- line not vertical, go ahead and calculate slope
-		%-- using normed differences (looks better like that)
-		m = ( (y2 - y1)/Yextend ) / ( (x2 - x1)/Xextend );
-		if x2 > x1, %-- now calculate the resulting angle
-			p = atan(m);
-		else
-			p = atan(m) + pi;
-		end
-	end
-	%-- the arrow is made of a transformed "template triangle".
-	%-- it will be created, rotated, moved, resized and shifted.
-	%-- the template triangle (it points "east", centered in (0,0)):
-	xt = [1	-sin(pi/6)	-sin(pi/6)];
-	yt = ArWidth*[0	 cos(pi/6)	-cos(pi/6)];
-	%-- rotate it by the angle determined above:
-	xd = []; yd = [];
-	for i=1:3
-		xd(i) = cos(p)*xt(i) - sin(p)*yt(i);
-		yd(i) = sin(p)*xt(i) + cos(p)*yt(i);
-	end
-	%-- move the triangle so that its "head" lays in (0,0):
-	xd = xd - cos(p);
-	yd = yd - sin(p);
-	%-- stretch/deform the triangle to look good on the current axes:
-	xd = xd*Xextend*ArSize/10000;
-	yd = yd*Yextend*ArSize/10000;
-	%-- move the triangle to the location where it's needed
-	xd = xd + x2;
-	yd = yd + y2;
-	%-- draw the actual triangle
-	handle(Loop) = patch(xd,yd,clr,'EdgeColor',clr);
-	if nonsolid, set(handle(Loop),'facecolor','none'); end
-end % Loops
-%-- restore original axe ranges and hold status
-axis(OriginalAxis);
-if ~WasHold,
-	hold off
-end
-%-- work done. good bye.
