@@ -68,7 +68,8 @@ sig_resp_frame = diff_fr.*bin_pix;
 
 %plotting
 cust_map = colormap([gray(64); autumn(64)]);
-resp_fr_n = resp_fr./max(max(resp_fr));
+baseine_fr = real(sqrt(baseline_fr));
+resp_fr_n = baseline_fr./max(max(baseline_fr));
 diff_fr_n = diff_fr./max(max(diff_fr));
 %making sure to split the colormap by ofsetting diff_fr values by 50%
 resp_fr(resp_fr_n < 0) = 0;     %ranges from 0 to 1

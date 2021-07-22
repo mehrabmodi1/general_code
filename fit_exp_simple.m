@@ -27,4 +27,5 @@ catch
     keyboard
 end
 fit_params = mdl.Coefficients{:, 'Estimate'};
-fit_params(2) = exp(fit_params(2));     %converting proportionality paramter for use in linear space
+
+%fit_params(2) = exp(fit_params(2));     %converting proportionality paramter for use in linear space

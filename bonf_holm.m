@@ -1,4 +1,4 @@
-%Bonferroni-Holm (1979) correction for multiple comparisons.  This is a
+% Bonferroni-Holm (1979) correction for multiple comparisons.  This is a
 % sequentially rejective version of the simple Bonferroni correction for multiple
 % comparisons and strongly controls the family-wise error rate at level alpha.
 %
@@ -58,16 +58,22 @@
 % Scandinavian Journal of Statistics. 6, 65-70.
 %
 %
+% For a review on contemporary techniques for correcting for multiple
+% comparisons that are often more powerful than Bonferroni-Holm see:
+%
+%   Groppe, D.M., Urbach, T.P., & Kutas, M. (2011) Mass univariate analysis 
+% of event-related brain potentials/fields I: A critical tutorial review. 
+% Psychophysiology, 48(12) pp. 1711-1725, DOI: 10.1111/j.1469-8986.2011.01273.x 
+% http://www.cogsci.ucsd.edu/~dgroppe/PUBLICATIONS/mass_uni_preprint1.pdf
+%
+%
 % Author:
 % David M. Groppe
 % Kutaslab
 % Dept. of Cognitive Science
 % University of California, San Diego
 % March 24, 2010
-
-
 function [corrected_p, h]=bonf_holm(pvalues,alpha)
-
 if nargin<1,
     error('You need to provide a vector or matrix of p-values.');
 else
@@ -77,7 +83,6 @@ else
         fprintf('WARNING: Some uncorrected p-values are greater than 1.\n');
     end
 end
-
 if nargin<2,
     alpha=.05;
 elseif alpha<=0,
@@ -85,7 +90,6 @@ elseif alpha<=0,
 elseif alpha>=1,
     error('Alpha must be less than 1.');
 end
-
 s=size(pvalues);
 if isvector(pvalues),
     if size(pvalues,1)>1,
@@ -96,7 +100,6 @@ else
     [sorted_p sort_ids]=sort(reshape(pvalues,1,prod(s)));
 end
 [dummy, unsort_ids]=sort(sort_ids); %indices to return sorted_p to pvalues order
-
 m=length(sorted_p); %number of tests
 mult_fac=m:-1:1;
 cor_p_sorted=sorted_p.*mult_fac;
@@ -104,4 +107,3 @@ cor_p_sorted(2:m)=max([cor_p_sorted(1:m-1); cor_p_sorted(2:m)]); %Bonferroni-Hol
 corrected_p=cor_p_sorted(unsort_ids);
 corrected_p=reshape(corrected_p,s);
 h=corrected_p<alpha;
-
