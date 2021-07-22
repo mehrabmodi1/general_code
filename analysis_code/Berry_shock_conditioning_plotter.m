@@ -44,7 +44,8 @@ mean_color = ([0, 49, 152]./256).*1.5;
 paired_color = [0,136,55]./256;
 unpaired_color = [166,219,160]./256;
 EL_color = [123,50,148]./256;
-mean_color = [0.8, 0.4, 0.4];
+mean_color = [0, 0, 0];
+%mean_color = [0.8, 0.4, 0.4];
 
 y_ax_traces = 0.8;
 y_ax_fit_traces = 0.6;
@@ -120,7 +121,8 @@ if exist(['C:\Data\Data\Analysed_data\Analysis_results\fine_discr_shock_cond\', 
             EL_color = color_vec(3, :);
             %mean_color = [0.5, 0.83, 0.98];
             %mean_color = [149, 200, 216]./256;
-            mean_color = ([0, 49, 152]./256).*1.5;
+            mean_color = [0, 0, 0];
+            %mean_color = ([0, 49, 152]./256).*1.5;
            
             stim_mat_simple_nonans = stim_mat_simple;
             stim_mat_simple_nonans(isnan(stim_mat_simple)) = 0;
@@ -484,7 +486,7 @@ line_colors = [];
 col_pairs = [];
 xlabels = [{'ctrlsim'}, {'CSpl'}, {'CSmin'}, {'ctrldsim'}, {'dsim'}];
 figure(7)
-[fig_h, r_vecs_saved] = scattered_dot_plot_ttest(plot_mat, 7, 1, 4, 4, marker_colors, 0, col_pairs, line_colors, xlabels, 2, mean_color, 2, 0.05, 0);
+[fig_h, r_vecs_saved] = scattered_dot_plot_ttest(plot_mat, 7, .6, 1, 4, marker_colors, 1, col_pairs, line_colors, xlabels, 2, mean_color, 2, 0.05, 0, 1, 'force_mean');
 %adding marker colors for each odor in col1 
 hold on
 curr_markersx = r_vecs_saved(1:n_flies(1), 1);
@@ -501,11 +503,33 @@ ax_vals = axis;
 ax_vals(3) = -0.5;
 axis(ax_vals)
 ylabel('response size (dF/F)');
-fig_wrapup(fig_h, [], [100, 120]);
+fig_wrapup(fig_h, [], [100, 120], 0.6);
 %testing
-[hpaired, ppaired] = ranksum(plot_mat(:, 1), plot_mat(:, 2))
-[hunpaired, punpaired] = ranksum(plot_mat(:, 1), plot_mat(:, 3))
-[hEL, pEL] = ranksum(plot_mat(:, 4), plot_mat(:, 5))
+[ppaired, hpaired] = ranksum(plot_mat(:, 1), plot_mat(:, 2))
+[punpaired, hunpaired] = ranksum(plot_mat(:, 1), plot_mat(:, 3))
+[pEL, hEL] = ranksum(plot_mat(:, 4), plot_mat(:, 5))
+
+p_corrected = bonf_holm([ppaired, punpaired, pEL], 0.05)
+
+%computing unpaired means and ses as a percentage of paired means
+mean_vals = mean(plot_mat, 1, 'omitnan');
+SE_vals = std(plot_mat, [], 1, 'omitnan')./sqrt(size(plot_mat, 1));
+mean_percent_vec_post = [];
+se_percent_vec_post = [];
+pre_mean_vals = mean_vals([1, 4]);
+for col_n = 1:(size(plot_mat, 2))
+    if col_n < 4
+        curr_premean = pre_mean_vals(1);
+    else
+        curr_premean = pre_mean_vals(2);
+    end
+      
+    mean_percent_vec_post = [mean_percent_vec_post; (mean_vals(col_n)./curr_premean)];
+    se_percent_vec_post = [se_percent_vec_post; (SE_vals(col_n)./curr_premean)];
+end
+display(mean_percent_vec_post)
+display(se_percent_vec_post)
+
 
 
 %plotting contrast scores
@@ -514,15 +538,15 @@ marker_colors = [paired_color; unpaired_color];
 line_colors = [];
 col_pairs = [];
 xlabels = [{'CSpl'}, {'CSmin'}];
-figure(7)
-[fig_h, r_vecs_saved] = scattered_dot_plot_ttest([paired_ctrst_scores, unpaired_ctrst_scores], 7, 1, 4, 4, marker_colors, 0, col_pairs, line_colors, xlabels, 2, mean_color, 2, 0.05, 0);
+figure(8)
+[fig_h, r_vecs_saved] = scattered_dot_plot_ttest([paired_ctrst_scores, unpaired_ctrst_scores], 8, 0.6, 1, 4, marker_colors, 1, col_pairs, line_colors, xlabels, 2, mean_color, 2, 0.05, 0, 1, 'force_mean');
 
 ax_vals = axis;
 ax_vals(3) = -0.5;
 ax_vals(4) = 5;
 axis(ax_vals)
 ylabel('contrast score (dF/F)');
-fig_wrapup(fig_h, [], [100, 60]);
+fig_wrapup(fig_h, [], [100, 60], 0.6);
 
 
 %2. by odor identity
@@ -553,7 +577,7 @@ fig_wrapup(fig_h, [], [100, 60]);
 % ylabel('response size (dF/F)');
 % fig_wrapup(fig_h, []);
 
-[hpairedPA, ppairedPA] = ttest(plot_mat2(:, 1), plot_mat2(:, 2))
-[hunpairedPA, punpairedPA] = ttest(plot_mat2(:, 1), plot_mat2(:, 3))
-[hpairedBA, ppairedBA] = ttest(plot_mat2(:, 4), plot_mat2(:, 5))
-[hunpairedBA, punpairedBA] = ttest(plot_mat2(:, 4), plot_mat2(:, 6))
+% [hpairedPA, ppairedPA] = ttest(plot_mat2(:, 1), plot_mat2(:, 2))
+% [hunpairedPA, punpairedPA] = ttest(plot_mat2(:, 1), plot_mat2(:, 3))
+% [hpairedBA, ppairedBA] = ttest(plot_mat2(:, 4), plot_mat2(:, 5))
+% [hunpairedBA, punpairedBA] = ttest(plot_mat2(:, 4), plot_mat2(:, 6))
