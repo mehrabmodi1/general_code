@@ -5,9 +5,10 @@ dataset_list_paths = [...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_simp_pairing_Berry.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_15s_ipi.xls'};...
+                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_25sipi_higherLED.xls'};...                      
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_ELsecond.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_noLEDctrl.xls'};...
-                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_longpulse2.xls'};...
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_longpulse2.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_generalizatin'};....
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_MB298B_MBONG4-G1G2_GcaMP6f_starved.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_13F02_gcaMP6f_starved.xls'};...
@@ -21,7 +22,7 @@ dataset_list_paths = [...
                       
                       ];
             
-suppress_plots = 5;
+suppress_plots = 1;
 plotting_quant_no_filt = 0;     %1 - only unfiltered traces used for all analysis and plotting - traces included. 0 - filtered traces used for everything.
 cell_n = 1;
 
@@ -117,8 +118,8 @@ for list_n = 1:size(dataset_list_paths, 1)
         paired_color = [0,136,55]./256;
         unpaired_color = [166,219,160]./256;
         EL_color = [123,50,148]./256;
-        mean_color = [0.8, 0.4, 0.4];
-        %mean_color = ([202,0,32]./256);
+        mean_color = [0, 0, 0];
+        %mean_color = [0.8, 0.4, 0.4];
         
         stim_mat_simple_nonans = stim_mat_simple;
         stim_mat_simple_nonans(isnan(stim_mat_simple)) = 0;
@@ -169,11 +170,14 @@ for list_n = 1:size(dataset_list_paths, 1)
         [raw_data_mat, good_tr_list] = match_up_rawmat_matchedtrs(raw_data_mat, stim_mat_simple, tif_n_col_n, good_tr_list);
         
         %if weird EL trial1 exists, getting rid of it
-        if stim_mat_simple(1, od_olf1_col_n) == 11 & set_list_type ~= 0
-            stim_mat(1) = [];
-            stim_mat_simple(1, :) = [];
-            raw_data_mat(:, :, 1) = [];
-            PID_traces(:, 1, :) = [];
+        if set_list_type ~= 4
+            if stim_mat_simple(1, od_olf1_col_n) == 11 & set_list_type ~= 0
+                stim_mat(1) = [];
+                stim_mat_simple(1, :) = [];
+                raw_data_mat(:, :, 1) = [];
+                PID_traces(:, 1, :) = [];
+            else
+            end
         else
         end
         
@@ -218,8 +222,9 @@ for list_n = 1:size(dataset_list_paths, 1)
         %identifying relevant odor numbers for each olfactometer
         pairing_tr_n = find(stim_mat_simple(:, led_on_col_n) == 1);
         ctrl_set = 0;       %keeping track if this is a no LED ctrl dataset
-        if set_list_type == 0
-            paired_od_n_olf1 = unique(stim_mat_simple(pairing_tr_n, od_olf1_col_n));    
+        prd_olf1_dur = stim_mat_simple(pairing_tr_n(1), dur_col_ns(1));
+        if set_list_type == 0 || prd_olf1_dur > 1
+            paired_od_n_olf1 = unique(stim_mat_simple(pairing_tr_n, od_olf1_col_n));
         elseif set_list_type > 0 && set_list_type < 4
             paired_od_n_olf2 = unique(stim_mat_simple(pairing_tr_n, od_olf2_col_n));
             if paired_od_n_olf2 == PA_odn_olf2
@@ -274,13 +279,15 @@ for list_n = 1:size(dataset_list_paths, 1)
         %manually specifying sets of pre and post pairing trial numbers
         if set_list_type <= 1
             tr_lists = [1:3; 7:9; 13:15];   %cases where EL alone trials exist
-        elseif set_list_type > 1
+        elseif set_list_type > 1 && set_list_type ~= 4
             if stim_mat(9).trigger_scan == 0
                 tr_lists = [1:2; 6:7; 11:12];   %cases where EL alone trials don't exist
             elseif stim_mat(9).trigger_scan == 1                   
                 tr_lists = [1:2; 5:6; 10:11];   %cases where EL alone trials exist
             else
             end
+        elseif set_list_type == 4   %generalization dataset
+            tr_lists = [1:3; 7:9; 13:15];   %cases where EL alone trials exist
         else
         end
         
@@ -305,7 +312,7 @@ for list_n = 1:size(dataset_list_paths, 1)
                 stim_frs = stim_frs_paired{1};      %integrating over entire pulse1 odor period for simple stim protocols
                 stim_frs_pulse1 = stim_frs;
                 stim_frs_EL = stim_frs_paired{1};
-            elseif set_list_type == 1 || set_list_type == 2     %for handover without EL or handover EL first trials
+            elseif set_list_type == 1 || set_list_type == 2 || set_list_type == 4    %for handover without EL or handover EL first trials (also generalization trials with EL first)
                 curr_tr = find(stim_mat_simple(tr_list, od_olf2_col_n) == paired_od_n_olf2 & stim_mat_simple(tr_list, led_on_col_n) == 0);
                 stim_frs_paired = compute_stim_frs_modular(stim_mat, curr_tr(1), frame_time);
                 stim_frs_pulse1 = stim_frs_paired{1};
@@ -364,7 +371,8 @@ for list_n = 1:size(dataset_list_paths, 1)
                 curr_tr = find(stim_mat_simple(tr_list, od_olf2_col_n) == unpaired_od_n_olf2);
             elseif set_list_type == 3       %for handover, EL second trials
                 curr_tr = find(stim_mat_simple(tr_list, od_olf1_col_n) == unpaired_od_n_olf1);
-            else
+            elseif set_list_type == 4       %for generalization, EL second trials
+                curr_tr = find(stim_mat_simple(tr_list, od_olf2_col_n) == EL_odn_olf2);
             end
             
             curr_tr = tr_list(curr_tr);
@@ -392,7 +400,7 @@ for list_n = 1:size(dataset_list_paths, 1)
             plot(curr_trace, 'lineWidth', 1.5, 'Color', unpaired_color.*col_multiplier);
             hold on
 
-            %EL odor response
+            %EL odor response or in the case of generalization expt, paired odor
             if set_list_type <= 1
                 curr_tr = find(stim_mat_simple(tr_list, od_olf1_col_n) == 11);
                 if isempty(curr_tr) == 1
@@ -413,11 +421,18 @@ for list_n = 1:size(dataset_list_paths, 1)
                 curr_trace = squeeze(dff_data_mat_f(:, :, curr_tr));
                 resp_vec(1, 3) = mean(mean(curr_trace(stim_frs_EL(1):((stim_frs_EL(1) + integ_win) + round(3./frame_time)) )));
                 
+            elseif set_list_type == 4   %generalization experiment trials, the single pulse trial here is a paired-odor trial
+                curr_tr = find(stim_mat_simple(tr_list, od_olf2_col_n) == paired_od_n_olf2_orig);
+                curr_tr = tr_list(curr_tr);
+                curr_trace = squeeze(dff_data_mat_f(:, :, curr_tr));
+                resp_vec(1, 3) = mean(mean(curr_trace(stim_frs_EL(1):((stim_frs_EL(1) + integ_win) + round(3./frame_time)) )));                
             else
                 curr_trace = zeros(size(dff_data_mat_f, 1), 1) + nan;    %since EL alone trials don't exist, padding
                 resp_vec(1, 3) = nan;
                 
             end
+            
+            
             if set_list_type > 0
                 stim_frs_bar_EL = compute_stim_frs_modular(stim_mat, curr_tr(1), frame_time);
                 stim_frs_bar_EL = stim_frs_bar_EL{2};
@@ -498,7 +513,7 @@ for list_n = 1:size(dataset_list_paths, 1)
     ax_vals(4) = 6;
     ax_vals(3) = -2;
     axis(ax_vals);
-    fig_wrapup(1, [], [100, 120])
+    fig_wrapup(1, [], [100, 120], 0.6)
     if set_list_type == 0
         add_stim_bar(1, stim_frs_bar, paired_color);
     elseif set_list_type == 1
@@ -507,6 +522,34 @@ for list_n = 1:size(dataset_list_paths, 1)
         add_stim_bar(1, stim_frs_bar, [EL_color; paired_color]);
     elseif set_list_type == 3
         add_stim_bar(1, stim_frs_bar, [paired_color; EL_color]);
+    elseif set_list_type == 4
+        add_stim_bar(1, stim_frs_bar, [EL_color; unpaired_color]);      %in gen. datasets, the unpaired odor is coded as the paired odor in this analysis script
+    else
+    end
+    
+    
+    %fitting an exponential decay to mean trace
+    if isempty(findstr(curr_dir_list_path, 'longpulse2')) ~= 1
+        [del pki] = max(mean_trace(stim_frs(1):(stim_frs(2) + round(5./frame_time)) ));
+        pki = pki + stim_frs(1);
+        end_pt = min([(stim_frs(2) + round(20./frame_time)), size(mean_trace, 1)]);
+        trace_sample = mean_trace(pki:end_pt);
+        [x_vec, fit_params] = fit_exp_simple(trace_sample, frame_time);
+
+        modelled_trace = exp(fit_params(2)).*exp(fit_params(1).*x_vec);
+        disp(['tau = ',  num2str(-1.*(1./fit_params(1))), ' s']);
+        
+        figure(16)
+        shadedErrorBar([], mean_trace, se_trace, {'Color', color_vecs(tr_type, :)}, 1);
+        hold on
+        x_vec = pki:1:(pki + size(modelled_trace, 1) - 1)';
+        plot(x_vec, modelled_trace, ':r', 'lineWidth', 2);
+        ax_vals = [0, 490, -1, 2];
+        axis(ax_vals);
+        ylabel('paired odor responses (dF/F)')
+        set_xlabels_time(15, frame_time, 10)
+        fig_wrapup(16, [], [100, 120], 0.6)
+        add_stim_bar(16, stim_frs_bar, [unpaired_color; paired_color]);
     else
     end
     
@@ -537,7 +580,7 @@ for list_n = 1:size(dataset_list_paths, 1)
     ax_vals(4) = 6;
     ax_vals(3) = -2;
     axis(ax_vals);
-    fig_wrapup(2, [], [100, 120])
+    fig_wrapup(2, [], [100, 120], 0.6)
     if set_list_type == 0
         add_stim_bar(2, stim_frs_bar, unpaired_color);
     elseif set_list_type == 1
@@ -546,10 +589,12 @@ for list_n = 1:size(dataset_list_paths, 1)
         add_stim_bar(2, stim_frs_bar, [EL_color; unpaired_color]);
     elseif set_list_type == 3
         add_stim_bar(2, stim_frs_bar, [unpaired_color; EL_color]);
+    elseif set_list_type == 4   %generalization datsets
+        add_stim_bar(2, stim_frs_bar, [unpaired_color; EL_color]);  
     end
     
     
-    %fitting an exponential decay to mean and individual boosted resps
+    %fitting an exponential decay to mean trace
     if isempty(findstr(curr_dir_list_path, 'longpulse2')) ~= 1
         [del pki] = max(mean_trace(stim_frs(1):(stim_frs(2) + round(5./frame_time)) ));
         pki = pki + stim_frs(1);
@@ -559,7 +604,7 @@ for list_n = 1:size(dataset_list_paths, 1)
 
         modelled_trace = exp(fit_params(2)).*exp(fit_params(1).*x_vec);
         disp(['tau = ',  num2str(-1.*(1./fit_params(1))), ' s']);
-        keyboard
+        
         figure(15)
         shadedErrorBar([], mean_trace, se_trace, {'Color', color_vecs(tr_type, :)}, 1);
         hold on
@@ -569,16 +614,8 @@ for list_n = 1:size(dataset_list_paths, 1)
         axis(ax_vals);
         ylabel('unpaired odor responses (dF/F)')
         set_xlabels_time(15, frame_time, 10)
-        fig_wrapup(15, [], [100, 120])
-        if set_list_type == 0
-            add_stim_bar(15, stim_frs_bar, unpaired_color);
-        elseif set_list_type == 1
-            add_stim_bar(15, stim_frs_bar, [paired_color; unpaired_color]);
-        elseif set_list_type == 2
-            add_stim_bar(15, stim_frs_bar, [EL_color; unpaired_color]);
-        elseif set_list_type == 3
-            add_stim_bar(15, stim_frs_bar, [unpaired_color; EL_color]);
-        end
+        fig_wrapup(15, [], [100, 120], 0.6)
+        add_stim_bar(15, stim_frs_bar, [paired_color; unpaired_color]);
     else
     end
         
@@ -598,8 +635,13 @@ for list_n = 1:size(dataset_list_paths, 1)
     ax_vals(4) = 6;
     ax_vals(3) = -2;
     axis(ax_vals);
-    fig_wrapup(3, [], [100, 120])
-    add_stim_bar(3, stim_frs_bar_EL(1, :), EL_color);
+    fig_wrapup(3, [], [100, 120], 0.6)
+    if set_list_type ~= 4
+        add_stim_bar(3, stim_frs_bar_EL(1, :), EL_color);
+    elseif set_list_type == 4
+        add_stim_bar(3, stim_frs_bar_EL(1, :), paired_color);
+    else
+    end
     
     %plotting difference traces
     figure(8)
@@ -618,7 +660,7 @@ for list_n = 1:size(dataset_list_paths, 1)
     axis(ax_vals);
     ax_vals = axis();
     
-    fig_wrapup(8, [], [100, 120])
+    fig_wrapup(8, [], [100, 120], 0.6)
     add_stim_bar(8, stim_frs_bar, [0.6, 0.6, 0.6; 0, 0, 0]);
    
     %quantification and statistical testing
@@ -659,9 +701,23 @@ for list_n = 1:size(dataset_list_paths, 1)
     xlabels = [{'prd pre'}, {'prd post'}, {'unprd pre'}, {'unprd post'}, {'EL pre'}, {'EL post'}];
     xlabels = xlabels(1:(n_ods.*2));
     figure(4)
-    fig_h = scattered_dot_plot_ttest(resp_mat_small, 4, 1, 4, 4, marker_colors, 0, col_pairs, line_colors, xlabels, 2, mean_color, 1, 0.05, 0);
+    fig_h = scattered_dot_plot_ttest(resp_mat_small, 4, 0.6, 1, 4, marker_colors, 1, col_pairs, line_colors, xlabels, 2, mean_color, 1, 0.05, 0, 1, 'force_mean');
     ylabel('response size (dF/F)');
-    fig_wrapup(fig_h, [], [100, 120]);
+    fig_wrapup(fig_h, [], [100, 120], 0.6);
+    
+    %computing post means and ses as a percentage of pre means
+    mean_vals = mean(resp_mat_small, 1, 'omitnan');
+    SE_vals = std(resp_mat_small, [], 1, 'omitnan')./sqrt(size(resp_mat_small, 1));
+    mean_percent_vec = [];
+    se_percent_vec = [];
+    for col_ni = 1:(size(resp_mat_small, 2)./2)
+        col_n = col_ni.*2;  %only computing for post pairing columns
+        curr_premean = mean_vals((col_n - 1));
+        mean_percent_vec = [mean_percent_vec; (mean_vals(col_n)./curr_premean)];
+        se_percent_vec = [se_percent_vec; (SE_vals(col_n)./curr_premean)];
+    end
+    display(mean_percent_vec)
+    display(se_percent_vec)
     
     
     %comparing paired odor resps with unpaired odor resps
@@ -670,9 +726,25 @@ for list_n = 1:size(dataset_list_paths, 1)
     col_pairs = [1, 2; 3, 4];
     xlabels = [{'prd pre'}, {'unprd pre'}, {'prd post'}, {'unprd post'}];
     figure(5)
-    fig_h = scattered_dot_plot_ttest(resp_mat_small_sw, 5, 1, 4, 4, marker_colors_sw, 0, col_pairs, line_colors(1:4, :), xlabels, 2, mean_color, 1, 0.05, 0);
+    fig_h = scattered_dot_plot_ttest(resp_mat_small_sw, 5, .6, 1, 4, marker_colors_sw, 1, col_pairs, line_colors(1:4, :), xlabels, 2, mean_color, 1, 0.05, 0, 1, 'force_mean');
     ylabel('response size (dF/F)');
-    fig_wrapup(fig_h, [], [100, 80]);
+    fig_wrapup(fig_h, [], [100, 80], 0.6);
+    
+    
+    %computing unpaired means and ses as a percentage of paired means
+    mean_vals = mean(resp_mat_small_sw, 1, 'omitnan');
+    SE_vals = std(resp_mat_small_sw, [], 1, 'omitnan')./sqrt(size(resp_mat_small, 1));
+    mean_percent_vec_unprd = [];
+    se_percent_vec_unprd = [];
+    for col_ni = 1:(size(resp_mat_small_sw, 2)./2)
+        col_n = col_ni.*2;  %only computing for post pairing columns
+        curr_premean = mean_vals((col_n - 1));
+        mean_percent_vec_unprd = [mean_percent_vec_unprd; (mean_vals(col_n)./curr_premean)];
+        se_percent_vec_unprd = [se_percent_vec_unprd; (SE_vals(col_n)./curr_premean)];
+    end
+    display(mean_percent_vec_unprd)
+    display(se_percent_vec_unprd)
+    
     
     
     
@@ -695,9 +767,9 @@ for list_n = 1:size(dataset_list_paths, 1)
     xlabels = [{'prd post'}, {'prd unlrn'}, {'unprd post'}, {'unprd unlrn'}, {'EL post'}, {'EL unlrn'}];
     x_labels = xlabels(1:(n_ods.*2));
     figure(6)
-    fig_h = scattered_dot_plot_ttest(resp_mat_small, 6, 1, 4, 4, marker_colors, 0, col_pairs, line_colors, xlabels, 2, mean_color, 1, 0.05, 0);
+    fig_h = scattered_dot_plot_ttest(resp_mat_small, 6, 0.6, 1, 4, marker_colors, 1, col_pairs, line_colors, xlabels, 2, mean_color, 1, 0.05, 0, 1, 'force_mean');
     ylabel('response size (dF/F)');
-    fig_wrapup(fig_h, []);
+    fig_wrapup(fig_h, [], [100, 80], 0.6);
     
     
     
@@ -706,14 +778,18 @@ for list_n = 1:size(dataset_list_paths, 1)
     contrast_scores = ctrst_mat_all_pulse2 - resp_mat_all_pulse1;
     cscore_mat = [squeeze(contrast_scores(1, 1, :)), squeeze(contrast_scores(1, 2, :)), squeeze(contrast_scores(2, 1, :)), squeeze(contrast_scores(2, 2, :))];
     paired_multiplier = 1;
-    marker_colors = [ paired_color; unpaired_color; paired_color.*paired_multiplier;  unpaired_color.*paired_multiplier];
+    if set_list_type ~= 4
+        marker_colors = [ paired_color; unpaired_color; paired_color.*paired_multiplier;  unpaired_color.*paired_multiplier];
+    elseif set_list_type == 4   %for generalization experiment
+        marker_colors = [ unpaired_color; EL_color; unpaired_color.*paired_multiplier;  EL_color.*paired_multiplier];
+    end
     line_colors = repmat([0.6, 0.6, 0.6], 4, 1);
     col_pairs = [1, 2; 3, 4];
     xlabels = [{'prd pre'}, {'unprd pre'}, {'prd post'}, {'unprd post'}];
     figure(7)
-    fig_h = scattered_dot_plot_ttest(cscore_mat, 7, 1, 4, 4, marker_colors, 0, col_pairs, line_colors, xlabels, 2, mean_color, 1, 0.05, 0);
+    fig_h = scattered_dot_plot_ttest(cscore_mat, 7, 0.6, 1, 4, marker_colors, 1, col_pairs, line_colors, xlabels, 2, mean_color, 1, 0.05, 0, 1, 'force_mean');
     ylabel('contrast at transition (dF/F)');
-    fig_wrapup(fig_h, [], [100, 80]);
+    fig_wrapup(fig_h, [], [100, 80], 0.6);
     
     
     
@@ -795,9 +871,16 @@ for list_n = 1:size(dataset_list_paths, 1)
             elseif set_list_type == 0
                 add_stim_bar(fig_h, stim_frs_bar, [color_vecs(od_type, :)] );
             elseif set_list_type == 2
-            add_stim_bar(fig_h, stim_frs_bar, [EL_color; color_vecs(od_type, :)]);
+                add_stim_bar(fig_h, stim_frs_bar, [EL_color; color_vecs(od_type, :)]);
             elseif set_list_type == 3
-            add_stim_bar(fig_h, stim_frs_bar, [color_vecs(od_type, :); EL_color]);
+                add_stim_bar(fig_h, stim_frs_bar, [color_vecs(od_type, :); EL_color]);
+            elseif set_list_type == 4   %generalization expts
+                if od_type == 1
+                    add_stim_bar(fig_h, stim_frs_bar, [EL_color; color_vecs(2, :)]);
+                elseif od_type == 2
+                    add_stim_bar(fig_h, stim_frs_bar, [color_vecs(2, :); EL_color]);
+                else
+                end
             end
             
         end
