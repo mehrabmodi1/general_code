@@ -110,11 +110,7 @@ else
 end
 
 if max(size_small) > 0
-    try
-        eval(small_mat_string)
-    catch
-        keyboard
-    end
+    eval(small_mat_string)
 else
 end
 
