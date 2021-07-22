@@ -1,5 +1,5 @@
-function [fig_h, r_vecs_saved] = scattered_dot_plot_ttest(mat, fig_n, col_width, col_spacing, markersize, markercolor, marker_filled, with_lines, linecolor, xlabels, plot_mean, mean_color, st_test_type, p_val, coh_d)
-%syntax: fig_h = scattered_dot_plot_ttest(mat, fig_n, col_width, col_spacing, markersize, markercolor, marker_filled, with_lines, linecolor, xlabels, plot_mean, mean_color, st_test_type, p_val)
+function [fig_h, r_vecs_saved] = scattered_dot_plot_ttest(mat, fig_n, col_width, col_spacing, markersize, markercolor, marker_filled, with_lines, linecolor, xlabels, plot_mean, mean_color, st_test_type, p_val, coh_d, varargin)
+%syntax: fig_h = scattered_dot_plot_ttest(mat, fig_n, col_width, col_spacing, markersize, markercolor, marker_filled, with_lines, linecolor, xlabels, plot_mean, mean_color, st_test_type, p_val, coh_d, bar_thickness, force_means)
 %This function plots the values in each column of mat as dots separated
 %with a random scatter of width col_width and inter-column spacing as
 %specified. Line spec can be used to specify marker style, color and size.
@@ -7,12 +7,29 @@ function [fig_h, r_vecs_saved] = scattered_dot_plot_ttest(mat, fig_n, col_width,
 %lines. st_test_type = 1, paired-samples. st_test_type = 2, independent
 %samples.
 
-% col_width = 1;
-% col_spacing = 1;
+
+%if using the beeswarm function to generate r_offsets, use these defaults
+col_width = 1;
+col_spacing = 0;
 % mat = rand(100, 3);
 % fig_n = 1;
 % markersize = 5;
 % markercolor = [0.5, 0.5, 0.5];
+
+if isempty(varargin) == 0
+    bar_thickness = varargin{1};
+    force_means = varargin{2};
+    if force_means == 'force_mean'
+        force_means = 1;
+    else
+        force_means = 0;
+    end
+    
+else
+    bar_thickness = 2;
+    force_means = 0;
+end
+
 
 n_cols = size(mat, 2);
 violin_cutoff = 100;    %if n points in any column crosses this thresh, all columns rendered as violins
@@ -39,15 +56,35 @@ else
     fig_h = fig_n;
 end
 
+%using beeswarm to generate random offset vectors that retain distribution shape for all data columns
+%setting up input vectors for beeswarm
+x_vec = zeros((size(mat, 1).*size(mat, 2)), 1);
+y_vec = x_vec;
+for col_n = 1:size(mat, 2)
+    st_pt = (col_n - 1).*size(mat, 1) + 1;
+    stp_pt = col_n.*size(mat, 1);
+    x_vec(st_pt:stp_pt, 1) = col_n;             %generating vector of group numbers (col numbers)
+    y_vec(st_pt:stp_pt, 1) = mat(:, col_n);     %generating a single vector of all the columns
+end
+r_vecs = beeswarm_noplot(x_vec, y_vec,'sort_style','rand');     %vector of x positions for each point
+r_mat = zeros(size(mat, 1), size(mat, 2));
+for col_n = 1:size(mat, 2)
+    st_pt = (col_n - 1).*size(mat, 1) + 1;
+    stp_pt = col_n.*size(mat, 1);
+    r_mat(:, col_n) = r_vecs(st_pt:stp_pt, 1);    
+end
+
 saved_col_centers = zeros(1, n_cols);
 if isempty(with_lines) == 1
     x_vec = [];
     r_vecs_saved = [];
+        
     for col_n = 1:n_cols
         curr_vec = mat(:, col_n);
         col_center = ( (col_n-1).*(col_width + (col_spacing)) + 0.5) + col_width./2;
         saved_col_centers(col_n) = col_center;
-        r_vec = rand(length(curr_vec), 1).*col_width + ( (col_n-1).*(col_width + (col_spacing)) + 0.5);
+        %r_vec = rand(length(curr_vec), 1).*col_width + ( (col_n-1).*(col_width + (col_spacing)) + 0.5);
+        r_vec = r_mat(:, col_n);        %taking x positions for each point from beeswarm generated r_mat
         r_vecs_saved = [r_vecs_saved, r_vec];
         r_vec_center = 0.5.*col_width + ( (col_n-1).*(col_width + (col_spacing)) + 0.5);    %for use with a violin plot, if needed
         
@@ -70,7 +107,11 @@ if isempty(with_lines) == 1
             curr_p_val = round(p_vec_out(col_n./2, 1), 3);
             curr_d = round(effect_sizes_out(col_n./2, 1), 3);
             if plot_mean == 1
-                curr_dif = round(min_difs_out(col_n./2, 1), 3);
+                try
+                    curr_dif = round(min_difs_out(col_n./2, 1), 3);
+                catch
+                    keyboard
+                end
                 curr_ac_dif = round(min_difs_out(col_n./2, 2), 3);
             elseif plot_mean == 2
                 curr_dif = [];
@@ -124,7 +165,7 @@ if isempty(with_lines) == 1
     if plot_violins == 1
         try
 
-            violin(mat, 'x', x_vec, 'facecolor', markercolor, 'edgecolor','none', 'mc', [],'medc', [], 'width_multiplier', col_spacing, 'bw', 0.2, 'facealpha', 1);
+            violin(mat, 'x', x_vec, 'facecolor', markercolor, 'edgecolor','none', 'mc', [],'medc', [], 'width_multiplier', col_spacing, 'facealpha', 1);
             
         catch
             keyboard
@@ -236,17 +277,25 @@ if plot_mean == 1
         saved_col_centers(col_n) = col_center;
         curr_mean = mean(mat(:, col_n), 1, 'omitnan');
         curr_se = std(mat(:, col_n), 0, 1, 'omitnan')./sqrt(size(mat, 1) - sum(isnan(mat(:, col_n))));
-        errorbar(col_center, curr_mean, curr_se, 'O', 'markerSize', markersize, 'markerEdgeColor', mean_color, 'markerFaceColor', mean_color, 'Color', mean_color, 'lineWidth', 2)
+        errorbar(col_center, curr_mean, curr_se, 'O', 'markerSize', markersize, 'markerEdgeColor', mean_color, 'markerFaceColor', mean_color, 'Color', mean_color, 'lineWidth', bar_thickness)
 
    end
 elseif plot_mean == 2        %plotting median and quantiles
     for col_n = 1:n_cols
         col_center = ( (col_n-1).*(col_width + (col_spacing)) + 0.5) + col_width./2;
         saved_col_centers(col_n) = col_center;
-        curr_mean = median(mat(:, col_n), 1, 'omitnan');
-        curr_se_up = quantile(mat(:, col_n), 0.75, 1) - curr_mean;      %subtracting mean because errorbar needs length of bar as input, not absolute y val
-        curr_se_down = curr_mean - quantile(mat(:, col_n), 0.25, 1);    %%subtracting mean because errorbar needs length of bar as input, not absolute y val
-        errorbar(col_center, curr_mean, curr_se_down, curr_se_up, 'O', 'markerSize', markersize, 'markerEdgeColor', mean_color, 'markerFaceColor', mean_color, 'Color', mean_color, 'lineWidth', 2)
+        if force_means == 0
+            curr_mean = median(mat(:, col_n), 1, 'omitnan');
+            curr_se_up = quantile(mat(:, col_n), 0.75, 1) - curr_mean;      %subtracting mean because errorbar needs length of bar as input, not absolute y val
+            curr_se_down = curr_mean - quantile(mat(:, col_n), 0.25, 1);    %%subtracting mean because errorbar needs length of bar as input, not absolute y val
+            errorbar(col_center, curr_mean, curr_se_down, curr_se_up, 'O', 'markerSize', markersize, 'markerEdgeColor', mean_color, 'markerFaceColor', mean_color, 'Color', mean_color, 'lineWidth', bar_thickness)
+        elseif force_means == 1
+            curr_mean = mean(mat(:, col_n), 1, 'omitnan');
+            curr_se = std(mat(:, col_n), 0, 1, 'omitnan')./sqrt(size(mat, 1) - sum(isnan(mat(:, col_n))));
+            errorbar(col_center, curr_mean, curr_se, 'O', 'markerSize', markersize, 'markerEdgeColor', mean_color, 'markerFaceColor', mean_color, 'Color', mean_color, 'lineWidth', bar_thickness)
+        else
+        end
+        
     end
 else
     for col_n = 1:n_cols
@@ -314,6 +363,7 @@ function [p_vec_out, effect_sizes_out, min_dif_out] = stat_testing(plot_mat, tes
                     ac_dif = abs(ac_mean2 - mean1);
                 else
                 end
+                
             elseif plot_mean == 2   %medians, non-parametric tests
                 if test_type == 1       %paired samples
                     p = signrank(plot_mat(:, col1), plot_mat(:, col2));
@@ -338,6 +388,8 @@ function [p_vec_out, effect_sizes_out, min_dif_out] = stat_testing(plot_mat, tes
             p_vec_out((col_pair_n + 1), 1) = p;
             effect_sizes_out((col_pair_n + 1), 1) = effect_size;
             if test_type == 1 && plot_mean == 1
+                min_dif_out((col_pair_n + 1), 1:4) = [min_dif, ac_dif, needed_n, n];
+            elseif test_type == 2 && plot_mean == 1
                 min_dif_out((col_pair_n + 1), 1:4) = [min_dif, ac_dif, needed_n, n];
             else
                 min_dif_out = [];
