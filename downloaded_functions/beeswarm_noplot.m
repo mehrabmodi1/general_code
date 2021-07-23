@@ -1,4 +1,4 @@
-function x = beeswarm(x,y,varargin)
+function x = beeswarm(x,y, reshape_vars, varargin)
 %function xbee = beeswarm(x,y)
 %
 % Input arguments:
@@ -53,7 +53,7 @@ if isfinite(p.Results.dot_size)
     if ~p.Results.use_current_axes
         % make new axes
         a = figure;
-        fig_wrapup(a, [], [100, 120], 0.6);
+        fig_wrapup(a, [], reshape_vars{1}, reshape_vars{2});
         s=scatter(x,y);
         xl=[min(x)-.5 max(x)+.5];
     else

@@ -27,8 +27,11 @@ xlabels = [{'PA-EL (G1pedc)'}, {'PA-BA'}, {'PA-EL (G2A''1)'}, {'PA-BA'}, {'PA-EL
 
 mean_color = [0, 0, 0];
 
+wrapup_vars{1} = [100, 25];
+wrapup_vars{2} = 0.6;
+
 figure(1)
-fig_h = scattered_dot_plot_ttest(scr_data, 1, .6, 1, 4, marker_colors, 1, col_pairs, line_colors, xlabels, 2, mean_color, 2, 0.05, 0, 1, 'force_mean');
+fig_h = scattered_dot_plot_ttest(scr_data, 1, .6, 1, 4, marker_colors, 1, col_pairs, line_colors, xlabels, 2, mean_color, 2, 0.05, 0, 1, 'force_mean', wrapup_vars);
 hold on
 ax_vals = axis;
 ax_vals(3) = -0.8;
@@ -41,7 +44,7 @@ fig_wrapup(fig_h, []);
 %plotting only aversive cpts
 xlabels = [{'PA-EL (G1)'}, {'PA-BA'}];
 figure(6)
-fig_h = scattered_dot_plot_ttest(scr_data(:, 1:2), 6, .6, 1, 4, marker_colors, 1, col_pairs, line_colors, xlabels, 2, mean_color, 2, 0.05, 0, 1, 'force_mean');
+fig_h = scattered_dot_plot_ttest(scr_data(:, 1:2), 6, .6, 1, 4, marker_colors, 1, col_pairs, line_colors, xlabels, 2, mean_color, 2, 0.05, 0, 1, 'force_mean', wrapup_vars);
 hold on
 ax_vals = axis;
 ax_vals(3) = -0.2;
@@ -55,7 +58,7 @@ fig_wrapup(fig_h, [], [100, 25], 0.6);
 %plotting only aversive cpts
 xlabels = [{'PA-EL (G2)'}, {'PA-BA'}];
 figure(9)
-fig_h = scattered_dot_plot_ttest(scr_data(:, 3:4), 9, .6, 1, 4, marker_colors, 1, col_pairs, line_colors, xlabels, 2, mean_color, 2, 0.05, 0, 1, 'force_mean');
+fig_h = scattered_dot_plot_ttest(scr_data(:, 3:4), 9, .6, 1, 4, marker_colors, 1, col_pairs, line_colors, xlabels, 2, mean_color, 2, 0.05, 0, 1, 'force_mean', wrapup_vars);
 hold on
 ax_vals = axis;
 ax_vals(3) = -0.2;
@@ -77,7 +80,7 @@ col_pairs = [];
 xlabels = [{'PA-EL (A3)'}, {'PA-BA'}] ;
 
 figure(2)
-fig_h = scattered_dot_plot_ttest(alpha3_data, 2, .6, 1, 4, marker_colors, 1, col_pairs, line_colors, xlabels, 2, mean_color, 2, 0.05, 0, 1, 'force_mean');
+fig_h = scattered_dot_plot_ttest(alpha3_data, 2, .6, 1, 4, marker_colors, 1, col_pairs, line_colors, xlabels, 2, mean_color, 2, 0.05, 0, 1, 'force_mean', wrapup_vars);
 hold on
 ax_vals = axis;
 ax_vals(3) = -0.2;
@@ -102,7 +105,7 @@ line_colors = [];
 col_pairs = [];
 xlabels = [{'PA-EL'}, {'PA-BA'}, {'PA-EL'}, {'BA-EL'}];
 figure(3)
-fig_h = scattered_dot_plot_ttest(beh_data, 3, .6, 1, 4, marker_colors, 1, col_pairs, line_colors, xlabels, 2, mean_color, 2, 0.05, 0, 1, 'force_mean');
+fig_h = scattered_dot_plot_ttest(beh_data, 3, .6, 1, 4, marker_colors, 1, col_pairs, line_colors, xlabels, 2, mean_color, 2, 0.05, 0, 1, 'force_mean', wrapup_vars);
 ylabel('discrimination score');
 ax_vals = axis;
 ax_vals(4) = 0.85;
@@ -134,7 +137,7 @@ line_colors = [];
 col_pairs = [];
 xlabels = [{'PA-EL'}, {'PA-BA'}, {'PA-EL'}, {'BA-EL'}];
 figure(4)
-fig_h = scattered_dot_plot_ttest(MB296B_data, 4, .6, 1, 4, marker_colors, 1, col_pairs, line_colors, xlabels, 2, mean_color, 2, 0.05, 0, 1, 'force_mean');
+fig_h = scattered_dot_plot_ttest(MB296B_data, 4, .6, 1, 4, marker_colors, 1, col_pairs, line_colors, xlabels, 2, mean_color, 2, 0.05, 0, 1, 'force_mean', wrapup_vars);
 ylabel('discrimination score (3x)');
 ax_vals = axis;
 ax_vals(4) = 0.85;
@@ -155,7 +158,7 @@ axis(ax_vals);
 %Plotting MB296B discr and gen scores separately
 figure(7)
 xlabels = [{'G2 PA-EL'}, {'BA-EL'}];
-fig_h = scattered_dot_plot_ttest(discr_data_MB296B, 7, .6, 1, 4, marker_colors, 1, col_pairs, line_colors, xlabels, 2, mean_color, 2, 0.05, 0, 1, 'force_mean');
+fig_h = scattered_dot_plot_ttest(discr_data_MB296B, 7, .6, 1, 4, marker_colors, 1, col_pairs, line_colors, xlabels, 2, mean_color, 2, 0.05, 0, 1, 'force_mean', wrapup_vars);
 hold on
 ylabel('discrimination score (PI)');
 ax_vals = axis;
@@ -167,7 +170,7 @@ fig_wrapup(fig_h, [], [100, 25], 0.6);
 
 figure(8)
 xlabels = [{'G2PAEL'}, {'BAEL'}];
-fig_h = scattered_dot_plot_ttest(gen_data_MB296B, 8, .6, 1, 4, marker_colors, 1, col_pairs, line_colors, xlabels, 2, mean_color, 2, 0.05, 0, 1, 'force_mean');
+fig_h = scattered_dot_plot_ttest(gen_data_MB296B, 8, .6, 1, 4, marker_colors, 1, col_pairs, line_colors, xlabels, 2, mean_color, 2, 0.05, 0, 1, 'force_mean', wrapup_vars);
 hold on
 plot([0, ax_vals(2)], [0, 0], 'Color', [0, 0, 0]);
 ylabel('generalization score');
@@ -179,7 +182,7 @@ fig_wrapup(fig_h, [], [100, 25], 0.6);
 [gen_data_Alpha3] = xlsread(A3_genpath, 1);
 figure(9)
 xlabels = [{'A3PAEL'}, {'BAEL'}];
-fig_h = scattered_dot_plot_ttest(gen_data_Alpha3, 8, .6, 1, 4, marker_colors, 1, col_pairs, line_colors, xlabels, 2, mean_color, 2, 0.05, 0, 1, 'force_mean');
+fig_h = scattered_dot_plot_ttest(gen_data_Alpha3, 8, .6, 1, 4, marker_colors, 1, col_pairs, line_colors, xlabels, 2, mean_color, 2, 0.05, 0, 1, 'force_mean', wrapup_vars);
 hold on
 plot([0, ax_vals(2)], [0, 0], 'Color', [0, 0, 0]);
 ylabel('generalization score');
@@ -194,9 +197,9 @@ fig_wrapup(fig_h, [], [100, 25], 0.6);
 marker_colors = repmat([0.65, 0.65, 0.65], 2, 1);
 line_colors = [];
 col_pairs = [];
-xlabels = [{'G2Ap1rescue'}, {'dbl knckout'}];
+xlabels = [{'G2res'}, {'dblknk'}];
 figure(5)
-fig_h = scattered_dot_plot_ttest(rescue_data(:, [1:2]), 5, .6, 1, 4, marker_colors, 1, col_pairs, line_colors, xlabels, 2, mean_color, 2, 0.05, 0, 1, 'force_mean');
+fig_h = scattered_dot_plot_ttest(rescue_data(:, [1:2]), 5, .6, 1, 4, marker_colors, 1, col_pairs, line_colors, xlabels, 2, mean_color, 2, 0.05, 0, 1, 'force_mean', wrapup_vars);
 ylabel('performance index');
 fig_wrapup(fig_h, [], [100, 25], 0.6);
 

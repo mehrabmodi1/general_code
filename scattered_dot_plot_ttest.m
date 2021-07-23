@@ -19,6 +19,7 @@ col_spacing = 0;
 if isempty(varargin) == 0
     bar_thickness = varargin{1};
     force_means = varargin{2};
+    wrapup_vars = varargin{3};
     if force_means == 'force_mean'
         force_means = 1;
     else
@@ -28,6 +29,8 @@ if isempty(varargin) == 0
 else
     bar_thickness = 2;
     force_means = 0;
+    wrapup_vars{1} = [100, 120];
+    wrapup_vars{2} = 0.6;
 end
 
 
@@ -66,7 +69,7 @@ for col_n = 1:size(mat, 2)
     x_vec(st_pt:stp_pt, 1) = col_n;             %generating vector of group numbers (col numbers)
     y_vec(st_pt:stp_pt, 1) = mat(:, col_n);     %generating a single vector of all the columns
 end
-r_vecs = beeswarm_noplot(x_vec, y_vec,'sort_style','rand');     %vector of x positions for each point
+r_vecs = beeswarm_noplot(x_vec, y_vec, wrapup_vars, 'sort_style','rand', 'corral_style', 'gutter');     %vector of x positions for each point
 r_mat = zeros(size(mat, 1), size(mat, 2));
 for col_n = 1:size(mat, 2)
     st_pt = (col_n - 1).*size(mat, 1) + 1;
