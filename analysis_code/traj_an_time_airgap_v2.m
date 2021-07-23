@@ -7,9 +7,10 @@ base_order_paths = [{'C:\Data\Data\Raw_data\Adithya_airgap_expts_v220210610\30s_
 vid_path = 'C:\Data\Data\Analysed_data\Analysis_results\air_gap_traj_an\vert_aligned\';
 
 gap_paths = [{'Control\'}; {'25s_gap\'}];
-pulse_times_all = [{[31, 60;  61, 90]}; {[31, 60; 86, 115]}];  %real pulse-times
+%pulse_times_all = [{[31, 60;  61, 90]}; {[31, 60; 86, 115]}];  %real pulse-times
 %pulse_times_all = [{[31, 60;  11, 30]}; {[31, 60; 11, 30]}];  %analyzing pre pulse1 baseline
 %pulse_times_all = [{[31, 60;  61, 90]}; {[31, 60; 61, 90]}];  %analyzing pulse1 off period
+%pulse_times_all = [{[31, 60;  31, 60]}; {[31, 60; 31, 60]}];  %analyzing pulse1 on period
 
 analysis_offset = 0;
 %analysis_offset = -10; %for delta norm.dist 0s gap
@@ -87,13 +88,8 @@ fig_wrapup(12, [], [25, 30], .6);
 %manually set parameters
 equilib_time = 6.5;  %6.5; in s, Set as the time from valve-switch to reach odor half-peak. Time for 1 vol-replacement in the arena is ~4s because arena volume = pi*(5^2)*.3 = 23.6 cm^3 and flow rate = 400mL/min = 6.7 mL/s
 t_window_orig = [0, 4]; %[0, 4]          %in s, manually chosen analysis time window after odor transition valve switch
-%r_cutoff = [15, 35]; %[5, 45]   %in mm, the range of distances from center outside which flies are discarded as being too close to the arena center (0 mm) or edge (50 mm).
-
-if pulse_times_all{2}(2, 1) == 61
-    r_cutoff = [0, 50];    %don't want to exclude any flies for off-response analysis 
-else
-    r_cutoff = [10, 40];   %in mm, the range of distances from center outside which flies are discarded as being too close to the arena center (0 mm) or edge (50 mm).
-end
+r_cutoff = [10, 40]; %[5, 45]   %in mm, the range of distances from center outside which flies are discarded as being too close to the arena center (0 mm) or edge (50 mm).
+%r_cutoff = [0, 50];
 
 %extending analysis window for analyses with offsets
 if analysis_offset ~= 0 
@@ -946,14 +942,19 @@ fig_wrapup(38, [], [25, 30], .6);
     
     
  %off response analysis plots
-if pulse_times_all{2}(2, 1) == 61      %analyzing off responses for 25s gap data
+if pulse_times_all{2}(2, 1) ~= 61 || pulse_times_all{2}(2, 1) ~= 86     %analyzing off responses for 25s gap data
     
     %plotting upwind displacement for 25s gap data
     score_vecs_all_final = [score_vecs_all(:, 4), score_vecs_all(:, 2)];        %re-arranging to bring paired, unpaired together instead of 0 and 15
     markercolor = [unpaired_color; paired_color; unpaired_color; paired_color];
     xlabels = [{'25 s, unprd'}, {'25 s, prd'}];
     fig_h = scattered_dot_plot_ttest(score_vecs_all_final, 15, 2.5, 4, 4, markercolor, 1, [], [], xlabels, 1, [0, 0, 0], 2, 0.05, 0);
-    title('pulse1 off response')
+    if pulse_times_all{2}(2, 1) == 31
+        title('pulse1 on response')
+    else
+        title('pulse1 off response')
+    end
+    
     ylabel(score_name);
     fig_wrapup(fig_h, [], [25, 30], .6);
     
@@ -963,7 +964,11 @@ if pulse_times_all{2}(2, 1) == 61      %analyzing off responses for 25s gap data
     markercolor = [unpaired_color; paired_color; unpaired_color; paired_color];
     xlabels = [{'25 s, unprd'}, {'25 s, prd'}];
     [fig_h, ~] = scattered_dot_plot_ttest(score_vecs_all_final, 16, 2.5, 4, 4, markercolor, 1, [], [], xlabels, 1, [0, 0, 0], 2, 0.05, 0);
-    title('pulse1 off response')
+    if pulse_times_all{2}(2, 1) == 31
+        title('pulse1 on response')
+    else
+        title('pulse1 off response')
+    end
     ylabel('upwind orientation (degrees)');
     fig_wrapup(fig_h, [], [25, 30], .6);
 
@@ -973,7 +978,11 @@ if pulse_times_all{2}(2, 1) == 61      %analyzing off responses for 25s gap data
     markercolor = [unpaired_color; paired_color];
     xlabels = [{'25 s, unprd'}, {'25 s, prd'}];
     [fig_h, r_vecs_saved] = scattered_dot_plot_ttest(score_vecs_all_final, 17, 2.5, 4, 4, markercolor, 1, [], [], xlabels, 1, [0, 0, 0], 2, 0.05, 0);
-    title('pulse1 off response')
+    if pulse_times_all{2}(2, 1) == 31
+        title('pulse1 on response')
+    else
+        title('pulse1 off response')
+    end
     hold on
     ax_vals = axis;
     plot([ax_vals(1), ax_vals(2)], [50, 50], 'r');
