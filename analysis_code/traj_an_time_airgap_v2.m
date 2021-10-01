@@ -1,13 +1,19 @@
 clear all
 close all
 
+
+%PICK UP THREAD HERE
+%follow up on why there are still some non-mover flies in the data
+%find a way to average upwind angles/vertical orientation components in time for each fly, re-plot upwind orientation stuff 
+
+
 base_order_paths = [{'C:\Data\Data\Raw_data\Adithya_airgap_expts_v220210610\30s_Test\CS+_First\'};...
                     {'C:\Data\Data\Raw_data\Adithya_airgap_expts_v220210610\30s_Test\CS-_First\'}];
                 
 vid_path = 'C:\Data\Data\Analysed_data\Analysis_results\air_gap_traj_an\vert_aligned\';
 
 gap_paths = [{'Control\'}; {'25s_gap\'}];
-%pulse_times_all = [{[31, 60;  61, 90]}; {[31, 60; 86, 115]}];  %real pulse-times
+pulse_times_all = [{[31, 60;  61, 90]}; {[31, 60; 86, 115]}];  %real pulse-times
 %pulse_times_all = [{[31, 60;  11, 30]}; {[31, 60; 11, 30]}];  %analyzing pre pulse1 baseline
 %pulse_times_all = [{[31, 60;  61, 90]}; {[31, 60; 61, 90]}];  %analyzing pulse1 off period
 %pulse_times_all = [{[31, 60;  31, 60]}; {[31, 60; 31, 60]}];  %analyzing pulse1 on period
@@ -16,7 +22,7 @@ analysis_offset = 0;
 %analysis_offset = -10; %for delta norm.dist 0s gap
 %analysis_offset = -35; %for delta norm.dist 25s gap
 
-plot_video = 0;
+plot_video = 1;
 align_vids_vert = 1;
 
 vel_cutoffs = [2, .5];  %cutoffs in mm/s and s to determine if a fly has stopped or is moving
@@ -29,7 +35,11 @@ split_string = [];
 
 
 %reading in PID traces to determine time adjustments to valve switch times.
-pathgap = 'C:\Data\Data\Raw_data\Adithya_airgap_expts_v220210610\PID_Trace\CS+_AIR_CS-_30sTest\';
+%PA-air-BA
+pathgap = 'C:\Data\Data\Raw_data\Adithya_airgap_expts_v220210610\PID_Trace\new_traces2\20210726T145155_Arena1_Cam0_PA-Air-BA_30S_PID_MB043C_20xUAS-CsChrimson-mVenus-attP18\';
+%BA-air-PA
+%pathgap = 'C:\Data\Data\Raw_data\Adithya_airgap_expts_v220210610\PID_Trace\new_traces2\20210726T144135_Arena1_Cam0_BA-Air-PA_30S_PID_MB043C_20xUAS-CsChrimson-mVenus-attP18\';
+
 cat_vec = [];
 for test_n = 1:3
     PID_trace = load([pathgap, 'PID_Test', num2str(test_n), '.mat']);
@@ -39,9 +49,14 @@ for test_n = 1:3
     else
     end
     cat_vec = [cat_vec; PID_trace(:, 1:2)];
+    cat_vec(:, 2) = movmean(cat_vec(:, 2), 10);
 end
 
-pathnogap = 'C:\Data\Data\Raw_data\Adithya_airgap_expts_v220210610\PID_Trace\CS+_CS-_30sTest\';
+%PA-BA
+pathnogap = 'C:\Data\Data\Raw_data\Adithya_airgap_expts_v220210610\PID_Trace\new_traces2\20210726T145517_Arena1_Cam0_PA-NOAir-BA_30S_PID_MB043C_20xUAS-CsChrimson-mVenus-attP18\';
+%BA-PA
+%pathnogap = 'C:\Data\Data\Raw_data\Adithya_airgap_expts_v220210610\PID_Trace\new_traces2\20210726T144951_Arena1_Cam0_BA-NOAir-PA_30S_PID_MB043C_20xUAS-CsChrimson-mVenus-attP18\';
+
 cat_vec_nogap = [];
 for test_n = 1:2
     PID_trace = load([pathnogap, 'PID_Test', num2str(test_n), '.mat']);
@@ -51,6 +66,7 @@ for test_n = 1:2
     else
     end
     cat_vec_nogap = [cat_vec_nogap; PID_trace(:, 1:2)];
+    cat_vec_nogap(:, 2) = movmean(cat_vec_nogap(:, 2), 10);
 end
 
 cat_vec_baseline = mean(cat_vec(1:10000, 2));     %computing PID signal baseline (sampling first 1s)
@@ -65,8 +81,9 @@ pad = zeros(round(25./frame_time), 1) + nan;
 cat_vec_nogap(:, 1) = cat_vec_nogap(:, 1) + 25;
 cat_vec_nogap = [[pad_t, pad]; cat_vec_nogap];
 
-figure(12)
-t_offset = 91.5;
+figure(1)
+set(gcf, 'Name', 'PID traces');
+t_offset = 66.5;
 plot((cat_vec(:, 1) - t_offset), cat_vec(:, 2), 'Color', [0.65, 0.65, 0.65]);
 hold on
 plot((cat_vec_nogap(:, 1) - t_offset), cat_vec_nogap(:, 2), 'k');
@@ -77,7 +94,7 @@ ax_vals(1) = -80;
 ax_vals(2) = 48;
 axis(ax_vals);
 plot([0, 0], [ax_vals(3), ax_vals(4)], 'r')
-fig_wrapup(12, [], [25, 30], .6);
+fig_wrapup(1, [], [25, 30], .6);
 
 %concluded that odor half-peak time from valve-switch is 6.5 s. Odor rise
 %begins 5s after valve switch and reaches plateau in about 5 more s (total
@@ -86,7 +103,7 @@ fig_wrapup(12, [], [25, 30], .6);
 
 
 %manually set parameters
-equilib_time = 6.5;  %6.5; in s, Set as the time from valve-switch to reach odor half-peak. Time for 1 vol-replacement in the arena is ~4s because arena volume = pi*(5^2)*.3 = 23.6 cm^3 and flow rate = 400mL/min = 6.7 mL/s
+equilib_time = 6;  %6.5; in s, Set as the time from valve-switch to reach odor half-peak. Time for 1 vol-replacement in the arena is ~4s because arena volume = pi*(5^2)*.3 = 23.6 cm^3 and flow rate = 400mL/min = 6.7 mL/s
 t_window_orig = [0, 4]; %[0, 4]          %in s, manually chosen analysis time window after odor transition valve switch
 r_cutoff = [10, 40]; %[5, 45]   %in mm, the range of distances from center outside which flies are discarded as being too close to the arena center (0 mm) or edge (50 mm).
 %r_cutoff = [0, 50];
@@ -207,7 +224,11 @@ for base_o_path_n = 1:2
                 upwind_dist_tseries_gap = pad_n_concatenate(upwind_dist_tseries_gap, upwind_dist_tseries, 1, nan);
                 radial_pos_tseries_gap = pad_n_concatenate(radial_pos_tseries_gap, radial_pos_tseries, 1, nan);
                 downwind_deviations_tserieses = pad_n_concatenate(downwind_deviations_tserieses, downwind_deviations_tseries, 1, nan);
-                xy_vels_tserieses = pad_n_concatenate(xy_vels_tserieses, xy_vels_tseries, 1, nan);
+                try
+                    xy_vels_tserieses = pad_n_concatenate(xy_vels_tserieses, xy_vels_tseries, 1, nan);
+                catch
+                    keyboard
+                end
                 xy_vels_bin_tserieses = pad_n_concatenate(xy_vels_bin_tserieses, xy_vels_bin, 1, nan);
                 ststp_tserieses = pad_n_concatenate(ststp_tserieses, ststp_tseries, 1, nan);
                 traj_mat_exps = pad_n_concatenate(traj_mat_exps, traj_mat_exp, 1, nan);
@@ -236,13 +257,14 @@ paired_color = [0,136,55]./256;
 unpaired_color = [166,219,160]./256;
 
 %plotting distance time series' for flies
-figure(4)
-curr_traces = squeeze(upwind_dist_tseries_all(:, :, 3));    %upwind distance time series for each valid fly for 0s gap
+figure(2)
+set(gcf, 'Name', 'mean upwind dists, 0s')
+curr_traces = squeeze(upwind_dist_tseries_all(:, :, 3));     
 mean_vec = mean(curr_traces, 1, 'omitnan');
 se_vec = std(curr_traces, [], 1, 'omitnan')./sqrt(size(curr_traces, 1));
 shadedErrorBar([], mean_vec, se_vec, {'Color', paired_color}, 1);
 hold on
-curr_traces = squeeze(upwind_dist_tseries_all(:, :, 1));    %upwind distance time series for each valid fly for 0s gap
+curr_traces = squeeze(upwind_dist_tseries_all(:, :, 1));     
 mean_vec = mean(curr_traces, 1, 'omitnan');
 se_vec = std(curr_traces, [], 1, 'omitnan')./sqrt(size(curr_traces, 1));
 shadedErrorBar([], mean_vec, se_vec, {'Color', unpaired_color}, 1);
@@ -250,8 +272,8 @@ shadedErrorBar([], mean_vec, se_vec, {'Color', unpaired_color}, 1);
 hold off
 title('0s gap');
 ylabel('upwind travel (mm)');
-set_xlabels_time(4, frame_time, 10);
-fig_wrapup(4, [], [25, 30], .6);
+set_xlabels_time(2, frame_time, 10);
+fig_wrapup(2, [], [25, 30], .6);
 ax_vals = axis;
 ax_vals(3) = -4;
 ax_vals(4) = 12;
@@ -260,13 +282,14 @@ axis(ax_vals);
 
 
 %plotting distance time series' for flies
-figure(5)
-curr_traces = squeeze(upwind_dist_tseries_all(:, :, 4));    %upwind distance time series for each valid fly for 0s gap
+figure(3)
+set(gcf, 'Name', 'mean upwind dists, 25s')
+curr_traces = squeeze(upwind_dist_tseries_all(:, :, 4));     
 mean_vec = mean(curr_traces, 1, 'omitnan');
 se_vec = std(curr_traces, [], 1, 'omitnan')./sqrt(size(curr_traces, 1));
 shadedErrorBar([], mean_vec, se_vec, {'Color', paired_color}, 1);
 hold on
-curr_traces = squeeze(upwind_dist_tseries_all(:, :, 2));    %upwind distance time series for each valid fly for 0s gap
+curr_traces = squeeze(upwind_dist_tseries_all(:, :, 2));     
 mean_vec = mean(curr_traces, 1, 'omitnan');
 se_vec = std(curr_traces, [], 1, 'omitnan')./sqrt(size(curr_traces, 1));
 shadedErrorBar([], mean_vec, se_vec, {'Color', unpaired_color}, 1);
@@ -274,8 +297,8 @@ shadedErrorBar([], mean_vec, se_vec, {'Color', unpaired_color}, 1);
 hold off
 title('25 s gap');
 ylabel('upwind travel (mm)');
-set_xlabels_time(5, frame_time, 10);
-fig_wrapup(5, [], [25, 30], .6);
+set_xlabels_time(3, frame_time, 10);
+fig_wrapup(3, [], [25, 30], .6);
 ax_vals = axis;
 %ax_vals(2) = 59;
 ax_vals(3) = -4;
@@ -285,18 +308,19 @@ axis(ax_vals);
 %-----
 %Plotting single traces
 %plotting distance time series' for flies
-figure(6)
-curr_traces = squeeze(upwind_dist_tseries_all(:, :, 3));    %upwind distance time series for each valid fly for 0s gap
+figure(4)
+set(gcf, 'Name', 'upwind dist traces, 0s')
+curr_traces = squeeze(upwind_dist_tseries_all(:, :, 3));     
 plot(curr_traces', 'Color', paired_color);
 hold on
-curr_traces = squeeze(upwind_dist_tseries_all(:, :, 1));    %upwind distance time series for each valid fly for 0s gap
+curr_traces = squeeze(upwind_dist_tseries_all(:, :, 1));     
 plot(curr_traces', 'Color', unpaired_color);
 hold off
 
 title('0s gap');
 ylabel('upwind travel (mm)');
-set_xlabels_time(6, frame_time, 10);
-fig_wrapup(6, [], [25, 30], .6);
+set_xlabels_time(4, frame_time, 10);
+fig_wrapup(4, [], [25, 30], .6);
 ax_vals = axis;
 ax_vals(3) = -25;
 ax_vals(4) = 25;
@@ -304,106 +328,121 @@ axis(ax_vals);
 
 
 %plotting distance time series' for flies
-figure(7)
-curr_traces = squeeze(upwind_dist_tseries_all(:, :, 4));    %upwind distance time series for each valid fly for 0s gap
+figure(5)
+set(gcf, 'Name', 'upwind dist traces, 25s')
+curr_traces = squeeze(upwind_dist_tseries_all(:, :, 4));     
 plot(curr_traces', 'Color', paired_color);
 hold on
-curr_traces = squeeze(upwind_dist_tseries_all(:, :, 2));    %upwind distance time series for each valid fly for 0s gap
+curr_traces = squeeze(upwind_dist_tseries_all(:, :, 2));     
 plot(curr_traces', 'Color', unpaired_color);
 hold off
 title('25 s gap');
 ylabel('upwind travel (mm)');
-set_xlabels_time(7, frame_time, 10);
-fig_wrapup(7, [], [25, 30], .6);
+set_xlabels_time(5, frame_time, 10);
+fig_wrapup(5, [], [25, 30], .6);
 ax_vals = axis;
 ax_vals(3) = -25;
 ax_vals(4) = 25;
 axis(ax_vals);
 
+
+%plotting mean upwind displacement
+score_vecs_all_final = [score_vecs_all(:, 1), score_vecs_all(:, 3), score_vecs_all(:, 2), score_vecs_all(:, 4)];        %re-arranging to bring paired, unpaired together instead of 0 and 15
+markercolor = [unpaired_color; paired_color; unpaired_color; paired_color];
+xlabels = [{'0 s, unprd'}, {'0 s, prd'}, {'25 s, unprd'}, {'25 s, prd'}];
+fig_h = scattered_dot_plot_ttest(score_vecs_all_final, 6, 2.5, 4, 4, markercolor, 1, [], [], xlabels, 1, [0, 0, 0], 2, 0.05, 0);
+ylabel(score_name);
+set(gcf, 'Name', 'upwind displacement stats')
+fig_wrapup(fig_h, [], [25, 30], .6);
+
 %-----
 %plotting normalized radial distance time series
 %0s gap data
-figure(22)
-curr_traces = squeeze(radial_pos_tseries_all(:, :, 3));    %upwind distance time series for each valid fly for 0s gap
-curr_traces = (curr_traces./50).^2;                         %normalizing to arena area at current distance
-
-%Only done when computing delta for norm. distance with previous 4s
-if analysis_offset == -10
-    mid_f = floor(size(curr_traces, 2)./2);
-    mid_c = mid_f + 1;
-    curr_traces = curr_traces(:, mid_c:end) - curr_traces(:, 1:mid_f);
-else
-end
-mean_vec = mean(curr_traces, 1, 'omitnan');
-se_vec = std(curr_traces, [], 1, 'omitnan')./sqrt(size(curr_traces, 1));
-shadedErrorBar([], mean_vec, se_vec, {'Color', paired_color}, 1);
-hold on
-curr_traces = squeeze(radial_pos_tseries_all(:, :, 1));    %upwind distance time series for each valid fly for 0s gap
-curr_traces = (curr_traces./50).^2;
-%Only done when computing delta for norm. distance with previous 4s
-if analysis_offset <= -10
-    mid_f = floor(size(curr_traces, 2)./2);
-    mid_c = mid_f + 1;
-    curr_traces = curr_traces(:, mid_c:end) - curr_traces(:, 1:mid_f);
-else
-end
-mean_vec = mean(curr_traces, 1, 'omitnan');
-se_vec = std(curr_traces, [], 1, 'omitnan')./sqrt(size(curr_traces, 1));
-shadedErrorBar([], mean_vec, se_vec, {'Color', unpaired_color}, 1);
-
-hold off
-title('0s gap');
-ylabel('norm. distance');
-set_xlabels_time(22, frame_time, 10);
-fig_wrapup(22, [], [25, 30], .6);
-ax_vals = axis;
-ax_vals(3) = 0;
-ax_vals(4) = .75;
-%axis(2) = 
-axis(ax_vals);
-
-%25s gap data
-figure(23)
-curr_traces = squeeze(radial_pos_tseries_all(:, :, 4));    %upwind distance time series for each valid fly for 0s gap
-curr_traces = (curr_traces./50).^2;                         %normalizing to arena area at current distance
-%Only done when computing delta for norm. distance with previous 4s
-if analysis_offset <= -10
-    mid_f = floor(size(curr_traces, 2)./2);
-    mid_c = mid_f + 1;
-    curr_traces = curr_traces(:, mid_c:end) - curr_traces(:, 1:mid_f);
-else
-end
-mean_vec = mean(curr_traces, 1, 'omitnan');
-se_vec = std(curr_traces, [], 1, 'omitnan')./sqrt(size(curr_traces, 1));
-shadedErrorBar([], mean_vec, se_vec, {'Color', paired_color}, 1);
-hold on
-curr_traces = squeeze(radial_pos_tseries_all(:, :, 2));    %upwind distance time series for each valid fly for 0s gap
-curr_traces = (curr_traces./50).^2;
-%Only done when computing delta for norm. distance with previous 4s
-if analysis_offset == -10
-    mid_f = floor(size(curr_traces, 2)./2);
-    mid_c = mid_f + 1;
-    curr_traces = curr_traces(:, mid_c:end) - curr_traces(:, 1:mid_f);
-else
-end
-mean_vec = mean(curr_traces, 1, 'omitnan');
-se_vec = std(curr_traces, [], 1, 'omitnan')./sqrt(size(curr_traces, 1));
-shadedErrorBar([], mean_vec, se_vec, {'Color', unpaired_color}, 1);
-
-hold off
-title('25 s gap');
-ylabel('norm. distance');
-set_xlabels_time(23, frame_time, 10);
-fig_wrapup(23, [], [25, 30], .6);
-ax_vals = axis;
-ax_vals(3) = 0;
-ax_vals(4) = .75;
-axis(ax_vals);
+% figure(7)
+% set(gcf, 'Name', 'Yoshi area norm, 0s')
+% curr_traces = squeeze(radial_pos_tseries_all(:, :, 3));     
+% curr_traces = (curr_traces./50).^2;                         %normalizing to arena area at current distance
+% 
+% %Only done when computing delta for norm. distance with previous 4s
+% if analysis_offset == -10
+%     mid_f = floor(size(curr_traces, 2)./2);
+%     mid_c = mid_f + 1;
+%     curr_traces = curr_traces(:, mid_c:end) - curr_traces(:, 1:mid_f);
+% else
+% end
+% mean_vec = mean(curr_traces, 1, 'omitnan');
+% se_vec = std(curr_traces, [], 1, 'omitnan')./sqrt(size(curr_traces, 1));
+% shadedErrorBar([], mean_vec, se_vec, {'Color', paired_color}, 1);
+% hold on
+% curr_traces = squeeze(radial_pos_tseries_all(:, :, 1));     
+% curr_traces = (curr_traces./50).^2;
+% %Only done when computing delta for norm. distance with previous 4s
+% if analysis_offset <= -10
+%     mid_f = floor(size(curr_traces, 2)./2);
+%     mid_c = mid_f + 1;
+%     curr_traces = curr_traces(:, mid_c:end) - curr_traces(:, 1:mid_f);
+% else
+% end
+% mean_vec = mean(curr_traces, 1, 'omitnan');
+% se_vec = std(curr_traces, [], 1, 'omitnan')./sqrt(size(curr_traces, 1));
+% shadedErrorBar([], mean_vec, se_vec, {'Color', unpaired_color}, 1);
+% 
+% hold off
+% title('0s gap');
+% ylabel('norm. distance');
+% set_xlabels_time(6, frame_time, 10);
+% fig_wrapup(6, [], [25, 30], .6);
+% ax_vals = axis;
+% ax_vals(3) = 0;
+% ax_vals(4) = .75;
+% %axis(2) = 
+% axis(ax_vals);
+% 
+% %25s gap data
+% figure(7)
+% set(gcf, 'Name', 'Yoshi area norm, 25s')
+% 
+% curr_traces = squeeze(radial_pos_tseries_all(:, :, 4));     
+% curr_traces = (curr_traces./50).^2;                         %normalizing to arena area at current distance
+% %Only done when computing delta for norm. distance with previous 4s
+% if analysis_offset <= -10
+%     mid_f = floor(size(curr_traces, 2)./2);
+%     mid_c = mid_f + 1;
+%     curr_traces = curr_traces(:, mid_c:end) - curr_traces(:, 1:mid_f);
+% else
+% end
+% mean_vec = mean(curr_traces, 1, 'omitnan');
+% se_vec = std(curr_traces, [], 1, 'omitnan')./sqrt(size(curr_traces, 1));
+% shadedErrorBar([], mean_vec, se_vec, {'Color', paired_color}, 1);
+% hold on
+% curr_traces = squeeze(radial_pos_tseries_all(:, :, 2));     
+% curr_traces = (curr_traces./50).^2;
+% %Only done when computing delta for norm. distance with previous 4s
+% if analysis_offset == -10
+%     mid_f = floor(size(curr_traces, 2)./2);
+%     mid_c = mid_f + 1;
+%     curr_traces = curr_traces(:, mid_c:end) - curr_traces(:, 1:mid_f);
+% else
+% end
+% mean_vec = mean(curr_traces, 1, 'omitnan');
+% se_vec = std(curr_traces, [], 1, 'omitnan')./sqrt(size(curr_traces, 1));
+% shadedErrorBar([], mean_vec, se_vec, {'Color', unpaired_color}, 1);
+% 
+% hold off
+% title('25 s gap');
+% ylabel('norm. distance');
+% set_xlabels_time(7, frame_time, 10);
+% fig_wrapup(7, [], [25, 30], .6);
+% ax_vals = axis;
+% ax_vals(3) = 0;
+% ax_vals(4) = .75;
+% axis(ax_vals);
 
 %-----
 %plotting upwind walking speeds
-figure(25)
-curr_traces = squeeze(upwind_dist_tseries_all(:, :, 3));    %upwind distance time series for each valid fly for 0s gap
+figure(8)
+set(gcf, 'Name', 'upwind vel, 0s')
+curr_traces = squeeze(upwind_dist_tseries_all(:, :, 3));     
 %computing speed
 curr_traces = diff(curr_traces, 1, 2)./frame_time;       %speed in mm/s
 curr_traces = movmean(curr_traces, 10, 2);
@@ -413,7 +452,7 @@ mean_vec = mean(curr_traces, 1, 'omitnan');
 se_vec = std(curr_traces, [], 1, 'omitnan')./sqrt(size(curr_traces, 1));
 shadedErrorBar([], mean_vec, se_vec, {'Color', paired_color}, 1);
 hold on
-curr_traces = squeeze(upwind_dist_tseries_all(:, :, 1));    %upwind distance time series for each valid fly for 0s gap
+curr_traces = squeeze(upwind_dist_tseries_all(:, :, 1));     
 %computing speed
 curr_traces = diff(curr_traces, 1, 2)./frame_time;       %speed in mm/s
 curr_traces = movmean(curr_traces, 10, 2);
@@ -425,8 +464,8 @@ shadedErrorBar([], mean_vec, se_vec, {'Color', unpaired_color}, 1);
 hold off
 title('0s gap');
 ylabel('upwind speed (mm/s)');
-set_xlabels_time(25, frame_time, 10);
-fig_wrapup(25, [], [25, 30], .6);
+set_xlabels_time(8, frame_time, 10);
+fig_wrapup(8, [], [25, 30], .6);
 ax_vals = axis;
 ax_vals(3) = -8;
 ax_vals(4) = 8;
@@ -435,8 +474,9 @@ axis(ax_vals);
 
 
 %plotting upwind walking speeds
-figure(26)
-curr_traces = squeeze(upwind_dist_tseries_all(:, :, 4));    %upwind distance time series for each valid fly for 0s gap
+figure(9)
+set(gcf, 'Name', 'upwind vel, 25s')
+curr_traces = squeeze(upwind_dist_tseries_all(:, :, 4));     
 %computing speed
 curr_traces = diff(curr_traces, 1, 2)./frame_time;       %speed in mm/s
 curr_traces = movmean(curr_traces, 10, 2);
@@ -445,7 +485,7 @@ mean_vec = mean(curr_traces, 1, 'omitnan');
 se_vec = std(curr_traces, [], 1, 'omitnan')./sqrt(size(curr_traces, 1));
 shadedErrorBar([], mean_vec, se_vec, {'Color', paired_color}, 1);
 hold on
-curr_traces = squeeze(upwind_dist_tseries_all(:, :, 2));    %upwind distance time series for each valid fly for 0s gap
+curr_traces = squeeze(upwind_dist_tseries_all(:, :, 2));     
 %computing speed
 curr_traces = diff(curr_traces, 1, 2)./frame_time;       %speed in mm/s
 curr_traces = movmean(curr_traces, 10, 2);
@@ -457,8 +497,8 @@ shadedErrorBar([], mean_vec, se_vec, {'Color', unpaired_color}, 1);
 hold off
 title('25 s gap');
 ylabel('upwind speed (mm/s)');
-set_xlabels_time(26, frame_time, 10);
-fig_wrapup(26, [], [25, 30], .6);
+set_xlabels_time(9, frame_time, 10);
+fig_wrapup(9, [], [25, 30], .6);
 ax_vals = axis;
 %ax_vals(2) = 59;
 ax_vals(3) = -8;
@@ -471,7 +511,8 @@ axis(ax_vals);
 score_vecs_all_final = [vel_mat(:, 2), vel_mat(:, 1), vel_mat(:, 4), vel_mat(:, 3)];      %re-arranging to bring paired, unpaired together instead of 0 and 15
 markercolor = [unpaired_color; paired_color; unpaired_color; paired_color];
 xlabels = [{'0 s, unprd'}, {'0 s, prd'}, {'25 s, unprd'}, {'25 s, prd'}];
-fig_h = scattered_dot_plot_ttest(score_vecs_all_final, 27, 2.5, 4, 4, markercolor, 1, [], [], xlabels, 1, [0, 0, 0], 2, 0.05, 0);
+fig_h = scattered_dot_plot_ttest(score_vecs_all_final, 10, 2.5, 4, 4, markercolor, 1, [], [], xlabels, 1, [0, 0, 0], 2, 0.05, 0);
+set(gcf, 'Name', 'upwind vel stats, 0s')
 ylabel('upwind speed (mm/s)');
 fig_wrapup(fig_h, [], [25, 30], .6);
 
@@ -479,15 +520,16 @@ fig_wrapup(fig_h, [], [25, 30], .6);
 
 %plotting walking speed tseries
 vel_mat = [];
-figure(30)
-curr_traces = squeeze(xy_vels_tseries_all(:, :, 3));    %upwind distance time series for each valid fly for 0s gap
+figure(11)
+set(gcf, 'Name', 'xy walking speed, 0s')
+curr_traces = squeeze(xy_vels_tseries_all(:, :, 3));    %upwind vel time series for each valid fly for 0s gap
 curr_traces = movmean(curr_traces, 10, 2);
 vel_mat(:, 1) = mean(curr_traces, 2, 'omitnan');
 mean_vec = mean(curr_traces, 1, 'omitnan');
 se_vec = std(curr_traces, [], 1, 'omitnan')./sqrt(size(curr_traces, 1));
 shadedErrorBar([], mean_vec, se_vec, {'Color', paired_color}, 1);
 hold on
-curr_traces = squeeze(xy_vels_tseries_all(:, :, 1));    %upwind distance time series for each valid fly for 0s gap
+curr_traces = squeeze(xy_vels_tseries_all(:, :, 1));     
 curr_traces = movmean(curr_traces, 10, 2);
 vel_mat(:, 2) = mean(curr_traces, 2, 'omitnan');
 mean_vec = mean(curr_traces, 1, 'omitnan');
@@ -497,8 +539,8 @@ shadedErrorBar([], mean_vec, se_vec, {'Color', unpaired_color}, 1);
 hold off
 title('0s gap');
 ylabel('speed (mm/s)');
-set_xlabels_time(30, frame_time, 10);
-fig_wrapup(30, [], [25, 30], .6);
+set_xlabels_time(11, frame_time, 10);
+fig_wrapup(11, [], [25, 30], .6);
 ax_vals = axis;
 ax_vals(3) = 0;
 ax_vals(4) = 10;
@@ -507,15 +549,16 @@ axis(ax_vals);
 
 
 %plotting walking speeds
-figure(31)
-curr_traces = squeeze(xy_vels_tseries_all(:, :, 4));    %upwind distance time series for each valid fly for 0s gap
+figure(12)
+set(gcf, 'Name', 'xy walking speed, 25s')
+curr_traces = squeeze(xy_vels_tseries_all(:, :, 4));     
 curr_traces = movmean(curr_traces, 10, 2);
 vel_mat = pad_n_concatenate(vel_mat, mean(curr_traces, 2, 'omitnan'), 2, nan);
 mean_vec = mean(curr_traces, 1, 'omitnan');
 se_vec = std(curr_traces, [], 1, 'omitnan')./sqrt(size(curr_traces, 1));
 shadedErrorBar([], mean_vec, se_vec, {'Color', paired_color}, 1);
 hold on
-curr_traces = squeeze(xy_vels_tseries_all(:, :, 2));    %upwind distance time series for each valid fly for 0s gap
+curr_traces = squeeze(xy_vels_tseries_all(:, :, 2));     
 curr_traces = movmean(curr_traces, 10, 2);
 vel_mat = pad_n_concatenate(vel_mat, mean(curr_traces, 2, 'omitnan'), 2, nan);
 mean_vec = mean(curr_traces, 1, 'omitnan');
@@ -525,8 +568,8 @@ shadedErrorBar([], mean_vec, se_vec, {'Color', unpaired_color}, 1);
 hold off
 title('25 s gap');
 ylabel('speed (mm/s)');
-set_xlabels_time(31, frame_time, 10);
-fig_wrapup(31, [], [25, 30], .6);
+set_xlabels_time(11, frame_time, 10);
+fig_wrapup(12, [], [25, 30], .6);
 ax_vals = axis;
 %ax_vals(2) = 59;
 ax_vals(3) = 0;
@@ -539,19 +582,21 @@ axis(ax_vals);
 score_vecs_all_final = [vel_mat(:, 2), vel_mat(:, 1), vel_mat(:, 4), vel_mat(:, 3)];      %re-arranging to bring paired, unpaired together instead of 0 and 15
 markercolor = [unpaired_color; paired_color; unpaired_color; paired_color];
 xlabels = [{'0 s, unprd'}, {'0 s, prd'}, {'25 s, unprd'}, {'25 s, prd'}];
-fig_h = scattered_dot_plot_ttest(score_vecs_all_final, 32, 2.5, 4, 4, markercolor, 1, [], [], xlabels, 1, [0, 0, 0], 2, 0.05, 0);
+fig_h = scattered_dot_plot_ttest(score_vecs_all_final, 13, 2.5, 4, 4, markercolor, 1, [], [], xlabels, 1, [0, 0, 0], 2, 0.05, 0);
+set(gcf, 'Name', 'xy vels stats, 0s')
 ylabel('speed (mm/s)');
 fig_wrapup(fig_h, [], [25, 30], .6);
 
 %plotting running speed distribution
-speed_vec = reshape(xy_vels_tseries_all, 1, []);
-figure(34)
-a = hist(speed_vec, [0:11]);
-plot([0:10], a(1:11), 'lineWidth', 2);
-title('xy speed histogram')
-ylabel('counts')
-xlabel('speed (mm/s)')
-fig_wrapup(34, [], [25, 30], .6);
+% speed_vec = reshape(xy_vels_tseries_all, 1, []);
+% figure(14)
+% set(gcf, 'Name', 'xy speed hist')
+% a = hist(speed_vec, [0:11]);
+% plot([0:10], a(1:11), 'lineWidth', 2);
+% title('xy speed histogram')
+% ylabel('counts')
+% xlabel('speed (mm/s)')
+% fig_wrapup(14, [], [25, 30], .6);
 
 
 
@@ -561,47 +606,49 @@ ststp_tseries_all(ststp_tseries_all < 0) = 0;   %measuring only start probabilit
 ststp_tseries_all = mean(ststp_tseries_all, 1, 'omitnan');
 
 prob_mat = [];
-figure(32)
-curr_trace = squeeze(ststp_tseries_all(:, :, 3));    %upwind distance time series for each valid fly for 0s gap
+figure(15)
+set(gcf, 'Name', 'start probs, 0s')
+curr_trace = squeeze(ststp_tseries_all(:, :, 3));    
 curr_trace = movmean(curr_trace, 10, 2);
 plot(curr_trace, 'lineWidth', 2, 'Color', paired_color);
 hold on
-curr_trace = squeeze(ststp_tseries_all(:, :, 1));    %upwind distance time series for each valid fly for 0s gap
+curr_trace = squeeze(ststp_tseries_all(:, :, 1));    
 curr_trace = movmean(curr_trace, 10, 2);
 plot(curr_trace, 'lineWidth', 2, 'Color', unpaired_color);
 
 hold off
 title('0s gap');
-ylabel('prob. transition');
-set_xlabels_time(32, frame_time, 10);
-fig_wrapup(32, [], [25, 30], .6);
+ylabel('prob. start');
+set_xlabels_time(15, frame_time, 10);
+fig_wrapup(15, [], [25, 30], .6);
 ax_vals = axis;
 ax_vals(3) = 0;
-ax_vals(4) = 1;
+ax_vals(4) = 0.05;
 %ax_vals(2) = 59;
 axis(ax_vals);
 
 
 %plotting transition probabilities
-figure(33)
-curr_trace = squeeze(ststp_tseries_all(:, :, 4));    %upwind distance time series for each valid fly for 0s gap
+figure(16)
+set(gcf, 'Name', 'start probs, 25s')
+curr_trace = squeeze(ststp_tseries_all(:, :, 4));     
 curr_trace = movmean(curr_trace, 10, 2);
 plot(curr_trace, 'lineWidth', 2, 'Color', paired_color);
 hold on
-curr_trace = squeeze(ststp_tseries_all(:, :, 2));    %upwind distance time series for each valid fly for 0s gap
+curr_trace = squeeze(ststp_tseries_all(:, :, 2));     
 curr_trace = movmean(curr_trace, 10, 2);
 prob_mat = pad_n_concatenate(prob_mat, mean(curr_traces, 2, 'omitnan'), 2, nan);
 plot(curr_trace, 'lineWidth', 2, 'Color', unpaired_color);
 
 hold off
 title('25 s gap');
-ylabel('prob. transition');
-set_xlabels_time(33, frame_time, 10);
-fig_wrapup(33, [], [25, 30], .6);
+ylabel('prob. start');
+set_xlabels_time(16, frame_time, 10);
+fig_wrapup(16, [], [25, 30], .6);
 ax_vals = axis;
 %ax_vals(2) = 59;
 ax_vals(3) = 0;
-ax_vals(4) = 1;
+ax_vals(4) = 0.05;
 axis(ax_vals);
 
 
@@ -612,21 +659,22 @@ ststp_tseries_all(ststp_tseries_all > 0) = 0;   %measuring only stop probabiliti
 ststp_tseries_all = mean(abs(ststp_tseries_all), 1, 'omitnan');
 
 prob_mat = [];
-figure(32)
+figure(17)
+set(gcf, 'Name', 'stop probs, 0s')
 hold on
-curr_trace = squeeze(ststp_tseries_all(:, :, 3));    %upwind distance time series for each valid fly for 0s gap
+curr_trace = squeeze(ststp_tseries_all(:, :, 3));     
 curr_trace = movmean(curr_trace, 10, 2);
-plot(curr_trace, ':', 'lineWidth', 2, 'Color', paired_color);
+plot(curr_trace, 'lineWidth', 2, 'Color', paired_color);
 hold on
-curr_trace = squeeze(ststp_tseries_all(:, :, 1));    %upwind distance time series for each valid fly for 0s gap
+curr_trace = squeeze(ststp_tseries_all(:, :, 1));     
 curr_trace = movmean(curr_trace, 10, 2);
-plot(curr_trace, ':', 'lineWidth', 2, 'Color', unpaired_color);
+plot(curr_trace, 'lineWidth', 2, 'Color', unpaired_color);
 
 hold off
 title('0s gap');
-ylabel('prob transition');
-set_xlabels_time(32, frame_time, 10);
-fig_wrapup(32, [], [25, 30], .6);
+ylabel('prob stop');
+set_xlabels_time(17, frame_time, 10);
+fig_wrapup(17, [], [25, 30], .6);
 ax_vals = axis;
 ax_vals(3) = 0;
 ax_vals(4) = 0.05;
@@ -636,22 +684,23 @@ axis(ax_vals);
 
 
 %plotting stop probabilities
-figure(33)
+figure(18)
+set(gcf, 'Name', 'stop probs, 25s')
 hold on
-curr_trace = squeeze(ststp_tseries_all(:, :, 4));    %upwind distance time series for each valid fly for 0s gap
+curr_trace = squeeze(ststp_tseries_all(:, :, 4));     
 curr_trace = movmean(curr_trace, 10, 2);
-plot(curr_trace, ':', 'lineWidth', 2, 'Color', paired_color);
+plot(curr_trace, 'lineWidth', 2, 'Color', paired_color);
 hold on
-curr_trace = squeeze(ststp_tseries_all(:, :, 2));    %upwind distance time series for each valid fly for 0s gap
+curr_trace = squeeze(ststp_tseries_all(:, :, 2));     
 curr_trace = movmean(curr_trace, 10, 2);
 prob_mat = pad_n_concatenate(prob_mat, mean(curr_traces, 2, 'omitnan'), 2, nan);
-plot(curr_trace, ':', 'lineWidth', 2, 'Color', unpaired_color);
+plot(curr_trace, 'lineWidth', 2, 'Color', unpaired_color);
 
 hold off
 title('25 s gap');
-ylabel('prob. transition');
-set_xlabels_time(33, frame_time, 10);
-fig_wrapup(33, [], [25, 30], .6);
+ylabel('prob. stop');
+set_xlabels_time(18, frame_time, 10);
+fig_wrapup(18, [], [25, 30], .6);
 ax_vals = axis;
 %ax_vals(2) = 59;
 ax_vals(3) = 0;
@@ -661,20 +710,21 @@ axis(ax_vals);
 
 %plotting probability of run v/s time
 %plotting run probability
-figure(35)
-curr_trace = mean(squeeze(xy_vels_bin_tseries_all(:, :, 3)), 1, 'omitnan');    %upwind distance time series for each valid fly for 0s gap
+figure(19)
+set(gcf, 'Name', 'prob. running, 0s')
+curr_trace = mean(squeeze(xy_vels_bin_tseries_all(:, :, 3)), 1, 'omitnan');    
 curr_trace = movmean(curr_trace, 10, 2);
 plot(curr_trace, 'lineWidth', 2, 'Color', paired_color);
 hold on
-curr_trace = mean(squeeze(xy_vels_bin_tseries_all(:, :, 1)), 1, 'omitnan');    %upwind distance time series for each valid fly for 0s gap
+curr_trace = mean(squeeze(xy_vels_bin_tseries_all(:, :, 1)), 1, 'omitnan');    
 curr_trace = movmean(curr_trace, 10, 2);
 plot(curr_trace, 'lineWidth', 2, 'Color', unpaired_color);
 
 hold off
 title('0s gap');
 ylabel('prob. running');
-set_xlabels_time(35, frame_time, 10);
-fig_wrapup(35, [], [25, 30], .6);
+set_xlabels_time(19, frame_time, 10);
+fig_wrapup(19, [], [25, 30], .6);
 ax_vals = axis;
 ax_vals(3) = 0;
 ax_vals(4) = 1;
@@ -683,12 +733,13 @@ axis(ax_vals);
 
 
 %plotting transition probabilities
-figure(36)
-curr_trace = mean(squeeze(xy_vels_bin_tseries_all(:, :, 4)), 1, 'omitnan');    %upwind distance time series for each valid fly for 0s gap
+figure(20)
+set(gcf, 'Name', 'prob. running, 25s')
+curr_trace = mean(squeeze(xy_vels_bin_tseries_all(:, :, 4)), 1, 'omitnan');     
 curr_trace = movmean(curr_trace, 10, 2);
 plot(curr_trace, 'lineWidth', 2, 'Color', paired_color);
 hold on
-curr_trace = mean(squeeze(xy_vels_bin_tseries_all(:, :, 2)), 1, 'omitnan');    %upwind distance time series for each valid fly for 0s gap
+curr_trace = mean(squeeze(xy_vels_bin_tseries_all(:, :, 2)), 1, 'omitnan');     
 curr_trace = movmean(curr_trace, 10, 2);
 prob_mat = pad_n_concatenate(prob_mat, mean(curr_traces, 2, 'omitnan'), 2, nan);
 plot(curr_trace, 'lineWidth', 2, 'Color', unpaired_color);
@@ -696,8 +747,8 @@ plot(curr_trace, 'lineWidth', 2, 'Color', unpaired_color);
 hold off
 title('25 s gap');
 ylabel('prob. running');
-set_xlabels_time(36, frame_time, 10);
-fig_wrapup(36, [], [25, 30], .6);
+set_xlabels_time(20, frame_time, 10);
+fig_wrapup(20, [], [25, 30], .6);
 ax_vals = axis;
 %ax_vals(2) = 59;
 ax_vals(3) = 0;
@@ -716,8 +767,8 @@ downwind_deviations_tseries_all(downwind_deviations_tseries_all < 0) = -180 - do
 % downwind_deviations_tseries_all(downwind_deviations_tseries_all > 0) = cos(deg2rad(abs(downwind_deviations_tseries_all(downwind_deviations_tseries_all > 0))));
 % downwind_deviations_tseries_all(downwind_deviations_tseries_all < 0) = cos(deg2rad(abs(downwind_deviations_tseries_all(downwind_deviations_tseries_all < 0))));
 
-figure(8)
-
+figure(21)
+set(gcf, 'Name', 'upwind orientation, 0s')
 curr_traces = abs(squeeze(downwind_deviations_tseries_all(:, :, 3)));    %downwind deviations time series for each valid fly for 0s gap
 mean_vec = mean(curr_traces, 1, 'omitnan');
 se_vec = std(curr_traces, [], 1, 'omitnan')./sqrt(size(curr_traces, 1));
@@ -731,16 +782,17 @@ shadedErrorBar([], mean_vec, se_vec, {'Color', unpaired_color}, 1);
 hold off
 title('0s gap');
 ylabel('upwind orientation (degrees)');
-set_xlabels_time(8, frame_time, 10);
-fig_wrapup(8, [], [25, 30], .6);
+set_xlabels_time(21, frame_time, 10);
+fig_wrapup(21, [], [25, 30], .6);
 ax_vals = axis;
-ax_vals(3) = -1;
-ax_vals(4) = 1;
+ax_vals(3) = 0;
+ax_vals(4) = 180;
 %ax_vals(2) = 59;
 axis(ax_vals);
 
 
-figure(9)
+figure(22)
+set(gcf, 'Name', 'upwind orientation, 25s')
 curr_traces = abs(squeeze(downwind_deviations_tseries_all(:, :, 4)));    %downwind deviationsance time series for each valid fly for 0s gap
 mean_vec = mean(curr_traces, 1, 'omitnan');
 se_vec = std(curr_traces, [], 1, 'omitnan')./sqrt(size(curr_traces, 1));
@@ -754,91 +806,22 @@ shadedErrorBar([], mean_vec, se_vec, {'Color', unpaired_color}, 1);
 hold off
 title('25 s gap');
 ylabel('upwind orientation (degrees)');
-set_xlabels_time(9, frame_time, 10);
-fig_wrapup(9, [], [25, 30], .6);
+set_xlabels_time(22, frame_time, 10);
+fig_wrapup(22, [], [25, 30], .6);
 ax_vals = axis;
 %ax_vals(2) = 59;
 ax_vals(3) = 0;
 ax_vals(4) = 180;
 axis(ax_vals);
 
-
-%------
-%Plotting angular velocity
-figure(28)
-
-curr_traces = abs(squeeze(downwind_deviations_tseries_all(:, :, 3)));    %downwind deviations time series for each valid fly for 0s gap
-curr_traces = diff(curr_traces, 1, 2)./frame_time;       %speed in degrees/s
-curr_traces = movmean(curr_traces, 10, 2);
-mean_vec = mean(curr_traces, 1, 'omitnan');
-se_vec = std(curr_traces, [], 1, 'omitnan')./sqrt(size(curr_traces, 1));
-shadedErrorBar([], mean_vec, se_vec, {'Color', paired_color}, 1);
-hold on
-curr_traces = abs(squeeze(downwind_deviations_tseries_all(:, :, 1)));    %downwind deviations time series for each valid fly for 0s gap
-curr_traces = diff(curr_traces, 1, 2)./frame_time;       %speed in degrees/s
-curr_traces = movmean(curr_traces, 10, 2);
-mean_vec = mean(curr_traces, 1, 'omitnan');
-se_vec = std(curr_traces, [], 1, 'omitnan')./sqrt(size(curr_traces, 1));
-shadedErrorBar([], mean_vec, se_vec, {'Color', unpaired_color}, 1);
-
-hold off
-title('0s gap');
-ylabel('angular velocity (degrees/s)');
-set_xlabels_time(28, frame_time, 10);
-fig_wrapup(28, [], [25, 30], .6);
-ax_vals = axis;
-ax_vals(3) = -50;
-ax_vals(4) = 50;
-%ax_vals(2) = 59;
-axis(ax_vals);
-
-
-figure(29)
-curr_traces = abs(squeeze(downwind_deviations_tseries_all(:, :, 4)));    %downwind deviationsance time series for each valid fly for 0s gap
-curr_traces = diff(curr_traces, 1, 2)./frame_time;       %speed in degrees/s
-curr_traces = movmean(curr_traces, 10, 2);
-mean_vec = mean(curr_traces, 1, 'omitnan');
-se_vec = std(curr_traces, [], 1, 'omitnan')./sqrt(size(curr_traces, 1));
-shadedErrorBar([], mean_vec, se_vec, {'Color', paired_color}, 1);
-hold on
-curr_traces = abs(squeeze(downwind_deviations_tseries_all(:, :, 2)));    %downwind deviationsance time series for each valid fly for 0s gap
-curr_traces = diff(curr_traces, 1, 2)./frame_time;       %speed in degrees/s
-curr_traces = movmean(curr_traces, 10, 2);
-mean_vec = mean(curr_traces, 1, 'omitnan');
-se_vec = std(curr_traces, [], 1, 'omitnan')./sqrt(size(curr_traces, 1));
-shadedErrorBar([], mean_vec, se_vec, {'Color', unpaired_color}, 1);
-
-hold off
-title('25 s gap');
-ylabel('angular velocity (degrees/s)');
-set_xlabels_time(29, frame_time, 10);
-fig_wrapup(29, [], [25, 30], .6);
-ax_vals = axis;
-%ax_vals(2) = 59;
-ax_vals(3) = 0;
-ax_vals(4) = 180;
-axis(ax_vals);
-
-
-%-------------
-
-
-
-%plotting mean upwind displacement
-score_vecs_all_final = [score_vecs_all(:, 1), score_vecs_all(:, 3), score_vecs_all(:, 2), score_vecs_all(:, 4)];        %re-arranging to bring paired, unpaired together instead of 0 and 15
-
-markercolor = [unpaired_color; paired_color; unpaired_color; paired_color];
-xlabels = [{'0 s, unprd'}, {'0 s, prd'}, {'25 s, unprd'}, {'25 s, prd'}];
-fig_h = scattered_dot_plot_ttest(score_vecs_all_final, 1, 2.5, 4, 4, markercolor, 1, [], [], xlabels, 1, [0, 0, 0], 2, 0.05, 0);
-ylabel(score_name);
-fig_wrapup(fig_h, [], [25, 30], .6);
 
 %plotting mean downwind deviation
 score_vecs_all_final = 180 - [downwind_deviations_all(:, 1), downwind_deviations_all(:, 3), downwind_deviations_all(:, 2), downwind_deviations_all(:, 4)];        %re-arranging to bring paired, unpaired together instead of 0 and 15
 markercolor = [unpaired_color; paired_color; unpaired_color; paired_color];
 xlabels = [{'0 s, unprd'}, {'0 s, prd'}, {'25 s, unprd'}, {'25 s, prd'}];
-fig_h = scattered_dot_plot_ttest(score_vecs_all_final, 2, 2.5, 4, 4, markercolor, 1, [], [], xlabels, 1, [0, 0, 0], 2, 0.05, 0);
+fig_h = scattered_dot_plot_ttest(score_vecs_all_final, 23, 2.5, 4, 4, markercolor, 1, [], [], xlabels, 1, [0, 0, 0], 2, 0.05, 0);
 ylabel('upwind orientation (degrees)');
+set(gcf, 'Name', 'upwind orientation stats')
 fig_wrapup(fig_h, [], [25, 30], .6);
 
 
@@ -847,34 +830,115 @@ score_vecs_all_final = 180 - [downwind_deviations_all(:, 1), downwind_deviations
 edge_vecs_all_final = [edge_flies_all(:, 1), edge_flies_all(:, 3), edge_flies_all(:, 2), edge_flies_all(:, 4)];        %re-arranging to bring paired, unpaired together instead of 0 and 25
 markercolor = [unpaired_color; paired_color; unpaired_color; paired_color];
 xlabels = [{'0 s, unprd'}, {'0 s, prd'}, {'25 s, unprd'}, {'25 s, prd'}];
-[fig_h, r_vecs_saved] = scattered_dot_plot_ttest(score_vecs_all_final, 13, 2.5, 4, 4, markercolor, 1, [], [], xlabels, 1, [0, 0, 0], 2, 0.05, 0);
+[fig_h, r_vecs_saved] = scattered_dot_plot_ttest(score_vecs_all_final, 24, 2.5, 4, 4, markercolor, 1, [], [], xlabels, 1, [0, 0, 0], 2, 0.05, 0);
 hold on
 plot(r_vecs_saved(edge_vecs_all_final == 1), score_vecs_all_final(edge_vecs_all_final == 1), 'Or')
 ylabel('upwind orientation (degrees)');
+set(gcf, 'Name', 'upwind orientation, edge flies highlighted stats')
 fig_wrapup(fig_h, [], [25, 30], .6);
+
+
+%plotting mean downwind deviation
+score_vecs_all_final = 180 - [downwind_deviations_all(:, 1), downwind_deviations_all(:, 3), downwind_deviations_all(:, 2), downwind_deviations_all(:, 4)];        %re-arranging to bring paired, unpaired together instead of 0 and 15
+edgei = find(edge_vecs_all_final == 1);
+score_vecs_all_final(edgei) = nan;
+markercolor = [unpaired_color; paired_color; unpaired_color; paired_color];
+xlabels = [{'0 s, unprd'}, {'0 s, prd'}, {'25 s, unprd'}, {'25 s, prd'}];
+fig_h = scattered_dot_plot_ttest(score_vecs_all_final, 25, 2.5, 4, 4, markercolor, 1, [], [], xlabels, 1, [0, 0, 0], 2, 0.05, 0);
+ylabel('upwind orientation (degrees)');
+set(gcf, 'Name', 'upwind orientation stats, no edge flies')
+fig_wrapup(fig_h, [], [25, 30], .6);
+
+
+
+%------
+%Plotting angular velocity
+figure(26)
+set(gcf, 'Name', 'angular velocity, 0s')
+curr_traces = abs(squeeze(downwind_deviations_tseries_all(:, :, 3)));    %downwind deviations time series for each valid fly for 0s gap
+curr_traces = diff(curr_traces, 1, 2)./frame_time;       %speed in degrees/s
+curr_traces = movmean(curr_traces, 10, 2);
+mean_vec = mean(curr_traces, 1, 'omitnan');
+se_vec = std(curr_traces, [], 1, 'omitnan')./sqrt(size(curr_traces, 1));
+shadedErrorBar([], mean_vec, se_vec, {'Color', paired_color}, 1);
+hold on
+curr_traces = abs(squeeze(downwind_deviations_tseries_all(:, :, 1)));    %downwind deviations time series for each valid fly for 0s gap
+curr_traces = diff(curr_traces, 1, 2)./frame_time;       %speed in degrees/s
+curr_traces = movmean(curr_traces, 10, 2);
+mean_vec = mean(curr_traces, 1, 'omitnan');
+se_vec = std(curr_traces, [], 1, 'omitnan')./sqrt(size(curr_traces, 1));
+shadedErrorBar([], mean_vec, se_vec, {'Color', unpaired_color}, 1);
+
+hold off
+title('0s gap');
+ylabel('angular velocity (degrees/s)');
+set_xlabels_time(26, frame_time, 10);
+fig_wrapup(26, [], [25, 30], .6);
+ax_vals = axis;
+ax_vals(3) = -50;
+ax_vals(4) = 50;
+%ax_vals(2) = 59;
+axis(ax_vals);
+
+
+figure(27)
+set(gcf, 'Name', 'angular velocity, 25s')
+curr_traces = abs(squeeze(downwind_deviations_tseries_all(:, :, 4)));    %downwind deviationsance time series for each valid fly for 0s gap
+curr_traces = diff(curr_traces, 1, 2)./frame_time;       %speed in degrees/s
+curr_traces = movmean(curr_traces, 10, 2);
+mean_vec = mean(curr_traces, 1, 'omitnan');
+se_vec = std(curr_traces, [], 1, 'omitnan')./sqrt(size(curr_traces, 1));
+shadedErrorBar([], mean_vec, se_vec, {'Color', paired_color}, 1);
+hold on
+curr_traces = abs(squeeze(downwind_deviations_tseries_all(:, :, 2)));    %downwind deviationsance time series for each valid fly for 0s gap
+curr_traces = diff(curr_traces, 1, 2)./frame_time;       %speed in degrees/s
+curr_traces = movmean(curr_traces, 10, 2);
+mean_vec = mean(curr_traces, 1, 'omitnan');
+se_vec = std(curr_traces, [], 1, 'omitnan')./sqrt(size(curr_traces, 1));
+shadedErrorBar([], mean_vec, se_vec, {'Color', unpaired_color}, 1);
+
+hold off
+title('25 s gap');
+ylabel('angular velocity (degrees/s)');
+set_xlabels_time(27, frame_time, 10);
+fig_wrapup(27, [], [25, 30], .6);
+ax_vals = axis;
+%ax_vals(2) = 59;
+ax_vals(3) = -180;
+ax_vals(4) = 180;
+axis(ax_vals);
+
+
+%-------------
+
+
+
+
 
 
 %plotting mean absolute positions of flies
 score_vecs_all_final = [abs_dists_all(:, 1), abs_dists_all(:, 3), abs_dists_all(:, 2), abs_dists_all(:, 4)];        %re-arranging to bring paired, unpaired together instead of 0 and 25
 markercolor = [unpaired_color; paired_color; unpaired_color; paired_color];
 xlabels = [{'0 s, unprd'}, {'0 s, prd'}, {'25 s, unprd'}, {'25 s, prd'}];
-[fig_h, r_vecs_saved] = scattered_dot_plot_ttest(score_vecs_all_final, 14, 2.5, 4, 4, markercolor, 1, [], [], xlabels, 1, [0, 0, 0], 2, 0.05, 0);
+[fig_h, r_vecs_saved] = scattered_dot_plot_ttest(score_vecs_all_final, 28, 2.5, 4, 4, markercolor, 1, [], [], xlabels, 1, [0, 0, 0], 2, 0.05, 0);
 hold on
 ax_vals = axis;
 plot([ax_vals(1), ax_vals(2)], [50, 50], 'r');
+set(gcf, 'Name', 'mean dist to center stats')
 ylabel('dist. to center (mm)');
 fig_wrapup(fig_h, [], [25, 30], .6);
 
 %plotting mean norm. dists of flies
-score_vecs_all_final = [abs_dists_all(:, 1), abs_dists_all(:, 3), abs_dists_all(:, 2), abs_dists_all(:, 4)];        %re-arranging to bring paired, unpaired together instead of 0 and 25
-score_vecs_all_final = (score_vecs_all_final./50).^2;
-markercolor = [unpaired_color; paired_color; unpaired_color; paired_color];
-xlabels = [{'0 s, unprd'}, {'0 s, prd'}, {'25 s, unprd'}, {'25 s, prd'}];
-[fig_h, r_vecs_saved] = scattered_dot_plot_ttest(score_vecs_all_final, 24, 2.5, 4, 4, markercolor, 1, [], [], xlabels, 1, [0, 0, 0], 2, 0.05, 0);
-hold on
-ax_vals = axis;
-ylabel('norm. distance');
-fig_wrapup(fig_h, [], [25, 30], .6);
+% score_vecs_all_final = [abs_dists_all(:, 1), abs_dists_all(:, 3), abs_dists_all(:, 2), abs_dists_all(:, 4)];        %re-arranging to bring paired, unpaired together instead of 0 and 25
+% score_vecs_all_final = (score_vecs_all_final./50).^2;
+% markercolor = [unpaired_color; paired_color; unpaired_color; paired_color];
+% xlabels = [{'0 s, unprd'}, {'0 s, prd'}, {'25 s, unprd'}, {'25 s, prd'}];
+% [fig_h, r_vecs_saved] = scattered_dot_plot_ttest(score_vecs_all_final, 29, 2.5, 4, 4, markercolor, 1, [], [], xlabels, 1, [0, 0, 0], 2, 0.05, 0);
+% hold on
+% ax_vals = axis;
+% ylabel('norm. distance');
+% set(gcf, 'Name', 'Yoshi norm dist to center stats')
+% fig_wrapup(fig_h, [], [25, 30], .6);
 
 
 
@@ -883,16 +947,19 @@ base_path = 'C:\Data\Data\Analysed_data\Analysis_results\air_gap_traj_an\';
 %reading in data
 all_fly_displc = load([base_path, 'upwind_disps_allflies.mat']);
 all_fly_displc = all_fly_displc.score_vecs_all_final;
-sel_fly_displc = load([base_path, 'upwind_disps_selectflies.mat']);
-sel_fly_displc = sel_fly_displc.score_vecs_all_final;
 
 all_fly_pos = load([base_path, 'upwind_pos_allflies.mat']);
 all_fly_pos = all_fly_pos.score_vecs_all_final;
-sel_fly_pos = load([base_path, 'upwind_pos_selectflies.mat']);
-sel_fly_pos = sel_fly_pos.score_vecs_all_final;
+sel_fliesi = find(all_fly_pos < r_cutoff(2));   %identifying flies that start within the arena edge-dist cutoff
+
+sel_fly_displc = zeros(size(all_fly_displc, 1), size(all_fly_displc, 2), size(all_fly_displc, 3)) + nan;
+sel_fly_pos = sel_fly_displc;
+sel_fly_displc(sel_fliesi) = all_fly_displc(sel_fliesi);
+sel_fly_pos(sel_fliesi) = all_fly_pos(sel_fliesi);
 
 %0s gap
-figure(37)
+figure(30)
+set(gcf, 'Name', 'start pos vs upwind disp., 0s')
 %unpaired odor as pulse2
 plot(all_fly_pos(:, 1), all_fly_displc(:, 1), 'O', 'markerSize', 2.5, 'markerFaceColor', 'none', 'markerEdgeColor', unpaired_color);
 hold on
@@ -901,7 +968,6 @@ plot(sel_fly_pos(:, 1), sel_fly_displc(:, 1), 'O', 'markerSize', 2.5, 'markerFac
 %paired odor as pulse2
 plot(all_fly_pos(:, 3), all_fly_displc(:, 3), 'O', 'markerSize', 2.5, 'markerFaceColor', 'none', 'markerEdgeColor', paired_color);
 plot(sel_fly_pos(:, 3), sel_fly_displc(:, 3), 'O', 'markerSize', 2.5, 'markerFaceColor', paired_color, 'markerEdgeColor', paired_color);
-hold off
 
 title('0s gap')
 xlabel('start dist (mm)')
@@ -912,13 +978,15 @@ ax_vals(2) = 50;
 ax_vals(3) = -40;
 ax_vals(4) = 40;
 plot([ax_vals(1), ax_vals(2)], [0, 0], 'Color', [0.65, 0.65, 0.65])
+hold off
 axis(ax_vals);
 
-fig_wrapup(37, [], [25, 30], .6);
+fig_wrapup(30, [], [25, 30], .6);
 
 
 %25s gap
-figure(38)
+figure(31)
+set(gcf, 'Name', 'start pos vs upwind disp., 25s')
 %unpaired odor as pulse2
 plot(all_fly_pos(:, 2), all_fly_displc(:, 2), 'O', 'markerSize', 2.5, 'markerFaceColor', 'none', 'markerEdgeColor', unpaired_color);
 hold on
@@ -927,7 +995,6 @@ plot(sel_fly_pos(:, 2), sel_fly_displc(:, 2), 'O', 'markerSize', 2.5, 'markerFac
 %paired odor as pulse2
 plot(all_fly_pos(:, 4), all_fly_displc(:, 4), 'O', 'markerSize', 2.5, 'markerFaceColor', 'none', 'markerEdgeColor', paired_color);
 plot(sel_fly_pos(:, 4), sel_fly_displc(:, 4), 'O', 'markerSize', 2.5, 'markerFaceColor', paired_color, 'markerEdgeColor', paired_color);
-hold off
 title('25s gap')
 xlabel('start dist (mm)')
 ylabel('upwind disp. (mm)')
@@ -936,19 +1003,21 @@ ax_vals(1) = 0;
 ax_vals(2) = 50;
 ax_vals(3) = -40;
 ax_vals(4) = 40;
+plot([ax_vals(1), ax_vals(2)], [0, 0], 'Color', [0.65, 0.65, 0.65])
+hold off
 axis(ax_vals);
 
-fig_wrapup(38, [], [25, 30], .6);
+fig_wrapup(31, [], [25, 30], .6);
     
     
  %off response analysis plots
 if pulse_times_all{2}(2, 1) ~= 61 || pulse_times_all{2}(2, 1) ~= 86     %analyzing off responses for 25s gap data
     
     %plotting upwind displacement for 25s gap data
-    score_vecs_all_final = [score_vecs_all(:, 4), score_vecs_all(:, 2)];        %re-arranging to bring paired, unpaired together instead of 0 and 15
+    score_vecs_all_final = [score_vecs_all(:, 4), score_vecs_all(:, 2)];        %re-arranging to bring paired, unpaired together instead of 0 and 25
     markercolor = [unpaired_color; paired_color; unpaired_color; paired_color];
     xlabels = [{'25 s, unprd'}, {'25 s, prd'}];
-    fig_h = scattered_dot_plot_ttest(score_vecs_all_final, 15, 2.5, 4, 4, markercolor, 1, [], [], xlabels, 1, [0, 0, 0], 2, 0.05, 0);
+    fig_h = scattered_dot_plot_ttest(score_vecs_all_final, 32, 2.5, 4, 4, markercolor, 1, [], [], xlabels, 1, [0, 0, 0], 2, 0.05, 0);
     if pulse_times_all{2}(2, 1) == 31
         title('pulse1 on response')
     else
@@ -956,6 +1025,7 @@ if pulse_times_all{2}(2, 1) ~= 61 || pulse_times_all{2}(2, 1) ~= 86     %analyzi
     end
     
     ylabel(score_name);
+    set(gcf, 'Name', 'Pulse1 upwind displacement')
     fig_wrapup(fig_h, [], [25, 30], .6);
     
     %plotting mean upwind orientation
@@ -963,13 +1033,14 @@ if pulse_times_all{2}(2, 1) ~= 61 || pulse_times_all{2}(2, 1) ~= 86     %analyzi
     edge_vecs_all_final = [edge_flies_all(:, 1), edge_flies_all(:, 3), edge_flies_all(:, 2), edge_flies_all(:, 4)];        %re-arranging to bring paired, unpaired together instead of 0 and 25
     markercolor = [unpaired_color; paired_color; unpaired_color; paired_color];
     xlabels = [{'25 s, unprd'}, {'25 s, prd'}];
-    [fig_h, ~] = scattered_dot_plot_ttest(score_vecs_all_final, 16, 2.5, 4, 4, markercolor, 1, [], [], xlabels, 1, [0, 0, 0], 2, 0.05, 0);
+    [fig_h, ~] = scattered_dot_plot_ttest(score_vecs_all_final, 33, 2.5, 4, 4, markercolor, 1, [], [], xlabels, 1, [0, 0, 0], 2, 0.05, 0);
     if pulse_times_all{2}(2, 1) == 31
         title('pulse1 on response')
     else
         title('pulse1 off response')
     end
     ylabel('upwind orientation (degrees)');
+    set(gcf, 'Name', 'Pulse1 upwind orientation')
     fig_wrapup(fig_h, [], [25, 30], .6);
 
     
@@ -977,7 +1048,7 @@ if pulse_times_all{2}(2, 1) ~= 61 || pulse_times_all{2}(2, 1) ~= 86     %analyzi
     score_vecs_all_final = [abs_dists_all(:, 4), abs_dists_all(:, 2)];        %re-arranging to bring paired, unpaired together instead of 0 and 25
     markercolor = [unpaired_color; paired_color];
     xlabels = [{'25 s, unprd'}, {'25 s, prd'}];
-    [fig_h, r_vecs_saved] = scattered_dot_plot_ttest(score_vecs_all_final, 17, 2.5, 4, 4, markercolor, 1, [], [], xlabels, 1, [0, 0, 0], 2, 0.05, 0);
+    [fig_h, r_vecs_saved] = scattered_dot_plot_ttest(score_vecs_all_final, 34, 2.5, 4, 4, markercolor, 1, [], [], xlabels, 1, [0, 0, 0], 2, 0.05, 0);
     if pulse_times_all{2}(2, 1) == 31
         title('pulse1 on response')
     else
@@ -987,6 +1058,7 @@ if pulse_times_all{2}(2, 1) ~= 61 || pulse_times_all{2}(2, 1) ~= 86     %analyzi
     ax_vals = axis;
     plot([ax_vals(1), ax_vals(2)], [50, 50], 'r');
     ylabel('dist. to center (mm)');
+    set(gcf, 'Name', 'Pulse1 abs dists')
     fig_wrapup(fig_h, [], [25, 30], .6);
 else
 end
@@ -1010,7 +1082,7 @@ if plot_video == 1
         pos_vec = (0:frame_time:win_width.*frame_time)';                     
         t_vec = round([neg_vec; pos_vec(2:end)].*1000);     %in ms
         
-        figure(17 + dset_type)
+        figure(99 + dset_type)
         set_names = [{'0s unprd'}, {'25s unprd'}, {'0s prd'}, {'25s prd'}];
         set_name = set_names(dset_type);
         set_name = set_name{1};
@@ -1021,7 +1093,7 @@ if plot_video == 1
         if align_vids_vert == 1
             %subtracting away t0 angular offset to align all flies to the upward vertical on frame1
             [thetaxy, rho] = cart2pol(traj_mat(:, :, 1), traj_mat(:, :, 2));
-            thetaxy1 = thetaxy(:, 1);
+            thetaxy1 = thetaxy(:, round(win_width./4));
             thetaxy = thetaxy - repmat(thetaxy1, 1, size(thetaxy, 2)) + pi./2;      %aligning frame1 angular positions to upper vertical
             [x, y] = pol2cart(thetaxy, rho);                        %going back to xy space
             
@@ -1089,12 +1161,12 @@ if plot_video == 1
             writeVideo(v,frame);
            
         end
-        keyboard
+        %keyboard
         close(v);
         
     end
     
-    keyboard
+    %keyboard
     
 else
 end
@@ -1144,14 +1216,18 @@ function [traj_samps, upwind_dists, traj_mat_ext, upwind_dists_tseries, traj_mat
     traj_mat = traj_mat(:, :, 1:2);
     loc_0 = squeeze(traj_mat(:, round(t_window(1)./frame_time), :));     %location at beginning of t_window, all flies
     edge_fliesi = find(sqrt(sum(loc_0.^2, 2)) < r_cutoff(1) | sqrt(sum(loc_0.^2, 2)) > r_cutoff(2));
-    %edge_fliesi = find(sqrt(sum(loc_0.^2, 2)) < r_cutoff(2));
     traj_mat(edge_fliesi, :, :) = [];               %excluding flies too close to edge or center
     traj_mat_ext(edge_fliesi, :, :) = [];
     traj_mat_exp(edge_fliesi, 1, :) = 0;
     
-    loc_0 = squeeze(traj_mat(:, round(t_window(1)./frame_time), :));     %location at beginning of t_window, non-edge flies
-    loc_t = squeeze(traj_mat(:, round(t_window(2)./frame_time), :));     %location at end of t_window
-    
+    if size(traj_mat, 1) > 1
+        loc_0 = squeeze(traj_mat(:, round(t_window(1)./frame_time), :));     %location at beginning of t_window, non-edge flies
+        loc_t = squeeze(traj_mat(:, round(t_window(2)./frame_time), :));     %location at end of t_window
+    else
+        loc_0 = squeeze(traj_mat(:, round(t_window(1)./frame_time), :))';     %location at beginning of t_window, non-edge flies
+        loc_t = squeeze(traj_mat(:, round(t_window(2)./frame_time), :))';     %location at end of t_window
+    end
+        
     upwind_dists = sqrt(sum(loc_t.^2, 2)) - sqrt(sum(loc_0.^2, 2));      %distance from 0 ie. dist travelled upwind during t_window
     
     upwind_dists_tseries = [];
@@ -1173,6 +1249,15 @@ function [traj_samps, upwind_dists, traj_mat_ext, upwind_dists_tseries, traj_mat
     pre_win = t_window(1) - (t_window(2) - t_window(1));        %sampling trajectories prior to beginning of t_window
     
     traj_samps = traj_mat(:, round(pre_win./frame_time):round(t_window(2)./frame_time), :);
+    
+    %identifying and removing flies that don't move throughout the analysis time window
+    [xy_vels_tseries, xy_vels_bin, ststp_tseries] = get_xydists_ststp_probs(traj_mat, frame_time, t_window, [2, 0.5]);
+    tot_moving_frames = sum(xy_vels_bin, 2, 'omitnan');
+    non_movers = find(tot_moving_frames == 0);
+    traj_mat(non_movers, :, :) = [];               %excluding flies that aren't moving
+    traj_mat_ext(non_movers, :, :) = [];
+    traj_mat_exp(non_movers, 1, :) = 0;
+    traj_samps(non_movers, :, :) = [];
     
 end
 
