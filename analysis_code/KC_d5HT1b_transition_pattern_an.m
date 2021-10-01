@@ -253,7 +253,7 @@ for list_n = 1:size(dataset_list_paths, 1)
                 end
                 ylabel(['probability odor ' num2str(stim_type_n)]);
                 set_xlabels_time(fig_n, frame_time, 10);
-                fig_wrapup(fig_n, [], [25, 30], .6);
+                fig_wrapup(fig_n, [], [25, 25], .6);
                 add_stim_bar(fig_n, stim_frs_plt, color_vecs_decoders(stim_type_n, :));
                 ax_vals = axis;
                 plot([0, ax_vals(2)], [.5, .5], 'Color', [.8, .2, .2]);
@@ -273,7 +273,7 @@ for list_n = 1:size(dataset_list_paths, 1)
                 end
                 ylabel(['probability odor ' num2str(stim_type_n)]);
                 set_xlabels_time(fig_n, frame_time, 10);
-                fig_wrapup(fig_n, [], [25, 30], .6);
+                fig_wrapup(fig_n, [], [25, 25], .6);
                 stim_frs_plt = [stim_frs{1}; stim_frs{2}];
                 if stim_type == 4
                     curr_color_vecs = [color_vecs_decoders(1, :); color_vecs_decoders(2, :)];
@@ -306,7 +306,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         %plotting in PC space
         for od_n = 1:3
             figure(14)
-            plot(PC1_resps(:, od_n), PC2_resps(:, od_n), '.', 'Color', color_vecs(od_n, :), 'markerSize', 18);
+            plot(PC1_resps(:, od_n), PC2_resps(:, od_n), '.', 'Color', color_vecs(od_n, :), 'markerSize', 15.3);
             hold on
             %plot(mean_PC1_resps(od_n), PC2_resps(od_n), '.', 'Color', color_vecs(od_n, :).*0.75, 'markerSize', 24);
             
@@ -314,7 +314,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         xlabel('PC1')
         ylabel('PC2')
         hold off
-        fig_wrapup(14, [])
+        fig_wrapup(14,[], [25, 25], 0.6)
         if pause_PCAs == 1 && dir_n == single_fly_n
             keyboard
         else
@@ -403,12 +403,21 @@ for list_n = 1:size(dataset_list_paths, 1)
        
         
         fig_h = figure('Name', curr_stim_name);
-        imagesc(curr_mean_traces', [0, 1.5]);
+        
+        if isempty(findstr(curr_dir_list_path, 'd5HT1b')) == 0
+            high_val = 1.5;
+        elseif isempty(findstr(curr_dir_list_path, 'c305a')) == 0
+            high_val = 6;
+        elseif isempty(findstr(curr_dir_list_path, 'c739')) == 0
+            high_val = 3;
+        else
+        end
+        imagesc(curr_mean_traces', [0, high_val]);
         colormap(greymap);
         set_xlabels_time(fig_h, frame_time, 15);
         ylabel('cell number');
         fig_wrapup_mod(fig_h, 'tall', []);
-        fig_wrapup(1, [], [50, 30], 0.6)
+        fig_wrapup(fig_h, [], [25, 15], 0.6)
         add_stim_bar(fig_h, stim_frs, curr_color);
     end
     
@@ -441,7 +450,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         else
         end
         text(x_val, y_val, ['r ', r_val, ', p ', p_val])
-        fig_wrapup(fig_h, [], [25, 30]);
+        fig_wrapup(fig_h, [], [25, 30], 0.6);
     end
     
         
@@ -550,15 +559,15 @@ for list_n = 1:size(dataset_list_paths, 1)
     p_decoder_s_corr = bonf_holm([p_decoder_s_PAEL, p_decoder_s_BAEL], 0.05)
     
     %plotting logistic regression decoder accuracies for simple and transition trials
-    xlabels = [{'PA', 'BA', 'BA-PA', 'PA-BA'}];
-    fig_h = scattered_dot_plot_ttest(all_fly_accuracy_mat(:, [1, 2, 5, 4]).*100, 17, 2.5, 4, 4, marker_colors, 1, col_pairs, line_colors, xlabels, 2, mean_color, 2, 0.05, 0, 1, 'force_mean');
+    xlabels = [{'PA', 'BA-PA', 'BA', 'PA-BA'}];
+    fig_h = scattered_dot_plot_ttest(all_fly_accuracy_mat(:, [1, 5, 2, 4]).*100, 17, 2.5, 4, 4, marker_colors, 1, col_pairs, line_colors, xlabels, 2, mean_color, 2, 0.05, 0, 1, 'force_mean');
     ylabel('decoder accuracy')
     ax_vals = axis;
     ax_vals(4) = 100;
     axis(ax_vals);
     hold on
     plot([0, ax_vals(2)], [50, 50], 'Color', [1, 0, 0]);
-    fig_wrapup(fig_h, [], [25, 50], 0.6);
+    fig_wrapup(fig_h, [], [25, 25], 0.6);
     
     p_decoder_trtr = signrank(all_fly_accuracy_mat(:, 4), all_fly_accuracy_mat(:, 5))
     p_decoder_simtrPA = signrank(all_fly_accuracy_mat(:, 1), all_fly_accuracy_mat(:, 5))

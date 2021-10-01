@@ -9,8 +9,6 @@ function [fig_h, r_vecs_saved] = scattered_dot_plot_ttest(mat, fig_n, col_width,
 
 
 %if using the beeswarm function to generate r_offsets, use these defaults
-col_width = 1;
-col_spacing = 0;
 % mat = rand(100, 3);
 % fig_n = 1;
 % markersize = 5;
@@ -19,7 +17,13 @@ col_spacing = 0;
 if isempty(varargin) == 0
     bar_thickness = varargin{1};
     force_means = varargin{2};
-    wrapup_vars = varargin{3};
+    if length(varargin) == 3
+        wrapup_vars = varargin{3};
+    else
+        wrapup_vars{1} = [100, 120];
+        wrapup_vars{2} = 0.6;
+    end    
+    
     if force_means == 'force_mean'
         force_means = 1;
     else
@@ -35,7 +39,7 @@ end
 
 
 n_cols = size(mat, 2);
-violin_cutoff = 100;    %if n points in any column crosses this thresh, all columns rendered as violins
+violin_cutoff = 500;    %if n points in any column crosses this thresh, all columns rendered as violins
 if size(mat, 1) > violin_cutoff
     plot_violins = 1;
 else
@@ -59,24 +63,37 @@ else
     fig_h = fig_n;
 end
 
-%using beeswarm to generate random offset vectors that retain distribution shape for all data columns
-%setting up input vectors for beeswarm
-x_vec = zeros((size(mat, 1).*size(mat, 2)), 1);
-y_vec = x_vec;
-for col_n = 1:size(mat, 2)
-    st_pt = (col_n - 1).*size(mat, 1) + 1;
-    stp_pt = col_n.*size(mat, 1);
-    x_vec(st_pt:stp_pt, 1) = col_n;             %generating vector of group numbers (col numbers)
-    y_vec(st_pt:stp_pt, 1) = mat(:, col_n);     %generating a single vector of all the columns
+if isempty(with_lines) == 0
+    bees_on = 0;
+else
+    bees_on = 1;
+    col_width = 1;
+    col_spacing = 0;
 end
-r_vecs = beeswarm_noplot(x_vec, y_vec, wrapup_vars, 'sort_style','rand', 'corral_style', 'gutter');     %vector of x positions for each point
-r_mat = zeros(size(mat, 1), size(mat, 2));
-for col_n = 1:size(mat, 2)
-    st_pt = (col_n - 1).*size(mat, 1) + 1;
-    stp_pt = col_n.*size(mat, 1);
-    r_mat(:, col_n) = r_vecs(st_pt:stp_pt, 1);    
-end
+   
 
+if bees_on == 1
+    %using beeswarm to generate random offset vectors that retain distribution shape for all data columns
+    %setting up input vectors for beeswarm
+    x_vec = zeros((size(mat, 1).*size(mat, 2)), 1);
+    y_vec = x_vec;
+    for col_n = 1:size(mat, 2)
+        st_pt = (col_n - 1).*size(mat, 1) + 1;
+        stp_pt = col_n.*size(mat, 1);
+        x_vec(st_pt:stp_pt, 1) = col_n;             %generating vector of group numbers (col numbers)
+        y_vec(st_pt:stp_pt, 1) = mat(:, col_n);     %generating a single vector of all the columns
+    end
+    r_vecs = beeswarm_noplot(x_vec, y_vec, wrapup_vars, 'sort_style','rand', 'corral_style', 'gutter');     %vector of x positions for each point
+    r_mat = zeros(size(mat, 1), size(mat, 2));
+    for col_n = 1:size(mat, 2)
+        st_pt = (col_n - 1).*size(mat, 1) + 1;
+        stp_pt = col_n.*size(mat, 1);
+        r_mat(:, col_n) = r_vecs(st_pt:stp_pt, 1);    
+    end
+    clear r_vecs
+else
+end
+ 
 saved_col_centers = zeros(1, n_cols);
 if isempty(with_lines) == 1
     x_vec = [];
@@ -86,8 +103,13 @@ if isempty(with_lines) == 1
         curr_vec = mat(:, col_n);
         col_center = ( (col_n-1).*(col_width + (col_spacing)) + 0.5) + col_width./2;
         saved_col_centers(col_n) = col_center;
-        %r_vec = rand(length(curr_vec), 1).*col_width + ( (col_n-1).*(col_width + (col_spacing)) + 0.5);
-        r_vec = r_mat(:, col_n);        %taking x positions for each point from beeswarm generated r_mat
+        
+        if bees_on == 1
+            r_vec = r_mat(:, col_n);        %taking x positions for each point from beeswarm generated r_mat
+        else
+            r_vec = rand(length(curr_vec), 1).*col_width + ( (col_n-1).*(col_width + (col_spacing)) + 0.5);
+        end
+        
         r_vecs_saved = [r_vecs_saved, r_vec];
         r_vec_center = 0.5.*col_width + ( (col_n-1).*(col_width + (col_spacing)) + 0.5);    %for use with a violin plot, if needed
         
@@ -182,6 +204,8 @@ elseif isempty(with_lines) == 0 | with_lines == 0
     for col_n = 1:n_cols
         col_center = ( (col_n-1).*(col_width + (col_spacing)) + 0.5) + col_width./2;
         saved_col_centers(col_n) = col_center;
+        
+        
         r_vecs(:, col_n) = r_vec.*col_width + ( (col_n-1).*(col_width + (col_spacing)) + 0.5);
                 
         %adding p_val label
@@ -246,7 +270,6 @@ elseif isempty(with_lines) == 0 | with_lines == 0
             try
                 curr_row = mat(row_n, curr_pair(1):curr_pair(2) );
            
-                
             if marker_filled == 0
                 plot(r_vecs(row_n, curr_pair(1):curr_pair(2)), curr_row, '-O', 'markerSize', markersize, 'markerEdgeColor', markercolor(curr_pair(1), :), 'Color', linecolor(curr_pair(1), :), 'lineWidth', 1)
                 hold on

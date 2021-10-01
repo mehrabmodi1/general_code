@@ -4,8 +4,9 @@ close all
 dataset_list_paths = [...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_simp_pairing_Berry.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry.xls'};...
+                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_5sipi.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_15s_ipi.xls'};...
-                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_25sipi_higherLED.xls'};...                      
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_25sipi_higherLED.xls'};...                      
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_ELsecond.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_noLEDctrl.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_longpulse2.xls'};...
@@ -22,7 +23,7 @@ dataset_list_paths = [...
                       
                       ];
             
-suppress_plots = 1;
+suppress_plots = 0;
 plotting_quant_no_filt = 0;     %1 - only unfiltered traces used for all analysis and plotting - traces included. 0 - filtered traces used for everything.
 cell_n = 1;
 
@@ -218,42 +219,56 @@ for list_n = 1:size(dataset_list_paths, 1)
         del = find(dff_data_mat_f < -1);
         dff_data_mat_f(del) = -1;       %forcing crazy values to sane ones
                 
-        
+       
         %identifying relevant odor numbers for each olfactometer
         pairing_tr_n = find(stim_mat_simple(:, led_on_col_n) == 1);
-        ctrl_set = 0;       %keeping track if this is a no LED ctrl dataset
-        prd_olf1_dur = stim_mat_simple(pairing_tr_n(1), dur_col_ns(1));
-        if set_list_type == 0 || prd_olf1_dur > 1
-            paired_od_n_olf1 = unique(stim_mat_simple(pairing_tr_n, od_olf1_col_n));
-        elseif set_list_type > 0 && set_list_type < 4
-            paired_od_n_olf2 = unique(stim_mat_simple(pairing_tr_n, od_olf2_col_n));
-            if paired_od_n_olf2 == PA_odn_olf2
+        
+        if isempty(pairing_tr_n) == 1
+            ctrl_set = 1;       %keeping track if this is a no LED ctrl dataset
+            r_num = rand(1, 1);
+            if r_num > 0.5
+                %case for no LED ctrl datasets; paired odor assigned at random
+                paired_od_n_olf2 = PA_odn_olf2;
                 paired_od_n_olf1 = PA_odn_olf1;
-            elseif paired_od_n_olf2 == BA_odn_olf2
+            elseif r_num <= 0.5
+                paired_od_n_olf2 = BA_odn_olf2;
                 paired_od_n_olf1 = BA_odn_olf1;
-            elseif isempty(paired_od_n_olf2) == 1       %case for no LED ctrl datasets; paired odor assigned at random
-                r_num = rand(1, 1);
-                if r_num > 0.5
-                    paired_od_n_olf2 = PA_odn_olf2;
-                    paired_od_n_olf1 = PA_odn_olf1;
-                elseif r_num <= 0.5
-                    paired_od_n_olf2 = BA_odn_olf2;
-                    paired_od_n_olf1 = BA_odn_olf1;
-                else
-                end
-                ctrl_set = 1;
-            end
-        elseif set_list_type == 4 %generalization dataset
-            paired_od_n_olf2_orig = unique(stim_mat_simple(pairing_tr_n, od_olf2_col_n));
-            if paired_od_n_olf2_orig == PA_odn_olf2
-                paired_od_n_olf2 = BA_odn_olf2;     %this is actually the CS- odor, assigned here to make subsequent parts of the script work
-                paired_od_n_olf1 = BA_odn_olf1;
-            elseif paired_od_n_olf2_orig == BA_odn_olf2
-                paired_od_n_olf2 = PA_odn_olf2;     %this is actually the CS- odor, assigned here to make subsequent parts of the script work
-                paired_od_n_olf1 = PA_odn_olf1;     %this is actually the CS- odor, assigned here to make subsequent parts of the script work
             else
             end
         else
+            ctrl_set = 0;
+            
+            prd_olf1_dur = stim_mat_simple(pairing_tr_n(1), dur_col_ns(1));
+            if set_list_type == 0 || prd_olf1_dur > 1
+                paired_od_n_olf1 = unique(stim_mat_simple(pairing_tr_n, od_olf1_col_n));
+                if paired_od_n_olf1 == PA_odn_olf1
+                    paired_od_n_olf2 = PA_odn_olf2;
+                elseif paired_od_n_olf1 == BA_odn_olf1
+                    paired_od_n_olf2 = BA_odn_olf2;
+                else
+                end
+            elseif set_list_type > 0 && set_list_type < 4
+                paired_od_n_olf2 = unique(stim_mat_simple(pairing_tr_n, od_olf2_col_n));
+                
+                if paired_od_n_olf2 == PA_odn_olf2
+                    paired_od_n_olf1 = PA_odn_olf1;
+                elseif paired_od_n_olf2 == BA_odn_olf2
+                    paired_od_n_olf1 = BA_odn_olf1;
+                else
+                end
+                
+            elseif set_list_type == 4 %generalization dataset
+                paired_od_n_olf2_orig = unique(stim_mat_simple(pairing_tr_n, od_olf2_col_n));
+                if paired_od_n_olf2_orig == PA_odn_olf2
+                    paired_od_n_olf2 = BA_odn_olf2;     %this is actually the CS- odor, assigned here to make subsequent parts of the script work
+                    paired_od_n_olf1 = BA_odn_olf1;
+                elseif paired_od_n_olf2_orig == BA_odn_olf2
+                    paired_od_n_olf2 = PA_odn_olf2;     %this is actually the CS- odor, assigned here to make subsequent parts of the script work
+                    paired_od_n_olf1 = PA_odn_olf1;     %this is actually the CS- odor, assigned here to make subsequent parts of the script work
+                else
+                end
+            else
+            end
         end
         
         paired_od_name = odor_names1{paired_od_n_olf1};
@@ -495,7 +510,8 @@ for list_n = 1:size(dataset_list_paths, 1)
             mean_trace = squeeze(mean(saved_traces_all(1:(end - 5), 1, tr_type, :), 4, 'omitnan')); 
             se_trace = squeeze(std(saved_traces_all(1:(end - 5), 1, tr_type, :), [], 4, 'omitnan')./sqrt(size(saved_traces_all, 3)));
         end
-        shadedErrorBar([], mean_trace, se_trace, {'Color', color_vecs(tr_type, :)}, 1);
+        plt_h = shadedErrorBar([], mean_trace, se_trace, {'Color', color_vecs(tr_type, :)}, 1);
+        set(plt_h.edge(:), 'Color', 'none')
         if plot_diff_traces == 1
             break
         else
@@ -510,10 +526,11 @@ for list_n = 1:size(dataset_list_paths, 1)
     end
     set_xlabels_time(1, frame_time, 10)
     ax_vals = axis;
-    ax_vals(4) = 6;
-    ax_vals(3) = -2;
+    ax_vals(2) = 290;
+    ax_vals(4) = 3;
+    ax_vals(3) = -0.5;
     axis(ax_vals);
-    fig_wrapup(1, [], [100, 120], 0.6)
+    fig_wrapup(1, [], [75, 90], 0.6)
     if set_list_type == 0
         add_stim_bar(1, stim_frs_bar, paired_color);
     elseif set_list_type == 1
@@ -540,15 +557,16 @@ for list_n = 1:size(dataset_list_paths, 1)
         disp(['tau = ',  num2str(-1.*(1./fit_params(1))), ' s']);
         
         figure(16)
-        shadedErrorBar([], mean_trace, se_trace, {'Color', color_vecs(tr_type, :)}, 1);
+        plt_h = shadedErrorBar([], mean_trace, se_trace, {'Color', color_vecs(tr_type, :)}, 1);
+        set(plt_h.edge(:), 'Color', 'none')
         hold on
         x_vec = pki:1:(pki + size(modelled_trace, 1) - 1)';
         plot(x_vec, modelled_trace, ':r', 'lineWidth', 2);
-        ax_vals = [0, 490, -1, 2];
+        ax_vals = [0, 290, -1, 2];
         axis(ax_vals);
         ylabel('paired odor responses (dF/F)')
         set_xlabels_time(15, frame_time, 10)
-        fig_wrapup(16, [], [100, 120], 0.6)
+        fig_wrapup(16, [], [75, 90], 0.6)
         add_stim_bar(16, stim_frs_bar, [unpaired_color; paired_color]);
     else
     end
@@ -566,7 +584,8 @@ for list_n = 1:size(dataset_list_paths, 1)
             se_trace = squeeze(std(saved_traces_all(1:(end - 5), 2, tr_type, :), [], 4, 'omitnan')./sqrt(size(saved_traces_all, 3)));
         end
         
-        shadedErrorBar([], mean_trace, se_trace, {'Color', color_vecs(tr_type, :)}, 1);
+        plt_h = shadedErrorBar([], mean_trace, se_trace, {'Color', color_vecs(tr_type, :)}, 1);
+        set(plt_h.edge(:), 'Color', 'none')
         if plot_diff_traces == 1
             break
         else
@@ -577,10 +596,11 @@ for list_n = 1:size(dataset_list_paths, 1)
     ylabel('unpaired odor responses (dF/F)')
     set_xlabels_time(2, frame_time, 10)
     ax_vals = axis;
-    ax_vals(4) = 6;
-    ax_vals(3) = -2;
+    ax_vals(2) = 290;
+    ax_vals(4) = 3;
+    ax_vals(3) = -0.5;
     axis(ax_vals);
-    fig_wrapup(2, [], [100, 120], 0.6)
+    fig_wrapup(2, [], [75, 90], 0.6)
     if set_list_type == 0
         add_stim_bar(2, stim_frs_bar, unpaired_color);
     elseif set_list_type == 1
@@ -606,36 +626,39 @@ for list_n = 1:size(dataset_list_paths, 1)
         disp(['tau = ',  num2str(-1.*(1./fit_params(1))), ' s']);
         
         figure(15)
-        shadedErrorBar([], mean_trace, se_trace, {'Color', color_vecs(tr_type, :)}, 1);
+        plt_h = shadedErrorBar([], mean_trace, se_trace, {'Color', color_vecs(tr_type, :)}, 1);
+        set(plt_h.edge(:), 'Color', 'none')
         hold on
         x_vec = pki:1:(pki + size(modelled_trace, 1) - 1)';
         plot(x_vec, modelled_trace, ':r', 'lineWidth', 2);
-        ax_vals = [0, 490, -1, 2];
+        ax_vals = [0, 290, -1, 2];
         axis(ax_vals);
         ylabel('unpaired odor responses (dF/F)')
         set_xlabels_time(15, frame_time, 10)
-        fig_wrapup(15, [], [100, 120], 0.6)
+        fig_wrapup(15, [], [75, 90], 0.6)
         add_stim_bar(15, stim_frs_bar, [paired_color; unpaired_color]);
     else
     end
-        
+    
     %EL
     figure(3)
     for tr_type = 1:2
         mean_trace = squeeze(mean(saved_traces_all(1:(end - 20), 3, tr_type, :), 4, 'omitnan')); 
         se_trace = squeeze(std(saved_traces_all(1:(end - 20), 3, tr_type, :), [], 4, 'omitnan')./sqrt(size(saved_traces_all, 3)));
         col_mult = 0.6.^(tr_type - 1);
-        shadedErrorBar([], mean_trace, se_trace, {'Color', color_vecs(tr_type, :)}, 1);
+        plt_h = shadedErrorBar([], mean_trace, se_trace, {'Color', color_vecs(tr_type, :)}, 1);
+        set(plt_h.edge(:), 'Color', 'none')
         hold on
     end
     hold off
     ylabel('EL responses (dF/F)')
     set_xlabels_time(3, frame_time, 10)
     ax_vals = axis;
+    ax_vals(2) = 290;
     ax_vals(4) = 6;
-    ax_vals(3) = -2;
+    ax_vals(3) = -0.5;
     axis(ax_vals);
-    fig_wrapup(3, [], [100, 120], 0.6)
+    fig_wrapup(3, [], [75, 90], 0.6)
     if set_list_type ~= 4
         add_stim_bar(3, stim_frs_bar_EL(1, :), EL_color);
     elseif set_list_type == 4
@@ -650,7 +673,8 @@ for list_n = 1:size(dataset_list_paths, 1)
     se_trace = squeeze(std(diff_traces, [], 4, 'omitnan')./sqrt(size(saved_traces_all, 3)));
     plot([0, size(mean_trace, 1)], [0, 0], ':', 'lineWidth', 2, 'Color', [0.6, 0.6, 0.6]);
     hold on
-    shadedErrorBar([], mean_trace, se_trace, {'Color', color_vecs(tr_type, :)}, 1);
+    plt_h = shadedErrorBar([], mean_trace, se_trace, {'Color', color_vecs(tr_type, :)}, 1);
+    set(plt_h.edge(:), 'Color', 'none')
     hold off
     ylabel('unpaired - paired response (dF/F)')
     set_xlabels_time(2, frame_time, 10)

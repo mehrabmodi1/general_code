@@ -324,45 +324,54 @@ se_EL_trace_ct = sqrt(var_EL_trace_ct)./sqrt(n_flies(3));
 %plotting
 stim_frs_bar = [stim_frs{1}; stim_frs{2}];
 figure(1)
-shadedErrorBar([], mean_sim_od_trace_ct, se_sim_od_trace_ct, {'Color', [0.6, 0.6, 0.6]}, 1);
+plt_h = shadedErrorBar([], mean_sim_od_trace_ct, se_sim_od_trace_ct, {'Color', [0.6, 0.6, 0.6]}, 1);
+set(plt_h.edge(:), 'Color', 'none')
 hold on
-shadedErrorBar([], mean_paired_trace, se_paired_trace, {'Color', [0, 0, 0]}, 1);
+plt_h = shadedErrorBar([], mean_paired_trace, se_paired_trace, {'Color', [0, 0, 0]}, 1);
+set(plt_h.edge(:), 'Color', 'none')
 hold off
 ylabel('paired odor responses (dF/F)')
 set_xlabels_time(1, frame_time, 10)
 ax_vals = axis;
-ax_vals(4) = 6;
-ax_vals(3) = -2;
+ax_vals(2) = 290;
+ax_vals(4) = 3.3;
+ax_vals(3) = -0.5;
 axis(ax_vals);
-fig_wrapup(1, [], [50, 60])
+fig_wrapup(1, [], [75, 90], 0.6)
 add_stim_bar(1, stim_frs_bar, [unpaired_color; paired_color]);
 
 figure(2)
-shadedErrorBar([], mean_sim_od_trace_ct, se_sim_od_trace_ct, {'Color', [0.6, 0.6, 0.6]}, 1);
+plt_h = shadedErrorBar([], mean_sim_od_trace_ct, se_sim_od_trace_ct, {'Color', [0.6, 0.6, 0.6]}, 1);
+set(plt_h.edge(:), 'Color', 'none')
 hold on
-shadedErrorBar([], mean_unpaired_trace, se_unpaired_trace, {'Color', [0, 0, 0]}, 1);
+plt_h = shadedErrorBar([], mean_unpaired_trace, se_unpaired_trace, {'Color', [0, 0, 0]}, 1);
+set(plt_h.edge(:), 'Color', 'none')
 hold off
 ylabel('unpaired odor responses (dF/F)')
 set_xlabels_time(2, frame_time, 10)
 ax_vals = axis;
-ax_vals(4) = 6;
-ax_vals(3) = -2;
+ax_vals(2) = 290;
+ax_vals(4) = 3.3;
+ax_vals(3) = -0.5;
 axis(ax_vals);
-fig_wrapup(2, [], [50, 60])
+fig_wrapup(2, [], [75, 90], 0.6)
 add_stim_bar(2, stim_frs_bar, [paired_color; unpaired_color]);
 
 figure(3)
-shadedErrorBar([], mean_EL_trace_ct, se_EL_trace_ct, {'Color', [0.6, 0.6, 0.6]}, 1);
+plt_h = shadedErrorBar([], mean_EL_trace_ct, se_EL_trace_ct, {'Color', [0.6, 0.6, 0.6]}, 1);
+set(plt_h.edge(:), 'Color', 'none')
 hold on
-shadedErrorBar([], mean_EL_trace, se_EL_trace, {'Color', [0, 0, 0]}, 1);
+plt_h = shadedErrorBar([], mean_EL_trace, se_EL_trace, {'Color', [0, 0, 0]}, 1);
+set(plt_h.edge(:), 'Color', 'none')
 hold off
 ylabel('unpaired odor responses (dF/F)')
 set_xlabels_time(3, frame_time, 10)
 ax_vals = axis;
-ax_vals(4) = 6;
-ax_vals(3) = -2;
+ax_vals(2) = 290;
+ax_vals(4) = 4;
+ax_vals(3) = -0.5;
 axis(ax_vals);
-fig_wrapup(3, [], [50, 60])
+fig_wrapup(3, [], [75, 90], 0.6)
 add_stim_bar(3, stim_frs{1}, [EL_color]);
 
 
@@ -416,34 +425,42 @@ se_EL_traces_ct = sqrt(var_EL_traces_ct)./sqrt(n_flies(3));
 %Plotting
 %PA
 figure(4)
-shadedErrorBar([], mean_PA_traces_ct, se_PA_traces_ct, {'Color', [0.6, 0.6, 0.6]}, 1);
+plt_h = shadedErrorBar([], mean_PA_traces_ct, se_PA_traces_ct, {'Color', [0.6, 0.6, 0.6]}, 1);
+set(plt_h.edge(:), 'Color', 'none')
 hold on
-shadedErrorBar([], mean_PA_traces1, se_PA_traces1, {'Color', [0, 0, 0]}, 1);
-shadedErrorBar([], mean_PA_traces2, se_PA_traces2, {'--', 'Color', [0, 0, 0]}, 1);
+plt_h = shadedErrorBar([], mean_PA_traces1, se_PA_traces1, {'Color', [0, 0, 0]}, 1);
+set(plt_h.edge(:), 'Color', 'none')
+plt_h = shadedErrorBar([], mean_PA_traces2, se_PA_traces2, {'--', 'Color', [0, 0, 0]}, 1);
+set(plt_h.edge(:), 'Color', 'none')
 hold off
 ylabel('PA responses (dF/F)')
 set_xlabels_time(4, frame_time, 10)
 ax_vals = axis;
-ax_vals(4) = 6;
-ax_vals(3) = -2;
+ax_vals(2) = 290;
+ax_vals(4) = 4;
+ax_vals(3) = -0.5;
 axis(ax_vals);
-fig_wrapup(4, [], [50, 60])
+fig_wrapup(4, [], [75, 90], 0.6)
 add_stim_bar(4, stim_frs_bar, [BA_color; PA_color]);
 
 %BA
 figure(5)
-shadedErrorBar([], mean_BA_traces_ct, se_BA_traces_ct, {'Color', [0.6, 0.6, 0.6]}, 1);
+plt_h = shadedErrorBar([], mean_BA_traces_ct, se_BA_traces_ct, {'Color', [0.6, 0.6, 0.6]}, 1);
+set(plt_h.edge(:), 'Color', 'none')
 hold on
-shadedErrorBar([], mean_BA_traces1, se_BA_traces1, {'Color', [0, 0, 0]}, 1);
-shadedErrorBar([], mean_BA_traces2, se_BA_traces2, {'--', 'Color', [0, 0, 0]}, 1);
+plt_h = shadedErrorBar([], mean_BA_traces1, se_BA_traces1, {'Color', [0, 0, 0]}, 1);
+set(plt_h.edge(:), 'Color', 'none')
+plt_h = shadedErrorBar([], mean_BA_traces2, se_BA_traces2, {'--', 'Color', [0, 0, 0]}, 1);
+set(plt_h.edge(:), 'Color', 'none')
 hold off
 ylabel('BA responses (dF/F)')
 set_xlabels_time(5, frame_time, 10)
 ax_vals = axis;
-ax_vals(4) = 6;
-ax_vals(3) = -2;
+ax_vals(2) = 290;
+ax_vals(4) = 4;
+ax_vals(3) = -0.5;
 axis(ax_vals);
-fig_wrapup(5, [], [50, 60])
+fig_wrapup(5, [], [75, 90], 0.6)
 add_stim_bar(5, stim_frs_bar, [PA_color; BA_color]);
 
 
@@ -460,7 +477,6 @@ saved_resps_all2 = squeeze(mean(saved_traces_all(win2(1):win2(2), :, :, :), 1, '
 
 ctrst_sc_resps_all1 = squeeze(min(saved_traces_all(win1(1):win1(2), :, :, :), [], 1, 'omitnan'));      %mean responses during pulse1 time
 ctrst_sc_resps_all2 = squeeze(max(saved_traces_all(win2_orig(1):win2_orig(2), :, :, :), [], 1, 'omitnan'));      %mean responses during pulse1 time
-
 
 %saved_traces_all dim1: time, dim2: [paired_od, unpaired_od, EL], dim3: fly_n, dim4: [BApaired, PApaired, unpairedctrl]
 
