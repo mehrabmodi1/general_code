@@ -79,7 +79,8 @@ stim_frs = [stim_frs{1}];
 figure(fign1)
 mean_tr = mean(curr_traces, 2, 'omitnan');
 se_tr = std(curr_traces, [], 2, 'omitnan')./sqrt(size(curr_traces, 2));
-shadedErrorBar([], mean_tr, se_tr, {'Color', [0.6, 0.6, 0.6]}, 1);
+%shadedErrorBar([], mean_tr, se_tr, {'Color', [0.6, 0.6, 0.6]}, 1);
+plot(curr_traces, 'lineWidth', 1, 'Color', [0.6, 0.6, 0.6]);
 hold on
 
 ylabel('PID signal (V)');
@@ -101,7 +102,8 @@ stim_frs = [stim_frs{2}];
 mean_tr = mean(curr_traces, 2, 'omitnan');
 se_tr = std(curr_traces, [], 2, 'omitnan')./sqrt(size(curr_traces, 2));
 shadedErrorBar([], mean_tr, se_tr, {'Color', [0, 0, 0]}, 1);
-fig_wrapup(fign1, [], [50, 60]);
+plot(curr_traces, 'lineWidth', 1, 'Color', [0, 0, 0]);
+fig_wrapup(fign1, [], [25, 30], 0.6);
 add_stim_bar(fign1, stim_frs, od_color);
 
 end
@@ -120,15 +122,19 @@ curr_traces = get_PID_traces(curr_dir, curr_trs, frame_time, 0);
 curr_traces(:, 1:2:end) = curr_traces(:, 1:2:end) - curr_traces(:, 2:2:end); 
 curr_traces = curr_traces(:, 1:2:end);  %getting rid of LED traces
 stim_frs = compute_stim_frs_modular(stim_mat, curr_trs(1), frame_time);
-stim_frs = [stim_frs{1}; stim_frs{2}]; 
+stim_frs = [stim_frs{1}; stim_frs{2}];
+mean_tr = mean(curr_traces, 2, 'omitnan');
+se_tr = std(curr_traces, [], 2, 'omitnan')./sqrt(size(curr_traces, 2));
+
 figure(fign)
+%shadedErrorBar([], mean_tr, se_tr, {'Color', [0.6, 0.6, 0.6]}, 1);
 plot(curr_traces, 'lineWidth', 1, 'Color', [0.65, 0.65, 0.65]);
 ylabel('PID signal (V)');
 ax_vals = axis;
 ax_vals(4) = y_ax_lim;
 axis(ax_vals);
 set_xlabels_time(fign, frame_time, 10);
-fig_wrapup(fign, [], [50, 60]);
+fig_wrapup(fign, [], [25, 30], 0.6);
 add_stim_bar(fign, stim_frs, [od1_color; od2_color]);
 end
 
