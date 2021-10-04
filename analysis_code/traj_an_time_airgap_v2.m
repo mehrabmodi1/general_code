@@ -2,15 +2,12 @@ clear all
 close all
 
 
-%PICK UP THREAD HERE
-%follow up on why there are still some non-mover flies in the data
-%find a way to average upwind angles/vertical orientation components in time for each fly, re-plot upwind orientation stuff 
-
-
 base_order_paths = [{'C:\Data\Data\Raw_data\Adithya_airgap_expts_v220210610\30s_Test\CS+_First\'};...
                     {'C:\Data\Data\Raw_data\Adithya_airgap_expts_v220210610\30s_Test\CS-_First\'}];
                 
 vid_path = 'C:\Data\Data\Analysed_data\Analysis_results\air_gap_traj_an\vert_aligned\';
+
+
 
 gap_paths = [{'Control\'}; {'25s_gap\'}];
 pulse_times_all = [{[31, 60;  61, 90]}; {[31, 60; 86, 115]}];  %real pulse-times
@@ -22,7 +19,7 @@ analysis_offset = 0;
 %analysis_offset = -10; %for delta norm.dist 0s gap
 %analysis_offset = -35; %for delta norm.dist 25s gap
 
-plot_video = 1;
+plot_video = 0;
 align_vids_vert = 1;
 
 vel_cutoffs = [2, .5];  %cutoffs in mm/s and s to determine if a fly has stopped or is moving
@@ -126,6 +123,7 @@ edge_flies_all = [];
 upwind_dist_tseries_all = [];
 radial_pos_tseries_all = [];
 downwind_deviations_tseries_all = [];
+xydists_angles_tseries_all = [];
 xy_vels_tseries_all = [];
 xy_vels_bin_tseries_all = [];
 ststp_tseries_all = [];
@@ -163,6 +161,7 @@ for base_o_path_n = 1:2
         upwind_dist_tseries_gap = [];
         radial_pos_tseries_gap = [];
         downwind_deviations_tserieses = [];
+        xydists_angles_tserieses = [];
         xy_vels_tserieses = [];
         xy_vels_bin_tserieses = [];
         ststp_tserieses = [];
@@ -206,7 +205,8 @@ for base_o_path_n = 1:2
             score_vec = upwind_dists;
             
             %3. re-mapping cartesian orientations to radial orientations
-            [downwind_deviations, downwind_deviations_tseries, edge_flies] = compute_radial_orientations(traj_mat_orig, frame_time, t_window, ang_cutoff, edge_cutoff);
+            t_window_2s = [t_window(1), (t_window(1) + 2)];
+            [downwind_deviations, downwind_deviations_tseries, edge_flies, xy_dists_angles_tseries] = compute_radial_orientations(traj_mat, frame_time, t_window_2s, ang_cutoff, edge_cutoff);
             
             %4. computing mean distance from center over time window
             [mean_abs_dists] = compute_abs_dists(traj_mat, frame_time, t_window);
@@ -224,6 +224,7 @@ for base_o_path_n = 1:2
                 upwind_dist_tseries_gap = pad_n_concatenate(upwind_dist_tseries_gap, upwind_dist_tseries, 1, nan);
                 radial_pos_tseries_gap = pad_n_concatenate(radial_pos_tseries_gap, radial_pos_tseries, 1, nan);
                 downwind_deviations_tserieses = pad_n_concatenate(downwind_deviations_tserieses, downwind_deviations_tseries, 1, nan);
+                xydists_angles_tserieses = pad_n_concatenate(xydists_angles_tserieses, xy_dists_angles_tseries, 1, nan);
                 try
                     xy_vels_tserieses = pad_n_concatenate(xy_vels_tserieses, xy_vels_tseries, 1, nan);
                 catch
@@ -244,6 +245,7 @@ for base_o_path_n = 1:2
         upwind_dist_tseries_all = pad_n_concatenate(upwind_dist_tseries_all, upwind_dist_tseries_gap, 3, nan);
         radial_pos_tseries_all = pad_n_concatenate(radial_pos_tseries_all, radial_pos_tseries_gap, 3, nan);
         downwind_deviations_tseries_all = pad_n_concatenate(downwind_deviations_tseries_all, downwind_deviations_tserieses, 3, nan);
+        xydists_angles_tseries_all = pad_n_concatenate(xydists_angles_tseries_all, xydists_angles_tserieses, 3, nan);
         xy_vels_tseries_all = pad_n_concatenate(xy_vels_tseries_all, xy_vels_tserieses, 3, nan);
         xy_vels_bin_tseries_all = pad_n_concatenate(xy_vels_bin_tseries_all, xy_vels_bin_tserieses, 3, nan);
         ststp_tseries_all = pad_n_concatenate(ststp_tseries_all, ststp_tserieses, 3, nan);
@@ -757,6 +759,8 @@ axis(ax_vals);
 
 %---------------
 
+%PICK UP THREAD HERE
+%Figure out how to average upwind angles over time
 
 
 %PLOTTING downwind devIATION TIME SERIES
@@ -848,8 +852,6 @@ fig_h = scattered_dot_plot_ttest(score_vecs_all_final, 25, 2.5, 4, 4, markercolo
 ylabel('upwind orientation (degrees)');
 set(gcf, 'Name', 'upwind orientation stats, no edge flies')
 fig_wrapup(fig_h, [], [25, 30], .6);
-
-
 
 %------
 %Plotting angular velocity
@@ -1010,7 +1012,7 @@ axis(ax_vals);
 fig_wrapup(31, [], [25, 30], .6);
     
     
- %off response analysis plots
+%off response analysis plots
 if pulse_times_all{2}(2, 1) ~= 61 || pulse_times_all{2}(2, 1) ~= 86     %analyzing off responses for 25s gap data
     
     %plotting upwind displacement for 25s gap data
@@ -1062,6 +1064,147 @@ if pulse_times_all{2}(2, 1) ~= 61 || pulse_times_all{2}(2, 1) ~= 86     %analyzi
     fig_wrapup(fig_h, [], [25, 30], .6);
 else
 end
+
+
+%Plotting orientation v/s xy speed for all time-points in analysis window
+figure(35)
+set(gcf, 'Name', 'downwind deviations v/s xy speeds, 0s')
+%grouping xyspeeds according to their corressponding orientation angles, for each fly
+angle_bins = 0:20:180;
+downwind_deviations_tseries_all = abs(downwind_deviations_tseries_all);
+all_speeds_ang = [];
+
+%paired odor, 0s
+mean_spd_vecs_all = zeros(size(downwind_deviations_tseries_all, 1), (length(angle_bins)) - 1) + nan;
+for fly_n = 1:size(downwind_deviations_tseries_all, 1)
+    curr_devs = downwind_deviations_tseries_all(fly_n, :, 1);
+    xy_speeds = xydists_angles_tseries_all(fly_n, :, 1)./frame_time;
+    [grouped_vals_vec2] = bin_vec2_by_vec1(curr_devs, xy_speeds, angle_bins);   %xyspeeds grouped by corress heading angle for a given fly
+    mean_spd_vecs_all(fly_n, :) = mean(grouped_vals_vec2, 1, 'omitnan');
+end
+mean_spds = mean(mean_spd_vecs_all, 1, 'omitnan');                                          %average across flies
+se_spds = std(mean_spd_vecs_all, [], 1, 'omitnan')./sqrt(size(mean_spd_vecs_all, 1));       %SE across flies
+shadedErrorBar((angle_bins(2:end) - 10), mean_spds, se_spds, {'Color', paired_color}, 1);   %subtracting 10 from bins to set to middle rather than upper edge of each bin
+
+%logging grouped speeds for statistical testing
+speeds_ang = pad_n_concatenate(reshape(mean_spd_vecs_all(:, 1:3), [], 1), reshape(mean_spd_vecs_all(:, 7:9), [], 1), 2, nan);
+all_speeds_ang = pad_n_concatenate(all_speeds_ang, speeds_ang, 2, nan);
+
+hold on
+
+%unpaired odor, 0s
+mean_spd_vecs_all = zeros(size(downwind_deviations_tseries_all, 1), (length(angle_bins)) - 1) + nan;
+for fly_n = 1:size(downwind_deviations_tseries_all, 1)
+    curr_devs = downwind_deviations_tseries_all(fly_n, :, 3);
+    xy_speeds = xydists_angles_tseries_all(fly_n, :, 3)./frame_time;
+    [grouped_vals_vec2] = bin_vec2_by_vec1(curr_devs, xy_speeds, angle_bins);   %xyspeeds grouped by corress heading angle for a given fly
+    mean_spd_vecs_all(fly_n, :) = mean(grouped_vals_vec2, 1, 'omitnan');
+end
+mean_spds = mean(mean_spd_vecs_all, 1, 'omitnan');
+se_spds = std(mean_spd_vecs_all, [], 1, 'omitnan')./sqrt(size(mean_spd_vecs_all, 1));
+shadedErrorBar((angle_bins(2:end) - 10), mean_spds, se_spds, {'Color', unpaired_color}, 1);
+hold off
+
+%logging grouped speeds for statistical testing
+speeds_ang = pad_n_concatenate(reshape(mean_spd_vecs_all(:, 1:3), [], 1), reshape(mean_spd_vecs_all(:, 7:9), [], 1), 2, nan);
+all_speeds_ang = pad_n_concatenate(all_speeds_ang, speeds_ang, 2, nan);
+
+
+title('0s gap')
+xlabel('abs. deviation from upwind (degrees)')
+ylabel('xy speed (mm/s)')
+ax_vals = axis;
+ax_vals(1) = 0;
+ax_vals(2) = 180;
+ax_vals(3) = 0;
+ax_vals(4) = 15;
+axis(ax_vals);
+
+fig_wrapup(35, [], [25, 30], .6);
+
+
+figure(36)
+set(gcf, 'Name', 'downwind deviations v/s xy speeds, 25s')
+%paired odor, 25s
+mean_spd_vecs_all = zeros(size(downwind_deviations_tseries_all, 1), (length(angle_bins)) - 1) + nan;
+for fly_n = 1:size(downwind_deviations_tseries_all, 1)
+    curr_devs = downwind_deviations_tseries_all(fly_n, :, 2);
+    xy_speeds = xydists_angles_tseries_all(fly_n, :, 2)./frame_time;
+    [grouped_vals_vec2] = bin_vec2_by_vec1(curr_devs, xy_speeds, angle_bins);   %xyspeeds grouped by corress heading angle for a given fly
+    mean_spd_vecs_all(fly_n, :) = mean(grouped_vals_vec2, 1, 'omitnan');
+end
+mean_spds = mean(mean_spd_vecs_all, 1, 'omitnan');
+se_spds = std(mean_spd_vecs_all, [], 1, 'omitnan')./sqrt(size(mean_spd_vecs_all, 1));
+shadedErrorBar((angle_bins(2:end) - 10), mean_spds, se_spds, {'Color', paired_color}, 1);
+hold on
+
+%logging grouped speeds for statistical testing
+speeds_ang = pad_n_concatenate(reshape(mean_spd_vecs_all(:, 1:3), [], 1), reshape(mean_spd_vecs_all(:, 7:9), [], 1), 2, nan);
+all_speeds_ang = pad_n_concatenate(all_speeds_ang, speeds_ang, 2, nan);
+
+
+%unpaired odor, 25s
+mean_spd_vecs_all = zeros(size(downwind_deviations_tseries_all, 1), (length(angle_bins)) - 1) + nan;
+for fly_n = 1:size(downwind_deviations_tseries_all, 1)
+    curr_devs = downwind_deviations_tseries_all(fly_n, :, 4);
+    xy_speeds = xydists_angles_tseries_all(fly_n, :, 4)./frame_time;
+    [grouped_vals_vec2] = bin_vec2_by_vec1(curr_devs, xy_speeds, angle_bins);   %xyspeeds grouped by corress heading angle for a given fly
+    mean_spd_vecs_all(fly_n, :) = mean(grouped_vals_vec2, 1, 'omitnan');
+end
+mean_spds = mean(mean_spd_vecs_all, 1, 'omitnan');
+se_spds = std(mean_spd_vecs_all, [], 1, 'omitnan')./sqrt(size(mean_spd_vecs_all, 1));
+shadedErrorBar((angle_bins(2:end) - 10), mean_spds, se_spds, {'Color', unpaired_color}, 1);
+hold off
+
+%logging grouped speeds for statistical testing
+speeds_ang = pad_n_concatenate(reshape(mean_spd_vecs_all(:, 1:3), [], 1), reshape(mean_spd_vecs_all(:, 7:9), [], 1), 2, nan);
+all_speeds_ang = pad_n_concatenate(all_speeds_ang, speeds_ang, 2, nan);
+
+
+title('25s gap')
+xlabel('abs. deviation from upwind (degrees)')
+ylabel('xy speed (mm/s)')
+ax_vals = axis;
+ax_vals(1) = 0;
+ax_vals(2) = 180;
+ax_vals(3) = 0;
+ax_vals(4) = 15;
+axis(ax_vals);
+
+fig_wrapup(36, [], [25, 30], .6);
+
+
+
+%Doing statistics on xy speeds, separated by orientation angle
+figure(37)
+%0s gap
+set(gcf, 'Name', 'xyspeeds grouped by angles, statsitics, 0s')
+score_vecs_all_final = all_speeds_ang(:, 1:4);        
+markercolor = [paired_color; paired_color; unpaired_color; unpaired_color];
+xlabels = [{'prd, 0-60'}, {'prd, 120-180 deg'}, {'unprd, 0-60'}, {'unprd, 120-180 deg'}];
+[fig_h, r_vecs_saved] = scattered_dot_plot_ttest(score_vecs_all_final, 37, 2.5, 4, 4, markercolor, 1, [], [], xlabels, 1, [0, 0, 0], 2, 0.05, 0);
+title('xyspeeds grouped by angles, 0s')
+ax_vals = axis;
+ylabel('speed (mm/s)');
+fig_wrapup(fig_h, [], [25, 30], .6);
+
+figure(38)
+%25s gap
+set(gcf, 'Name', 'xyspeeds grouped by angles, statsitics, 25s')
+score_vecs_all_final = all_speeds_ang(:, 5:8);        
+markercolor = [paired_color; paired_color; unpaired_color; unpaired_color];
+xlabels = [{'prd, 0-60'}, {'prd, 120-180 deg'}, {'unprd, 0-60'}, {'unprd, 120-180 deg'}];
+[fig_h, r_vecs_saved] = scattered_dot_plot_ttest(score_vecs_all_final, 38, 2.5, 4, 4, markercolor, 1, [], [], xlabels, 1, [0, 0, 0], 2, 0.05, 0);
+title('xyspeeds grouped by angles, 25s')
+ax_vals = axis;
+ylabel('speed (mm/s)');
+fig_wrapup(fig_h, [], [25, 30], .6);
+
+
+keyboard
+
+
+
 
 
 %plotting trajectory video
@@ -1251,13 +1394,13 @@ function [traj_samps, upwind_dists, traj_mat_ext, upwind_dists_tseries, traj_mat
     traj_samps = traj_mat(:, round(pre_win./frame_time):round(t_window(2)./frame_time), :);
     
     %identifying and removing flies that don't move throughout the analysis time window
-    [xy_vels_tseries, xy_vels_bin, ststp_tseries] = get_xydists_ststp_probs(traj_mat, frame_time, t_window, [2, 0.5]);
-    tot_moving_frames = sum(xy_vels_bin, 2, 'omitnan');
-    non_movers = find(tot_moving_frames == 0);
-    traj_mat(non_movers, :, :) = [];               %excluding flies that aren't moving
-    traj_mat_ext(non_movers, :, :) = [];
-    traj_mat_exp(non_movers, 1, :) = 0;
-    traj_samps(non_movers, :, :) = [];
+%     [xy_vels_tseries, xy_vels_bin, ststp_tseries] = get_xydists_ststp_probs(traj_mat, frame_time, t_window, [2, 0.5]);
+%     tot_moving_frames = sum(xy_vels_bin, 2, 'omitnan');
+%     non_movers = find(tot_moving_frames == 0);
+%     traj_mat(non_movers, :, :) = [];               %excluding flies that aren't moving
+%     traj_mat_ext(non_movers, :, :) = [];
+%     traj_mat_exp(non_movers, 1, :) = 0;
+%     traj_samps(non_movers, :, :) = [];
     
 end
 
@@ -1286,7 +1429,7 @@ function [tot_dists] = compute_tot_dists(traj_mat, frame_time, t_window)
     end
 end
 
-function [mean_downwind_deviations, downwind_deviations_tseries, edge_flies] = compute_radial_orientations(traj_mat, frame_time, t_window, ang_cutoff, edge_cutoff)
+function [mean_downwind_deviations, downwind_deviations_tseries, edge_flies, xy_dists_tseries] = compute_radial_orientations(traj_mat, frame_time, t_window, ang_cutoff, edge_cutoff)
     
     radial_orientations = [];
     radial_orientations_tseries = [];
@@ -1295,12 +1438,12 @@ function [mean_downwind_deviations, downwind_deviations_tseries, edge_flies] = c
     [theta, r] = cart2pol(traj_mat(:, :, 1), traj_mat(:, :, 2));
     theta = rad2deg(theta);
     ori_mat = rad2deg(squeeze(traj_mat(:, :, 3)));
-    
+        
     %correcting for angle convention flips around 180 degrees
     del = find(theta < 0);
     theta(del) = 360 - abs(theta(del));
     del = find(ori_mat < 0);
-    ori_mat(del) = 360 - abs(ori_mat(del));
+    ori_mat(del) = 360 - abs(ori_mat(del)) + pi./2; 
     
     %computing deviation from upwind orientation (0 = perfectly upwind orientation)
     radial_orientations_mat = ori_mat - theta;
@@ -1311,6 +1454,7 @@ function [mean_downwind_deviations, downwind_deviations_tseries, edge_flies] = c
     del = find(radial_orientations_mat < -180);
     radial_orientations_mat(del) = radial_orientations_mat(del) + 360;
     
+    radial_orientations_mat = abs(radial_orientations_mat);
     
 %     %testing lines
 %     fly_n = 15;
@@ -1336,17 +1480,6 @@ function [mean_downwind_deviations, downwind_deviations_tseries, edge_flies] = c
     
     downwind_deviations_tseries = radial_orientations_mat(:, fr1:fr2);
     
-    %excluding flies whose orientations are too close to 0 or +/-180 at t = 0
-%     ang_cutoffs = [0 - (ang_cutoff./2), 0 + (ang_cutoff./2)];       %for angles near 0
-%     del = find(downwind_deviations_tseries(:, 1) > ang_cutoffs(1) & downwind_deviations_tseries(:, 1) < ang_cutoffs(2));
-%     downwind_deviations_tseries(del, :) = []; 
-%     traj_mat(del, :, :) = [];
-%         
-%     ang_cutoffs = [180 - (ang_cutoff./2), -180 + (ang_cutoff./2)];       %for angles near +/-180
-%     del = find(downwind_deviations_tseries(:, 1) > ang_cutoffs(1) & downwind_deviations_tseries(:, 1) < ang_cutoffs(2));
-%     downwind_deviations_tseries(del, :) = [];
-%     traj_mat(del, :, :) = [];
-    
     %identifying flies <2mm from upwind edge to highlight during plotting
     edge_flies = zeros(size(traj_mat, 1), 1);
     dists = mean(sqrt(sum(traj_mat(:, fr1:fr2, 1:2).^2, 3)), 2, 'omitnan');
@@ -1354,6 +1487,20 @@ function [mean_downwind_deviations, downwind_deviations_tseries, edge_flies] = c
     
     %computing mean downind deviation
     mean_downwind_deviations = mean(abs(downwind_deviations_tseries), 2, 'omitnan');
+    
+    %computing xy dist travelled in each frame (ie. xy speed)
+    traj_mat_t_win = traj_mat(:, (fr1 - 1):fr2, :);
+    for frame_n = 2:size(traj_mat_t_win, 2)
+        if frame_n > 2
+            pos1 = pos0;
+        else
+            pos1 = traj_mat_t_win(:, frame_n, 1:2);
+        end
+        pos0 = traj_mat_t_win(:, (frame_n - 1), 1:2);
+        
+        %computing distances
+        xy_dists_tseries(:, (frame_n - 1)) = sqrt((pos1(:, :, 1) - pos0(:, :, 1)).^2 + (pos1(:, :, 2) - pos0(:, :, 2)).^2);
+    end
     
 end
 
