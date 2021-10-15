@@ -23,7 +23,7 @@ dataset_list_paths = [...
                       
                       ];
             
-suppress_plots = 0;
+suppress_plots = 1;
 plotting_quant_no_filt = 0;     %1 - only unfiltered traces used for all analysis and plotting - traces included. 0 - filtered traces used for everything.
 cell_n = 1;
 

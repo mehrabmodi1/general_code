@@ -1,4 +1,4 @@
-function x = beeswarm(x,y, reshape_vars, varargin)
+function x = beeswarm_noplot(x,y, reshape_vars, varargin)
 %function xbee = beeswarm(x,y)
 %
 % Input arguments:
