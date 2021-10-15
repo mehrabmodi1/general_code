@@ -6,28 +6,29 @@ base_order_paths = [{'C:\Data\Data\Raw_data\Adithya_airgap_expts_v220210610\30s_
                     {'C:\Data\Data\Raw_data\Adithya_airgap_expts_v220210610\30s_Test\CS-_First\'}];
                 
 vid_path = 'C:\Data\Data\Analysed_data\Analysis_results\air_gap_traj_an\vert_aligned\';
+base_path = 'C:\Data\Data\Analysed_data\Analysis_results\air_gap_traj_an\';
 
 
 
 gap_paths = [{'Control\'}; {'25s_gap\'}];
 pulse_times_all = [{[31, 60;  61, 90]}; {[31, 60; 86, 115]}];  %real pulse-times
 %pulse_times_all = [{[31, 60;  11, 30]}; {[31, 60; 11, 30]}];  %analyzing pre pulse1 baseline
-%pulse_times_all = [{[31, 60;  61, 90]}; {[31, 60; 61, 90]}];  %analyzing pulse1 off period
+%pulse_times_all = [{[31, 60;  61, 90]}; {[31, 60; 61, 85]}];  %analyzing pulse1 off period in 25s gap data
 %pulse_times_all = [{[31, 60;  31, 60]}; {[31, 60; 31, 60]}];  %analyzing pulse1 on period
 
 analysis_offset = 0;
 %analysis_offset = -10; %for delta norm.dist 0s gap
 %analysis_offset = -35; %for delta norm.dist 25s gap
 
-plot_video = 0;
+plot_video = 1;
 align_vids_vert = 1;
 
 vel_cutoffs = [2, .5];  %cutoffs in mm/s and s to determine if a fly has stopped or is moving
 
 %splitting data by paired odor, or pooling all data if assigned empty
 split_string = [];
-%split_string = 'BA+';
-%split_string = 'PA+';
+%split_string = 'BA+';       %analyzing only BA+ trials
+%split_string = 'PA+';      %analyzing only PA+ trials
 
 
 
@@ -100,7 +101,7 @@ fig_wrapup(1, [], [25, 30], .6);
 
 
 %manually set parameters
-equilib_time = 6;  %6.5; in s, Set as the time from valve-switch to reach odor half-peak. Time for 1 vol-replacement in the arena is ~4s because arena volume = pi*(5^2)*.3 = 23.6 cm^3 and flow rate = 400mL/min = 6.7 mL/s
+equilib_time = 6;  %6; in s, Set as the time from valve-switch to reach odor half-peak. Time for 1 vol-replacement in the arena is ~4s because arena volume = pi*(5^2)*.3 = 23.6 cm^3 and flow rate = 400mL/min = 6.7 mL/s
 t_window_orig = [0, 4]; %[0, 4]          %in s, manually chosen analysis time window after odor transition valve switch
 r_cutoff = [10, 40]; %[5, 45]   %in mm, the range of distances from center outside which flies are discarded as being too close to the arena center (0 mm) or edge (50 mm).
 %r_cutoff = [0, 50];
@@ -357,6 +358,43 @@ ylabel(score_name);
 set(gcf, 'Name', 'upwind displacement stats')
 fig_wrapup(fig_h, [], [25, 30], .6);
 
+%Accounting for pulse1 off responses, but not odor-air responses
+%testing the null hypotheses that CS-on(0) == (CS+off(25) + CS-on(25)) and CS+on(0) == (CS-off(25) + CS+on(25))
+
+%logging pulse1 off responses, use only with pulse1 off pulse times selected above, manually
+%save([base_path, 'pulse1_off_upw_disps.mat'], 'score_vecs_all');   %used to log upwind displacement data for pulse1 off responses only.
+
+%testing null hypotheses: Run these lines with pulse2 onset pulse times, as done usually
+pulse1_off_data = load([base_path, 'pulse1_off_upw_disps.mat']);
+pulse1_off_data = mean(pulse1_off_data.score_vecs_all, 'omitnan');
+CSplsoff25 = pulse1_off_data(4);
+CSmnsoff25 = pulse1_off_data(3);
+pulse2_on_data = mean(score_vecs_all, 'omitnan');
+CSplson25 = pulse2_on_data(4);
+CSmnson25 = pulse2_on_data(3);
+
+%plotting and statistical testing
+null_pt_minus = CSplsoff25 + CSmnson25;     %null hypothesis test point CS-, pulse2 onset response with 0s gap
+null_pt_plus = CSmnsoff25 + CSplson25;      %null hypothesis test point CS+, pulse2 onset response with 0s gap
+
+%statistical testing
+[hminus, pminus] = ttest(score_vecs_all(:, 1), null_pt_minus);
+[hplus, pplus] = ttest(score_vecs_all(:, 2), null_pt_plus);
+
+fig_h = scattered_dot_plot_ttest(score_vecs_all(:, 1:2), 7, 2.5, 4, 4, markercolor, 1, [], [], xlabels, 1, [0, 0, 0], 2, 0.05, 0);
+hold on
+
+plot(1, null_pt_minus, '.r', 'markerSize', 22, 'markerFaceColor', 'none');
+plot(2, null_pt_plus, '.r', 'markerSize', 22, 'markerFaceColor', 'none');
+ylabel('upwind displacement (mm)');
+set(gcf, 'Name', 'upwind displacement stats')
+text(0.9, 35, ['p =', num2str(round(pminus, 3))], 'FontSize', 7.5);
+text(1.9, 35, ['p =',num2str(round(pplus, 3))], 'FontSize', 7.5);
+fig_wrapup(fig_h, [], [25, 30], .6);
+
+hold off
+
+
 %-----
 %plotting normalized radial distance time series
 %0s gap data
@@ -519,7 +557,7 @@ ylabel('upwind speed (mm/s)');
 fig_wrapup(fig_h, [], [25, 30], .6);
 
 
-
+xy_vels_tseries_all(xy_vels_tseries_all > 40) = nan;        %getting rid of junk values, ie, > 40 mm/s
 %plotting walking speed tseries
 vel_mat = [];
 figure(11)
@@ -759,10 +797,6 @@ axis(ax_vals);
 
 %---------------
 
-%PICK UP THREAD HERE
-%Figure out how to average upwind angles over time
-
-
 %PLOTTING downwind devIATION TIME SERIES
 %plotting distance time series' for flies
 %remapping upwind angles to have high abs degree values
@@ -906,8 +940,8 @@ set_xlabels_time(27, frame_time, 10);
 fig_wrapup(27, [], [25, 30], .6);
 ax_vals = axis;
 %ax_vals(2) = 59;
-ax_vals(3) = -180;
-ax_vals(4) = 180;
+ax_vals(3) = -50;
+ax_vals(4) = 50;
 axis(ax_vals);
 
 
@@ -930,6 +964,12 @@ set(gcf, 'Name', 'mean dist to center stats')
 ylabel('dist. to center (mm)');
 fig_wrapup(fig_h, [], [25, 30], .6);
 
+if (t_window_orig(2) - t_window_orig(1)) == 4
+    save([base_path, 'upwind_disps_allflies.mat'], 'abs_dists_all');
+elseif (t_window_orig(2) - t_window_orig(1)) < 0.21
+    save([base_path, 'upwind_pos_allflies.mat'], 'abs_dists_all');
+else
+end
 %plotting mean norm. dists of flies
 % score_vecs_all_final = [abs_dists_all(:, 1), abs_dists_all(:, 3), abs_dists_all(:, 2), abs_dists_all(:, 4)];        %re-arranging to bring paired, unpaired together instead of 0 and 25
 % score_vecs_all_final = (score_vecs_all_final./50).^2;
@@ -944,80 +984,80 @@ fig_wrapup(fig_h, [], [25, 30], .6);
 
 
 
-%plotting starting position v/s upwind displacement for all flies and flies that pass r_cutoffs
-base_path = 'C:\Data\Data\Analysed_data\Analysis_results\air_gap_traj_an\';
-%reading in data
-all_fly_displc = load([base_path, 'upwind_disps_allflies.mat']);
-all_fly_displc = all_fly_displc.score_vecs_all_final;
-
-all_fly_pos = load([base_path, 'upwind_pos_allflies.mat']);
-all_fly_pos = all_fly_pos.score_vecs_all_final;
-sel_fliesi = find(all_fly_pos < r_cutoff(2));   %identifying flies that start within the arena edge-dist cutoff
-
-sel_fly_displc = zeros(size(all_fly_displc, 1), size(all_fly_displc, 2), size(all_fly_displc, 3)) + nan;
-sel_fly_pos = sel_fly_displc;
-sel_fly_displc(sel_fliesi) = all_fly_displc(sel_fliesi);
-sel_fly_pos(sel_fliesi) = all_fly_pos(sel_fliesi);
-
-%0s gap
-figure(30)
-set(gcf, 'Name', 'start pos vs upwind disp., 0s')
-%unpaired odor as pulse2
-plot(all_fly_pos(:, 1), all_fly_displc(:, 1), 'O', 'markerSize', 2.5, 'markerFaceColor', 'none', 'markerEdgeColor', unpaired_color);
-hold on
-plot(sel_fly_pos(:, 1), sel_fly_displc(:, 1), 'O', 'markerSize', 2.5, 'markerFaceColor', unpaired_color, 'markerEdgeColor', unpaired_color);
-
-%paired odor as pulse2
-plot(all_fly_pos(:, 3), all_fly_displc(:, 3), 'O', 'markerSize', 2.5, 'markerFaceColor', 'none', 'markerEdgeColor', paired_color);
-plot(sel_fly_pos(:, 3), sel_fly_displc(:, 3), 'O', 'markerSize', 2.5, 'markerFaceColor', paired_color, 'markerEdgeColor', paired_color);
-
-title('0s gap')
-xlabel('start dist (mm)')
-ylabel('upwind disp. (mm)')
-ax_vals = axis;
-ax_vals(1) = 0;
-ax_vals(2) = 50;
-ax_vals(3) = -40;
-ax_vals(4) = 40;
-plot([ax_vals(1), ax_vals(2)], [0, 0], 'Color', [0.65, 0.65, 0.65])
-hold off
-axis(ax_vals);
-
-fig_wrapup(30, [], [25, 30], .6);
-
-
-%25s gap
-figure(31)
-set(gcf, 'Name', 'start pos vs upwind disp., 25s')
-%unpaired odor as pulse2
-plot(all_fly_pos(:, 2), all_fly_displc(:, 2), 'O', 'markerSize', 2.5, 'markerFaceColor', 'none', 'markerEdgeColor', unpaired_color);
-hold on
-plot(sel_fly_pos(:, 2), sel_fly_displc(:, 2), 'O', 'markerSize', 2.5, 'markerFaceColor', unpaired_color, 'markerEdgeColor', unpaired_color);
-
-%paired odor as pulse2
-plot(all_fly_pos(:, 4), all_fly_displc(:, 4), 'O', 'markerSize', 2.5, 'markerFaceColor', 'none', 'markerEdgeColor', paired_color);
-plot(sel_fly_pos(:, 4), sel_fly_displc(:, 4), 'O', 'markerSize', 2.5, 'markerFaceColor', paired_color, 'markerEdgeColor', paired_color);
-title('25s gap')
-xlabel('start dist (mm)')
-ylabel('upwind disp. (mm)')
-ax_vals = axis;
-ax_vals(1) = 0;
-ax_vals(2) = 50;
-ax_vals(3) = -40;
-ax_vals(4) = 40;
-plot([ax_vals(1), ax_vals(2)], [0, 0], 'Color', [0.65, 0.65, 0.65])
-hold off
-axis(ax_vals);
-
-fig_wrapup(31, [], [25, 30], .6);
+% %plotting starting position v/s upwind displacement for all flies and flies that pass r_cutoffs
+% %reading in data
+% all_fly_displc = load([base_path, 'upwind_disps_allflies.mat']);
+% all_fly_displc = all_fly_displc.abs_dists_all;
+% 
+% all_fly_pos = load([base_path, 'upwind_pos_allflies.mat']);
+% all_fly_pos = all_fly_pos.abs_dists_all;
+% all_fly_displc = all_fly_displc - all_fly_pos;
+% 
+% sel_fliesi = find(all_fly_pos < r_cutoff(2));   %identifying flies that start within the arena edge-dist cutoff
+% 
+% sel_fly_displc = zeros(size(all_fly_displc, 1), size(all_fly_displc, 2), size(all_fly_displc, 3)) + nan;
+% sel_fly_pos = sel_fly_displc;
+% sel_fly_displc(sel_fliesi) = all_fly_displc(sel_fliesi);
+% sel_fly_pos(sel_fliesi) = all_fly_pos(sel_fliesi);
+% 
+% %0s gap
+% figure(30)
+% set(gcf, 'Name', 'start pos vs upwind disp., 0s')
+% %unpaired odor as pulse2
+% plot(all_fly_pos(:, 1), all_fly_displc(:, 1), 'O', 'markerSize', 2.5, 'markerFaceColor', 'none', 'markerEdgeColor', unpaired_color);
+% hold on
+% plot(sel_fly_pos(:, 1), sel_fly_displc(:, 1), 'O', 'markerSize', 2.5, 'markerFaceColor', unpaired_color, 'markerEdgeColor', unpaired_color);
+% 
+% %paired odor as pulse2
+% plot(all_fly_pos(:, 3), all_fly_displc(:, 3), 'O', 'markerSize', 2.5, 'markerFaceColor', 'none', 'markerEdgeColor', paired_color);
+% plot(sel_fly_pos(:, 3), sel_fly_displc(:, 3), 'O', 'markerSize', 2.5, 'markerFaceColor', paired_color, 'markerEdgeColor', paired_color);
+% 
+% title('0s gap')
+% xlabel('start dist (mm)')
+% ylabel('upwind disp. (mm)')
+% ax_vals = axis;
+% ax_vals(1) = 0;
+% ax_vals(2) = 50;
+% ax_vals(3) = -40;
+% ax_vals(4) = 40;
+% plot([ax_vals(1), ax_vals(2)], [0, 0], 'Color', [0.65, 0.65, 0.65])
+% hold off
+% axis(ax_vals);
+% 
+% fig_wrapup(30, [], [25, 30], .6);
+% 
+% 
+% %25s gap
+% figure(31)
+% set(gcf, 'Name', 'start pos vs upwind disp., 25s')
+% %unpaired odor as pulse2
+% plot(all_fly_pos(:, 2), all_fly_displc(:, 2), 'O', 'markerSize', 2.5, 'markerFaceColor', 'none', 'markerEdgeColor', unpaired_color);
+% hold on
+% plot(sel_fly_pos(:, 2), sel_fly_displc(:, 2), 'O', 'markerSize', 2.5, 'markerFaceColor', unpaired_color, 'markerEdgeColor', unpaired_color);
+% 
+% %paired odor as pulse2
+% plot(all_fly_pos(:, 4), all_fly_displc(:, 4), 'O', 'markerSize', 2.5, 'markerFaceColor', 'none', 'markerEdgeColor', paired_color);
+% plot(sel_fly_pos(:, 4), sel_fly_displc(:, 4), 'O', 'markerSize', 2.5, 'markerFaceColor', paired_color, 'markerEdgeColor', paired_color);
+% title('25s gap')
+% xlabel('start dist (mm)')
+% ylabel('upwind disp. (mm)')
+% ax_vals = axis;
+% ax_vals(1) = 0;
+% ax_vals(2) = 50;
+% ax_vals(3) = -40;
+% ax_vals(4) = 40;
+% plot([ax_vals(1), ax_vals(2)], [0, 0], 'Color', [0.65, 0.65, 0.65])
+% hold off
+% axis(ax_vals);
+% 
+% fig_wrapup(31, [], [25, 30], .6);
     
     
 %off response analysis plots
-if pulse_times_all{2}(2, 1) ~= 61 || pulse_times_all{2}(2, 1) ~= 86     %analyzing off responses for 25s gap data
-    
+if pulse_times_all{2}(2, 1) == 61   %analyzing off responses for 25s gap data
     %plotting upwind displacement for 25s gap data
     score_vecs_all_final = [score_vecs_all(:, 4), score_vecs_all(:, 2)];        %re-arranging to bring paired, unpaired together instead of 0 and 25
-    markercolor = [unpaired_color; paired_color; unpaired_color; paired_color];
+    markercolor = [unpaired_color; paired_color];
     xlabels = [{'25 s, unprd'}, {'25 s, prd'}];
     fig_h = scattered_dot_plot_ttest(score_vecs_all_final, 32, 2.5, 4, 4, markercolor, 1, [], [], xlabels, 1, [0, 0, 0], 2, 0.05, 0);
     if pulse_times_all{2}(2, 1) == 31
@@ -1027,24 +1067,10 @@ if pulse_times_all{2}(2, 1) ~= 61 || pulse_times_all{2}(2, 1) ~= 86     %analyzi
     end
     
     ylabel(score_name);
-    set(gcf, 'Name', 'Pulse1 upwind displacement')
+    set(gcf, 'Name', 'Pulseoff1 upwind displacement')
     fig_wrapup(fig_h, [], [25, 30], .6);
     
-    %plotting mean upwind orientation
-    score_vecs_all_final = 180 - [downwind_deviations_all(:, 4), downwind_deviations_all(:, 3)];        %re-arranging to bring paired, unpaired together instead of 0 and 25
-    edge_vecs_all_final = [edge_flies_all(:, 1), edge_flies_all(:, 3), edge_flies_all(:, 2), edge_flies_all(:, 4)];        %re-arranging to bring paired, unpaired together instead of 0 and 25
-    markercolor = [unpaired_color; paired_color; unpaired_color; paired_color];
-    xlabels = [{'25 s, unprd'}, {'25 s, prd'}];
-    [fig_h, ~] = scattered_dot_plot_ttest(score_vecs_all_final, 33, 2.5, 4, 4, markercolor, 1, [], [], xlabels, 1, [0, 0, 0], 2, 0.05, 0);
-    if pulse_times_all{2}(2, 1) == 31
-        title('pulse1 on response')
-    else
-        title('pulse1 off response')
-    end
-    ylabel('upwind orientation (degrees)');
-    set(gcf, 'Name', 'Pulse1 upwind orientation')
-    fig_wrapup(fig_h, [], [25, 30], .6);
-
+    
     
     %plotting absolute positions for 25s gap data   
     score_vecs_all_final = [abs_dists_all(:, 4), abs_dists_all(:, 2)];        %re-arranging to bring paired, unpaired together instead of 0 and 25
@@ -1076,12 +1102,20 @@ all_speeds_ang = [];
 
 %paired odor, 0s
 mean_spd_vecs_all = zeros(size(downwind_deviations_tseries_all, 1), (length(angle_bins)) - 1) + nan;
+mean_angvel_vecs_all = zeros(size(downwind_deviations_tseries_all, 1), (length(angle_bins)) - 1) + nan;
 for fly_n = 1:size(downwind_deviations_tseries_all, 1)
     curr_devs = downwind_deviations_tseries_all(fly_n, :, 1);
+    curr_ang_vels = [nan, abs(movmean(diff(curr_devs), round(0.2/frame_time))./frame_time)];    %frame-by-frame change in orientation followed by boxcar filtering, followed by taking abs val
     xy_speeds = xydists_angles_tseries_all(fly_n, :, 1)./frame_time;
     [grouped_vals_vec2] = bin_vec2_by_vec1(curr_devs, xy_speeds, angle_bins);   %xyspeeds grouped by corress heading angle for a given fly
+    [grouped_angvels_vec2] = bin_vec2_by_vec1(curr_devs, curr_ang_vels, angle_bins);   %xyspeeds grouped by corress heading angle for a given fly
     mean_spd_vecs_all(fly_n, :) = mean(grouped_vals_vec2, 1, 'omitnan');
+    mean_angvel_vecs_all(fly_n, :) = mean(grouped_angvels_vec2, 1, 'omitnan');
 end
+
+%PICK UP THREAD HERE
+%replicate or loop ang vel analysis for the four stimulus types
+
 mean_spds = mean(mean_spd_vecs_all, 1, 'omitnan');                                          %average across flies
 se_spds = std(mean_spd_vecs_all, [], 1, 'omitnan')./sqrt(size(mean_spd_vecs_all, 1));       %SE across flies
 shadedErrorBar((angle_bins(2:end) - 10), mean_spds, se_spds, {'Color', paired_color}, 1);   %subtracting 10 from bins to set to middle rather than upper edge of each bin
@@ -1156,10 +1190,11 @@ se_spds = std(mean_spd_vecs_all, [], 1, 'omitnan')./sqrt(size(mean_spd_vecs_all,
 shadedErrorBar((angle_bins(2:end) - 10), mean_spds, se_spds, {'Color', unpaired_color}, 1);
 hold off
 
+
+
 %logging grouped speeds for statistical testing
 speeds_ang = pad_n_concatenate(reshape(mean_spd_vecs_all(:, 1:3), [], 1), reshape(mean_spd_vecs_all(:, 7:9), [], 1), 2, nan);
 all_speeds_ang = pad_n_concatenate(all_speeds_ang, speeds_ang, 2, nan);
-
 
 title('25s gap')
 xlabel('abs. deviation from upwind (degrees)')
@@ -1185,6 +1220,8 @@ xlabels = [{'prd, 0-60'}, {'prd, 120-180 deg'}, {'unprd, 0-60'}, {'unprd, 120-18
 [fig_h, r_vecs_saved] = scattered_dot_plot_ttest(score_vecs_all_final, 37, 2.5, 4, 4, markercolor, 1, [], [], xlabels, 1, [0, 0, 0], 2, 0.05, 0);
 title('xyspeeds grouped by angles, 0s')
 ax_vals = axis;
+ax_vals(4) = 30;
+axis(ax_vals);
 ylabel('speed (mm/s)');
 fig_wrapup(fig_h, [], [25, 30], .6);
 
@@ -1197,11 +1234,12 @@ xlabels = [{'prd, 0-60'}, {'prd, 120-180 deg'}, {'unprd, 0-60'}, {'unprd, 120-18
 [fig_h, r_vecs_saved] = scattered_dot_plot_ttest(score_vecs_all_final, 38, 2.5, 4, 4, markercolor, 1, [], [], xlabels, 1, [0, 0, 0], 2, 0.05, 0);
 title('xyspeeds grouped by angles, 25s')
 ax_vals = axis;
+ax_vals(4) = 30;
+axis(ax_vals);
 ylabel('speed (mm/s)');
 fig_wrapup(fig_h, [], [25, 30], .6);
 
 
-keyboard
 
 
 
@@ -1209,7 +1247,10 @@ keyboard
 
 %plotting trajectory video
 if plot_video == 1
+    more_frames = 1;
+   
     for dset_type = 1:4
+
         win_width = round( (t_window_orig(2) - t_window_orig(1))./frame_time);
         if dset_type == 1 | dset_type == 3  %0s gap case
             f0 = round( (t_window_orig(1) + pulse_times_all{1}(2, 1))./frame_time );
@@ -1219,27 +1260,21 @@ if plot_video == 1
         end
         f1 = f0 - round(win_width./4);
         f2 = f0 + win_width;
-        
+
         %computing time-stamp vector
         neg_vec = flipud((0:-frame_time:-((win_width./4).*frame_time))');    
         pos_vec = (0:frame_time:win_width.*frame_time)';                     
         t_vec = round([neg_vec; pos_vec(2:end)].*1000);     %in ms
-        
-        figure(99 + dset_type)
-        set_names = [{'0s unprd'}, {'25s unprd'}, {'0s prd'}, {'25s prd'}];
-        set_name = set_names(dset_type);
-        set_name = set_name{1};
-        v = VideoWriter([vid_path, set_name], 'MPEG-4');
-        open(v)
+
         traj_mat = traj_mat_exps_all(:, f1:f2, :, dset_type);
-        
+
         if align_vids_vert == 1
             %subtracting away t0 angular offset to align all flies to the upward vertical on frame1
             [thetaxy, rho] = cart2pol(traj_mat(:, :, 1), traj_mat(:, :, 2));
             thetaxy1 = thetaxy(:, round(win_width./4));
             thetaxy = thetaxy - repmat(thetaxy1, 1, size(thetaxy, 2)) + pi./2;      %aligning frame1 angular positions to upper vertical
             [x, y] = pol2cart(thetaxy, rho);                        %going back to xy space
-            
+
             %recomputing orientations to account for translation of thetaxy to upper vertical
             orientations = rad2deg(traj_mat(:, :, 3));
             del = find(orientations < 0);
@@ -1248,39 +1283,77 @@ if plot_video == 1
             orientations = diff(orientations, 1, 2);              %expressing each orientation as a change from previous orientation
             orientations = [(orientations1 - rad2deg(thetaxy1)), orientations];    %adjusting orientation at t0 to account for reorientation at t0
             orientations = deg2rad(cumsum(orientations, 2)) + pi./2;                %adding orientation changes at each time point to newly established orientation at t0
-            
+
             traj_mat(:, :, 3) = orientations;                               
             traj_mat(:, :, 1) = x;
             traj_mat(:, :, 2) = y;
         else
         end
-        for frame_n = 1:(size(traj_mat, 2))
+        
+       %assigning a different variable name to each set of adjusted co-ords
+       eval(['incl_flies', num2str(dset_type), '= squeeze(traj_mat_exps_all(:, 1, 1, dset_type));']);
+       eval(['traj_mat', num2str(dset_type), '= traj_mat;']);
+       
+    end
+        
+    set_names = [{'no gap, unpaired'}, {'25s gap, unpaired'}, {'no gap, paired'}, {'25s gap, paired'}];
+    
+    figure(99);
+    v_all = VideoWriter([vid_path, 'all'], 'MPEG-4');
+    open(v_all)
+    red_vec = (0:50)'./50;
+    color_vec = [red_vec, zeros(51, 2)];
+    
+    for frame_n = 1:(size(traj_mat, 2))
+
+        for dset_n = 1:4
+            if dset_n == 2
+                subplot_tight(2, 2, 3, 0.05)
+            elseif dset_n == 3
+                subplot_tight(2, 2, 2, 0.05)
+            else
+                subplot_tight(2, 2, dset_n, 0.05)
+            end
+                
+                
+            set_name = set_names{dset_n};
+            eval(['traj_mat = traj_mat', num2str(dset_n), ';']);
+            
+    
             for fly_n = 1:size(traj_mat, 1)
                 curr_traj = traj_mat(fly_n, 1:end, :);
                 
-                
-                
-                if traj_mat_exps_all(fly_n, 1, 1, dset_type) == 0       %case where fly was excluded for being close to the edge/center
-                    use_color = [0.9, 0.9, 0.9];
-                elseif traj_mat_exps_all(fly_n, 1, 1, dset_type) == 1   %case where fly was included
-                    use_color = [0, 0, 0];
+                eval(['incl_flies = incl_flies', num2str(dset_n), ';']);
+                if incl_flies(fly_n, 1) == 0       %case where fly was excluded for being close to the edge/center
+                    %use_color = [0.95, 0.95, 0.95];
+                    continue
+%                 elseif incl_flies(fly_n, 1) == 1   %case where fly was included
+%                     use_color = [0, 0, 0];
                 else
                 end
                 if isnan(curr_traj(1, frame_n, 1)) == 0
                     %computing curr_dist
                     curr_dist = mean(sqrt(sum(curr_traj(:, frame_n, 1:2).^2, 3)), 2, 'omitnan');
+                    use_color = color_vec(round(curr_dist), :);
                     if curr_dist > 51
                         continue
                     else
                     end
-                    
+
                     [pt2] = get_orientation_pt([curr_traj(1, frame_n, 1), curr_traj(1, frame_n, 2)], curr_traj(1, frame_n, 3), .5); %using tracked orientation to specify arrow direction
                     arr_pts = [curr_traj(1, (frame_n), 1), curr_traj(1, (frame_n), 2), pt2(1), pt2(2)];
                     plot_arrow(arr_pts(1), arr_pts(2), arr_pts(3), arr_pts(4), 'color', use_color, 'head_width', 2, 'head_height', 3, 'rel_sizing', 0, 'EdgeColor', [1, 1, 1], 'FaceColor', use_color);
-                    t = text(35, -45, [num2str(t_vec(frame_n)), ' ms']);
-                    t.FontSize = 12;
-                    if t_vec(frame_n) >=0
-                        t.Color = 'red';
+                    if dset_n == 4
+                        t = text(35, -45, [num2str(t_vec(frame_n)), ' ms']);
+                        t.FontSize = 12;
+                        if t_vec(frame_n) >=0
+                            t.Color = 'red';
+                        else
+                        end
+                    else
+                    end
+                    if frame_n == 1
+                        title(set_names{dset_n});
                     else
                     end
                 else
@@ -1295,21 +1368,21 @@ if plot_video == 1
             axis square
             axis([-51, 51, -51, 51])
             set(gca,'XColor', 'none','YColor','none')
-            
+
             drawnow
-            hold off
+            ax = gca;
             
-            %writing fig frame to video file
-            frame = getframe(gcf);
-            writeVideo(v,frame);
-           
         end
-        %keyboard
-        close(v);
+        hold off
+        %writing fig frame to video file
+        set(gcf, 'Position', [305, 136, 840, 630]);
+        frame = getframe(gcf);
+        cla(ax);
+        writeVideo(v_all,frame);
         
     end
+    close(v_all);
     
-    %keyboard
     
 else
 end
