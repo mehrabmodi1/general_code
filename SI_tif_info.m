@@ -1,4 +1,4 @@
-function [frame_time, zoom, n_chans, PMT_offsets, lpower] = SI_tif_info(stack_obj)
+function [frame_time, zoom, n_chans, PMT_offsets, lpower, n_planes] = SI_tif_info(stack_obj)
 %syntax: [frame_time, zoom, n_chans] = SI_tif_info(stack_obj)
 
 %%testing variables
@@ -75,3 +75,12 @@ lpower_sub_newlinei(lpower_sub_newlinei < 0) = nan;
 lpower_sub_newlinei = newlinesi(lpower_sub_newlinei);
 lpower = metadata((lpower_subi + 16):(lpower_sub_newlinei - 1));
 lpower = str2num(lpower);
+
+%getting number of imaging planes (n_planes)
+n_planes_subi = strfind(metadata, 'hStackManager.numSlices');
+n_planes_sub_newlinei = newlinesi - n_planes_subi;
+n_planes_sub_newlinei(n_planes_sub_newlinei < 0) = nan;
+[del, n_planes_sub_newlinei] = nanmin(n_planes_sub_newlinei);
+n_planes_sub_newlinei = newlinesi(n_planes_sub_newlinei);
+n_planes = metadata((n_planes_subi + 26):(n_planes_sub_newlinei - 1));
+n_planes = str2num(n_planes);
