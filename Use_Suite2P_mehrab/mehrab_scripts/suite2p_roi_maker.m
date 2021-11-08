@@ -17,10 +17,14 @@ extract_both_channels = 0;
 %direc_list = 'E:\Data\Raw_Data_Current\dataset_lists\c305aKC_PaBaEl_handover_rtrain_prehabituated.xls';
 %direc_list = 'E:\Data\Raw_Data_Current\dataset_lists\KC_AB_c739_vertlobe_longtrace.xls';
 %direc_list = 'E:\Data\Raw_Data_Current\dataset_lists\vGlut_MBON_GCaMP.xls';
+<<<<<<< Updated upstream
 %direc_list = 'E:\Data\Raw_Data_Current\dataset_lists\d5HT1b_similar_od_handovers.xls';
 %direc_list = 'E:\Data\Raw_Data_Current\dataset_lists\c305a_similar_od_handovers.xls';
 direc_list = 'E:\Data\Raw_Data_Current\dataset_lists\c739_similar_od_handovers.xls';
 
+=======
+direc_list = 'E:\Data\Raw_Data_Current\dataset_lists\d5HT1b_similar_od_handovers.xls';
+>>>>>>> Stashed changes
 
 [del, raw_direc_list] = xlsread(direc_list, 1);
 raw_direc_list_copy = raw_direc_list;
