@@ -64,10 +64,41 @@ direc_lists_mat = [...
                     %{'E:\Data\Raw_Data_Current\dataset_lists\MBONG2_PaBaEl_simp_pairing_Berry.xls'};...
 %                     {'E:\Data\Raw_Data_Current\dataset_lists\MBONG2_PaBaEl_handover_pairing_Berry.xls'};...
                     %{'E:\Data\Raw_Data_Current\dataset_lists\MBONG2_PaBaEl_handover_pairing_Berry_ELsecond.xls'};...
+                    {'E:\Data\Raw_Data_Current\dataset_lists\MBONG2_PaBaEl_handover_pairing_Berry_5sipi.xls'};...
                     %{'E:\Data\Raw_Data_Current\dataset_lists\MBONG2_PaBaEl_handover_pairing_Berry_15s_ipi.xls'};...
-                    %{'E:\Data\Raw_Data_Current\dataset_lists\MBONG2_PaBaEl_handover_pairing_Berry_longpulse2.xls'};...
-%                   {'E:\Data\Raw_Data_Current\dataset_lists\MBONA1_Berry_simple_trace0.xls'};...
-                    {'E:\Data\Raw_Data_Current\dataset_lists\Berry_handover_MB298B_MBONG4-G1G2_GcaMP6f_starved.xls'};...
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\MBONG2_PaBaEl_handover_pairing_Berry_25sipi_higherLED.xls'};...
+%                     {'E:\Data\Raw_Data_Current\dataset_lists\MBONG2_PaBaEl_handover_pairing_Berry_longpulse2.xls'};...
+                     %{'E:\Data\Raw_Data_Current\dataset_lists\MBONG2_PaBaEl_handover_pairing_Berry_generalizatin.xls'};...
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\MBONG2_PaBaEl_handover_pairing_Berry_noLEDctrl.xls'};...
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\Berry_handover_WTG2Ap1_onrig_fedshock.xls'};...
+%                     {'E:\Data\Raw_Data_Current\dataset_lists\Berry_handover_WTG2Ap1_onrig_fedshock_30V.xls'};...
+%                     {'E:\Data\Raw_Data_Current\dataset_lists\Berry_handover_WTG2Ap1_onrig_fedshock_10V.xls'};...
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\Berry_handover_WTG2Ap1_onrig_fedshock_45V.xls'};...
+                      
+                    
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\Berry_handover_onrig_shockcalib_13F02LexA_DA44.xls'};...
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\Berry_handover_onrig_shock_13F02_DA44.xls'};...
+                    
+                    
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\Berry_handover_MB298B_MBONG4-G1G2_GcaMP6f_starved.xls'};...
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\Berry_handover_GH146_GCaMP6f_fed.xls'};...
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\Berry_handover_GH146_lobes_fed.xls'};...
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\Berry_handover_SS01240_DPM_starved.xls'};...
+                    
+                    
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\Berry_handover_WTalpha3_fedshock_BAplus.xls'};...
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\Berry_handover_WTalpha3_fedshock_PAplus.xls'};...
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\Berry_handover_WTalpha3_fedshock_unpairedctrl.xls'};...
+                    
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\Berry_handover_WTG2Ap1_fedshock_BAplus_10xsp.xls'};...
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\Berry_handover_WTG2Ap1_fedshock_BAplus_1x.xls'};...
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\Berry_handover_WTG2Ap1_fedshock_unpairedctrl_1x.xls'};...
+                    
+                    
+                    
+                    
+                     %{'E:\Data\Raw_Data_Current\dataset_lists\Berry_handover_13F02_gcaMP6f_starved.xls'};...
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\MBONA1_Berry_simple_trace0.xls'};...
                     
 %                   {'E:\Data\Raw_Data_Current\dataset_lists\Alpha1_60strace_71C03LxA_MB043CGal4_arena_trained.xls'};...
 %                   {'E:\Data\Raw_Data_Current\dataset_lists\c739KC_PaBaEl_handover_rtrain_prehabituated.xls'};...
@@ -77,6 +108,8 @@ direc_lists_mat = [...
                     %{'E:\Data\Raw_Data_Current\dataset_lists\13F02Gal4_x_ACh3_choline_sensor.xls'};...
 %                     {'E:\Data\Raw_Data_Current\dataset_lists\Alpha1_0strace_71C03LxA_MB043CGal4_Berry.xls'};...
                     %{'E:\Data\Raw_Data_Current\dataset_lists\d5HT1b_similar_od_handovers.xls'};...
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\c305a_similar_od_handovers.xls'};...
+                    %{'E:\Data\Raw_Data_Current\dataset_lists\c739_similar_od_handovers.xls'};...
                     %{'E:\Data\Raw_Data_Current\dataset_lists\ufGCaMPs_fast_imaging1.xls'};...
                         
 
@@ -89,7 +122,7 @@ save_path_base_Suite2P = 'E:\Data\Analysed_data\Suite2p\Results\';
 
 
 fuse_ROIs = 0;          %0-no, 1-yes. This flattens dim3 of ROI_mat in case there is a multi-patch neuron that needs to be considered as a single object.
-dilate_ROIs = 0; %15;        %This is the number of pixels by which the manually drawn ROIs are dilated before data extraction.
+dilate_ROIs = 15; %15;        %This is the number of pixels by which the manually drawn ROIs are dilated before data extraction.
 remove_ROI_ovlap = 1;    %enabling this switch gets rid of an overlapping pixels between ROIs from all ROIs.   
 warp_ROIs = 0;           %typically used for KC datasets - user-specified landmarks used to warp ROI matrix to align ROIs with cells as tissue distorts over session.
 extract_both_channels = 0;  
@@ -213,7 +246,8 @@ for do_over = 1:2
                     time_stamps(tif_n).name = dir_contents(tif_n).name;
                     
                     %checking how many color channels were acquired and saving red chan separately
-                    [frame_time, zoom, n_chans] = SI_tif_info(stack_obj);
+                    [frame_time, zoom, n_chans, PMT_offsets, lpower, n_planes] = SI_tif_info(stack_obj);
+                    
                     if extract_both_channels == 1 && n_chans == 2
                         warning('2 channels detected, extracting both channels..');
                         if del == 1
@@ -222,14 +256,16 @@ for do_over = 1:2
                         end
                     else
                     end
+                    
+                    %dealing with situations where stack's frames aren't
+                    %all of the same sample.
                     if n_chans == 2
                         red_stack = curr_stack(:, :, [2:2:end]);
                         curr_stack = curr_stack(:, :, [1:2:end]);
-                        
-                    else
+                    elseif n_planes > 1
+                        curr_stack = curr_stack(:, :, [1:n_planes:end]);
                     end
-                    
-                                     
+                                                         
                     curr_stack = double(curr_stack);
                     ave_stack(:, :, tif_n) = std(curr_stack, 0, 3, 'omitnan');
                     disp(['Saving avg stack, tr ', int2str(tif_n), ' done.'])
@@ -241,6 +277,7 @@ for do_over = 1:2
                     
                     save([save_path, '\tr_avg_stack.mat'], 'ave_stack');
                     save([save_path, 'tif_time_stamps.mat'], 'time_stamps');
+                    save([save_path, 'n_planes.mat'], 'n_planes');
                 end
                 
                 
@@ -277,12 +314,12 @@ for do_over = 1:2
                         ROI_mat(:, :, ROI_n) = poly2mask(curr_ROI.mnCoordinates(:, 1), curr_ROI.mnCoordinates(:, 2), size(ref_im, 1), size(ref_im, 2));
                     end
                      
-                    if n_ROIs > 1 && fuse_ROIs == 0
+                    if size(ROI_mat, 3) > 1 && fuse_ROIs == 0
                         mult_ROIs = 1;
                     else
                         mult_ROIs = 0;
                     end
-                    
+                   
                 elseif ROI_type == 1
                     ROI_mat = load([save_path, 'ROI_mat.mat']);
                     ROI_mat = ROI_mat.ROI_mat;
@@ -344,9 +381,22 @@ for do_over = 1:2
                 end
                 
                 done_marking = 0;
+                
+                try
+                    n_planes = load([save_path, 'n_planes.mat']);
+                    n_planes = n_planes.n_planes;
+                catch
+                    n_planes = 1;       %assuming n_planes is 1 for older datasets where n_planes was always 1.
+                end
+                
                 while done_marking == 0
                     if size(ROI_mat, 3) > 1
-                        ROI_mat_s = sum(ROI_mat, 3);
+                        if n_planes == 1
+                            ROI_mat_s = sum(ROI_mat, 3);
+                        elseif n_planes > 1
+                            ROI_mat_s = ROI_mat(:, :, 1);
+                        else
+                        end
                     else
                         ROI_mat_s = ROI_mat;
                     end
@@ -398,7 +448,9 @@ for direc_list_n = 1:n_direc_lists
             save_path_base = save_path_base_Suite2P;
             direc = direc1;
         else
-        end
+        end             
+        
+        
         
         dataset_namei = findstr(direc, '20');
         dataset_name = direc((dataset_namei):end);
@@ -429,6 +481,15 @@ for direc_list_n = 1:n_direc_lists
         ROI_mat = ROI_mat.ROI_mat;
         
         %if this is a KC dataset, no question of re-drawn ROIs
+        if ROI_type == 0
+            if size(ROI_mat, 3) > 1 && fuse_ROIs == 0
+                mult_ROIs = 1;
+            else
+                mult_ROIs = 0;
+            end
+        else
+        end
+        
         if ROI_type == 0    %case where ROIs are manual and not Suite2P
             if mult_ROIs == 0
                 ROI_mat_adj = load([save_path_base, dataset_name, '\ROI_mat_adj.mat']);
@@ -440,7 +501,6 @@ for direc_list_n = 1:n_direc_lists
         else
             ROI_mat_adj = [];
         end
-                
         
         %extracting raw traces
         dataset_namei = findstr(direc, '20');
@@ -461,7 +521,11 @@ for direc_list_n = 1:n_direc_lists
             delete([save_path, 'extracted_raw_data_mat.mat']);
         else
         end
-       
+        
+        %PICK UP THREAD HERE
+        %fix extract_raw_traces such that it skips every alternate frame
+        %for each ROI when there are multiple planes./
+        
         [raw_data_mat] = extract_raw_traces_par(direc, ROI_mat, save_path, 1, extract_both_channels, subtraction_spec_vec, force_re_extraction, ROI_mat_adj);
         
         

@@ -66,7 +66,9 @@ while trial_n < size(dataset_stack, 3)
         
     disp('Slow, manual motion correction beginning...')
     if trial_n == 1
+        
         [frame_obj, ROI_obj] = plot_frame(frame1, curr_threshm, [1, 2, 1], ROI_mat);      
+        
         %recording original position of frame 1 image displayed.
         im_posx0 = ROI_obj.XData;
         im_posx0 = im_posx0(1);
