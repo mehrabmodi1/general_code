@@ -53,7 +53,7 @@ force_resave = 1;
 n_sec = 2;      %width of moving integration window in s
 
 integ_win_s = 5;        %width of pulse integration window for response quantification
-paired_od_vec = [];
+
 for list_n = 1:size(dataset_list_paths, 1)
     
     curr_dir_list_path = dataset_list_paths{list_n, 1};
@@ -485,7 +485,6 @@ for list_n = 1:size(dataset_list_paths, 1)
         
         close figure 1
         
-        paired_od_vec = [paired_od_vec; paired_od_n_olf1];
     end
     
     del = find(resp_mat_all > 10);
@@ -497,7 +496,6 @@ for list_n = 1:size(dataset_list_paths, 1)
     %saving MBON response data to file for separate analyses
     all_MBON_data.resp_mat = resp_mat_all(1:2, :, :);
     all_MBON_data.trace_mat = saved_traces_all;
-    all_MBON_data.paired_ods_olf1 = paired_od_vec;
     
     if set_list_type == 0
         save_path = [logregr_sv_path, '\simple_stim_data.mat'];
