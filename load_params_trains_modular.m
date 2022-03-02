@@ -63,6 +63,9 @@ if datenum_check == 1
         end
     end
     
+    
+    
+    
     try
         [PID_traces, del, n_PIDdata_dims] = get_PID_traces(direc, 1:tr_n, frame_time, 1);
     catch
@@ -70,7 +73,8 @@ if datenum_check == 1
         %load_params_trains_modular
         keyboard
     end
-   
+    
+    
     PID_traces_acq = PID_traces(:, 1:n_PIDdata_dims:end);    
     LED_traces_acq = PID_traces(:, 2:n_PIDdata_dims:end);    
     
@@ -237,10 +241,17 @@ else
         %NOTE: check if frame_time input was given to
         %load_params_trains_modular
         keyboard
+        
     end
    
-    PID_traces_acq = PID_traces(:, 1:n_PIDdata_dims:end);    
-    LED_traces_acq = PID_traces(:, 2:n_PIDdata_dims:end);    
+    PID_traces_acq = PID_traces(:, 1:n_PIDdata_dims:end);
+    
+    if n_PIDdata_dims > 1
+        LED_traces_acq = PID_traces(:, 2:n_PIDdata_dims:end);    
+    elseif n_PIDdata_dims == 1
+        LED_traces_acq = PID_traces_acq .* nan;
+    else
+    end
     
     if n_PIDdata_dims > 2
         elec_traces_acq = PID_traces(:, 3:n_PIDdata_dims:end);    

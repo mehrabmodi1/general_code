@@ -56,14 +56,14 @@ diff_fr = diff_fr./baseline_fr;                      %dividing by F to get a dF/
 diff_fr(diff_fr < 0) = 0;                            %getting rid of negs
 nansi = isnan(diff_fr);
 diff_fr(nansi) = 0;                                  %getting rid of nans
-diff_fr(diff_fr > 10) = 15;                          %forcing crazy dF/F values to sane ones
+diff_fr(diff_fr > 10) = 10;                          %forcing crazy dF/F values to sane ones
 diff_fr = imgaussfilt(diff_fr, 2);
-
 
 %getting rid of small objects
 bin_pix = diff_fr > 0;
 bin_pix = bwareaopen(bin_pix, 40);                  
 diff_fr = diff_fr.*bin_pix;
+
 %getting rid of background pixels
 % bin_pix(bk_pixi) = 0;
 % diff_fr = diff_fr.*bin_pix;
@@ -83,8 +83,12 @@ baseline_fr_plt = mean(stack, 3, 'omitnan');
 resp_fr_n = baseline_fr_plt./(quantile(reshape(baseline_fr_plt, 1, []), .99));
 resp_fr_n(resp_fr_n >= 1) = 0.999;
 
-pk_dff = max(max(diff_fr))
+pk_dff = max(max(diff_fr));
 diff_fr_n = diff_fr./pk_dff;
+if sum(sum(diff_fr_n)) > 0
+else
+    disp('Warning: No response pixels found. Highlighting baseline image instead.')
+end
 
 %making sure to split the colormap by offsetting diff_fr values by 50%
 resp_fr_n(resp_fr_n < 0) = 0;     %ranges from 0 to 1

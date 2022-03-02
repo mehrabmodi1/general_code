@@ -1,7 +1,7 @@
 clear all
 close all
 
-direc_lists_mat =  [{'C:\Data\Data\Analysed_data\dataset_list_fluc_stim_somas_20171226.xls'}...
+direc_lists_mat =  [{'C:\Data\Code\general_code\data_folder_lists\Janelia\dataset_list_fluc_stim_somas_20171226.xls'}...
                     
                    ]; 
             
@@ -17,10 +17,6 @@ suppress_plots = 0;       %0 - doesn't plot quality control stuff, 1 - plots stu
 
 kernel_width = 5;         %in s, the duration of dF/F trace to use and extract as the Ca-response kernel.
 n_trs_to_analyse = 15;
-
-[del, odor_names] = xlsread('C:\Data\Data\Analysed_data\odor_names_20161108.xls', 1);
-
-
 
 
 %loop to go through all directory lists
@@ -43,11 +39,21 @@ for direc_list_n = 1:n_direc_lists
         
         direc = [direc, '\'];
         
+        
+        cd(direc);
+        tif_name = dir('*.tif');
+        if isempty(tif_name) == 1
+            continue
+        else
+        end
+        stack_obj = ScanImageTiffReader([direc, tif_name(1).name]);
+        [frame_time, zoom, n_chans, PMT_offsets] = SI_tif_info(stack_obj);
+                
         %loading in and parsing params file to get stimulus parameter
         %details
         tif_times = load([direc, 'tif_time_stamps.mat']);           %reading in time stamps for each tif file recorded by raw_data_extracter
         tif_times = tif_times.time_stamps;
-        [stim_mat, stim_mat_simple, column_heads] = load_params_trains(direc, tif_times);
+        [stim_mat, stim_mat_simple, column_heads] = load_params_trains(direc, [], frame_time);
        
         odor_list = unique(stim_mat_simple(:, 2) );
         n_odors = length(odor_list);
@@ -73,8 +79,7 @@ for direc_list_n = 1:n_direc_lists
         avg_factor = metadata((avg_factori + 19):(avg_factori + 20));
         avg_factor = str2num(avg_factor);
         frame_rate = frame_rate./avg_factor;
-        global frame_time;
-        frame_time = 1./frame_rate.*1000;     %in ms
+        
         stim_time = stim_mat_simple(1, 7);
         stim_fr = round((stim_time.*1000)./frame_time);
         post_od_scan_dur = stim_mat_simple(1, 10);
@@ -87,17 +92,17 @@ for direc_list_n = 1:n_direc_lists
         raw_data_mat = raw_data_mat(:, :, stim_mat_simple(:, 1));       %making sure only time-stamp matched trials are used for further analysis
         
         %calculating dF/F traces from raw data
-        filt_time = 200;            %in ms, the time window for boxcar filter for generating filtered traces
-        [dff_data_mat, dff_data_mat_f] = cal_dff_traces_res(raw_data_mat, stim_mat, frame_time, filt_time, direc);
+        filt_time = .2;            %in s, the time window for boxcar filter for generating filtered traces
+        [dff_data_mat, dff_data_mat_f] = cal_dff_traces_res(raw_data_mat, stim_mat, frame_time, filt_time, direc, []);
         
         %identifying significantly responsive cells
         [resp_areas, sig_trace_mat, sig_trace_mat_old, sig_cell_mat] = cal_sig_responses_res(dff_data_mat, stim_mat, stim_mat_simple, direc, frame_time);
         
         %Running data quality control checks
-        sig_cell_mat_old = sig_cell_mat;
-        [sig_cell_mat, all_bad_trs] = cell_data_quality_control(dff_data_mat_f, stim_mat, stim_mat_simple, sig_cell_mat, suppress_plots);
-        disp([num2str((length(all_bad_trs)./size(dff_data_mat, 3)).*100) ' percent of trials were auto-identified as bad and removed.']);
-        dff_data_mat(:, :, all_bad_trs) = nan;
+%         sig_cell_mat_old = sig_cell_mat;
+%         [sig_cell_mat, all_bad_trs] = cell_data_quality_control(dff_data_mat_f, stim_mat, stim_mat_simple, sig_cell_mat, suppress_plots);
+%         disp([num2str((length(all_bad_trs)./size(dff_data_mat, 3)).*100) ' percent of trials were auto-identified as bad and removed.']);
+%         dff_data_mat(:, :, all_bad_trs) = nan;
         
         %% Running fitting algorithm
         kernel_mat = [];
@@ -116,6 +121,7 @@ for direc_list_n = 1:n_direc_lists
                 curr_trs2 = curr_trs2(1:n_trs_to_analyse);                
                 ave_dff_resp_mat = mean(dff_data_mat_f(:, curr_sig_cells, curr_trs), 3, 'omitnan');
                 ave_dff_resp_mat2 = mean(dff_data_mat_f(:, curr_sig_cells, curr_trs2), 3, 'omitnan');
+                
                 %normalising each dff response trace
                 max_vec = max(ave_dff_resp_mat, [], 1);
                 max_mat = repmat(max_vec, size(ave_dff_resp_mat, 1), 1);
@@ -124,11 +130,10 @@ for direc_list_n = 1:n_direc_lists
                 max_mat2 = repmat(max_vec2, size(ave_dff_resp_mat2, 1), 1);
                 ave_dff_resp_mat2 = ave_dff_resp_mat2./max_mat2;
                 
-                PID_traces = get_PID_traces(direc, curr_trs, frame_time);        %getting PID traces
-                PID_traces2 = get_PID_traces(direc, curr_trs2, frame_time);      %getting PID traces for a different, randomly selected train 
-                PID_trace_mean = mean(PID_traces, 1)';
-                PID_trace_mean2 = mean(PID_traces2, 1)';
-                
+                PID_traces = get_PID_traces(direc, curr_trs, frame_time, 0);        %getting PID traces
+                PID_traces2 = get_PID_traces(direc, curr_trs2, frame_time, 0);      %getting PID traces for a different, randomly selected train 
+                PID_trace_mean = mean(PID_traces, 2);
+                PID_trace_mean2 = mean(PID_traces2, 2);
                 
                 %matching sizes of Ca-resps and mean PID trace
                 length_diff = size(PID_trace_mean, 1) - size(ave_dff_resp_mat, 1);
@@ -145,7 +150,7 @@ for direc_list_n = 1:n_direc_lists
                 [del, short_pulsei] = min(curr_train(:, 2));
                 pulse_frames = compute_pulse_frames_train(curr_train, frame_time, stim_mat(curr_trs(1)).stim_latency);
                 pulse_frames_s = pulse_frames(short_pulsei, :);
-                kernel_width_f = kernel_width./(frame_time./1000);      %kernel width in frames
+                kernel_width_f = kernel_width./(frame_time);      %kernel width in frames
                 kernel_pad_l = kernel_width_f - (pulse_frames_s(2) - pulse_frames_s(1) );
                 kernel_traces = ave_dff_resp_mat(pulse_frames_s(1):(pulse_frames_s(2) + kernel_pad_l), :);
                 
@@ -169,9 +174,9 @@ for direc_list_n = 1:n_direc_lists
                         %plotting fit results w.r.t fitted pulse train
                         figure(1)
                         subplot(3, 1, 1)
-                        plot(ave_resp_trace, 'b')
+                        plot(ave_resp_trace, 'k')
                         hold on
-                        plot(dff_trace_predic, 'r')
+                        plot(dff_trace_predic, 'Color', [0.9, 0.4, 0.4])
                         add_stim_bar(1, pulse_frames, color_vec(odor_ni, :))
                         %plot(dff_trace_predic_zero, 'g')       %predicted train response base on starter kernel
 
@@ -182,15 +187,15 @@ for direc_list_n = 1:n_direc_lists
 
                         subplot(3, 1, 3)
                         %plotting fit results w.r.t different pulse train
-                        plot(ave_resp_trace2, 'b')
+                        plot(ave_resp_trace2, 'k')
                         hold on
-                        plot(dff_trace_predic2, 'r')
+                        plot(dff_trace_predic2, 'Color', [0.9, 0.4, 0.4])
                         title('other train convolved with kernel')
                         %plot(dff_trace_predic_zero, 'g')       %predicted train response base on starter kernel
                     
                         MSE1 = mean((ave_resp_trace - dff_trace_predic).^2);
                        
-                        if MSE1 < 0.1
+                        if MSE1 < 0.01
                             MSE1
                             keyboard
                             %del = input('press enter for next cell.');
@@ -209,7 +214,7 @@ for direc_list_n = 1:n_direc_lists
                     resp_errors = compute_mean_sq_errors(resp_mat, ave_trace);      %vector of MSEs for each trial, with mean response vector
                     
                     %computing signal to noise in mean response trace used to fit kernel
-                    base_std = std(ave_resp_trace(1:(stim_mat(curr_trs(1)).stim_latency./(frame_time./1000)) - 1), 1);
+                    base_std = std(ave_resp_trace(1:(stim_mat(curr_trs(1)).stim_latency./(frame_time)) - 1), 1);
                     pk_sig = max(ave_resp_trace);
                     sig_noise = pk_sig/base_std;
                     
@@ -218,9 +223,21 @@ for direc_list_n = 1:n_direc_lists
                     
                 end
                 
+                %plotting response traces
+                figure(2)
+                %sorting responses by total area under curve for entire odor train
+                ave_resp_mat_sorted = [sum(ave_dff_resp_mat, 'omitnan'); ave_dff_resp_mat]';
+                ave_resp_mat_sorted = sortrows(ave_resp_mat_sorted, 1);
+                ave_resp_mat_sorted(1, :) = [];
                 
+                imagesc(ave_resp_mat_sorted, [0, 1]);
+                colormap(greymap);
+                ylabel('cell number');
+                set_xlabels_time(2, frame_time, 5);
+                fig_wrapup(2, [], [75, 180], 0.6);
+                add_stim_bar(2, pulse_frames, [0, 0, 0]);
                 
-                %keyboard
+                keyboard
                 
             end
         end
@@ -235,20 +252,20 @@ for direc_list_n = 1:n_direc_lists
     xlabel('mean squared error of single tr traces with mean trace')
     ylabel('mean squared error with fitted response trace')
     make_axes_equal(3, 1)
-    fig_wrapup(3)
+    fig_wrapup(3, [])
 
     figure(4)
     plot(MSE_mat(:, 1), MSE_mat(:, 2), '.')
     xlabel('mean squared error with fitted response trace')
     ylabel('mean squared error with independent response trace')
     make_axes_equal(4, 1)
-    fig_wrapup(4)
+    fig_wrapup(4, [])
     
     figure(5)
     plot(MSE_mat(:, 4), MSE_mat(:, 1), '.')
     xlabel('dF/F trace signal to noise')
     ylabel('mean squared error with fitted response trace')
-    fig_wrapup(5)
+    fig_wrapup(5, [])
     [cor2, p] = corrcoef([MSE_mat(:, 4), MSE_mat(:, 1)])
     keyboard
 end

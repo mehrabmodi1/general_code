@@ -2,7 +2,7 @@ clear all
 close all
 
 path_base = 'C:\Data\Data\Analysed_data\data_sharing\param_fitting\ABKC_long_trace\';
-n_flies = 4;
+n_flies = 3;
 frame_time = 0.0999;    %in s
 
 a = colormap('bone');
@@ -33,7 +33,10 @@ for fly_n = 1:n_flies
     od_col_ns = [olf1_od_col_n, olf2_od_col_n];
     dur_col_ns = [dur_olf1_col_n, dur_olf2_col_n];
     
-    [resp_sizes, sig_trace_mat, sig_trace_mat_old, sig_cell_mat, resp_areaundercurves] = cal_sig_responses_res_modular(dff_data_mat, stim_mat, stim_mat_simple, frame_time, od_col_ns, dur_col_ns);
+    %[resp_sizes, sig_trace_mat, sig_trace_mat_old, sig_cell_mat, resp_areaundercurves] = cal_sig_responses_res_modular(dff_data_mat, stim_mat, stim_mat_simple, frame_time, od_col_ns, dur_col_ns);
+    
+    sig_cell_mat = zeros(size(dff_data_mat, 2), 16) + 1;
+    
     
     od_list_olf1 = unique(stim_mat_simple(:, olf1_od_col_n));
     
@@ -200,9 +203,9 @@ function [model_trace, stim_frs] = fit_KC_response(curr_train, curr_cell_params,
         
         model_trace = model_trace + curr_model_trace;       %adding up model responses for multiple odor pulses assuming linear summation
         stim_frs = (curr_train + stim_latency)./frame_time;
-%         plot_fit_trace(1, curr_resp_trace, curr_model_trace, stim_frs, frame_time);
-%         keyboard
-%         close figure 1
+        plot_fit_trace(1, curr_resp_trace, curr_model_trace, stim_frs, frame_time);
+        keyboard
+        close figure 1
       
         
     end
@@ -215,11 +218,11 @@ function [] = plot_fit_trace(fig_n, resp_trace, model_trace, stim_frs, frame_tim
 
 %plotting response with fit overlaid
 figure(fig_n)
-plot(resp_trace);
+plot(resp_trace, 'k');
 hold on
 plot(model_trace', 'r')
 set_xlabels_time(1, frame_time, 20);
 ylabel('response amplitude (dF/F)')
-fig_wrapup(fig_n, []);
+fig_wrapup(fig_n, [], [75, 180], 0.6);
 add_stim_bar(1, stim_frs, [0.65, 0.65, 0.65]);
 end
