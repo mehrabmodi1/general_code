@@ -39,7 +39,7 @@ global color_vec;
 a = colormap('bone');
 global greymap
 greymap = flipud(a);
-fly_n = 0;
+
 script_name = mfilename;
 
 y_ax_traces = 0.8;
@@ -53,8 +53,9 @@ force_resave = 1;
 n_sec = 2;      %width of moving integration window in s
 
 integ_win_s = 5;        %width of pulse integration window for response quantification
-paired_od_vec = [];
+fly_n = 0;
 for list_n = 1:size(dataset_list_paths, 1)
+    paired_od_vec = [];
     
     curr_dir_list_path = dataset_list_paths{list_n, 1};
     curr_dir_list_path = update_list_path(curr_dir_list_path);
@@ -86,8 +87,6 @@ for list_n = 1:size(dataset_list_paths, 1)
     
     %loop to go through all experiment datasets listed in list file
     for dir_n = 1:n_dirs
-        fly_n = fly_n + 1;
-             
         curr_dir = [dir_list{dir_n, 1}, '\'];
         curr_dir = manage_base_paths(curr_dir, 2)
        
@@ -101,6 +100,7 @@ for list_n = 1:size(dataset_list_paths, 1)
             continue
         else
         end
+        fly_n = fly_n + 1;
         stack_obj = ScanImageTiffReader([curr_dir, tif_name(1).name]);
         [frame_time, zoom, n_chans, PMT_offsets] = SI_tif_info(stack_obj);
         
@@ -485,7 +485,7 @@ for list_n = 1:size(dataset_list_paths, 1)
         
         close figure 1
         
-        paired_od_vec = [paired_od_vec; paired_od_n_olf1];
+        paired_od_vec = [paired_od_vec; paired_od_n_olf2];
     end
     
     del = find(resp_mat_all > 10);
