@@ -40,6 +40,10 @@ single_fly_n = 5;   %G KCs - 5, A'\B' KCs - 5, A/B KCs - 3
 subtract_pulse1_resps = 0;      %1 - subtracts the appropriate mean responses to single pulses from the transition response traces
 re_extract_KC_data = 0;
 
+%Fit related parameters
+multi_fly_MBON = 1;     %This switches between fitting KC trials from a single fly to resampled MBON responses from multiple flies or the single trials from a single fly.
+
+
 
 %extracting, re-formatting and writing KC response data to disk
 if re_extract_KC_data == 1
@@ -185,22 +189,23 @@ if re_extract_KC_data == 1
                     curr_stim_type_simp = 1;
                 end
 
-                curr_sig_cells = union_sig_cells;
                 curr_trs = find(stim_mat_simple(:, od_col_ns(1)) == olf1_od_n & stim_mat_simple(:, dur_col_ns(1)) == olf1_dur &... 
                                     stim_mat_simple(:, od_col_ns(2)) == olf2_od_n & stim_mat_simple(:, dur_col_ns(2)) == olf2_dur);
 
                 %logging traces sorted by stim type to use for logistic regression decoding.
-                single_traces_mat = pad_n_concatenate(single_traces_mat, dff_data_mat_f(:, :, curr_trs), 4, nan); 
+                single_traces_mat = pad_n_concatenate(single_traces_mat, dff_data_mat_f(:, union_sig_cells, curr_trs), 4, nan); 
 
                 stim_frs = compute_stim_frs_modular(stim_mat, curr_trs(1), frame_time);  %computing stimulus on and off frame numbers for olf1 and olf2
 
                 %computing response sizes and logging only for sig cells
-                stim_frs_simp = stim_frs{2};
-                stim_frs_simp(2) = stim_frs_simp(2) + round(2./frame_time);
-                mean_resps(union_nonsig_cells) = 0;
-                saved_resp_sizes(:, stim_type_n) = mean_resps';
-
-
+                stim_frs_olf2 = stim_frs{2};
+                stim_frs_olf2(2) = stim_frs_olf2(2) + round(2./frame_time);
+                
+                %simple and transition stimuli, both delivered with olf2
+                t_win_resps = squeeze(mean(dff_data_mat(stim_frs_olf2(1):stim_frs_olf2(2), union_sig_cells, curr_trs), 1, 'omitnan'));
+                               
+                saved_resp_sizes = pad_n_concatenate(saved_resp_sizes, t_win_resps, 3, nan);
+                
             end
 
             %training logistic regression decoders
@@ -219,8 +224,7 @@ if re_extract_KC_data == 1
             fly_data.stim_frs = stim_frs;
             fly_data.stim_mat = stim_mat_simple;
             fly_data.KC_type = KC_type;
-            
-
+           
             save_dir = [save_path_base, KC_type, '\fly', num2str(dir_n)];
             mkdir(save_dir);
             save([save_dir, '\fly_data.mat'], 'fly_data');
@@ -244,25 +248,96 @@ end
 MBON_path = [save_path_base, 'MBON\'];
 MBON_simp_data = load([MBON_path, 'simple_stim_data.mat']);
 MBON_simp_data = MBON_simp_data.all_MBON_data;
-MBON_transition_data = load([MBON_path, 'transition_stim_data.mat']);
-MBON_transition_data = MBON_transition_data.all_MBON_data;
+MBON_simp_paired_ods = MBON_simp_data.paired_ods_olf1;
+MBON_simp_resps_all = MBON_simp_data.resp_mat;
+
+MBON_tr_data = load([MBON_path, 'transition_stim_data.mat']);
+MBON_tr_data = MBON_tr_data.all_MBON_data;
+MBON_tr_paired_ods = MBON_tr_data.paired_ods_olf1;
+MBON_tr_resps_all = MBON_tr_data.resp_mat;
 
 %reading in KC data, doing fit and logging results
 KC_types = [{'d5HT1b'}, {'c305a'}, {'c739'}];
 for KC_type_n = 1:3
     KC_type = KC_types{KC_type_n};
     n_flies = length(dir([save_path_base, KC_type])) - 2;
-    for fly_n = 1:n_flies
+    
+    %result log variables
+    test_acc_all = [];
+    test_tr_vals_all = [];
+    transition_acc_all = [];
+    transition_vals_all = [];
+    wts_all = [];
+    
+    for fly_n = 2:n_flies
         KC_data = load([save_path_base, KC_type, '\fly', num2str(fly_n), '\fly_data.mat']);
         KC_data = KC_data.fly_data;
-        KC_resp_data = KC_Data.resp_sizes;
+        KC_resp_data = KC_data.resp_sizes;
         
+        %looping through PA and BA as the paired odors
+        for od_ni = 1:2
+            if od_ni == 1
+                paired_od = 3;
+            else
+                paired_od = 1;
+            end
+            
+            curr_flies = find(MBON_simp_paired_ods == paired_od);
+            MBON_simp_resps = MBON_simp_resps_all(2, :, curr_flies);    %picking flies with a specific paired odor, using only post pairing responses
+            
+            curr_flies = find(MBON_tr_paired_ods == paired_od);
+            MBON_tr_resps = MBON_tr_resps_all(2, :, curr_flies);        %picking flies with the same paired odor, using only post pairing responses          
+            
+            %loop to train on all trials but 1 to use leave one out cross-validation
+            for l_trial_n = 1:size(KC_resp_data, 2)
+                curr_trs = 1:size(KC_resp_data, 2);
+                curr_trs(l_trial_n) = [];
+                inputs_train = KC_resp_data(:, curr_trs, 1:3);
+                inputs_test = KC_resp_data(:, l_trial_n, 1:3);        %This test is run with simple pulse KC responses, to measure goodness of fit.
+                
+                inputs_tr_test = KC_resp_data(:, :, 4:5);           %transition trial KC responses
+                
+                %re-sampling single trial MBON responses with replacement to match the number of KC trials from a given fly                 
+                if multi_fly_MBON == 1
+                    r_vec = randi(size(MBON_simp_resps, 3), length(curr_trs), 1);                  %randomly sampling MBON responses from different flies with replacement
+                elseif multi_fly_MBON == 0  
+                    r_vec = repmat(randi(size(MBON_simp_resps, 3), 1), length(curr_trs), 1);       %using MBON responses from a single fly repeatedly                   
+                else
+                end
+                outputs_train = MBON_simp_resps(:, :, r_vec);
+               
+                
+                try
+                    [wts, test_tr_vals, test_acc, transition_vals, transition_acc] = log_regr_MBON_model(inputs_train, outputs_train, inputs_test, inputs_tr_test, od_ni);    %test here is run with left out simple pulse KC responses, to measure goodness of fit.     
+                catch
+                    wts = [];
+                    
+                end
+                
+                                
+                %logging results
+                if isempty(wts) == 0
+                    test_acc_all = [test_acc_all; test_acc];
+                    test_tr_vals_all = pad_n_concatenate(test_tr_vals_all, test_tr_vals, 2, nan);
+                    transition_acc_all = [transition_acc_all; transition_acc];
+                    transition_vals_all = pad_n_concatenate(transition_vals_all, transition_vals, 2, nan);
+                    wts_all = pad_n_concatenate(wts_all, wts, 2, nan);
+                else
+                    keyboard
+                end
+                
+                
+                %PICK UP THREAD HERE
+                %Implement all digital outputs or all analog outputs (for
+                %training and testing).
+                
+            end
+
         
-        keyboard
-        
-        
+        end
+       
     end
-    
+   keyboard 
 end
 
 
