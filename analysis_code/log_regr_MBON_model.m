@@ -1,4 +1,4 @@
-function [theta, h_theta, test_acc, h_theta_transition, acc_transition] = log_regr_MBON_model(inputs_train, outputs_train, inputs_test, inputs_tr_test, paired_od_index)
+function [theta, h_theta, test_acc_simp, test_acc_transition] = log_regr_MBON_model(inputs_train, outputs_train, inputs_test, outputs_test, initial_wts_offset, lambda)
 %This function is custom-written to train a logistic regressor on simple
 %pulse KC response vectors with analog, simple pulse MBON responses as the
 %output. The goal is to then decode transition KC responses with the
@@ -8,47 +8,37 @@ function [theta, h_theta, test_acc, h_theta_transition, acc_transition] = log_re
 X = [];
 y = [];
 X_test = [];
-for od_n = 1:3
+y_test = [];
+
+for od_n = 1:size(inputs_train, 3)
     X = pad_n_concatenate(X, squeeze(inputs_train(:, :, od_n)), 2, nan);
-    X_test = pad_n_concatenate(X_test, squeeze(inputs_test(:, :, od_n)), 2, nan);
-    y = pad_n_concatenate(y, squeeze(outputs_train(1, od_n, :)), 1, nan);
+    y = pad_n_concatenate(y, squeeze(outputs_train(:, od_n)), 1, nan);
 end
 
-%re-arranging transition trial KC responses such that paired odor responses are first and unpaired odor responses are second
-X_test_transition = [];
-if paired_od_index == 1
-    for od_n = 1:2
-        X_test_transition = pad_n_concatenate(X_test_transition, squeeze(inputs_tr_test(:, :, od_n)), 2, nan);
-    end
-elseif paired_od_index == 2
-    for od_n = 2:-1:1
-        X_test_transition = pad_n_concatenate(X_test_transition, squeeze(inputs_tr_test(:, :, od_n)), 2, nan);
-    end
-else
+for od_n = 1:size(inputs_test, 3)
+    X_test = pad_n_concatenate(X_test, squeeze(inputs_test(:, :, od_n)), 2, nan);
 end
 
 X = X';
-y = y;
 X_test = X_test';
 
-%normalizing input and output vectors
-X(X > 5) = 5;
-X = X./5;
-max_y = max(max(y, [], 'omitnan'), [], 'omitnan');
-y = y./max_y;
+%adding offset unit (all ones)
+X = [zeros(size(X, 1), 1), X];
+X(:, 1) = X(:, 1) + 1;
+X_test = [zeros(size(X_test, 1), 1), X_test];
+X_test(:, 1) = X_test(:, 1) + 1;
 
-%getting rid of nan rows in X
-nanrows = sum(isnan(X), 2);
-nanrows = find(nanrows > 0);
-X(nanrows, :) = [];
-y(nanrows) = [];
+% %getting rid of nan rows in X
+% nanrows = sum(isnan(X), 2);
+% nanrows = find(nanrows > 0);
+% X(nanrows, :) = [];
+% y(nanrows) = [];
 
-
-initial_theta = zeros(size(X, 2), 1);  %initializing weights as random numbers
+initial_theta = rand(size(X, 2), 1).*initial_wts_offset;  %initializing weights as random numbers
 
 %setting up and running fit function
 % Set Options
-lambda = 1 ;        %arbitrarily chosen regularization constant
+lambda = lambda ;        %user-specified regularization constant
 options = optimoptions(@fminunc,'Algorithm','Quasi-Newton','GradObj', 'on', 'MaxIter', 1000);
 
 %Optimize
@@ -57,8 +47,7 @@ try
 catch
     theta = [];
     h_theta = [];
-    keyboard
-    return
+    
 end
 
 
@@ -70,20 +59,12 @@ end
 % end
 
 
-
 %decoding single pulse test trial
 y_pred = X_test*theta;
-h_theta = round(sigmoid(y_pred));
-test_acc = sum(h_theta == [0; 0; 1])./3;    %fraction of left out test outputs correct
-
-
-%decoding transition pulse test trial
-y_pred_transition = X_test_transition'*theta;
-h_theta_transition = round(sigmoid(y_pred_transition));
-expected_h_theta_transition = zeros(16, 1);
-expected_h_theta_transition(9:16, 1) = 1;
-acc_transition = sum(h_theta_transition == expected_h_theta_transition)./16;
-
+h_theta = sigmoid(y_pred);
+test_acc_simp = mean(round(h_theta(1:3))' == outputs_test(1:3));    %fraction of left out test outputs correct
+test_acc_transition = mean(round(h_theta(4:5))' == outputs_test(4:5));
+theta(1) = [];
 
 
 

@@ -12,17 +12,12 @@ dataset_list_paths = [ ...
 odor_names2{3} = 'Butyl acetate';
 od_names = [{'PA'}, {'BA'}, {'EL'}];
 
-save_path_base = 'C:\Data\Data\Analysed_data\Analysis_results\KC_transition_logregr\';
-           
 paired_color = [0,136,55]./256;
 unpaired_color = [166,219,160]./256;
 EL_color = [123,50,148]./256;
 PA_color = [0,136,55]./256;
 BA_color = [166,219,160]./256;
 mean_color = [0.8, 0.4, 0.4];
-
-suppress_QC_plots = 1;
-pool_flies_traces = 0;
 
 global color_vec;                
 a = colormap('bone');
@@ -31,18 +26,37 @@ greymap = flipud(a);
 fly_n = 0;
 script_name = mfilename;
 
-y_ax_traces = 0.8;
-y_ax_fit_traces = 0.6;
-saved_long_traces = 0;
-all_sig_frs = [];
-pause_PCAs = 0;
-single_fly_n = 5;   %G KCs - 5, A'\B' KCs - 5, A/B KCs - 3
-subtract_pulse1_resps = 0;      %1 - subtracts the appropriate mean responses to single pulses from the transition response traces
 re_extract_KC_data = 0;
 
 %Fit related parameters
 multi_fly_MBON = 1;     %This switches between fitting KC trials from a single fly to resampled MBON responses from multiple flies or the single trials from a single fly.
+fit_simp_and_trans = 1; %This switches between (0) fitting log regressors to simple trials only (simulate biology) or (1) simple AND transition trials (most generous test of hypothesis).
+KC_act_threshold = 0; %This floors all KC activity values below this threshold during fitting and decoding
+%training_odor_vec = [1, 2, 3, 4, 5];    %train on all odors (NOTE: Always tested on all odors)
+%training_odor_vec = [1, 3, 4, 5];    %ignore CS- only    (NOTE: Always tested on all odors)
+%training_odor_vec = [1, 2, 4, 5];    %ignore Dissimilar only    (NOTE: Always tested on all odors)
+%training_odor_vec = [1, 2, 3];    %ignore transitions    (NOTE: Always tested on all odors)
+training_odor_vec = [1, 3];      %only train on paired and dissimilar odors.
+%training_odor_vec = 1;           %only train on paired odor.   results in trivial training where all outputs are 0.
+%training_odor_vec = [2, 5];
 
+
+%initialize weights with an offset to affect ignored odor decoding
+%wt_lookup_vec = [2, 1, 1.5];
+wt_lookup_vec = [0.05, 0.05, 0.05];     %default
+lambda = 0.1;         %regularization constant
+
+
+%Use 2s response integration window
+%KC_win = 2;     %deault - 7 use KC response data extracted over KC_win s after relevant odor pulse onset
+KC_win = 7;
+
+
+if KC_win == 7
+    save_path_base = 'C:\Data\Data\Analysed_data\Analysis_results\KC_transition_logregr\';
+elseif KC_win == 2
+    save_path_base = 'C:\Data\Data\Analysed_data\Analysis_results\KC_transition_logregr_2s\';
+end
 
 
 %extracting, re-formatting and writing KC response data to disk
@@ -154,7 +168,7 @@ if re_extract_KC_data == 1
             [resp_sizes, sig_trace_mat, sig_cell_mat, sig_cell_mat_key, resp_areaundercurves] = cal_sig_responses_res_modular(dff_data_mat, stim_mat, stim_mat_simple, frame_time, od_col_ns, dur_col_ns);
 
             %sanity-checking KC data
-            [del, all_bad_trs] = cell_data_quality_control(dff_data_mat_f, stim_mat, stim_mat_simple, column_heads, sig_cell_mat, sig_cell_mat_key, suppress_QC_plots, frame_time);
+            [del, all_bad_trs] = cell_data_quality_control(dff_data_mat_f, stim_mat, stim_mat_simple, column_heads, sig_cell_mat, sig_cell_mat_key, 1, frame_time);
 
             union_sig_cell_vec = sum(sig_cell_mat, 2);
             union_sig_cell_vec = sign(union_sig_cell_vec);
@@ -199,7 +213,7 @@ if re_extract_KC_data == 1
 
                 %computing response sizes and logging only for sig cells
                 stim_frs_olf2 = stim_frs{2};
-                stim_frs_olf2(2) = stim_frs_olf2(2) + round(2./frame_time);
+                stim_frs_olf2(2) = stim_frs_olf2(1) + round(KC_win./frame_time);
                 
                 %simple and transition stimuli, both delivered with olf2
                 t_win_resps = squeeze(mean(dff_data_mat(stim_frs_olf2(1):stim_frs_olf2(2), union_sig_cells, curr_trs), 1, 'omitnan'));
@@ -207,16 +221,6 @@ if re_extract_KC_data == 1
                 saved_resp_sizes = pad_n_concatenate(saved_resp_sizes, t_win_resps, 3, nan);
                 
             end
-
-            %training logistic regression decoders
-            %calling logistic regression main_function
-    %         stim_frs_plt = stim_frs{1};
-    %         try
-    %             [decoder_resp_traces, pred_accuracy_mat] = do_log_regression(single_traces_mat, n_reps_vec, sig_cell_mat_key, stim_frs_plt);        
-    %         catch
-    %             keyboard
-    %         end
-    %         decoder_resp_traces = movmean(decoder_resp_traces, 5, 1);
 
             fly_data.resp_traces = single_traces_mat;
             fly_data.resp_sizes = saved_resp_sizes;
@@ -241,20 +245,17 @@ end
 
 
 %Reading in KC and MBON response data
-
-
-
 %reading in MBON data
-MBON_path = [save_path_base, 'MBON\'];
-MBON_simp_data = load([MBON_path, 'simple_stim_data.mat']);
-MBON_simp_data = MBON_simp_data.all_MBON_data;
-MBON_simp_paired_ods = MBON_simp_data.paired_ods_olf1;
-MBON_simp_resps_all = MBON_simp_data.resp_mat;
-
-MBON_tr_data = load([MBON_path, 'transition_stim_data.mat']);
-MBON_tr_data = MBON_tr_data.all_MBON_data;
-MBON_tr_paired_ods = MBON_tr_data.paired_ods_olf1;
-MBON_tr_resps_all = MBON_tr_data.resp_mat;
+% MBON_path = [save_path_base, 'MBON\'];
+% MBON_simp_data = load([MBON_path, 'simple_stim_data.mat']);
+% MBON_simp_data = MBON_simp_data.all_MBON_data;
+% MBON_simp_paired_ods = MBON_simp_data.paired_ods_olf1;
+% MBON_simp_resps_all = MBON_simp_data.resp_mat;
+% 
+% MBON_tr_data = load([MBON_path, 'transition_stim_data.mat']);
+% MBON_tr_data = MBON_tr_data.all_MBON_data;
+% MBON_tr_paired_ods = MBON_tr_data.paired_ods_olf1;
+% MBON_tr_resps_all = MBON_tr_data.resp_mat;
 
 %reading in KC data, doing fit and logging results
 KC_types = [{'d5HT1b'}, {'c305a'}, {'c739'}];
@@ -262,18 +263,33 @@ for KC_type_n = 1:3
     KC_type = KC_types{KC_type_n};
     n_flies = length(dir([save_path_base, KC_type])) - 2;
     
-    %result log variables
-    test_acc_all = [];
-    test_tr_vals_all = [];
-    transition_acc_all = [];
-    transition_vals_all = [];
-    wts_all = [];
     
-    for fly_n = 2:n_flies
+    %looking up initial weight matrix offset from manually specified vector of offsets for each KC subtype
+    initial_wts_offset = wt_lookup_vec(KC_type_n);
+        
+    %result log variables
+    test_acc_s_all = [];
+    test_transition_acc_all = [];
+    test_tr_vals_all = [];    
+    wts_all = [];
+    resp_vecs_all = [];
+    median_wts = [];
+    median_resps_all = [];
+    for fly_n = 1:n_flies
+        
+        %skipping flies with few cells
+        if KC_type_n <=2 && fly_n == 4  
+            continue
+        else
+        end
+        
         KC_data = load([save_path_base, KC_type, '\fly', num2str(fly_n), '\fly_data.mat']);
         KC_data = KC_data.fly_data;
         KC_resp_data = KC_data.resp_sizes;
+        KC_resp_data(KC_resp_data < KC_act_threshold) = 0;
         
+        fly_wts = [];
+        fly_resps = [];
         %looping through PA and BA as the paired odors
         for od_ni = 1:2
             if od_ni == 1
@@ -282,84 +298,153 @@ for KC_type_n = 1:3
                 paired_od = 1;
             end
             
-            curr_flies = find(MBON_simp_paired_ods == paired_od);
-            MBON_simp_resps = MBON_simp_resps_all(2, :, curr_flies);    %picking flies with a specific paired odor, using only post pairing responses
-            
-            curr_flies = find(MBON_tr_paired_ods == paired_od);
-            MBON_tr_resps = MBON_tr_resps_all(2, :, curr_flies);        %picking flies with the same paired odor, using only post pairing responses          
-            
+            %picking up only simple or simple and transition KC resp data for training, as specified.
+            if fit_simp_and_trans == 0
+                KC_resp_data_use = KC_resp_data(:, :, 1:3);
+            elseif fit_simp_and_trans == 1
+                KC_resp_data_use = KC_resp_data(:, :, 1:5);
+            else
+            end
+                
             %loop to train on all trials but 1 to use leave one out cross-validation
             for l_trial_n = 1:size(KC_resp_data, 2)
                 curr_trs = 1:size(KC_resp_data, 2);
                 curr_trs(l_trial_n) = [];
-                inputs_train = KC_resp_data(:, curr_trs, 1:3);
-                inputs_test = KC_resp_data(:, l_trial_n, 1:3);        %This test is run with simple pulse KC responses, to measure goodness of fit.
-                
-                inputs_tr_test = KC_resp_data(:, :, 4:5);           %transition trial KC responses
-                
-                %re-sampling single trial MBON responses with replacement to match the number of KC trials from a given fly                 
-                if multi_fly_MBON == 1
-                    r_vec = randi(size(MBON_simp_resps, 3), length(curr_trs), 1);                  %randomly sampling MBON responses from different flies with replacement
-                elseif multi_fly_MBON == 0  
-                    r_vec = repmat(randi(size(MBON_simp_resps, 3), 1), length(curr_trs), 1);       %using MBON responses from a single fly repeatedly                   
-                else
+                inputs_train = KC_resp_data_use(:, curr_trs, :);
+                inputs_test = KC_resp_data_use(:, l_trial_n, :);        %This test is run with simple pulse KC responses, to measure goodness of fit.
+
+                outputs_train = zeros(length(curr_trs), 5);              %constructing perfect output vectors
+                outputs_train(:, 3) = 1;                    %assigning EL responses as always high
+                outputs_test = zeros(1, 5);
+                outputs_test(3) = 1;                    %setting EL as high
+
+                %if fitting trans and simple responses, assigning each odor as high in turn
+                %in Original KC data: 1 - Air-PA, 2 - Air-BA, 3 - Air-EL, 4 - PA-BA, 5 - BA-PA
+                %Paired-od convention: 1 - Air-A, 2 - Air-A', 3 - Air-B, 4 - A'-A, 5 - A-A'. Hence have to re-arrange as below.
+                inputs_train_orig = inputs_train;
+                inputs_test_orig = inputs_test;
+                if od_ni == 1   %PA is paired odor
+                    inputs_train(:, :, 4) = inputs_train_orig(:, :, 5); %1 is Air-PA and 4 is now BA-PA 
+                    inputs_train(:, :, 5) = inputs_train_orig(:, :, 4); %2 is Air-BA and 5 is now PA-BA
+                    
+                    inputs_test(:, :, 4) = inputs_test_orig(:, :, 5);
+                    inputs_test(:, :, 5) = inputs_test_orig(:, :, 4);
+                elseif od_ni == 2   %BA is paired odor
+                    inputs_train(:, :, 1) = inputs_train_orig(:, :, 2);
+                    inputs_train(:, :, 2) = inputs_train_orig(:, :, 1);
+                    
+                    inputs_test(:, :, 1) = inputs_test_orig(:, :, 2);
+                    inputs_test(:, :, 2) = inputs_test_orig(:, :, 1);                    
                 end
-                outputs_train = MBON_simp_resps(:, :, r_vec);
-               
                 
+                outputs_train(:, 5) = 1;    %since transition odors were randomly re-arranged above, assigning a fixed position as high
+                outputs_test(5) = 1;        
+
+                %using only selected odors for training
+                inputs_train  = inputs_train(:, :, training_odor_vec);
+                outputs_train = outputs_train(:, training_odor_vec);
+                
+                
+                %normalizing input vectors
+                inputs_train(inputs_train > 5) = 5;
+                max_x = max(max(inputs_train));
+                inputs_train = inputs_train./max_x;
+
+                inputs_test(inputs_test > 5) = 5;
+                max_x = max(max(inputs_test));
+                inputs_test = inputs_test./max_x;
+                
+
                 try
-                    [wts, test_tr_vals, test_acc, transition_vals, transition_acc] = log_regr_MBON_model(inputs_train, outputs_train, inputs_test, inputs_tr_test, od_ni);    %test here is run with left out simple pulse KC responses, to measure goodness of fit.     
+                    [wts, test_tr_vals, test_acc_simp, test_acc_transition] = log_regr_MBON_model(inputs_train, outputs_train, inputs_test, outputs_test, initial_wts_offset, lambda);    %test here is run with left out simple pulse KC responses, to measure goodness of fit.     
                 catch
                     wts = [];
-                    
+                   
                 end
-                
-                                
+
+
                 %logging results
                 if isempty(wts) == 0
-                    test_acc_all = [test_acc_all; test_acc];
                     test_tr_vals_all = pad_n_concatenate(test_tr_vals_all, test_tr_vals, 2, nan);
-                    transition_acc_all = [transition_acc_all; transition_acc];
-                    transition_vals_all = pad_n_concatenate(transition_vals_all, transition_vals, 2, nan);
-                    wts_all = pad_n_concatenate(wts_all, wts, 2, nan);
+                    test_acc_s_all = [test_acc_s_all; test_acc_simp];
+                    test_transition_acc_all = [test_transition_acc_all; test_acc_transition];
+                    fly_wts = pad_n_concatenate(fly_wts, wts, 2, nan);
+                    median_response_vec = median(inputs_train, 2, 'omitnan');        %logging median across fitted KC response vectors 
+                    fly_resps = pad_n_concatenate(resp_vecs_all, median_response_vec, 2, nan);
                 else
-                    keyboard
+                    
                 end
-                
-                
-                %PICK UP THREAD HERE
-                %Implement all digital outputs or all analog outputs (for
-                %training and testing).
                 
             end
 
         
         end
-       
+        if isempty(fly_wts) == 0
+            wts_all = pad_n_concatenate(wts_all, fly_wts, 2, nan);
+            median_wts = pad_n_concatenate(median_wts, median(fly_wts, 2), 2, nan);
+            resp_vecs_all = pad_n_concatenate(resp_vecs_all, fly_resps, 2, nan);
+            median_resps_all = pad_n_concatenate(median_resps_all, median(fly_resps, 2), 2, nan); 
+        else
+        end
     end
-   keyboard 
+    wts_all(1, :) = nan;
+    median_wts(1, :) = nan;
+    
+    
+    fig_h = figure('Name', 'Regressor output on test trials');
+    xlabels = [{'Air-A'}, {'Air-A'''}, {'Air-B'}, {'A''-A'}, {'A-A'''}];
+    fig_h = scattered_dot_plot_ttest(test_tr_vals_all', fig_h, .6, 1, 4, [0.65, 0.65, 0.65], 1, [], [], xlabels, 2, [0, 0, 0], 2, 0.05, 0, 1, 'force_mean');
+    hold on
+    ax_vals = axis;
+    plot([ax_vals(1), ax_vals(2)], [0.5, 0.5], 'k--');
+    xlabel('decoded odor')
+    ylabel('Regressor output')
+    colormap(greymap)
+    fig_wrapup(fig_h, [], [100, 120], 0.6);
+        
+    
+    fig_h = figure('Name', 'weight vectors');
+    imagesc(wts_all)
+    colormap(greymap)
+    ylabel('cell number')
+    xlabel('test trial number (across flies)');
+    title(KC_type)
+    
+       
+    corr_vals_all = [];
+    od_names = [{'Air-A'}, {'Air-A'''}, {'Air-B'}, {'A''-A'}, {'A-A'''}];
+    for train_od_ni = 1:length(training_odor_vec)
+        train_od_n = training_odor_vec(train_od_ni);
+        od_name = od_names{train_od_n};
+        %relating weights to activity vector for each training odor
+        fig_h = figure('Name', ['weights v/s median, ', od_name, ', resps']);
+        weights = reshape(median_wts, 1, []);
+        A_activ = reshape(squeeze(median_resps_all(:, :, train_od_ni)), 1, []);     
+        plot(A_activ, weights, '.', 'Color', [0.65, 0.65, 0.65]);
+        hold on
+        [corr_vals, corr_p] = corrcoef(weights, A_activ, 'Rows', 'complete');  %computing correlation coeff
+        corr_vals = corr_vals(1, 2);
+        corr_p = corr_p(1, 2);
+        ax_vals = axis();
+        if corr_p > 0.001
+            corr_label = ['R ', num2str(corr_vals), ' p ', num2str(round(corr_p, 3))];
+        else
+            corr_label = ['R ', num2str(corr_vals), ' p < 0.001'];
+        end
+        text((ax_vals(2).*0.2), (ax_vals(4).*0.8), corr_label);
+
+        xlabel(['mean KC response (', od_name, ')'])
+        ylabel('weight')
+        fig_wrapup(fig_h, [], [100, 120], 0.6);
+        corr_vals_all = [corr_vals_all; [corr_vals, corr_p]];
+   end
+   corr_vals_all
+   
+        
+   keyboard
+   close all
 end
 
 
 
 
-%constructing odor stimulus name string
-olf1_od_ind = find(odor_list_olf1 == olf1_od_n);
-olf1_od_name = od_names{olf1_od_ind};
-olf2_od_ind = find(odor_list_olf2 == olf2_od_n);
-olf2_od_name = od_names{olf2_od_ind};
-
-if curr_stim_type == 0  %simple stimulus on olf1
-    curr_stim_name = [olf1_od_name, ' - single pulse'];
-    stim_frs = stim_frs{1};z                      
-    curr_color = color_vec(olf1_od_ind, :);
-elseif curr_stim_type == 1 %simple stimulus on olf2
-    curr_stim_name = [olf2_od_name, ' - single pulse'];
-    stim_frs = stim_frs{2};
-    curr_color = color_vec(olf2_od_ind, :);
-elseif curr_stim_type == 2 %odor transition stimulus
-    curr_stim_name = [olf1_od_name, ' - ', olf2_od_name, ' transition'];
-    stim_frs = [stim_frs{1}; stim_frs{2}];
-    curr_color = [color_vec(olf1_od_ind, :); color_vec(olf2_od_ind, :)];
-else
-end
