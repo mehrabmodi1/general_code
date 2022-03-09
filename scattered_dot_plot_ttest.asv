@@ -19,12 +19,6 @@ if isempty(varargin) == 0
     force_means = varargin{2};
     if length(varargin) >= 3
         wrapup_vars = varargin{3};
-        if isempty(wrapup_vars) == 1
-            wrapup_vars{1} = [100, 120];
-            wrapup_vars{2} = 0.6;
-        else
-        end
-        
     else
         wrapup_vars{1} = [100, 120];
         wrapup_vars{2} = 0.6;
@@ -36,17 +30,12 @@ if isempty(varargin) == 0
         force_means = 0;
     end
     
-    if length(varargin)>= 4
-        plot_pval = varargin{4};
-    else
-        plot_pval = 1;
-    end
 else
     bar_thickness = 2;
     force_means = 0;
     wrapup_vars{1} = [100, 120];
     wrapup_vars{2} = 0.6;
-    plot_pval = 1;
+    plot_labels = 1;
 end
 
 
@@ -188,13 +177,9 @@ if isempty(with_lines) == 1
             end
             x_pos = mean(r_vec) - col_spacing.*1.2;
             y_pos = max(curr_vec) + (max(max(mat)).*0.1);
-            
-            if plot_pval == 1
-                text(x_pos, y_pos, p_label, 'FontName', 'Arial', 'FontSize', 7.5);
-                if coh_d == 1
-                    text(x_pos, (y_pos + (max(max(mat)).*0.1)), d_label, 'FontName', 'Arial', 'FontSize', 7.5);
-                else
-                end
+            text(x_pos, y_pos, p_label, 'FontName', 'Arial', 'FontSize', 7.5);
+            if coh_d == 1
+                text(x_pos, (y_pos + (max(max(mat)).*0.1)), d_label, 'FontName', 'Arial', 'FontSize', 7.5);
             else
             end
 %             text(x_pos, (y_pos + 2.*(max(max(mat)).*0.1)), dif_label);
