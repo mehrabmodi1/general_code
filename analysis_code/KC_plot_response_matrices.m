@@ -8,11 +8,12 @@ dataset_list_paths = [ ...
                       ];
 
                   
-%PICK UP THREAD HERE
-%check PID traces
                   
 [del, odor_names1] = xlsread('C:\Data\Code\general_code\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList.xls', 1);
 [del, odor_names2] = xlsread('C:\Data\Code\general_code\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList_olf2.xls', 1);
+paper_save_dir = 'C:\Backup\Stuff\Janelia\paper_drafts\Mehrab_papers\PaBaEl2\fig_data\Fig2_KCs_simple\';
+paper_save_dir_tr = 'C:\Backup\Stuff\Janelia\paper_drafts\Mehrab_papers\PaBaEl2\fig_data\Fig5_KCs_transitions\';
+paper_save_dir_sfig = 'C:\Backup\Stuff\Janelia\paper_drafts\Mehrab_papers\PaBaEl2\fig_data\SFig1_KCs_simple_analyses\';
 odor_names2{3} = 'Butyl acetate';
 od_names = [{'PA'}, {'BA'}, {'EL'}];
            
@@ -41,6 +42,15 @@ all_sig_frs = [];
 pause_PCAs = 0;
 single_fly_n = 5;   %G KCs - 5, A'\B' KCs - 5, A/B KCs - 3
 subtract_pulse1_resps = 0;      %1 - subtracts the appropriate mean responses to single pulses from the transition response traces
+
+if isempty(findstr(dataset_list_paths{1}, 'd5HT1b')) == 0
+    KC_type = 'Gamma';
+elseif isempty(findstr(dataset_list_paths{1}, 'c739')) == 0
+    KC_type = 'AlphaBeta';
+elseif isempty(findstr(dataset_list_paths{1}, 'c305a')) == 0
+    KC_type = 'AlphapBetap';
+else
+end
 
 for list_n = 1:size(dataset_list_paths, 1)
     curr_dir_list_path = dataset_list_paths{list_n, 1};
@@ -397,14 +407,17 @@ for list_n = 1:size(dataset_list_paths, 1)
 
         if curr_stim_type == 0  %simple stimulus on olf1
             curr_stim_name = [olf1_od_name, ' - single pulse'];
+            curr_save_name = [olf1_od_name, '_single_pulse_', KC_type];
             stim_frs = stim_frs{1};z                      
             curr_color = color_vec(olf1_od_ind, :);
         elseif curr_stim_type == 1 %simple stimulus on olf2
             curr_stim_name = [olf2_od_name, ' - single pulse'];
+            curr_save_name = [olf2_od_name, '_single_pulse_', KC_type];
             stim_frs = stim_frs{2};
             curr_color = color_vec(olf2_od_ind, :);
         elseif curr_stim_type == 2 %odor transition stimulus
             curr_stim_name = [olf1_od_name, ' - ', olf2_od_name, ' transition'];
+            curr_save_name = [olf1_od_name, olf2_od_name, '_transition_', KC_type];
             stim_frs = [stim_frs{1}; stim_frs{2}];
             curr_color = [color_vec(olf1_od_ind, :); color_vec(olf2_od_ind, :)];
         else
@@ -452,6 +465,16 @@ for list_n = 1:size(dataset_list_paths, 1)
         fig_wrapup_mod(fig_h, 'tall', []);
         fig_wrapup(fig_h, [], [25, 15], 0.6)
         add_stim_bar(fig_h, stim_frs, curr_color);
+        
+        write_data_cols = curr_mean_traces;
+        if curr_stim_type < 2
+            xls_path = [paper_save_dir,  curr_save_name, '_traces.xls'];
+        elseif curr_stim_type == 2
+            xls_path = [paper_save_dir_tr,  curr_save_name, '_traces.xls'];
+        end
+        [c] = write_xls_header([], write_data_cols, xls_path);
+        write_data_cols = [];
+       
     end
     
     %plotting scatter plots and computing corrcoefs
@@ -488,6 +511,27 @@ for list_n = 1:size(dataset_list_paths, 1)
         end
         text(x_val, y_val, ['r ', r_val, ', p ', p_val])
         fig_wrapup(fig_h, [], [25, 30], 0.6);
+        
+        %saving data underlying plots
+        write_data_cols = [(q_resp_mat(curr_pair(1), :))', (q_resp_mat(curr_pair(2), :))'];
+        header_row = [{od_name_vec{curr_pair(1)}}, {od_name_vec{curr_pair(2)}}];
+        if pair_n == 1            
+            xls_path = [paper_save_dir_sfig,  'scatter_cell_resps_similar', KC_type, '.xls'];
+            
+            %writing data behind plot to file
+            [c] = write_xls_header(header_row, write_data_cols, xls_path);
+            write_data_cols = [];
+        elseif pair_n == 2
+            xls_path = [paper_save_dir_sfig,  'scatter_cell_resps_dissimilar', KC_type, '.xls'];
+            
+            %writing data behind plot to file
+            [c] = write_xls_header(header_row, write_data_cols, xls_path);
+            write_data_cols = [];
+            
+        else
+        end
+        
+        
     end
     
         
@@ -594,9 +638,14 @@ for list_n = 1:size(dataset_list_paths, 1)
     hold on
     plot([0, ax_vals(2)], [50, 50], 'Color', [1, 0, 0]);
     fig_wrapup(fig_h, [], [15, 30], 0.6);
+    write_data_cols = all_fly_accuracy_mat(:, 1:3);
+    xls_path = [paper_save_dir, KC_type, '_logistic_decoder_acc.xls'];
+    col_heads = [{'PA'}, {'BA'}, {'EL'}];
+    [c] = write_xls_header(col_heads, write_data_cols, xls_path);
+    write_data_cols = [];
+   
     p_decoder_s_PAEL = signrank(all_fly_accuracy_mat(:, 1), all_fly_accuracy_mat(:, 3))
     p_decoder_s_BAEL = signrank(all_fly_accuracy_mat(:, 2), all_fly_accuracy_mat(:, 3))
-   
     p_decoder_s_corr = bonf_holm([p_decoder_s_PAEL, p_decoder_s_BAEL], 0.05)
     
     %plotting logistic regression decoder accuracies for simple and transition trials

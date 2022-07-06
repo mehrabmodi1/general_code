@@ -51,6 +51,8 @@ y_ax_traces = 0.8;
 y_ax_fit_traces = 0.6;
 
 an_save_path = 'C:\Data\Data\Analysed_data\Analysis_results\PaBaEl_Gamma2\';
+paper_save_dir = 'C:\Backup\Stuff\Janelia\paper_drafts\Mehrab_papers\PaBaEl2\fig_data\Fig4_MBON_transitions_fig\';
+paper_save_dir_sfig = 'C:\Backup\Stuff\Janelia\paper_drafts\Mehrab_papers\PaBaEl2\fig_data\SFig3_4_MBON_transitions_fig\';
 force_resave = 1;
 
 n_sec = 2;      %width of moving integration window in s
@@ -340,6 +342,21 @@ axis(ax_vals);
 fig_wrapup(1, [], [75, 90], 0.6)
 add_stim_bar(1, stim_frs_bar, [unpaired_color; paired_color]);
 
+header_row = [{'ApA_pre_mean'}, {'ApA_pre_se'}, {'ApA_post_mean'}, {'ApA_post_se'}];
+write_data_cols = [];
+write_data_cols = mean_sim_od_trace_ct;
+write_data_cols = pad_n_concatenate(write_data_cols, se_sim_od_trace_ct, 2, nan);
+write_data_cols = pad_n_concatenate(write_data_cols, mean_paired_trace, 2, nan);
+write_data_cols = pad_n_concatenate(write_data_cols, se_paired_trace, 2, nan);
+
+%writing data behind plot to file
+xls_path = [paper_save_dir,  'ApA_traces_transition_MBONA3.xls'];
+[c] = write_xls_header(header_row, write_data_cols, xls_path);
+write_data_cols = [];
+
+
+
+
 figure(2)
 plt_h = shadedErrorBar([], mean_sim_od_trace_ct, se_sim_od_trace_ct, {'Color', [0.6, 0.6, 0.6]}, 1);
 set(plt_h.edge(:), 'Color', 'none')
@@ -357,6 +374,19 @@ axis(ax_vals);
 fig_wrapup(2, [], [75, 90], 0.6)
 add_stim_bar(2, stim_frs_bar, [paired_color; unpaired_color]);
 
+header_row = [{'AAp_pre_mean'}, {'AAp_pre_se'}, {'AAp_post_mean'}, {'AAp_post_se'}];
+write_data_cols = [];
+write_data_cols = pad_n_concatenate(write_data_cols, mean_sim_od_trace_ct, 2, nan);
+write_data_cols = pad_n_concatenate(write_data_cols, se_sim_od_trace_ct, 2, nan);
+write_data_cols = pad_n_concatenate(write_data_cols, mean_unpaired_trace, 2, nan);
+write_data_cols = pad_n_concatenate(write_data_cols, se_unpaired_trace, 2, nan);
+
+%writing data behind plot to file
+xls_path = [paper_save_dir,  'AAp_traces_transition_MBONA3.xls'];
+[c] = write_xls_header(header_row, write_data_cols, xls_path);
+write_data_cols = [];
+
+
 figure(3)
 plt_h = shadedErrorBar([], mean_EL_trace_ct, se_EL_trace_ct, {'Color', [0.6, 0.6, 0.6]}, 1);
 set(plt_h.edge(:), 'Color', 'none')
@@ -373,6 +403,17 @@ ax_vals(3) = -0.5;
 axis(ax_vals);
 fig_wrapup(3, [], [75, 90], 0.6)
 add_stim_bar(3, stim_frs{1}, [EL_color]);
+header_row = [{'B_pre_mean'}, {'B_pre_se'}, {'B_post_mean'}, {'B_post_se'}];
+write_data_cols = [];
+write_data_cols = pad_n_concatenate(write_data_cols, mean_EL_trace_ct, 2, nan);
+write_data_cols = pad_n_concatenate(write_data_cols, se_EL_trace_ct, 2, nan);
+write_data_cols = pad_n_concatenate(write_data_cols, mean_EL_trace, 2, nan);
+write_data_cols = pad_n_concatenate(write_data_cols, se_EL_trace, 2, nan);
+
+%writing data behind plot to file
+xls_path = [paper_save_dir,  'B_traces_transitions_MBONA3.xls'];
+[c] = write_xls_header(header_row, write_data_cols, xls_path);
+write_data_cols = [];
 
 
 %2. Plotting by odor identity
@@ -497,7 +538,7 @@ plot_mat = pad_n_concatenate(plot_mat, EL_resps_ctrl, 2, nan);
 plot_mat = pad_n_concatenate(plot_mat, EL_resps, 2, nan);
 
 paired_multiplier = 1;
-marker_colors = [[0.65, 0.65, 0.65]; paired_color.*paired_multiplier; unpaired_color.*paired_multiplier; EL_color; EL_color.*paired_multiplier];
+marker_colors = [[0.65, 0.65, 0.65]; paired_color.*paired_multiplier; unpaired_color.*paired_multiplier; [0.65, 0.65, 0.65]; EL_color.*paired_multiplier];
 line_colors = [];
 col_pairs = [];
 xlabels = [{'ctrlsim'}, {'CSpl'}, {'CSmin'}, {'ctrldsim'}, {'dsim'}];
@@ -526,6 +567,23 @@ fig_wrapup(fig_h, [], [100, 120], 0.6);
 [pEL, hEL] = ranksum(plot_mat(:, 4), plot_mat(:, 5))
 
 p_corrected = bonf_holm([ppaired, punpaired, pEL], 0.05)
+
+
+header_row = [{'ctrl_sim'}, {'A'}, {'Ap'}, {'ctrl_B'}, {'B'}];
+write_data_cols = plot_mat;
+
+%writing data behind plot to file
+xls_path = [paper_save_dir,  'resp_sizes_transitions_MBONA3.xls'];
+[c] = write_xls_header(header_row, write_data_cols, xls_path);
+write_data_cols = [];
+
+
+
+%comparing post A and A' with each other
+figure(9)
+[fig_h, r_vecs_saved] = scattered_dot_plot_ttest(plot_mat(:, 2:3), 9, .6, 1, 4, marker_colors(2:3, :), 1, col_pairs, line_colors, xlabels(2:3), 2, mean_color, 2, 0.05, 0, 1, 'force_mean');
+ylabel('response size (dF/F)');
+fig_wrapup(fig_h, [], [100, 60], 0.6);
 
 %computing unpaired means and ses as a percentage of paired means
 mean_vals = mean(plot_mat, 1, 'omitnan');
@@ -563,6 +621,14 @@ ax_vals(4) = 5;
 axis(ax_vals)
 ylabel('contrast score (dF/F)');
 fig_wrapup(fig_h, [], [100, 60], 0.6);
+
+header_row = [{'A'}, {'Ap'}];
+write_data_cols = [paired_ctrst_scores, unpaired_ctrst_scores];
+
+%writing data behind plot to file
+xls_path = [paper_save_dir_sfig,  'contrast_scores_transitions_MBONA3.xls'];
+[c] = write_xls_header(header_row, write_data_cols, xls_path);
+write_data_cols = [];
 
 
 %2. by odor identity

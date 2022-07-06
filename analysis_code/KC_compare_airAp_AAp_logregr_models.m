@@ -9,6 +9,8 @@ dataset_list_paths = [ ...
 
 [del, odor_names1] = xlsread('C:\Data\Code\general_code\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList.xls', 1);
 [del, odor_names2] = xlsread('C:\Data\Code\general_code\IDnF_rig_code_20171031\Olfactometer\NewOlfactometer\calibration\odorList_olf2.xls', 1);
+paper_save_dir = 'C:\Backup\Stuff\Janelia\paper_drafts\Mehrab_papers\PaBaEl2\fig_data\Fig5_KCs_transitions\';
+
 odor_names2{3} = 'Butyl acetate';
 od_names = [{'PA'}, {'BA'}, {'EL'}];
 
@@ -27,24 +29,26 @@ fly_n = 0;
 script_name = mfilename;
 
 re_extract_KC_data = 0;
+plotscore_flies = 0;    %Switches between plotting and testing indiv models or model outputs averaged for each fly
+
 
 %Fit related parameters
 multi_fly_MBON = 1;     %This switches between fitting KC trials from a single fly to resampled MBON responses from multiple flies or the single trials from a single fly.
 fit_simp_and_trans = 1; %This switches between (0) fitting log regressors to simple trials only (simulate biology) or (1) simple AND transition trials (most generous test of hypothesis).
 KC_act_threshold = 0; %This floors all KC activity values below this threshold during fitting and decoding
-%training_odor_vec = [1, 2, 3, 4, 5];    %train on all odors (NOTE: Always tested on all odors)
+training_odor_vec = [1, 2, 3, 4, 5];    %train on all odors (NOTE: Always tested on all odors)
 %training_odor_vec = [1, 3, 4, 5];    %ignore CS- only    (NOTE: Always tested on all odors)
 %training_odor_vec = [1, 2, 4, 5];    %ignore Dissimilar only    (NOTE: Always tested on all odors)
 %training_odor_vec = [1, 2, 3];    %ignore transitions    (NOTE: Always tested on all odors)
-training_odor_vec = [1, 3];      %only train on paired and dissimilar odors.
+%training_odor_vec = [1, 3];      %only train on paired and dissimilar odors.
 %training_odor_vec = 1;           %only train on paired odor.   results in trivial training where all outputs are 0.
 %training_odor_vec = [2, 5];
 
 
 %initialize weights with an offset to affect ignored odor decoding
 %wt_lookup_vec = [2, 1, 1.5];
-wt_lookup_vec = [0.05, 0.05, 0.05];     %default
-lambda = 0.1;         %regularization constant
+wt_lookup_vec = [1, 1, 1];     %default
+lambda = 0.0;         %regularization constant
 
 
 %Use 2s response integration window
@@ -58,6 +62,7 @@ elseif KC_win == 2
     save_path_base = 'C:\Data\Data\Analysed_data\Analysis_results\KC_transition_logregr_2s\';
 end
 
+fig_save_path = 'C:\Users\Mehrab\Dropbox (HHMI)\data_sharing\figure_for_Glenn_20220314\KC_analysis_figs\logistic_regr_models\';
 
 %extracting, re-formatting and writing KC response data to disk
 if re_extract_KC_data == 1
@@ -140,7 +145,6 @@ if re_extract_KC_data == 1
 
             del = find(dff_data_mat_f < -1);
             dff_data_mat_f(del) = -1;       %forcing crazy values to sane ones
-
 
             %identifying stim_mat_simple col numbers
             led_on_col_n = find_stim_mat_simple_col('led_on', column_heads);            %identifying relevant column number in stim_mat_simple
@@ -228,11 +232,12 @@ if re_extract_KC_data == 1
             fly_data.stim_frs = stim_frs;
             fly_data.stim_mat = stim_mat_simple;
             fly_data.KC_type = KC_type;
-           
+            fly_data.sig_cell_mat = sig_cell_mat(union_sig_cells, :);
+            
             save_dir = [save_path_base, KC_type, '\fly', num2str(dir_n)];
             mkdir(save_dir);
             save([save_dir, '\fly_data.mat'], 'fly_data');
-            %keyboard
+            
         end
 
        
@@ -259,7 +264,9 @@ end
 
 %reading in KC data, doing fit and logging results
 KC_types = [{'d5HT1b'}, {'c305a'}, {'c739'}];
+
 for KC_type_n = 1:3
+    fig_n = 0;
     KC_type = KC_types{KC_type_n};
     n_flies = length(dir([save_path_base, KC_type])) - 2;
     
@@ -275,6 +282,10 @@ for KC_type_n = 1:3
     resp_vecs_all = [];
     median_wts = [];
     median_resps_all = [];
+    test_tr_vals_fly = [];
+    test_tr_vals_fly_ave = [];
+    test_tr_vals_fly_pre = [];
+    test_tr_vals_fly_ave_pre = [];
     for fly_n = 1:n_flies
         
         %skipping flies with few cells
@@ -315,6 +326,7 @@ for KC_type_n = 1:3
 
                 outputs_train = zeros(length(curr_trs), 5);              %constructing perfect output vectors
                 outputs_train(:, 3) = 1;                    %assigning EL responses as always high
+                %outputs_train(:, 2) = 1;                    %temporarily assigning A' responses as always high
                 outputs_test = zeros(1, 5);
                 outputs_test(3) = 1;                    %setting EL as high
 
@@ -356,7 +368,7 @@ for KC_type_n = 1:3
                 
 
                 try
-                    [wts, test_tr_vals, test_acc_simp, test_acc_transition] = log_regr_MBON_model(inputs_train, outputs_train, inputs_test, outputs_test, initial_wts_offset, lambda);    %test here is run with left out simple pulse KC responses, to measure goodness of fit.     
+                    [wts, test_tr_vals, test_acc_simp, test_acc_transition, test_tr_vals_pre] = log_regr_MBON_model(inputs_train, outputs_train, inputs_test, outputs_test, initial_wts_offset, lambda);    %test here is run with left out simple pulse KC responses, to measure goodness of fit.     
                 catch
                     wts = [];
                    
@@ -371,6 +383,8 @@ for KC_type_n = 1:3
                     fly_wts = pad_n_concatenate(fly_wts, wts, 2, nan);
                     median_response_vec = median(inputs_train, 2, 'omitnan');        %logging median across fitted KC response vectors 
                     fly_resps = pad_n_concatenate(resp_vecs_all, median_response_vec, 2, nan);
+                    test_tr_vals_fly = pad_n_concatenate(test_tr_vals_fly, test_tr_vals, 2, nan);
+                    test_tr_vals_fly_pre = pad_n_concatenate(test_tr_vals_fly_pre, test_tr_vals_pre, 2, nan);
                 else
                     
                 end
@@ -383,25 +397,78 @@ for KC_type_n = 1:3
             wts_all = pad_n_concatenate(wts_all, fly_wts, 2, nan);
             median_wts = pad_n_concatenate(median_wts, median(fly_wts, 2), 2, nan);
             resp_vecs_all = pad_n_concatenate(resp_vecs_all, fly_resps, 2, nan);
-            median_resps_all = pad_n_concatenate(median_resps_all, median(fly_resps, 2), 2, nan); 
+            median_resps_all = pad_n_concatenate(median_resps_all, median(fly_resps, 2), 2, nan);
+            
+            test_tr_vals_fly_ave = pad_n_concatenate(test_tr_vals_fly_ave, mean(test_tr_vals_fly, 2, 'omitnan'), 2, nan);
+            test_tr_vals_fly = [];
+            test_tr_vals_fly_ave_pre = pad_n_concatenate(test_tr_vals_fly_ave_pre, mean(test_tr_vals_fly_pre, 2, 'omitnan'), 2, nan);
+            test_tr_vals_fly_pre = [];
         else
         end
+        
+        
     end
     wts_all(1, :) = nan;
     median_wts(1, :) = nan;
-    
-    
+        
     fig_h = figure('Name', 'Regressor output on test trials');
-    xlabels = [{'Air-A'}, {'Air-A'''}, {'Air-B'}, {'A''-A'}, {'A-A'''}];
-    fig_h = scattered_dot_plot_ttest(test_tr_vals_all', fig_h, .6, 1, 4, [0.65, 0.65, 0.65], 1, [], [], xlabels, 2, [0, 0, 0], 2, 0.05, 0, 1, 'force_mean');
+    xlabels = [{'A'}, {'A'''}, {'B'}, {'A''-A'}, {'A-A'''}];
+    %color_vecs = repmat([0.7, 0.7, 0.7; 0, 0, 0], 5, 1);
+    color_vecs = repmat([0, 0, 0], 5, 1);
+    
+    %interleaving all_wts_1 regressor outputs and fitted_wts regressor outputs for plot
+    %test_tr_vals_fly_ave = test_tr_vals_fly_ave';
+    test_tr_vals_fly_ave = test_tr_vals_fly_ave';
+    %test_tr_vals_fly_ave_pre = test_tr_vals_fly_ave_pre';
+    test_tr_vals_fly_ave_pre = [];
+    test_tr_vals_all = test_tr_vals_all';
+    
+    plot_mat = [];
+    for od_n = 1:size(test_tr_vals_fly_ave, 2)
+        if plotscore_flies == 1        
+            %plot_mat = [plot_mat, test_tr_vals_fly_ave_pre(:, od_n), test_tr_vals_fly_ave(:, od_n)];
+            plot_mat = [plot_mat, test_tr_vals_fly_ave(:, od_n)];
+        elseif plotscore_flies == 0
+            %plot_mat = [plot_mat, test_tr_vals_fly_ave_pre(:, od_n), test_tr_vals_all(:, od_n)];
+            plot_mat = [plot_mat, test_tr_vals_all(:, od_n)];
+        else
+        end
+    end
+    
+    %plotting model performance
+    fig_h = scattered_dot_plot_ttest(plot_mat, fig_h, .6, [3], 4, color_vecs, 0, [], [], xlabels, 2, [0.8, 0.5, 0.5], 2, 0.05, 0, 1, 'force_mean', [], 0, 4);
     hold on
+    xlabel('decoded odor')
+    ylabel('log. regr. output')
+    colormap(greymap)
+    fig_wrapup(fig_h, [], [50, 85], 0.6);
     ax_vals = axis;
     plot([ax_vals(1), ax_vals(2)], [0.5, 0.5], 'k--');
-    xlabel('decoded odor')
-    ylabel('Regressor output')
-    colormap(greymap)
-    fig_wrapup(fig_h, [], [100, 120], 0.6);
-        
+    
+    write_data_cols = plot_mat;
+    col_heads = xlabels;
+    
+    if length(training_odor_vec) == 3
+        xls_path = [paper_save_dir,  'simple_trained_regressor_outputs_', KC_type, '.xls'];
+    elseif length(training_odor_vec) == 5
+        xls_path = [paper_save_dir,  'transition_trained_regressor_outputs_', KC_type, '.xls'];
+    end
+    [c] = write_xls_header(col_heads, write_data_cols, xls_path);
+    write_data_cols = [];
+    
+    
+%     fig_n = fig_n + 1;
+%     fig_name = fig_h.Name;
+%     savefig([fig_save_path, KC_type, ' ', num2str(fig_n), ' ', fig_name, '.fig']);
+    
+    
+    %Statistical testing
+    [p_simp, h] = signrank(plot_mat(:, 1), plot_mat(:, 2));
+    [p_trans, h] = signrank(plot_mat(:, 4), plot_mat(:, 5));
+    
+    pvals = bonf_holm([p_simp, p_trans], 0.01)
+    %pval = p_trans
+    
     
     fig_h = figure('Name', 'weight vectors');
     imagesc(wts_all)
@@ -409,19 +476,25 @@ for KC_type_n = 1:3
     ylabel('cell number')
     xlabel('test trial number (across flies)');
     title(KC_type)
+    fig_n = fig_n + 1;
+    fig_name = fig_h.Name;
+    savefig([fig_save_path, KC_type, ' ', num2str(fig_n), ' ', fig_name, '.fig']);
     
        
     corr_vals_all = [];
-    od_names = [{'Air-A'}, {'Air-A'''}, {'Air-B'}, {'A''-A'}, {'A-A'''}];
+    od_names = [{'A'}, {'A'''}, {'B'}, {'A''-A'}, {'A-A'''}];
     for train_od_ni = 1:length(training_odor_vec)
         train_od_n = training_odor_vec(train_od_ni);
         od_name = od_names{train_od_n};
         %relating weights to activity vector for each training odor
-        fig_h = figure('Name', ['weights v/s median, ', od_name, ', resps']);
+        fig_h = figure('Name', ['weights vs mean ', od_name, ' resps']);
         weights = reshape(median_wts, 1, []);
-        A_activ = reshape(squeeze(median_resps_all(:, :, train_od_ni)), 1, []);     
-        plot(A_activ, weights, '.', 'Color', [0.65, 0.65, 0.65]);
-        hold on
+        A_activ = reshape(squeeze(median_resps_all(:, :, train_od_ni)), 1, []);
+        A_activ = A_activ./max(A_activ);
+        %plot(A_activ, ones(length(weights), 1).*initial_wts_offset, '.', 'Color', [0.7, 0.7, 0.7], 'MarkerSize', 6);
+        %hold on
+        plot(A_activ, weights, '.', 'Color', [0, 0, 0], 'MarkerSize', 6);
+                
         [corr_vals, corr_p] = corrcoef(weights, A_activ, 'Rows', 'complete');  %computing correlation coeff
         corr_vals = corr_vals(1, 2);
         corr_p = corr_p(1, 2);
@@ -433,10 +506,36 @@ for KC_type_n = 1:3
         end
         text((ax_vals(2).*0.2), (ax_vals(4).*0.8), corr_label);
 
-        xlabel(['mean KC response (', od_name, ')'])
-        ylabel('weight')
-        fig_wrapup(fig_h, [], [100, 120], 0.6);
+        xlabel(['norm. resp. to ', od_name])
+        ylabel('KC weight')
+        fig_wrapup(fig_h, [], [5, 7], 0.6);
         corr_vals_all = [corr_vals_all; [corr_vals, corr_p]];
+        fig_n = fig_n + 1;
+        fig_name = fig_h.Name;
+        savefig([fig_save_path, KC_type, ' ', num2str(fig_n), ' ', fig_name, '.fig']);
+        
+        %saving data underlying paper figures
+        if train_od_n == 1      %only used weights v/s A in paper
+            write_data_cols = [weights', A_activ'];
+            
+            %getting rid of nans
+            del = isnan(write_data_cols(:, 1));
+            write_data_cols(del, :) = [];
+            del = isnan(write_data_cols(:, 2));
+            write_data_cols(del, :) = [];
+            
+            col_heads = [{'weights'}, {'A_resps'}];
+
+            if length(training_odor_vec) == 3
+                xls_path = [paper_save_dir,  'simple_trained_A_resps_vs_wts_', KC_type, '.xls'];
+            elseif length(training_odor_vec) == 5
+                xls_path = [paper_save_dir,  'transition_trained_A_resps_vs_wts_', KC_type, '.xls'];
+            end
+            [c] = write_xls_header(col_heads, write_data_cols, xls_path);
+            write_data_cols = [];
+        else
+        end
+        
    end
    corr_vals_all
    
