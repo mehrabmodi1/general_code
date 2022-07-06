@@ -1,4 +1,4 @@
-function [theta, h_theta, test_acc_simp, test_acc_transition] = log_regr_MBON_model(inputs_train, outputs_train, inputs_test, outputs_test, initial_wts_offset, lambda)
+function [theta, h_theta, test_acc_simp, test_acc_transition, h_theta1] = log_regr_MBON_model(inputs_train, outputs_train, inputs_test, outputs_test, initial_wts_offset, lambda)
 %This function is custom-written to train a logistic regressor on simple
 %pulse KC response vectors with analog, simple pulse MBON responses as the
 %output. The goal is to then decode transition KC responses with the
@@ -64,7 +64,12 @@ y_pred = X_test*theta;
 h_theta = sigmoid(y_pred);
 test_acc_simp = mean(round(h_theta(1:3))' == outputs_test(1:3));    %fraction of left out test outputs correct
 test_acc_transition = mean(round(h_theta(4:5))' == outputs_test(4:5));
+theta1 = ones(size(theta, 1), size(theta, 2));
 theta(1) = [];
+
+%computing regressor output with all weights set to 1 (to measure pre-learning performance)
+y_pred1 = X_test*theta1;
+h_theta1 = sigmoid(y_pred1);
 
 
 
