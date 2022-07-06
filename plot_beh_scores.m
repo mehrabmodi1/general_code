@@ -12,6 +12,8 @@ MB296B_discrpath = 'C:\Data\Data\beh_data_extr_PIs\MB296B_discr_data_3xtraining.
 TH_rescue_discrpath = 'C:\Data\Data\beh_data_extr_PIs\THRescue_fine_discr.xls';
 
 
+paper_save_dir = 'C:\Backup\Stuff\Janelia\paper_drafts\Mehrab_papers\PaBaEl2\fig_data\Fig1_behavior\';
+
 %Plotting fine discr and coarse discr for multiple compartments
 [scr_data] = xlsread(scr_path, 1).*-1;
 marker_colors = repmat([0.65, 0.65, 0.65], 10, 1);
@@ -71,11 +73,18 @@ plot([0, ax_vals(2)], [0, 0], 'Color', [0. 0. 0]);
 ylabel('1 day memory PI');
 fig_wrapup(fig_h, [], [100, 25], 0.6);
 
+%writing data behind plot to file
+write_data_cols = alpha3_data;
+header_row = [{'AvsB'}, {'ApvsB'}];
+xls_path = [paper_save_dir,  'easy_hard_discr_Alpha3_MB630B.xls'];
+[c] = write_xls_header(header_row, write_data_cols, xls_path);
+write_data_cols = [];
+
 
 %Plotting MB296B discr and gen scores separately
 [discr_data_MB296B] = xlsread(MB296B_discrpath, 1);
 figure(5)
-xlabels = [{'G2PAEL'}, {'BAEL'}];
+xlabels = [{'G2AvsB'}, {'AvsAp'}];
 fig_h = scattered_dot_plot_ttest(discr_data_MB296B, 5, .6, 1, 4, marker_colors, 1, col_pairs, line_colors, xlabels, 2, mean_color, 2, 0.05, 0, 1, 'force_mean', wrapup_vars);
 hold on
 ylabel('discrimination score (PI)');
@@ -85,6 +94,15 @@ ax_vals(4) = 0.85;
 axis(ax_vals);
 plot([0, ax_vals(2)], [0, 0], 'Color', [0, 0, 0]);
 fig_wrapup(fig_h, [], [100, 25], 0.6);
+
+%writing data behind plot to file
+write_data_cols = discr_data_MB296B;
+header_row = [{'AvsB'}, {'AvsAp'}];
+xls_path = [paper_save_dir,  'easy_hard_discr_G2Ap1_MB296B.xls'];
+[c] = write_xls_header(header_row, write_data_cols, xls_path);
+write_data_cols = [];
+
+
 
 figure(6)
 [gen_data_MB296B] = xlsread(MB296B_genpath, 1);
@@ -100,6 +118,15 @@ ax_vals(3) = -0.6;
 axis(ax_vals);
 fig_wrapup(fig_h, [], [100, 25], 0.6);
 
+%writing data behind plot to file
+write_data_cols = gen_data_MB296B;
+header_row = [{'AvsB'}, {'ApvsB'}];
+xls_path = [paper_save_dir,  'easydiscr_gen_G2Ap1_MB296B.xls'];
+[c] = write_xls_header(header_row, write_data_cols, xls_path);
+write_data_cols = [];
+
+
+
 [gen_data_Alpha3] = xlsread(A3_genpath, 1);
 figure(7)
 xlabels = [{'A3PAEL'}, {'BAEL'}];
@@ -113,6 +140,15 @@ ax_vals(1) = 0.8;
 ax_vals(3) = -0.6;
 axis(ax_vals);
 fig_wrapup(fig_h, [], [100, 25], 0.6);
+
+%writing data behind plot to file
+write_data_cols = gen_data_Alpha3;
+header_row = [{'AvsB'}, {'ApvsB'}];
+xls_path = [paper_save_dir,  'easydiscr_gen_Alpha3_MB630B.xls'];
+[c] = write_xls_header(header_row, write_data_cols, xls_path);
+write_data_cols = [];
+
+
 
 
 %Plotting TH-rescue, fine discr for MB296B data (only G2A'1)
@@ -132,6 +168,13 @@ axis(ax_vals);
 hold on
 plot([0, ax_vals(2)], [0, 0], 'Color', [0, 0, 0]);
 hold off
+
+%writing data behind plot to file
+write_data_cols = rescue_data(:, [1, 2]);
+header_row = [{'AvsAp_rescue'}, {'AvsAp_norescue'}];
+xls_path = [paper_save_dir,  'TH_rescue.xls'];
+[c] = write_xls_header(header_row, write_data_cols, xls_path);
+write_data_cols = [];
 
 [p, h] = ranksum(rescue_data(:, 1), rescue_data(:, 2))
 

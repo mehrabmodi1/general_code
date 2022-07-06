@@ -7,7 +7,8 @@ base_order_paths = [{'C:\Data\Data\Raw_data\Adithya_airgap_expts_v220210610\30s_
                 
 vid_path = 'C:\Data\Data\Analysed_data\Analysis_results\air_gap_traj_an\vert_aligned\';
 base_path = 'C:\Data\Data\Analysed_data\Analysis_results\air_gap_traj_an\';
-
+paper_save_dir = 'C:\Backup\Stuff\Janelia\paper_drafts\Mehrab_papers\PaBaEl2\fig_data\fig6_airgap_behavior\';
+paper_save_dir_sfig = 'C:\Backup\Stuff\Janelia\paper_drafts\Mehrab_papers\PaBaEl2\fig_data\SFig5_airgap_beh\';
 
 gap_paths = [{'Control\'}; {'25s_gap\'}];
 pulse_times_all = [{[60, 90]}; {[85, 115]}];  %real pulse-times
@@ -351,6 +352,8 @@ paired_color = [0,136,55]./256;
 unpaired_color = [166,219,160]./256;
 
 %plotting distance time series' for flies
+write_data_cols = [];
+header_cols = [];
 figure(2)
 set(gcf, 'Name', 'mean upwind dists, 0s')
 curr_traces = squeeze(upwind_dist_tseries_all(:, :, 3));     
@@ -359,18 +362,29 @@ se_vec = std(curr_traces, [], 1, 'omitnan')./sqrt(size(curr_traces, 1));
 
 if pulse_times(1) < 60  %case when plotting pulse1 responses
     shadedErrorBar([], mean_vec, se_vec, {'Color', unpaired_color}, 1);
+    header_cols = [header_cols, {'Ap_mean'}, {'Ap_se'}];
 else
     shadedErrorBar([], mean_vec, se_vec, {'Color', paired_color}, 1);
+    header_cols = [header_cols, {'A_mean'}, {'A_se'}];
 end
+
+write_data_cols = pad_n_concatenate(write_data_cols, mean_vec', 2, nan);
+write_data_cols = pad_n_concatenate(write_data_cols, se_vec', 2, nan);
+
 hold on
 curr_traces = squeeze(upwind_dist_tseries_all(:, :, 1));     
 mean_vec = mean(curr_traces, 1, 'omitnan');
 se_vec = std(curr_traces, [], 1, 'omitnan')./sqrt(size(curr_traces, 1));
 if pulse_times(1) < 60  %case when plotting pulse1 responses
     shadedErrorBar([], mean_vec, se_vec, {'Color', paired_color}, 1);
+    header_cols = [header_cols, {'A_mean'}, {'A_se'}];
 else
     shadedErrorBar([], mean_vec, se_vec, {'Color', unpaired_color}, 1);
+    header_cols = [header_cols, {'Ap_mean'}, {'Ap_se'}];
 end
+
+write_data_cols = pad_n_concatenate(write_data_cols, mean_vec', 2, nan);
+write_data_cols = pad_n_concatenate(write_data_cols, se_vec', 2, nan);
 
 hold off
 title('0s gap');
@@ -378,6 +392,19 @@ ylabel('upwind displacement (mm)');
 set_xlabels_time(2, frame_time, 10);
 fig_wrapup(2, [], [75, 90], .6);
 ax_vals = axis;
+
+%writing data behind plot to file
+if pulse_times(1) > 60
+    xls_path = [paper_save_dir,  'upwind_traces_0sgap_pulse2.xls'];
+elseif pulse_times(1) < 60
+    xls_path = [paper_save_dir,  'upwind_traces_0sgap_pulse1.xls'];
+elseif pulse_times(1) == 60 %case when plotting inter pulse interval data
+    xls_path = [paper_save_dir,  'delete.xls'];
+else
+end
+[c] = write_xls_header(header_cols, write_data_cols, xls_path);
+write_data_cols = [];
+header_cols = [];
 
 if normalize_cent_dists == 1
     y_level = 0.3;
@@ -399,9 +426,14 @@ mean_vec = mean(curr_traces, 1, 'omitnan');
 se_vec = std(curr_traces, [], 1, 'omitnan')./sqrt(size(curr_traces, 1));
 if pulse_times(1) < 60  %case when plotting pulse1 responses
     shadedErrorBar([], mean_vec, se_vec, {'Color', unpaired_color}, 1);
+    header_cols = [header_cols, {'Ap_mean'}, {'Ap_se'}];
 else
     shadedErrorBar([], mean_vec, se_vec, {'Color', paired_color}, 1);
+    header_cols = [header_cols, {'A_mean'}, {'A_se'}];
 end
+
+write_data_cols = pad_n_concatenate(write_data_cols, mean_vec', 2, nan);
+write_data_cols = pad_n_concatenate(write_data_cols, se_vec', 2, nan);
 
 hold on
 curr_traces = squeeze(upwind_dist_tseries_all(:, :, 2));     
@@ -409,15 +441,35 @@ mean_vec = mean(curr_traces, 1, 'omitnan');
 se_vec = std(curr_traces, [], 1, 'omitnan')./sqrt(size(curr_traces, 1));
 if pulse_times(1) < 60  %case when plotting pulse1 responses
     shadedErrorBar([], mean_vec, se_vec, {'Color', paired_color}, 1);
+    header_cols = [header_cols, {'A_mean'}, {'A_se'}];
 else
     shadedErrorBar([], mean_vec, se_vec, {'Color', unpaired_color}, 1);
+    header_cols = [header_cols, {'Ap_mean'}, {'Ap_se'}];
 end
+write_data_cols = pad_n_concatenate(write_data_cols, mean_vec', 2, nan);
+write_data_cols = pad_n_concatenate(write_data_cols, se_vec', 2, nan);
 
 hold off
 title('25 s gap');
 ylabel('upwind displacement (mm)');
 set_xlabels_time(3, frame_time, 10);
 fig_wrapup(3, [], [75, 90], .6);
+
+%writing data behind plot to file
+if pulse_times(1) > 60
+    xls_path = [paper_save_dir,  'upwind_traces_25sgap_pulse2.xls'];
+elseif pulse_times(1) < 60
+    xls_path = [paper_save_dir,  'upwind_traces_25sgap_pulse1.xls'];
+elseif pulse_times(1) == 60 %case when plotting inter pulse interval data
+    xls_path = [paper_save_dir_sfig,  'upwind_traces_25sgap_int_pulse_int.xls'];
+    header_cols = [{'Apmean'}, {'Apse'}, {'Amean'}, {'Ase'}];
+else
+end
+
+[c] = write_xls_header(header_cols, write_data_cols, xls_path);
+write_data_cols = [];
+header_cols = [];
+
 ax_vals = axis;
 if normalize_cent_dists == 1
     y_level = 0.3;
@@ -649,13 +701,26 @@ ax_vals(3) = -10;
 ax_vals(4) = 10;
 axis(ax_vals);
 
+write_data_cols = score_vecs_all_final;
+header_cols = [{'Anogap'}, {'Apnogap'}, {'A25sgap'}, {'Ap25sgap'}];
+
+if pulse_times(1) < 60
+    xls_path = [paper_save_dir,  'mean_upwind_displ_stats_pulse1.xls'];
+elseif pulse_times(1) > 60
+    xls_path = [paper_save_dir,  'mean_upwind_displ_stats_pulse2.xls'];
+else
+end    
+[c] = write_xls_header(header_cols, write_data_cols, xls_path);
+write_data_cols = [];
+header_cols = [];
+
+
 %statistical testing with multiple comparison corrections
 %p_LED = ranksum(score_vecs_all_final(:, 1), score_vecs_all_final(:, 2));
 p_0s = ranksum(score_vecs_all_final(:, 1), score_vecs_all_final(:, 2));
 p_25s = ranksum(score_vecs_all_final(:, 3), score_vecs_all_final(:, 4));
 
 corrected_ps = bonf_holm([p_0s, p_25s]);
-
 
 
 keyboard
