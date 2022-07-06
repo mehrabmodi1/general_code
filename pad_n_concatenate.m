@@ -53,8 +53,13 @@ else
     end
 end
 
-conc_mat = zeros(conc_mat_siz) + pad_with;
-conc_mat_init = conc_mat;
+try
+    conc_mat = zeros(conc_mat_siz) + pad_with;
+    conc_mat_init = conc_mat;
+catch
+    %if you're getting an error here, make sure you're using nan and not
+    %'nan' as pad_with
+end
 
 %filling out conc_mat with big_mat and small_mat, with big_mat going first
 %along dim_conc and small_mat going second
