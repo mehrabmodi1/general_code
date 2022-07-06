@@ -3,14 +3,14 @@ close all
 
 dataset_list_paths = [...
                       {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_simp_pairing_Berry.xls'};...
-                      {'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry.xls'};...
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_5sipi.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_15s_ipi.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_25sipi_higherLED.xls'};...                      
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_ELsecond.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_noLEDctrl.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_MBON_TetC_noChrimson.xls'};...
-                      
+                      %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_MBONTetC_withLED.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_longpulse2.xls'};...
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\MBONG2_PaBaEl_handover_pairing_Berry_generalizatin'};....
                       %{'C:\Data\Code\general_code_old\data_folder_lists\Janelia\Berry_handover_MB298B_MBONG4-G1G2_GcaMP6f_starved.xls'};...
@@ -47,6 +47,11 @@ y_ax_fit_traces = 0.6;
 
 an_save_path = 'C:\Data\Data\Analysed_data\Analysis_results\PaBaEl_Gamma2\';
 logregr_sv_path = 'C:\Data\Data\Analysed_data\Analysis_results\KC_transition_logregr\MBON\';
+paper_save_dir = 'C:\Backup\Stuff\Janelia\paper_drafts\Mehrab_papers\PaBaEl2\fig_data\Fig4_MBON_transitions_fig\';
+paper_save_dir_simple = 'C:\Backup\Stuff\Janelia\paper_drafts\Mehrab_papers\PaBaEl2\fig_data\Fig3_MBONG2Ap1_simple_fig\';
+paper_save_dir_sfig = 'C:\Backup\Stuff\Janelia\paper_drafts\Mehrab_papers\PaBaEl2\fig_data\SFig3_4_MBON_transitions_fig\';
+%to be used for no LED control data 
+%paper_save_dir = 'C:\Backup\Stuff\Janelia\paper_drafts\Mehrab_papers\PaBaEl2\fig_data\SFig3_4_MBON_transitions_fig\noLED_control\';
 
 force_resave = 1;
 
@@ -66,20 +71,25 @@ for list_n = 1:size(dataset_list_paths, 1)
     
     if isempty(findstr(curr_dir_list_path, 'handover')) == 0
         if isempty(findstr(curr_dir_list_path, 'ELfirst')) == 0
+            set_type_name = 'transitionsELfirst_MBONG2Ap1';
             set_list_type = 2;  %handover stimulus with EL on pulse1 case
         elseif isempty(findstr(curr_dir_list_path, 'ELsecond')) == 0
+            set_type_name = 'transitionsELsecond_MBONG2Ap1';
             set_list_type = 3;  %handover stimulus with EL on pulse2 case
         elseif isempty(findstr(curr_dir_list_path, 'ELfirst')) == 1 && isempty(findstr(curr_dir_list_path, 'ELsecond')) == 1 && isempty(findstr(curr_dir_list_path, 'generaliz')) == 1
+            set_type_name = 'transitions_MBONG2Ap1';
             set_list_type = 1;  %handover stimulus with no EL pulses
         elseif isempty(findstr(curr_dir_list_path, 'generaliz')) == 0
             set_list_type = 4;  %handover, generalization experiment stimuli (CS- with EL first or second)
+            set_type_name = 'transitionsgeneraliz_MBONG2Ap1';
         else
         end
     else 
         set_list_type = 0;  %simple stimulus case
+        set_type_name = 'simple_pulses_MBONG2Ap1';
     end
     
-    
+        
     saved_traces_all = [];
     saved_PID_traces_all = [];
     ctrast_resps_all = [];
@@ -103,7 +113,6 @@ for list_n = 1:size(dataset_list_paths, 1)
         fly_n = fly_n + 1;
         stack_obj = ScanImageTiffReader([curr_dir, tif_name(1).name]);
         [frame_time, zoom, n_chans, PMT_offsets] = SI_tif_info(stack_obj);
-        
         [stim_mat, stim_mat_simple, column_heads, color_vec, good_tr_list, params_orig, PID_traces] = load_params_trains_modular(curr_dir, tif_times, frame_time);    %reading in trial stimulus parameters after matching time stamps to F traces
         
         odor_names1 = stim_mat.odourNames;
@@ -521,7 +530,9 @@ for list_n = 1:size(dataset_list_paths, 1)
         stim_frs_bar = stim_frs_paired{1};
         %stim_frs_bar_EL = stim_frs_paired{2};
     end
-        
+    
+    table_labels = [{'pre'}; {'post'}];
+    write_data_cols = [];
     for tr_type = 1:2
         if plot_diff_traces == 1
             diff_traces = saved_traces_all(1:(end - 5), 1, 2, :) - saved_traces_all(1:(end - 5), 1, 1, :);      %post traces - pre traces
@@ -538,6 +549,9 @@ for list_n = 1:size(dataset_list_paths, 1)
         else
             hold on
         end
+        
+        write_data_cols = [write_data_cols, mean_trace, se_trace];  %logging data to write to file
+                
     end
     hold off
     if plot_diff_traces == 1
@@ -564,6 +578,26 @@ for list_n = 1:size(dataset_list_paths, 1)
         add_stim_bar(1, stim_frs_bar, [EL_color; unpaired_color]);      %in gen. datasets, the unpaired odor is coded as the paired odor in this analysis script
     else
     end
+    
+    if set_list_type == 0
+        header_row = [{'A_pre_mean'}, {'A_pre_se'}, {'A_post_mean'}, {'A_post_se'}];
+        xls_path = [paper_save_dir_simple,  'A_traces_', set_type_name, '.xls'];
+    elseif set_list_type == 1
+        header_row = [{'ApA_pre_mean'}, {'ApA_pre_se'}, {'ApA_post_mean'}, {'ApA_post_se'}];
+        xls_path = [paper_save_dir,  'ApA_traces_', set_type_name, '.xls'];
+    elseif set_list_type == 2
+        header_row = [{'BA_pre_mean'}, {'BA_pre_se'}, {'BA_post_mean'}, {'BA_post_se'}];
+        xls_path = [paper_save_dir,  'BA_traces_', set_type_name, '.xls'];
+    elseif set_list_type == 3
+        header_row = [{'AB_pre_mean'}, {'AB_pre_se'}, {'AB_post_mean'}, {'AB_post_se'}];
+        xls_path = [paper_save_dir,  'AB_traces_', set_type_name, '.xls'];
+    else
+    end
+    
+    %writing data behind plot to file
+    [c] = write_xls_header(header_row, write_data_cols, xls_path);
+    write_data_cols = [];
+    
     
     
     %fitting an exponential decay to mean trace
@@ -607,6 +641,9 @@ for list_n = 1:size(dataset_list_paths, 1)
         
         plt_h = shadedErrorBar([], mean_trace, se_trace, {'Color', color_vecs(tr_type, :)}, 1);
         set(plt_h.edge(:), 'Color', 'none')
+        
+        write_data_cols = [write_data_cols, mean_trace, se_trace];  %logging data to write to file
+        
         if plot_diff_traces == 1
             break
         else
@@ -634,6 +671,25 @@ for list_n = 1:size(dataset_list_paths, 1)
         add_stim_bar(2, stim_frs_bar, [unpaired_color; EL_color]);  
     end
     
+    
+    if set_list_type == 0
+        header_row = [{'Ap_pre_mean'}, {'Ap_pre_se'}, {'Ap_post_mean'}, {'Ap_post_se'}];
+        xls_path = [paper_save_dir_simple,  'Ap_traces_', set_type_name, '.xls'];
+    elseif set_list_type == 1
+        header_row = [{'AAp_pre_mean'}, {'AAp_pre_se'}, {'AAp_post_mean'}, {'AAp_post_se'}];
+        xls_path = [paper_save_dir,  'AAp_traces_', set_type_name, '.xls'];
+    elseif set_list_type == 2
+        header_row = [{'BAp_pre_mean'}, {'BAp_pre_se'}, {'BAp_post_mean'}, {'BAp_post_se'}];
+        xls_path = [paper_save_dir,  'BAp_traces_', set_type_name, '.xls'];
+    elseif set_list_type == 3
+        header_row = [{'ApB_pre_mean'}, {'ApB_pre_se'}, {'ApB_post_mean'}, {'ApB_post_se'}];
+        xls_path = [paper_save_dir,  'ApB_traces_', set_type_name, '.xls'];
+    else
+    end
+    %writing data behind plot to file
+    [c] = write_xls_header(header_row, write_data_cols, xls_path);
+    write_data_cols = [];
+       
     
     %fitting an exponential decay to mean trace
     if isempty(findstr(curr_dir_list_path, 'longpulse2')) ~= 1
@@ -670,6 +726,8 @@ for list_n = 1:size(dataset_list_paths, 1)
         plt_h = shadedErrorBar([], mean_trace, se_trace, {'Color', color_vecs(tr_type, :)}, 1);
         set(plt_h.edge(:), 'Color', 'none')
         hold on
+        
+         write_data_cols = [write_data_cols, mean_trace, se_trace];  %logging data to write to file
     end
     hold off
     ylabel('EL responses (dF/F)')
@@ -686,6 +744,16 @@ for list_n = 1:size(dataset_list_paths, 1)
         add_stim_bar(3, stim_frs_bar_EL(1, :), paired_color);
     else
     end
+    
+     if set_list_type < 2
+        header_row = [{'B_pre_mean'}, {'B_pre_se'}, {'B_post_mean'}, {'B_post_se'}];
+        xls_path = [paper_save_dir,  'B_traces_', set_type_name, '.xls'];
+     else
+     end
+    %writing data behind plot to file
+    [c] = write_xls_header(header_row, write_data_cols, xls_path);
+    write_data_cols = [];
+    
     
     %plotting difference traces
     figure(8)
@@ -748,8 +816,29 @@ for list_n = 1:size(dataset_list_paths, 1)
     figure(4)
     fig_h = scattered_dot_plot_ttest(resp_mat_small, 4, 0.6, 1, 4, marker_colors, 1, col_pairs, line_colors, xlabels, 2, mean_color, 1, 0.05, 0, 1, 'force_mean');
     ylabel('response size (dF/F)');
+
     fig_wrapup(fig_h, [], [100, 120], 0.6);
     
+    write_data_cols = resp_mat_small;
+    if set_list_type == 0
+        header_row = [{'A_pre'}, {'A_post'}, {'Ap_pre'}, {'Ap_post'}, {'B_pre'}, {'B_post'}];
+        xls_path = [paper_save_dir_simple,  'resp_sizes_', set_type_name, '.xls'];
+    elseif set_list_type == 1
+        header_row = [{'ApA_pre'}, {'ApA_post'}, {'AAp_pre'}, {'AAp_post'}, {'B_pre'}, {'B_post'}];
+        xls_path = [paper_save_dir,  'resp_sizes_', set_type_name, '.xls'];
+    elseif set_list_type == 2
+        header_row = [{'BA_pre'}, {'BA_post'}, {'BAp_pre'}, {'BAp_post'}];
+        xls_path = [paper_save_dir,  'resp_sizes_', set_type_name, '.xls'];
+    elseif set_list_type == 3
+        header_row = [{'AB_pre'}, {'AB_post'}, {'ApB_pre'}, {'ApB_post'}];
+        xls_path = [paper_save_dir,  'resp_sizes_', set_type_name, '.xls'];
+    else
+    end
+    
+    %writing data behind plot to file
+    [c] = write_xls_header(header_row, write_data_cols, xls_path);
+    write_data_cols = [];
+      
     %computing post means and ses as a percentage of pre means
     mean_vals = mean(resp_mat_small, 1, 'omitnan');
     SE_vals = std(resp_mat_small, [], 1, 'omitnan')./sqrt(size(resp_mat_small, 1));
@@ -836,8 +925,27 @@ for list_n = 1:size(dataset_list_paths, 1)
     ylabel('contrast at transition (dF/F)');
     fig_wrapup(fig_h, [], [100, 80], 0.6);
     
+    write_data_cols = cscore_mat;
+    if set_list_type == 0
+        header_row = [{'A_pre'}, {'A_post'}, {'Ap_pre'}, {'Ap_post'}];
+        xls_path = [paper_save_dir_sfig,  'contrast_scores_', set_type_name, '.xls'];
+    elseif set_list_type == 1
+        header_row = [{'ApA_pre'}, {'ApA_post'}, {'AAp_pre'}, {'AAp_post'}];
+        xls_path = [paper_save_dir_sfig,  'contrast_scores_', set_type_name, '.xls'];
+    elseif set_list_type == 2
+        header_row = [{'BA_pre'}, {'BA_post'}, {'BAp_pre'}, {'BAp_post'}];
+        xls_path = [paper_save_dir_sfig,  'contrast_scores_', set_type_name, '.xls'];
+    elseif set_list_type == 3
+        header_row = [{'AB_pre'}, {'AB_post'}, {'ApB_pre'}, {'ApB_post'}];
+        xls_path = [paper_save_dir_sfig,  'contrast_scores_', set_type_name, '.xls'];
+    else
+    end
     
+    %writing data behind plot to file
+    [c] = write_xls_header(header_row, write_data_cols, xls_path);
+    write_data_cols = [];
     
+        
     %plotting individual traces
     od_type_names = [{'paired '}, {'unpaired '}];
     stim_type_names = [{'pre'}, {'post'}];
