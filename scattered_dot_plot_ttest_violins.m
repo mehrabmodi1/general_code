@@ -1,4 +1,4 @@
-function [fig_h, r_vecs_saved] = scattered_dot_plot_ttest(mat, fig_n, col_width, col_spacing, markersize, markercolor, marker_filled, with_lines, linecolor, xlabels, plot_mean, mean_color, st_test_type, p_val, coh_d, varargin)
+function [fig_h, r_vecs_saved, saved_col_centers] = scattered_dot_plot_ttest_violins(mat, fig_n, col_width, col_spacing, markersize, markercolor, marker_filled, with_lines, linecolor, xlabels, plot_mean, mean_color, st_test_type, p_val, coh_d, varargin)
 %syntax: fig_h = scattered_dot_plot_ttest(mat, fig_n, col_width, col_spacing, markersize, markercolor, marker_filled, with_lines, linecolor, xlabels, plot_mean, mean_color, st_test_type, p_val, coh_d, bar_thickness, force_means)
 %This function plots the values in each column of mat as dots separated
 %with a random scatter of width col_width and inter-column spacing as
@@ -19,9 +19,16 @@ if isempty(varargin) == 0
     force_means = varargin{2};
     if length(varargin) >= 3
         wrapup_vars = varargin{3};
+        if isempty(wrapup_vars) == 1
+            wrapup_vars{1} = [100, 120];
+            wrapup_vars{2} = 0.6;
+        else
+        end
+        mean_markersize = markersize;
     else
         wrapup_vars{1} = [100, 120];
         wrapup_vars{2} = 0.6;
+        mean_markersize = markersize;
     end    
     
     if force_means == 'force_mean'
@@ -30,17 +37,31 @@ if isempty(varargin) == 0
         force_means = 0;
     end
     
+    if length(varargin)>= 4
+        plot_pval = varargin{4};
+    else
+        plot_pval = 1;
+        mean_markersize = markersize;
+    end
+    
+    if length(varargin)>= 5
+        mean_markersize = varargin{5};
+    else
+        mean_markersize = markersize;
+    end
+    
 else
     bar_thickness = 2;
     force_means = 0;
     wrapup_vars{1} = [100, 120];
     wrapup_vars{2} = 0.6;
-    plot_labels = 1;
+    plot_pval = 1;
+    mean_markersize = markersize;
 end
 
 
 n_cols = size(mat, 2);
-violin_cutoff = 500;    %if n points in any column crosses this thresh, all columns rendered as violins
+violin_cutoff = 50;    %if n points in any column crosses this thresh, all columns rendered as violins
 if size(mat, 1) > violin_cutoff
     plot_violins = 1;
 else
@@ -69,7 +90,7 @@ if isempty(with_lines) == 0
 else
     bees_on = 1;
     col_width = 1;
-    col_spacing = 0;
+    %col_spacing = 0;
 end
    
 
@@ -89,31 +110,57 @@ if bees_on == 1
     for col_n = 1:size(mat, 2)
         st_pt = (col_n - 1).*size(mat, 1) + 1;
         stp_pt = col_n.*size(mat, 1);
-        r_mat(:, col_n) = r_vecs(st_pt:stp_pt, 1);    
+        r_mat(:, col_n) = r_vecs(st_pt:stp_pt, 1);  
     end
+    
+    %subtracting column offsets so each column ranges from 0 to 1
+    offset_vec = [1:1:size(r_mat, 2)];
+    r_mat = r_mat - repmat(offset_vec, size(r_mat, 1), 1);
+    
     clear r_vecs
 else
 end
- 
+
+%allowing different col-spacings for within vs across pair columns
+if length(col_spacing) == 1
+    col_spacing_vec = [col_spacing, col_spacing];
+else
+    col_spacing_vec = col_spacing;
+end
+
 saved_col_centers = zeros(1, n_cols);
 if isempty(with_lines) == 1
     x_vec = [];
     r_vecs_saved = [];
-        
+    
     for col_n = 1:n_cols
+        if rem(col_n, 2) == 1
+            col_spacing = col_spacing_vec(1);
+        elseif rem(col_n, 2) == 0
+            col_spacing = col_spacing_vec(2);
+        else
+        end
         curr_vec = mat(:, col_n);
-        col_center = ( (col_n-1).*(col_width + (col_spacing)) + 0.5) + col_width./2;
+        %col_center = ( (col_n-1).*(col_width + (col_spacing)) + 0.5) + col_width./2;
+        if col_n > 1
+            col_center = saved_col_centers(col_n-1) + col_spacing + (col_width./2);
+        elseif col_n == 1
+            col_center = 0 + col_spacing + (col_width./2);
+        else
+        end
+        
         saved_col_centers(col_n) = col_center;
         
         if bees_on == 1
-            r_vec = r_mat(:, col_n);        %taking x positions for each point from beeswarm generated r_mat
+            r_vec = r_mat(:, col_n).*col_width + col_center;        %taking x positions for each point from beeswarm generated r_mat
         else
-            r_vec = rand(length(curr_vec), 1).*col_width + ( (col_n-1).*(col_width + (col_spacing)) + 0.5);
+            %r_vec = rand(length(curr_vec), 1).*col_width + ( (col_n-1).*(col_width + (col_spacing)) + 0.5);
+            r_vec = rand(length(curr_vec), 1).*col_width + col_center;
         end
         
         r_vecs_saved = [r_vecs_saved, r_vec];
-        r_vec_center = 0.5.*col_width + ( (col_n-1).*(col_width + (col_spacing)) + 0.5);    %for use with a violin plot, if needed
-        
+        %r_vec_center = 0.5.*col_width + ( (col_n-1).*(col_width + (col_spacing)) + 0.5);    %for use with a violin plot, if needed
+        r_vec_center = 0.5.*col_width + col_center;    %for use with a violin plot, if needed
         if plot_violins == 1
             x_vec = [x_vec, r_vec_center];
             hold on
@@ -177,9 +224,13 @@ if isempty(with_lines) == 1
             end
             x_pos = mean(r_vec) - col_spacing.*1.2;
             y_pos = max(curr_vec) + (max(max(mat)).*0.1);
-            text(x_pos, y_pos, p_label, 'FontName', 'Arial', 'FontSize', 7.5);
-            if coh_d == 1
-                text(x_pos, (y_pos + (max(max(mat)).*0.1)), d_label, 'FontName', 'Arial', 'FontSize', 7.5);
+            
+            if plot_pval == 1
+                text(x_pos, y_pos, p_label, 'FontName', 'Arial', 'FontSize', 7.5);
+                if coh_d == 1
+                    text(x_pos, (y_pos + (max(max(mat)).*0.1)), d_label, 'FontName', 'Arial', 'FontSize', 7.5);
+                else
+                end
             else
             end
 %             text(x_pos, (y_pos + 2.*(max(max(mat)).*0.1)), dif_label);
@@ -200,14 +251,29 @@ if isempty(with_lines) == 1
     end
     
 elseif isempty(with_lines) == 0 | with_lines == 0
+    
     %generating random offsets
     r_vec = rand(size(mat, 1), 1);
     for col_n = 1:n_cols
-        col_center = ( (col_n-1).*(col_width + (col_spacing)) + 0.5) + col_width./2;
+        if rem(col_n, 2) == 1
+            col_spacing = col_spacing_vec(1);
+        elseif rem(col_n, 2) == 0
+            col_spacing = col_spacing_vec(2);
+        else
+        end
+        
+        %col_center = ( (col_n-1).*(col_width + (col_spacing)) + 0.5) + col_width./2;
+        if col_n > 1
+            col_center = saved_col_centers(col_n - 1) + col_spacing + (col_width./2);
+        elseif col_n == 1
+            col_center = 0 + col_spacing + (col_width./2);
+        else
+        end
+        
         saved_col_centers(col_n) = col_center;
         
         
-        r_vecs(:, col_n) = r_vec.*col_width + ( (col_n-1).*(col_width + (col_spacing)) + 0.5);
+        r_vecs(:, col_n) = r_vec.*col_width + col_center;
                 
         %adding p_val label
         if rem(col_n, 2) == 0
@@ -298,36 +364,46 @@ elseif isempty(with_lines) == 0 | with_lines == 0
 end
 
 %plotting mean marker
+if size(mean_color, 1) > 1
+   mean_color_vec = mean_color;
+else
+   mean_color_vec = repmat(mean_color, n_cols, 1);
+end
 if plot_mean == 1
    for col_n = 1:n_cols
-        col_center = ( (col_n-1).*(col_width + (col_spacing)) + 0.5) + col_width./2;
-        saved_col_centers(col_n) = col_center;
+        mean_color = mean_color_vec(col_n, :);
+        %col_center = ( (col_n-1).*(col_width + (col_spacing)) + 0.5) + col_width./2;
+        col_center = saved_col_centers(col_n);
+        %saved_col_centers(col_n) = col_center;
         curr_mean = mean(mat(:, col_n), 1, 'omitnan');
         curr_se = std(mat(:, col_n), 0, 1, 'omitnan')./sqrt(size(mat, 1) - sum(isnan(mat(:, col_n))));
-        errorbar(col_center, curr_mean, curr_se, 'O', 'markerSize', markersize, 'markerEdgeColor', mean_color, 'markerFaceColor', mean_color, 'Color', mean_color, 'lineWidth', bar_thickness)
+        errorbar(col_center, curr_mean, curr_se, 'O', 'markerSize', mean_markersize, 'markerEdgeColor', mean_color, 'markerFaceColor', mean_color, 'Color', mean_color, 'lineWidth', bar_thickness)
 
    end
 elseif plot_mean == 2        %plotting median and quantiles
     for col_n = 1:n_cols
-        col_center = ( (col_n-1).*(col_width + (col_spacing)) + 0.5) + col_width./2;
-        saved_col_centers(col_n) = col_center;
+        mean_color = mean_color_vec(col_n, :);
+        %col_center = ( (col_n-1).*(col_width + (col_spacing)) + 0.5) + col_width./2;
+        col_center = saved_col_centers(col_n);
+        %saved_col_centers(col_n) = col_center;
         if force_means == 0
             curr_mean = median(mat(:, col_n), 1, 'omitnan');
             curr_se_up = quantile(mat(:, col_n), 0.75, 1) - curr_mean;      %subtracting mean because errorbar needs length of bar as input, not absolute y val
             curr_se_down = curr_mean - quantile(mat(:, col_n), 0.25, 1);    %%subtracting mean because errorbar needs length of bar as input, not absolute y val
-            errorbar(col_center, curr_mean, curr_se_down, curr_se_up, 'O', 'markerSize', markersize, 'markerEdgeColor', mean_color, 'markerFaceColor', mean_color, 'Color', mean_color, 'lineWidth', bar_thickness)
+            errorbar(col_center, curr_mean, curr_se_down, curr_se_up, 'O', 'markerSize', mean_markersize, 'markerEdgeColor', mean_color, 'markerFaceColor', mean_color, 'Color', mean_color, 'lineWidth', bar_thickness)
         elseif force_means == 1
             curr_mean = mean(mat(:, col_n), 1, 'omitnan');
             curr_se = std(mat(:, col_n), 0, 1, 'omitnan')./sqrt(size(mat, 1) - sum(isnan(mat(:, col_n))));
-            errorbar(col_center, curr_mean, curr_se, 'O', 'markerSize', markersize, 'markerEdgeColor', mean_color, 'markerFaceColor', mean_color, 'Color', mean_color, 'lineWidth', bar_thickness)
+            errorbar(col_center, curr_mean, curr_se, 'O', 'markerSize', mean_markersize, 'markerEdgeColor', mean_color, 'markerFaceColor', mean_color, 'Color', mean_color, 'lineWidth', bar_thickness)
         else
         end
         
     end
 else
     for col_n = 1:n_cols
-        col_center = ( (col_n-1).*(col_width + (col_spacing)) + 0.5) + col_width./2;
-        saved_col_centers(col_n) = col_center;
+        %col_center = ( (col_n-1).*(col_width + (col_spacing)) + 0.5) + col_width./2;
+        col_center = saved_col_centers(col_n);
+        %saved_col_centers(col_n) = col_center;
     end
 end
 
@@ -340,6 +416,7 @@ ax = gca;
 ax.XTick = saved_col_centers;
 ax.XTickLabels = xlabels;
 hold off
+
 
 end
 
